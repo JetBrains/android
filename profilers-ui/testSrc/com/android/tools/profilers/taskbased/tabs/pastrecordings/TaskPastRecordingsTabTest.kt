@@ -18,7 +18,6 @@ package com.android.tools.profilers.taskbased.tabs.pastrecordings
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -135,7 +134,7 @@ class TaskPastRecordingsTabTest {
     composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()
 
     // Select the recording.
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertExists()
     composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
 
     // Make sure process selection was registered in data model.
@@ -172,7 +171,7 @@ class TaskPastRecordingsTabTest {
     composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()
 
     // Select the recording.
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertExists()
     composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
 
     // Assert the recording selection was registered.
@@ -205,7 +204,7 @@ class TaskPastRecordingsTabTest {
     composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()
 
     // Select the recording.
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertExists()
     composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
 
     // Assert the recording selection was registered.
@@ -213,16 +212,6 @@ class TaskPastRecordingsTabTest {
 
     // Assert export button is enabled as a selection of an exportable artifact is made.
     composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsEnabled()
-
-    // Click the recording again to de-select it.
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertHasClickAction()
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
-
-    // Assert that the de-selection of the recording was registered.
-    assertThat(pastRecordingsTabModel.recordingListModel.selectedRecording.value).isEqualTo(null)
-
-    // Assert export button is now disabled as the selection of an exportable artifact was revoked.
-    composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsNotEnabled()
   }
 
   @Test
@@ -248,7 +237,7 @@ class TaskPastRecordingsTabTest {
     composeTestRule.onNodeWithTag("DeleteRecordingButton").assertIsNotEnabled()
 
     // Select the recording.
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertExists()
     composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
 
     // Assert delete button is enabled as a selection of a deletable recording is made.
@@ -273,7 +262,7 @@ class TaskPastRecordingsTabTest {
     composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
 
     // Select Recording 1.
-    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertExists()
     composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
 
     // Invoke delete button is enabled as a selection of a deletable recording is made.

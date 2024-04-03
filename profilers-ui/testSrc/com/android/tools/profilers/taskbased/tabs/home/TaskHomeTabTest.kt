@@ -19,12 +19,11 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertIsSelectable
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onChildAt
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithTag
@@ -149,7 +148,7 @@ class TaskHomeTabTest {
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
 
     // Select a process.
-    composeTestRule.onAllNodesWithTag("ProcessListRow").onFirst().assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("ProcessListRow").onFirst().assertExists()
     composeTestRule.onAllNodesWithTag("ProcessListRow").onFirst().performClick()
 
     // Make sure process selection was registered in data model.
@@ -187,8 +186,8 @@ class TaskHomeTabTest {
 
     // Selection of the OFFLINE FakeDevice should populate the process list with 1, dead/static process representing the preferred process
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(1)
-    composeTestRule.onNodeWithTag("ProcessListRow").assertTextContains("com.foo.bar")
-    composeTestRule.onNodeWithTag("ProcessListRow").assertTextContains("Not running")
+    composeTestRule.onNodeWithTag("ProcessListRow").onChildAt(1).assertTextContains("com.foo.bar")
+    composeTestRule.onNodeWithTag("ProcessListRow").onChildAt(3).assertTextContains("Not running")
 
     // Make sure preferred process selection was registered in data model (preferred process should have been auto-selected)
     assertThat(taskHomeTabModel.selectedProcess.name).isEqualTo("com.foo.bar")
@@ -233,7 +232,7 @@ class TaskHomeTabTest {
     // Selection of the online FakeDevice, with no preferred process alive on device should populate the process list with 1 dead/static
     // process representing the preferred process, and another process representing the alive process populated above.
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(2)
-    composeTestRule.onNodeWithText("not.preferred.process").assertExists().assertIsDisplayed().assertIsSelectable()
+    composeTestRule.onNodeWithText("not.preferred.process").assertExists().assertIsDisplayed()
     // Select the non preferred process.
     composeTestRule.onNodeWithText("not.preferred.process").performClick()
     // Make sure process selection was registered in data model.
@@ -271,8 +270,8 @@ class TaskHomeTabTest {
 
     // Selection of the OFFLINE FakeDevice should populate the process list with 1, dead/static process representing the preferred process.
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(1)
-    composeTestRule.onNodeWithTag("ProcessListRow").assertTextContains("com.foo.bar")
-    composeTestRule.onNodeWithTag("ProcessListRow").assertTextContains("Not running")
+    composeTestRule.onNodeWithTag("ProcessListRow").onChildAt(1).assertTextContains("com.foo.bar")
+    composeTestRule.onNodeWithTag("ProcessListRow").onChildAt(3).assertTextContains("Not running")
 
     // Make sure preferred process selection was registered in data model (preferred process should have been auto-selected)
     assertThat(taskHomeTabModel.selectedProcess.name).isEqualTo("com.foo.bar")
@@ -311,8 +310,8 @@ class TaskHomeTabTest {
 
     // Selection of the OFFLINE FakeDevice should populate the process list with 1, dead/static process representing the preferred process.
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(1)
-    composeTestRule.onNodeWithTag("ProcessListRow").assertTextContains("com.foo.bar")
-    composeTestRule.onNodeWithTag("ProcessListRow").assertTextContains("Profileable")
+    composeTestRule.onNodeWithTag("ProcessListRow").onChildAt(1).assertTextContains("com.foo.bar")
+    composeTestRule.onNodeWithTag("ProcessListRow").onChildAt(3).assertTextContains("Profileable")
 
     // Make sure preferred process selection was registered in data model (preferred process should have been auto-selected)
     assertThat(taskHomeTabModel.selectedProcess.name).isEqualTo("com.foo.bar")
@@ -356,7 +355,7 @@ class TaskHomeTabTest {
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
 
     // Select the only process (the profileable process).
-    composeTestRule.onAllNodesWithTag("ProcessListRow").onFirst().assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("ProcessListRow").onFirst().assertExists()
     composeTestRule.onAllNodesWithTag("ProcessListRow").onFirst().performClick()
 
     // Make sure process selection was registered in data model.
@@ -407,7 +406,7 @@ class TaskHomeTabTest {
     assertThat(taskHomeTabModel.selectedDevice!!.name).isEqualTo("FakeDevice")
 
     // Select the only process (the profileable process).
-    composeTestRule.onAllNodesWithTag("ProcessListRow").onFirst().assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("ProcessListRow").onFirst().assertExists()
     composeTestRule.onAllNodesWithTag("ProcessListRow").onFirst().performClick()
 
     // Make sure process selection was registered in data model.
@@ -450,8 +449,8 @@ class TaskHomeTabTest {
 
     // Selection of the OFFLINE FakeDevice should populate the process list with 1, dead/static process representing the preferred process.
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(1)
-    composeTestRule.onNodeWithTag("ProcessListRow").assertTextContains("com.foo.bar")
-    composeTestRule.onNodeWithTag("ProcessListRow").assertTextContains("Not running")
+    composeTestRule.onNodeWithTag("ProcessListRow").onChildAt(1).assertTextContains("com.foo.bar")
+    composeTestRule.onNodeWithTag("ProcessListRow").onChildAt(3).assertTextContains("Not running")
 
     // Make sure preferred process selection was registered in data model (preferred process should have been auto-selected)
     assertThat(taskHomeTabModel.selectedProcess.name).isEqualTo("com.foo.bar")
@@ -493,8 +492,8 @@ class TaskHomeTabTest {
 
     // Selection of the OFFLINE FakeDevice should populate the process list with 1, dead/static process representing the preferred process.
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(1)
-    composeTestRule.onNodeWithTag("ProcessListRow").assertTextContains("com.foo.bar")
-    composeTestRule.onNodeWithTag("ProcessListRow").assertTextContains("Profileable")
+    composeTestRule.onNodeWithTag("ProcessListRow").onChildAt(1).assertTextContains("com.foo.bar")
+    composeTestRule.onNodeWithTag("ProcessListRow").onChildAt(3).assertTextContains("Profileable")
 
     // Make sure preferred process selection was registered in data model (preferred process should have been auto-selected)
     assertThat(taskHomeTabModel.selectedProcess.name).isEqualTo("com.foo.bar")

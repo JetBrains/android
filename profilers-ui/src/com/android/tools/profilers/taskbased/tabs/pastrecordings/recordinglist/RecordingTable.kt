@@ -15,21 +15,15 @@
  */
 package com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,12 +42,15 @@ import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensi
 import com.android.tools.profilers.taskbased.common.table.leftAlignedColumnText
 import com.android.tools.profilers.taskbased.common.table.rightAlignedColumnText
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
+import org.jetbrains.jewel.foundation.lazy.SelectionMode
+import org.jetbrains.jewel.foundation.lazy.items
+import org.jetbrains.jewel.foundation.lazy.rememberSelectableLazyListState
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 
 @Composable
 fun RecordingListRow(selectedRecording: SessionItem?,
-                     onRecordingSelection: (SessionItem?) -> Unit,
                      recording: SessionItem,
                      supportedTask: ProfilerTaskType) {
   Row(
@@ -67,12 +64,6 @@ fun RecordingListRow(selectedRecording: SessionItem?,
           Color.Transparent
       )
       .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
-      .selectable(
-        selected = recording == selectedRecording,
-        onClick = {
-          val newSelectedRecording = if (recording != selectedRecording) recording else null
-          onRecordingSelection(newSelectedRecording)
-        })
       .testTag("RecordingListRow")
   ) {
     leftAlignedColumnText(recording.name, rowScope = this)
@@ -99,27 +90,34 @@ fun RecordingListHeader() {
   }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionItem?, onRecordingSelection: (SessionItem?) -> Unit,
                    getSupportedTask: (SessionItem) -> ProfilerTaskType) {
-  val listState = rememberLazyListState()
+  val listState = rememberSelectableLazyListState()
 
   Box {
-    LazyColumn(
-      state = listState
+    SelectableLazyColumn (
+      state = listState,
+      selectionMode = SelectionMode.Single,
+      onSelectedIndexesChanged = {
+        // The - 1 is to account for the sticky header.
+        if (it.isNotEmpty() && recordingList[it.first() - 1] != selectedRecording) {
+          val newSelectedDeviceProcess = recordingList[it.first() - 1]
+          onRecordingSelection(newSelectedDeviceProcess)
+        }
+      }
     ) {
-      stickyHeader {
+      stickyHeader(key = Integer.MAX_VALUE) {
         RecordingListHeader()
         Divider(color = TABLE_SEPARATOR_COLOR, modifier = Modifier.fillMaxWidth(), thickness = 1.dp, orientation = Orientation.Horizontal)
       }
       items(items = recordingList) { recording ->
-        RecordingListRow(selectedRecording, onRecordingSelection, recording, getSupportedTask(recording))
+        RecordingListRow(selectedRecording, recording, getSupportedTask(recording))
       }
     }
 
     VerticalScrollbar(
-      adapter = rememberScrollbarAdapter(listState),
+      adapter = rememberScrollbarAdapter(listState.lazyListState),
       modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
     )
   }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.taskbased.tabs.home.processlist
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -25,11 +24,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,14 +43,15 @@ import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.table.leftAlignedColumnText
 import com.android.tools.profilers.taskbased.common.table.rightAlignedColumnText
+import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
+import org.jetbrains.jewel.foundation.lazy.SelectionMode
+import org.jetbrains.jewel.foundation.lazy.items
+import org.jetbrains.jewel.foundation.lazy.rememberSelectableLazyListState
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 
 @Composable
-private fun ProcessListRow(selectedProcess: Common.Process,
-                           onProcessSelection: (Common.Process) -> Unit,
-                           process: Common.Process,
-                           isPreferredProcess: Boolean) {
+private fun ProcessListRow(selectedProcess: Common.Process, process: Common.Process, isPreferredProcess: Boolean) {
   val processName = process.name
   val pid = process.pid
 
@@ -74,12 +70,6 @@ private fun ProcessListRow(selectedProcess: Common.Process,
           Color.Transparent
       )
       .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
-      .selectable(
-        selected = process == selectedProcess,
-        onClick = {
-          val newSelectedDeviceProcess = if (process != selectedProcess) process else Common.Process.getDefaultInstance()
-          onProcessSelection(newSelectedDeviceProcess)
-        })
       .testTag("ProcessListRow")
   ) {
 
@@ -119,30 +109,36 @@ private fun ProcessListHeader() {
   }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ProcessTable(processList: List<Common.Process>,
                  selectedProcess: Common.Process,
                  preferredProcessName: String?,
                  onProcessSelection: (Common.Process) -> Unit) {
-  val listState = rememberLazyListState()
+  val listState = rememberSelectableLazyListState()
 
   Box(modifier = Modifier.fillMaxSize()) {
-    LazyColumn(
-      state = listState
+    SelectableLazyColumn (
+      state = listState,
+      selectionMode = SelectionMode.Single,
+      onSelectedIndexesChanged = {
+        // The - 1 is to account for the sticky header.
+        if (it.isNotEmpty() && processList[it.first() - 1] != selectedProcess) {
+          val newSelectedDeviceProcess = processList[it.first() - 1]
+          onProcessSelection(newSelectedDeviceProcess)
+        }
+      }
     ) {
-      stickyHeader {
+      stickyHeader(key = Integer.MAX_VALUE) {
         ProcessListHeader()
         Divider(color = TABLE_SEPARATOR_COLOR, modifier = Modifier.fillMaxWidth(), thickness = 1.dp, orientation = Orientation.Horizontal)
       }
-      items(items = processList) { process ->
-        ProcessListRow(selectedProcess = selectedProcess, onProcessSelection = onProcessSelection, process = process,
-                       isPreferredProcess = (process.name == preferredProcessName))
+      items(items = processList, key = { it }) { process ->
+        ProcessListRow(selectedProcess = selectedProcess, process = process, isPreferredProcess = (process.name == preferredProcessName))
       }
     }
 
     VerticalScrollbar(
-      adapter = rememberScrollbarAdapter(listState),
+      adapter = rememberScrollbarAdapter(listState.lazyListState),
       modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
     )
   }

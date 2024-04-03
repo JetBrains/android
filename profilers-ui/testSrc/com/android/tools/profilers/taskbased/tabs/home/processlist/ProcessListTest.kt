@@ -17,7 +17,6 @@ package com.android.tools.profilers.taskbased.tabs.home.processlist
 
 
 import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -168,7 +167,7 @@ class ProcessListTest {
     assertThat(processListModel.selectedProcess.value).isEqualTo(Common.Process.getDefaultInstance())
 
     // Select first process in dropdown.
-    composeTestRule.onAllNodesWithTag("ProcessListRow")[0].assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("ProcessListRow")[0].assertExists()
     composeTestRule.onAllNodesWithTag("ProcessListRow")[0].performClick()
 
     // Assert process selection is registered in data model.
