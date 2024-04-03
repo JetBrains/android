@@ -359,23 +359,29 @@ private fun EmulatedPerformanceGroup(
   device: VirtualDevice,
   onDeviceChange: (VirtualDevice) -> Unit,
 ) {
-  GroupHeader("Emulated Performance")
+  GroupHeader("Emulated Performance", Modifier.padding(bottom = Padding.MEDIUM))
 
-  CheckboxRow(
-    "Enable multithreading",
-    device.cpuCoreCount != null,
-    onCheckedChange = {
-      val count = if (it) EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES else null
-      onDeviceChange(device.copy(cpuCoreCount = count))
-    },
-  )
+  Row(Modifier.padding(bottom = Padding.MEDIUM)) {
+    CheckboxRow(
+      "Enable multithreading",
+      device.cpuCoreCount != null,
+      onCheckedChange = {
+        val count = if (it) EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES else null
+        onDeviceChange(device.copy(cpuCoreCount = count))
+      },
+      Modifier.padding(end = Padding.MEDIUM),
+    )
 
-  Row {
-    Text("CPU cores")
+    InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+  }
+
+  Row(Modifier.padding(bottom = Padding.MEDIUM)) {
+    Text("CPU cores", Modifier.alignByBaseline().padding(end = Padding.SMALL))
     val cpuCoreCount = device.cpuCoreCount ?: 1
 
     Dropdown(
-      enabled = device.cpuCoreCount != null,
+      Modifier.alignByBaseline(),
+      device.cpuCoreCount != null,
       menuContent = {
         for (count in 1..max(1, Runtime.getRuntime().availableProcessors() / 2)) {
           selectableItem(
@@ -391,32 +397,39 @@ private fun EmulatedPerformanceGroup(
     }
   }
 
-  Row {
-    Text("Graphic acceleration")
+  Row(Modifier.padding(bottom = Padding.MEDIUM)) {
+    Text("Graphic acceleration", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
     Dropdown(
       device.graphicAcceleration,
       GRAPHIC_ACCELERATION_ITEMS,
       onSelectedItemChange = { onDeviceChange(device.copy(graphicAcceleration = it)) },
+      Modifier.alignByBaseline(),
     )
   }
 
-  Row {
-    Text("Simulated RAM")
+  Row(Modifier.padding(bottom = Padding.MEDIUM)) {
+    Text("Simulated RAM", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
     StorageCapacityField(
       device.simulatedRam,
       onValueChange = { onDeviceChange(device.copy(simulatedRam = it)) },
+      Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
     )
+
+    InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
   }
 
   Row {
-    Text("VM heap size")
+    Text("VM heap size", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
     StorageCapacityField(
       device.vmHeapSize,
       onValueChange = { onDeviceChange(device.copy(vmHeapSize = it)) },
+      Modifier.alignByBaseline().padding(end = Padding.MEDIUM),
     )
+
+    InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
   }
 }
 
