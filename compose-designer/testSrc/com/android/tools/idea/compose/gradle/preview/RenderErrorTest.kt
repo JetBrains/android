@@ -80,7 +80,7 @@ import org.junit.Test
 class RenderErrorTest {
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
-  @get:Rule val flagRule = FlagRule(StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR)
+  @get:Rule val flagRule = FlagRule(StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR)
 
   private val project: Project
     get() = projectRule.project
@@ -154,7 +154,7 @@ class RenderErrorTest {
   @Test
   fun testSceneViewWithRenderErrors() =
     runBlocking(workerThread) {
-      StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.override(true)
+      StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.override(true)
       startUiCheckForModel("PreviewWithRenderErrors")
 
       lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel
@@ -185,7 +185,7 @@ class RenderErrorTest {
   @Test
   fun testSceneViewWithRenderErrorsWithNoKeepImageOnError() =
     runBlocking(workerThread) {
-      StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.override(false)
+      StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.override(false)
       startUiCheckForModel("PreviewWithRenderErrors")
 
       lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel

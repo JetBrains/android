@@ -80,7 +80,7 @@ private fun createPreviewDesignSurfaceBuilder(
           it.setRenderingTopic(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW)
           // When the cache successful render image is enabled, the scene manager will retain
           // the last valid image even if subsequent renders fail.
-          it.setCacheSuccessfulRenderImage(StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.get())
+          it.setCacheSuccessfulRenderImage(StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get())
         }
     }
     .setDelegateDataProvider(dataProvider)

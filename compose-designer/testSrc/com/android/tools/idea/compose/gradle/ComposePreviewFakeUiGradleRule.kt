@@ -69,7 +69,7 @@ class ComposePreviewFakeUiGradleRule(
   testDataPath: String = TEST_DATA_PATH,
   kotlinVersion: String = DEFAULT_KOTLIN_VERSION,
   projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule(),
-  enableRenderQuality: Boolean = StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get(),
+  enableRenderQuality: Boolean = StudioFlags.PREVIEW_RENDER_QUALITY.get(),
 ) : ComposeGradleProjectRule(projectPath, testDataPath, kotlinVersion, projectRule) {
 
   // The logger must be initialized later since at this point the logger framework is not ready yet
@@ -94,12 +94,12 @@ class ComposePreviewFakeUiGradleRule(
     super.delegate.around(
       object : NamedExternalResource() {
         override fun before(description: Description) {
-          StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.override(enableRenderQuality)
+          StudioFlags.PREVIEW_RENDER_QUALITY.override(enableRenderQuality)
           setUpPreview()
         }
 
         override fun after(description: Description) {
-          StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.clearOverride()
+          StudioFlags.PREVIEW_RENDER_QUALITY.clearOverride()
           FastPreviewConfiguration.getInstance().resetDefault()
         }
       }
@@ -163,15 +163,15 @@ class ComposePreviewFakeUiGradleRule(
 
   fun runWithRenderQualityEnabled(runnable: suspend () -> Unit) = runBlocking {
     try {
-      if (!StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get()) {
-        StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.override(true)
+      if (!StudioFlags.PREVIEW_RENDER_QUALITY.get()) {
+        StudioFlags.PREVIEW_RENDER_QUALITY.override(true)
         // We need to set up things again to make sure that the flag change takes effect
         resetInitialConfiguration()
         withContext(AndroidDispatchers.uiThread) { fakeUi.root.validate() }
       }
       runnable()
     } finally {
-      StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.clearOverride()
+      StudioFlags.PREVIEW_RENDER_QUALITY.clearOverride()
     }
   }
 

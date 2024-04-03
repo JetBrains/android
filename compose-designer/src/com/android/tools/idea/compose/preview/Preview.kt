@@ -48,7 +48,7 @@ import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME
+import com.android.tools.idea.flags.StudioFlags.PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.modes.essentials.essentialsModeFlow
@@ -690,7 +690,7 @@ class ComposePreviewRepresentation(
     surface.zoomController.screenScalingFactor
   }
   private val qualityManager: RenderQualityManager =
-    if (StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get())
+    if (StudioFlags.PREVIEW_RENDER_QUALITY.get())
       DefaultRenderQualityManager(surface, qualityPolicy) {
         requestRefresh(type = ComposePreviewRefreshType.QUALITY)
       }
@@ -1115,9 +1115,7 @@ class ComposePreviewRepresentation(
       return
     }
     // Make sure not to allow quality change refreshes when the flag is disabled
-    if (
-      type == ComposePreviewRefreshType.QUALITY && !StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get()
-    ) {
+    if (type == ComposePreviewRefreshType.QUALITY && !StudioFlags.PREVIEW_RENDER_QUALITY.get()) {
       completableDeferred?.completeExceptionally(IllegalStateException("Not enabled"))
       return
     }
@@ -1316,7 +1314,7 @@ class ComposePreviewRepresentation(
         if (
           !composeWorkBench.isMessageBeingDisplayed &&
             (refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY ||
-              COMPOSE_PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME.get())
+              PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME.get())
         ) {
           // Only notify the preview refresh time if there are previews to show.
           val durationString =

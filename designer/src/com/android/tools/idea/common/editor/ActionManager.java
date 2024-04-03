@@ -147,7 +147,7 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
   public JComponent createErrorPanel(@NotNull SceneView sceneView) {
     return new SceneViewErrorsPanel(() -> {
       // If the flag COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR is enabled and  there is a valid image, never display the error panel.
-      if (LayoutlibSceneManagerUtilsKt.hasValidImage(sceneView) && StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.get())
+      if (LayoutlibSceneManagerUtilsKt.hasValidImage(sceneView) && StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get())
         return SceneViewErrorsPanel.Style.HIDDEN;
       if (LayoutlibSceneManagerUtilsKt.hasRenderErrors(sceneView)) return SceneViewErrorsPanel.Style.SOLID;
       return SceneViewErrorsPanel.Style.HIDDEN;

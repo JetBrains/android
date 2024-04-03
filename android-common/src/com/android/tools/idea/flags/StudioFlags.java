@@ -1195,6 +1195,35 @@ public final class StudioFlags {
     true);
   //endregion
 
+  // region Preview Common
+  private static final FlagGroup PREVIEW_COMMON = new FlagGroup(FLAGS, "preview", "Preview");
+
+  public static final Flag<Boolean> PREVIEW_RENDER_QUALITY = new BooleanFlag(
+    PREVIEW_COMMON, "render.quality", "Enable the usage of a render quality management mechanism for Preview tools",
+    "If enabled, different Previews will be rendered with different qualities according to zoom level, layout and scroll position",
+    true);
+
+  public static final Flag<Long> PREVIEW_RENDER_QUALITY_DEBOUNCE_TIME = new LongFlag(
+    PREVIEW_COMMON, "render.quality.debounce.time", "Render quality debounce time",
+    "Milliseconds to wait before adjusting the quality of Previews, after a scroll or zoom change happens",
+    100L);
+
+  public static final Flag<Integer> PREVIEW_RENDER_QUALITY_VISIBILITY_THRESHOLD = new IntFlag(
+    PREVIEW_COMMON, "render.quality.visibility.threshold", "Render quality zoom visibility threshold",
+    "When the zoom level is lower than this value, all previews will be rendered at low quality",
+    20);
+
+  public static final Flag<Boolean> PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME = new BooleanFlag(
+    PREVIEW_COMMON, "render.quality.notify.time", "Notify refresh time for render quality refreshes",
+    "If enabled, the time taken in render quality refreshes will be notified each time",
+    false);
+
+  public static final Flag<Boolean> PREVIEW_KEEP_IMAGE_ON_ERROR = new BooleanFlag(
+    PREVIEW_COMMON, "keep.image.on.error", "Keeps the last valid image after a render error",
+    "If enabled, when an error happens, the surface will keep the last valid image",
+    true);
+  //endregion
+
   //region Compose
   private static final FlagGroup COMPOSE = new FlagGroup(FLAGS, "compose", "Compose");
 
@@ -1341,31 +1370,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_SELECTION = new BooleanFlag(
     COMPOSE, "compose.preview.selection", "Enable the select/deselect interaction with Previews",
     "If enabled, Previews will be selectable, and some interactions will only be enabled for selected Previews",
-    true);
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_RENDER_QUALITY = new BooleanFlag(
-    COMPOSE, "compose.preview.render.quality", "Enable the usage of a render quality management mechanism for Compose Preview",
-    "If enabled, different Previews will be rendered with different qualities according to zoom level, layout and scroll position",
-    true);
-
-  public static final Flag<Long> COMPOSE_PREVIEW_RENDER_QUALITY_DEBOUNCE_TIME = new LongFlag(
-    COMPOSE, "compose.preview.render.quality.debounce.time", "Render quality debounce time",
-    "Milliseconds to wait before adjusting the quality of Previews, after a scroll or zoom change happens",
-    100L);
-
-  public static final Flag<Integer> COMPOSE_PREVIEW_RENDER_QUALITY_VISIBILITY_THRESHOLD = new IntFlag(
-    COMPOSE, "compose.preview.render.quality.visibility.threshold", "Render quality zoom visibility threshold",
-    "When the zoom level is lower than this value, all previews will be rendered at low quality",
-    20);
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME = new BooleanFlag(
-    COMPOSE, "compose.preview.render.quality.notify.time", "Notify refresh time for render quality refreshes",
-    "If enabled, the time taken in render quality refreshes will be notified each time",
-    false);
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR = new BooleanFlag(
-    COMPOSE, "compose.preview.keep.image.on.error", "Keeps the last valid image after a render error",
-    "If enabled, when an error happens, the surface will keep the last valid image",
     true);
 
   public static final Flag<Boolean> COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE = new BooleanFlag(

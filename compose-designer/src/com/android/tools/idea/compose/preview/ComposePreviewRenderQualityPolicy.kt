@@ -31,7 +31,7 @@ class ComposePreviewRenderQualityPolicy(val screenScalingFactorProvider: () -> D
     /** When the scale is lower than this value, then all previews are treated as not visible. */
     val scaleVisibilityThreshold: Float
       get() =
-        (StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_VISIBILITY_THRESHOLD.get() / 100f)
+        (StudioFlags.PREVIEW_RENDER_QUALITY_VISIBILITY_THRESHOLD.get() / 100f)
           .coerceAtLeast(0f)
           .coerceAtMost(1f)
 
@@ -50,7 +50,7 @@ class ComposePreviewRenderQualityPolicy(val screenScalingFactorProvider: () -> D
   private var active: Boolean = true
   override val acceptedErrorMargin = .05f // 5% error margin
   override val debounceTimeMillis: Long
-    get() = StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_DEBOUNCE_TIME.get().coerceAtLeast(1)
+    get() = StudioFlags.PREVIEW_RENDER_QUALITY_DEBOUNCE_TIME.get().coerceAtLeast(1)
 
   override fun getTargetQuality(scale: Double, isVisible: Boolean): Float {
     if (!active || !isVisible || scale * screenScalingFactorProvider() < scaleVisibilityThreshold) {
