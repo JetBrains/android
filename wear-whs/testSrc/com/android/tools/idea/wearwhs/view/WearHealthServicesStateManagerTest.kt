@@ -58,7 +58,7 @@ private val capabilities = listOf(WhsCapability(
   isStandardCapability = false,
 ))
 
-class WearHealthServicesToolWindowStateManagerTest {
+class WearHealthServicesStateManagerTest {
   companion object {
     const val TEST_MAX_WAIT_TIME_SECONDS = 5L
     const val TEST_POLLING_INTERVAL_MILLISECONDS = 100L
@@ -71,7 +71,7 @@ class WearHealthServicesToolWindowStateManagerTest {
   private val logger = WearHealthServicesEventLogger { loggedEvents.add(it) }
   private val deviceManager by lazy { FakeDeviceManager(capabilities) }
   private val stateManager by lazy {
-    WearHealthServicesToolWindowStateManagerImpl(deviceManager, logger, TEST_POLLING_INTERVAL_MILLISECONDS).also {
+    WearHealthServicesStateManagerImpl(deviceManager, logger, TEST_POLLING_INTERVAL_MILLISECONDS).also {
       it.serialNumber = "test"
       it.runPeriodicUpdates = false
     }

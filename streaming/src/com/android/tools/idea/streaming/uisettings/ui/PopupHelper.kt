@@ -73,7 +73,7 @@ internal fun showUiSettingsPopup(panel: JComponent, action: AnAction, event: AnA
  * - If [component] is in a popup itself, converts the point relative to the [displayView]
  * - Otherwise, returns the center of the button that was pressed
  */
-private fun findRelativePoint(component: JComponent, displayView: AbstractDisplayView): RelativePoint {
+fun findRelativePoint(component: JComponent, displayView: AbstractDisplayView): RelativePoint {
   return when {
     component is AbstractDisplayView -> RelativePoint.getNorthWestOf(component)
     PopupUtil.getPopupContainerFor(component) != null -> RelativePoint.getCenterOf(component).getPointOn(displayView)

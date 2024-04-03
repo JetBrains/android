@@ -21,6 +21,8 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.EVENT_TRIGGER_GROUPS
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
@@ -31,7 +33,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -46,7 +48,7 @@ import javax.swing.JLabel
 import javax.swing.JTextField
 
 @RunsInEdt
-class WearHealthServicesToolWindowTest {
+class WearHealthServicesContentPanelTest {
   companion object {
     const val TEST_MAX_WAIT_TIME_SECONDS = 5L
     const val TEST_POLLING_INTERVAL_MILLISECONDS = 100L
@@ -63,27 +65,24 @@ class WearHealthServicesToolWindowTest {
 
   private val deviceManager by lazy { FakeDeviceManager() }
   private val stateManager by lazy {
-    WearHealthServicesToolWindowStateManagerImpl(deviceManager, pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS).apply {
+    WearHealthServicesStateManagerImpl(deviceManager, pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS).apply {
       runPeriodicUpdates = true
     }
   }
-  private val toolWindow by lazy {
-    WearHealthServicesToolWindow(stateManager,
-                                 ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project),
-                                 projectRule.project).apply {
-      setSerialNumber("test")
-    }
+  private val whsPanel by lazy {
+    val uiScope: CoroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.uiThread)
+    val workerScope: CoroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
+    createWearHealthServicesPanel(stateManager, uiScope, workerScope)
   }
 
   @Before
   fun setUp() {
     Disposer.register(projectRule.testRootDisposable, stateManager)
-    Disposer.register(projectRule.testRootDisposable, toolWindow)
   }
 
   @Test
   fun `test panel screenshot matches expectation for current platform`() = runBlocking {
-    val fakeUi = FakeUi(toolWindow)
+    val fakeUi = FakeUi(whsPanel)
 
     deviceManager.setCapabilities(mapOf(
       WhsDataType.HEART_RATE_BPM to true,
@@ -119,7 +118,7 @@ class WearHealthServicesToolWindowTest {
     stateManager.setOverrideValue(deviceManager.capabilities[2], 5f)
     stateManager.applyChanges()
 
-    val fakeUi = FakeUi(toolWindow)
+    val fakeUi = FakeUi(whsPanel)
 
     fakeUi.waitForCheckbox("Heart rate", true)
     fakeUi.waitForCheckbox("Location", false)
@@ -137,7 +136,7 @@ class WearHealthServicesToolWindowTest {
 
   @Test
   fun `test override value doesn't get reformatted from int to float`() = runBlocking {
-    val fakeUi = FakeUi(toolWindow)
+    val fakeUi = FakeUi(whsPanel)
 
     deviceManager.activeExercise = true
 
@@ -155,7 +154,7 @@ class WearHealthServicesToolWindowTest {
 
   @Test
   fun `test override value allows numbers and decimals and rejects invalid text`() = runBlocking {
-    val fakeUi = FakeUi(toolWindow)
+    val fakeUi = FakeUi(whsPanel)
 
     deviceManager.activeExercise = true
 
@@ -216,7 +215,7 @@ class WearHealthServicesToolWindowTest {
 
   @Test
   fun `test panel displays the dropdown for event triggers`() = runBlocking {
-    val fakeUi = FakeUi(toolWindow)
+    val fakeUi = FakeUi(whsPanel)
     val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
     assertThat(dropDownButton).isNotNull()
     assertThat(dropDownButton.action.childrenActions).hasSize(EVENT_TRIGGER_GROUPS.size)
@@ -227,7 +226,7 @@ class WearHealthServicesToolWindowTest {
 
   @Test
   fun `test panel disables checkboxes and dropdown during an exercise`() = runBlocking<Unit> {
-    val fakeUi = FakeUi(toolWindow)
+    val fakeUi = FakeUi(whsPanel)
 
     fakeUi.waitForDescendant<ComboBox<Preset>> { it.isEnabled }
     fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Heart rate") && it.isEnabled }
@@ -242,7 +241,7 @@ class WearHealthServicesToolWindowTest {
 
   @Test
   fun `test star is only visible when changes are pending`(): Unit = runBlocking {
-    val fakeUi = FakeUi(toolWindow)
+    val fakeUi = FakeUi(whsPanel)
 
     // TODO: Remove this apply when ag/26161198 is merged
     val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
@@ -270,7 +269,7 @@ class WearHealthServicesToolWindowTest {
 
   @Test
   fun `test enabled sensors have enabled override value fields and units during exercise`() = runBlocking<Unit> {
-    val fakeUi = FakeUi(toolWindow)
+    val fakeUi = FakeUi(whsPanel)
 
     // Heart Rate
     stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], true)
@@ -286,14 +285,14 @@ class WearHealthServicesToolWindowTest {
 
   @Test
   fun `test disabled sensors have disabled override value fields and units during exercise`() = runBlocking<Unit> {
+    val fakeUi = FakeUi(whsPanel)
+
     // Heart Rate
     stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
     stateManager.setOverrideValue(WHS_CAPABILITIES[0], 50f)
     stateManager.applyChanges()
 
     deviceManager.activeExercise = true
-
-    val fakeUi = FakeUi(toolWindow)
 
     fakeUi.waitForCheckbox("Heart rate", false)
     fakeUi.waitForDescendant<JTextField> { it.text == "50.0" && it.isVisible && !it.isEnabled }

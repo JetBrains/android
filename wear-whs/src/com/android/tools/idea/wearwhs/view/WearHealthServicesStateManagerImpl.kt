@@ -25,7 +25,6 @@ import com.android.tools.idea.wearwhs.communication.ConnectionLostException
 import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceManager
 import com.android.tools.idea.wearwhs.logger.WearHealthServicesEventLogger
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,11 +47,12 @@ private const val POLLING_INTERVAL_MILLISECONDS: Long = 5000
  */
 private const val MAX_WAIT_TIME_FOR_COMMANDS_MILLISECONDS: Long = 5000
 
-internal class WearHealthServicesToolWindowStateManagerImpl(
+internal class WearHealthServicesStateManagerImpl(
   private val deviceManager: WearHealthServicesDeviceManager,
   private val eventLogger: WearHealthServicesEventLogger = WearHealthServicesEventLogger(),
-  @VisibleForTesting private val pollingIntervalMillis: Long = POLLING_INTERVAL_MILLISECONDS)
-  : WearHealthServicesToolWindowStateManager, Disposable {
+  @VisibleForTesting private val pollingIntervalMillis: Long = POLLING_INTERVAL_MILLISECONDS
+)
+  : WearHealthServicesStateManager, Disposable {
 
   override var runPeriodicUpdates = false
 

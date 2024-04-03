@@ -30,7 +30,7 @@ import org.jetbrains.annotations.PropertyKey
 /***
  * Interface for managing the state of the Wear Health Services tool window.
  */
-internal interface WearHealthServicesToolWindowStateManager {
+internal interface WearHealthServicesStateManager {
   /**
    * Capabilities of WHS.
    */

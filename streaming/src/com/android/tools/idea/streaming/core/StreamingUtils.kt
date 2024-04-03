@@ -85,7 +85,7 @@ fun ByteBuffer.putUInt(value: UInt): ByteBuffer =
  * Otherwise, returns the first found component associated with the given action belonging to
  * the Running Devices tool window.
  */
-internal fun AnActionEvent.findComponentForAction(action: AnAction): Component? =
+fun AnActionEvent.findComponentForAction(action: AnAction): Component? =
     findComponentForAction(action, RUNNING_DEVICES_TOOL_WINDOW_ID)
 
 /**
