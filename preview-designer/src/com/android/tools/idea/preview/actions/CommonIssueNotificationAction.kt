@@ -83,7 +83,7 @@ internal fun createInformationPopup(project: Project, dataContext: DataContext):
   }
 }
 
-/** [IssueNotificationAction] for Glance previews. */
+/** Common [IssueNotificationAction] that can be used for most previews. */
 class CommonIssueNotificationAction :
   IssueNotificationAction(::getStatusInfo, ::createInformationPopup), RightAlignedToolbarAction {
   override fun margins(): Insets {
