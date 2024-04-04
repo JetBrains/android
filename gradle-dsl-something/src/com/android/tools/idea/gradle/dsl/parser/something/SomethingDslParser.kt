@@ -89,18 +89,7 @@ class SomethingDslParser(
         }
 
         override fun visitFactory(psi: SomethingFactory) {
-          val name = psi.identifier.name ?: return
-          val nameElement = GradleNameElement.from(psi.identifier, this@SomethingDslParser)
-          val methodCall = GradleDslMethodCall(context, nameElement, name)
-          methodCall.psiElement = psi
-          methodCall.argumentsElement.psiElement = psi.argumentsList
-
-          psi.argumentsList?.arguments?.firstOrNull()?.accept(object : SomethingRecursiveVisitor() {
-            override fun visitLiteral(psi: SomethingLiteral) {
-              methodCall.addNewArgument(GradleDslLiteral(methodCall, psi, GradleNameElement.empty(), psi, LITERAL))
-            }
-          })
-
+          val methodCall = parseFactory(psi, context) ?: return
           context.addParsedElement(methodCall)
         }
 
@@ -111,6 +100,29 @@ class SomethingDslParser(
         }
       }
     psiFile.accept(getVisitor(dslFile, GradleNameElement.empty()))
+  }
+
+
+  fun getFunctionParametersVisitor(parentMethodCall: GradleDslMethodCall): SomethingRecursiveVisitor =
+    object : SomethingRecursiveVisitor() {
+      override fun visitLiteral(psi: SomethingLiteral) {
+        parentMethodCall.addNewArgument(GradleDslLiteral(parentMethodCall, psi, GradleNameElement.empty(), psi, LITERAL))
+      }
+      override fun visitFactory(psi: SomethingFactory) {
+        val methodCall = parseFactory(psi, parentMethodCall) ?: return
+        parentMethodCall.addNewArgument(methodCall)
+      }
+    }
+
+  private fun parseFactory(psi: SomethingFactory, parent: GradleDslElement): GradleDslMethodCall? {
+    val name = psi.identifier.name ?: return null
+    val nameElement = GradleNameElement.from(psi.identifier, this@SomethingDslParser)
+    val methodCall = GradleDslMethodCall(parent, nameElement, name)
+    methodCall.psiElement = psi
+    methodCall.argumentsElement.psiElement = psi.argumentsList
+
+    psi.argumentsList?.arguments?.firstOrNull()?.accept(getFunctionParametersVisitor(methodCall))
+    return methodCall
   }
 
 }

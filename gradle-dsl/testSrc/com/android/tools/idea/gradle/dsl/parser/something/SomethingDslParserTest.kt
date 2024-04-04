@@ -137,6 +137,16 @@ class SomethingDslParserTest : LightPlatformTestCase() {
     doTest(toml, expected)
   }
 
+  fun testFactoryMethodRecursiveArgument() {
+    val toml = """
+      androidApplication {
+        api(project(":myProject"))
+      }
+    """.trimIndent()
+    val expected = mapOf("android" to mapOf("api" to listOf(mapOf("project" to listOf(":myProject")))))
+    doTest(toml, expected)
+  }
+
   private fun doTest(text: String, expected: Map<String, Any>) {
     val somethingFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
@@ -159,8 +169,14 @@ class SomethingDslParserTest : LightPlatformTestCase() {
 
         is GradleDslMethodCall -> {
           val newList = LinkedList<Any>()
-          element.arguments.forEach { populate("", it) { _, v -> newList.add(v) } }
-            newList
+          element.arguments.forEach {
+            if (it is GradleDslMethodCall) {
+              populate(it.methodName, it) { k, v -> newList.add(mapOf<String, Any>(k to v)) }
+            }
+            else populate("", it) { _, v -> newList.add(v) }
+
+          }
+          newList
         }
 
         is GradleDslLiteral -> element.value ?: "null literal"
