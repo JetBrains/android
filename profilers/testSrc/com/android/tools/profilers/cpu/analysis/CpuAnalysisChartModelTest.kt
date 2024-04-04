@@ -15,25 +15,34 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 
 class CpuAnalysisChartModelTest {
   private lateinit var myProfilers: StudioProfilers
 
+  private val myTimer = FakeTimer()
+  private val transportService = FakeTransportService(myTimer, false)
+
+  @get:Rule
+  val grpcChannel = FakeGrpcChannel("CpuAnalysisChartModelTestChannel", transportService)
+
   @Before
   fun setUp() {
-    myProfilers = Mockito.mock(StudioProfilers::class.java, Mockito.RETURNS_DEEP_STUBS)
-    Mockito.`when`(myProfilers.ideServices).thenReturn(FakeIdeProfilerServices())
+    myProfilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), myTimer)
   }
 
   @Test

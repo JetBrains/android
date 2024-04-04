@@ -22,7 +22,11 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
@@ -35,17 +39,20 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 // TODO: Add more variation of trace files (e.g trace with no threads)
 public class CpuCaptureTest {
   private StudioProfilers myProfilers;
+  private final FakeTimer myTimer = new FakeTimer();
+
+  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuCaptureTestChannel", new FakeTransportService(myTimer));
 
   @Before
   public void setup() {
-    myProfilers = mock(StudioProfilers.class);
-    when(myProfilers.getIdeServices()).thenReturn(new FakeIdeProfilerServices());
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
   }
 
   @Test

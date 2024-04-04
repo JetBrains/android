@@ -16,24 +16,32 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 
 class CpuCaptureHandlerTest {
   private lateinit var myProfilers: StudioProfilers
 
+  private val myTimer = FakeTimer()
+  private val transportService = FakeTransportService(myTimer, false)
+
+  @get:Rule
+  val grpcChannel = FakeGrpcChannel("CpuCaptureHandlerTestChannel", transportService)
+
   @Before
   fun setUp() {
-    myProfilers = Mockito.mock(StudioProfilers::class.java, Mockito.RETURNS_DEEP_STUBS)
-    Mockito.`when`(myProfilers.ideServices).thenReturn(FakeIdeProfilerServices())
+    myProfilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), myTimer)
   }
 
   @Test
