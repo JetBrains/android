@@ -157,7 +157,7 @@ fun defaultCreateInformationPopup(project: Project, dataContext: DataContext): I
             listOf(
               ToggleFastPreviewAction(
                 fastPreviewSurfaceProvider = { dataContext ->
-                  (dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER) as? FastPreviewSurface)
+                  dataContext.findPreviewManager(FastPreviewSurface.KEY)
                 },
                 ComposePreviewEssentialsModeManager::isEssentialsModeEnabled,
               )

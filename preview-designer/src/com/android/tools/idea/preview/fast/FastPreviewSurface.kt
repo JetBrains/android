@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Disposer
@@ -44,6 +45,10 @@ interface FastPreviewSurface {
    * request could not be scheduled (e.g. the code has syntax errors).
    */
   fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult>
+
+  companion object {
+    val KEY = DataKey.create<FastPreviewSurface>("FastPreviewSurface")
+  }
 }
 
 /**

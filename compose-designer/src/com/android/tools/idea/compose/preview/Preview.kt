@@ -171,13 +171,17 @@ private val accessibilityModelUpdater: NlModel.NlModelUpdaterInterface = Accessi
  *
  * @param project the [Project] used by the current view.
  * @param composePreviewManager [ComposePreviewManager] of the Preview.
+ * @param previewFlowManager the [PreviewFlowManager] that manages flows of
+ *   [ComposePreviewElementInstance]
  * @param previewElement the [ComposePreviewElementInstance] associated to this model
+ * @param fastPreviewSurface the [FastPreviewSurface] of the preview
  */
 private class PreviewElementDataContext(
   private val project: Project,
   private val composePreviewManager: ComposePreviewManager,
   private val previewFlowManager: PreviewFlowManager<out ComposePreviewElementInstance<*>>,
   private val previewElement: ComposePreviewElementInstance<*>,
+  private val fastPreviewSurface: FastPreviewSurface,
 ) : DataContext {
   override fun getData(dataId: String): Any? =
     when (dataId) {
@@ -189,6 +193,7 @@ private class PreviewElementDataContext(
       PREVIEW_ELEMENT_INSTANCE.name -> previewElement
       CommonDataKeys.PROJECT.name -> project
       PREVIEW_VIEW_MODEL_STATUS.name -> composePreviewManager.status()
+      FastPreviewSurface.KEY.name -> fastPreviewSurface
       else -> null
     }
 }
@@ -480,6 +485,7 @@ class ComposePreviewRepresentation(
           this@ComposePreviewRepresentation,
           composePreviewFlowManager,
           previewElement,
+          this@ComposePreviewRepresentation,
         )
 
       override fun toXml(previewElement: PsiComposePreviewElementInstance) =
@@ -618,6 +624,7 @@ class ComposePreviewRepresentation(
       PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { slowId -> getSlowData(slowId) }
       CommonDataKeys.PROJECT.name -> project
       PREVIEW_VIEW_MODEL_STATUS.name -> status()
+      FastPreviewSurface.KEY.name -> this@ComposePreviewRepresentation
       else -> null
     }
   }

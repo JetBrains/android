@@ -42,6 +42,7 @@ import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.actions.getPreviewManager
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
+import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
@@ -655,6 +656,7 @@ class ComposePreviewRepresentationTest {
     assertTrue(getData(PreviewGroupManager.KEY.name) is PreviewGroupManager)
     assertTrue(getData(PreviewFlowManager.KEY.name) is PreviewFlowManager<*>)
     assertTrue(getData(PREVIEW_VIEW_MODEL_STATUS.name) is PreviewViewModelStatus)
+    assertTrue(getData(FastPreviewSurface.KEY.name) is FastPreviewSurface)
   }
 
   @Test
