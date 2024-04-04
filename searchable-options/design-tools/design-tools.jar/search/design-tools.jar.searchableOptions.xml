@@ -202,7 +202,7 @@
     <option name="options" path="ActionManager" hit="View Options" />
     <option name="view" path="ActionManager" hit="View Options" />
   </configurable>
-  <configurable id="nele.options" configurable_name="Design Tools">
+  <configurable id="nele.options" configurable_name="UI Tools">
     <option name="code" hit="Code" />
     <option name="compose" hit="Compose Preview" />
     <option name="preview" hit="Compose Preview" />
@@ -219,8 +219,6 @@
     <option name="editor" hit="Default Editor Mode" />
     <option name="mode" hit="Default Editor Mode" />
     <option name="design" hit="Design" />
-    <option name="design" hit="Design Tools" />
-    <option name="tools" hit="Design Tools" />
     <option name="drawables" hit="Drawables:" />
     <option name="enable" hit="Enable live updates" />
     <option name="live" hit="Enable live updates" />
@@ -239,6 +237,8 @@
     <option name="resource" hit="Resource Usage:" />
     <option name="usage" hit="Resource Usage:" />
     <option name="split" hit="Split" />
+    <option name="tools" hit="UI Tools" />
+    <option name="ui" hit="UI Tools" />
     <option name="preview" hit="Wear Tile Preview" />
     <option name="tile" hit="Wear Tile Preview" />
     <option name="wear" hit="Wear Tile Preview" />
