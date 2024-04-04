@@ -15,27 +15,12 @@
  */
 package com.android.tools.idea.preview.animation
 
-import com.android.tools.idea.preview.util.createToolbarWithNavigation
-import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Polygon
-import javax.swing.JComponent
 import javax.swing.JSlider
-
-/** Create [ActionToolbar] with enabled navigation. */
-fun createToolbarWithNavigation(rootComponent: JComponent, place: String, action: AnAction) =
-  createToolbarWithNavigation(rootComponent, place, listOf(action)).apply {
-    // From ActionToolbar#setMinimumButtonSize, all the toolbar buttons have 25x25 pixels by
-    // default.
-    // Set the preferred size of the
-    // toolbar to be 5 pixels more in both height and width, so it fits exactly one button plus a
-    // margin
-    component.preferredSize = JBUI.size(30, 30)
-  }
 
 /** Graphics elements corresponding to painting the inspector in [AnimationPreview]. */
 object InspectorPainter {
