@@ -24,10 +24,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
-import com.android.tools.idea.project.AndroidNotification
-import com.google.common.html.HtmlEscapers
 import com.intellij.ide.BrowserUtil
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
@@ -63,6 +60,14 @@ private sealed class AdbCommandResult {
   data class Failure(val message: String) : AdbCommandResult()
 }
 
+/** The result of trying to set the flag */
+sealed class SetFlagResult {
+  /** The flag is set. [previouslySet] is true, if the flag was already set. */
+  data class Set(val previouslySet: Boolean) : SetFlagResult()
+
+  data class Failure(val command: String, val error: String?) : SetFlagResult()
+}
+
 /**
  * Helper class that handles setting debug settings on the device via ADB.
  *
@@ -80,52 +85,25 @@ class DebugViewAttributes(
   private val adbSession: AdbSession = AdbLibService.getSession(project),
 ) {
 
-  /**
-   * Enable debug view attributes for the current process.
-   *
-   * Ignore failures since we are able to inspect the process without debug view attributes.
-   *
-   * @return true if the global attributes were changed.
-   */
-  suspend fun set(device: DeviceDescriptor): Boolean {
-    var errorMessage = ""
-    var settingsUpdated = false
-
+  /** Enable debug view attributes for the current process. */
+  suspend fun set(device: DeviceDescriptor): SetFlagResult {
     val putCommand = Command.Put(PER_DEVICE_SETTING, "1")
 
-    try {
+    return try {
       val adb = adbSession.deviceServices
       if (!shouldSetFlag(adb, device)) {
-        return false
+        return SetFlagResult.Set(true)
       }
 
-      val commandResult = executePut(adb, device, putCommand)
-      when (commandResult) {
-        AdbCommandResult.Success -> settingsUpdated = true
-        is AdbCommandResult.Failure -> errorMessage = commandResult.message
+      when (val commandResult = executePut(adb, device, putCommand)) {
+        AdbCommandResult.Success -> SetFlagResult.Set(false)
+        is AdbCommandResult.Failure ->
+          SetFlagResult.Failure(putCommand.get(), commandResult.message)
       }
     } catch (ex: Exception) {
       Logger.getInstance(DebugViewAttributes::class.java).warn(ex)
-      errorMessage = ex.message ?: ex.javaClass.simpleName
+      SetFlagResult.Failure(putCommand.get(), ex.message ?: ex.javaClass.simpleName)
     }
-
-    if (errorMessage.isNotEmpty()) {
-      // TODO: update message
-      val encoder = HtmlEscapers.htmlEscaper()
-      val text =
-        encoder.escape("Unable to set the global setting:") +
-          "<br/>" +
-          encoder.escape("\"${putCommand.setting}\"") +
-          "<br/>" +
-          encoder.escape("to: \"${putCommand.value}\"") +
-          "<br/><br/>" +
-          "Go to Developer Options on your device and enable \"View Attribute Inspection\"" +
-          "<br/><br/>" +
-          encoder.escape("Error: $errorMessage")
-      AndroidNotification.getInstance(project)
-        .showBalloon("Could not enable resolution traces", text, NotificationType.WARNING)
-    }
-    return settingsUpdated
   }
 
   private suspend fun shouldSetFlag(adb: AdbDeviceServices, device: DeviceDescriptor): Boolean {

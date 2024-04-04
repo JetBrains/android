@@ -17,21 +17,13 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbSession
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.project.AndroidNotification
 import com.google.common.truth.Truth.assertThat
-import com.intellij.notification.NotificationType
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.runBlocking
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.verify
 
 class DebugViewAttributesTest {
   @get:Rule val projectRule = ProjectRule()
@@ -40,18 +32,6 @@ class DebugViewAttributesTest {
   private val device = process.device
 
   private var adbSession = FakeAdbSession()
-
-  private lateinit var mockAndroidNotificationService: AndroidNotification
-
-  @Before
-  fun setUp() {
-    mockAndroidNotificationService = mock()
-    projectRule.project.replaceService(
-      AndroidNotification::class.java,
-      mockAndroidNotificationService,
-      projectRule.project,
-    )
-  }
 
   @Test
   fun testEnableSettingSuccess() = runBlocking {
@@ -66,7 +46,8 @@ class DebugViewAttributesTest {
       "",
     )
 
-    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device)).isTrue()
+    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device))
+      .isEqualTo(SetFlagResult.Set(false))
     assertThat(adbSession.deviceServices.shellV2Requests.size).isEqualTo(2)
     assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
       .isEqualTo("settings get global debug_view_attributes")
@@ -88,16 +69,13 @@ class DebugViewAttributesTest {
       "error",
     )
 
-    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device)).isFalse()
+    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device))
+      .isEqualTo(SetFlagResult.Failure("settings put global debug_view_attributes 1", "error"))
     assertThat(adbSession.deviceServices.shellV2Requests.size).isEqualTo(2)
     assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
       .isEqualTo("settings get global debug_view_attributes")
     assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
       .isEqualTo("settings put global debug_view_attributes 1")
-
-    // Assert that the balloon is shown.
-    verify(mockAndroidNotificationService)
-      .showBalloon(eq("Could not enable resolution traces"), any(), eq(NotificationType.WARNING))
   }
 
   @Test
@@ -113,7 +91,8 @@ class DebugViewAttributesTest {
       "",
     )
 
-    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device)).isFalse()
+    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device))
+      .isEqualTo(SetFlagResult.Set(true))
     assertThat(adbSession.deviceServices.shellV2Requests.size).isEqualTo(1)
     assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
       .isEqualTo("settings get global debug_view_attributes")
