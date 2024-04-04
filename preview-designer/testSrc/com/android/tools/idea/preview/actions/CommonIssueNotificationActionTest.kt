@@ -15,156 +15,350 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.tools.adtui.swing.getDescendant
+import com.android.tools.adtui.compose.ComposeStatus
+import com.android.tools.adtui.compose.InformationPopup
+import com.android.tools.adtui.swing.findAllDescendants
+import com.android.tools.idea.editors.fast.DisableReason
+import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.ManualDisabledReason
+import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.projectsystem.TestProjectSystem
-import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.TestActionEvent
+import com.intellij.ui.components.ActionLink
+import com.intellij.xml.util.XmlStringUtil
+import java.awt.event.InputEvent
+import java.awt.event.MouseEvent
+import javax.swing.JComponent
 import javax.swing.JLabel
-import org.junit.Assert
-import org.junit.Before
+import javax.swing.JPanel
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+
+private data class TestPreviewViewModelStatus(
+  override var isRefreshing: Boolean = false,
+  override var hasErrorsAndNeedsBuild: Boolean = false,
+  override var hasSyntaxErrors: Boolean = false,
+  override var isOutOfDate: Boolean = false,
+  override val areResourcesOutOfDate: Boolean = false,
+  override var previewedFile: PsiFile? = null,
+) : PreviewViewModelStatus
+
+/** Use this method when [CommonIssueNotificationAction] should not create a popup. */
+@Suppress("UNUSED_PARAMETER")
+private fun noPopupFactor(project: Project, dataContext: DataContext): InformationPopup =
+  throw IllegalStateException("Unexpected popup created")
 
 class CommonIssueNotificationActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private lateinit var buildManager: TestProjectSystemBuildManager
-  private val viewModelStatus =
-    object : PreviewViewModelStatus {
-      override var isRefreshing: Boolean = true
-      override var hasErrorsAndNeedsBuild: Boolean = true
-      override var hasSyntaxErrors: Boolean = true
-      override var isOutOfDate: Boolean = true
-      override val areResourcesOutOfDate: Boolean = true
-      override var previewedFile: PsiFile? = null
-    }
+  private var viewModelStatus = TestPreviewViewModelStatus()
+  private var isEssentialsModeEnabled = false
   private val dataContext = DataContext {
     when (it) {
       PREVIEW_VIEW_MODEL_STATUS.name -> viewModelStatus
+      CommonDataKeys.PROJECT.name -> projectRule.project
       else -> null
     }
   }
 
-  @Before
-  fun setUp() {
-    val projectSystem = TestProjectSystem(projectRule.project, listOf())
-    projectSystem.useInTests()
-    buildManager = projectSystem.getBuildManager() as TestProjectSystemBuildManager
-    buildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.FAILED)
+  @Test
+  fun `check simple states`() {
+    val action = CommonIssueNotificationAction({ isEssentialsModeEnabled }, ::noPopupFactor)
+    val event = TestActionEvent.createTestEvent(dataContext)
+
+    action.update(event)
+    assertEquals("Up-to-date (The preview is up to date)", event.presentation.toString())
+
+    viewModelStatus = TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true)
+    action.update(event)
+    assertEquals(
+      "Render Issues (Some problems were found while rendering the preview)",
+      event.presentation.toString(),
+    )
+
+    viewModelStatus = TestPreviewViewModelStatus(isOutOfDate = true)
+    action.update(event)
+    assertEquals("Out of date (The preview is out of date)", event.presentation.toString())
+    try {
+      FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
+      action.update(event)
+      assertEquals("Out of date (The preview is out of date)", event.presentation.toString())
+    } finally {
+      FastPreviewManager.getInstance(projectRule.project).enable()
+    }
+
+    viewModelStatus = TestPreviewViewModelStatus(hasSyntaxErrors = true)
+    action.update(event)
+    assertEquals(
+      "Paused (The preview will not update while your project contains syntax errors.)",
+      event.presentation.toString(),
+    )
+
+    viewModelStatus = TestPreviewViewModelStatus(isRefreshing = true)
+    action.update(event)
+    assertEquals("Loading... (The preview is updating...)", event.presentation.toString())
+
+    viewModelStatus = TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true)
+    action.update(event)
+    val statusInfo = getStatusInfo(projectRule.project, dataContext)!!
+    assertTrue(statusInfo.hasRefreshIcon)
+    assertEquals(ComposeStatus.Presentation.Warning, statusInfo.presentation)
+    assertEquals(
+      "Render Issues (Some problems were found while rendering the preview)",
+      event.presentation.toString(),
+    )
   }
 
   @Test
-  fun testGetStatusInfo() {
-    Assert.assertNull(getStatusInfo(projectRule.project) { null })
+  fun `check state priorities`() {
+    val action = CommonIssueNotificationAction({ isEssentialsModeEnabled }, ::noPopupFactor)
+    val event = TestActionEvent.createTestEvent(dataContext)
 
-    Assert.assertTrue(getStatusInfo(projectRule.project, dataContext) is PreviewStatus.Refreshing)
+    viewModelStatus =
+      TestPreviewViewModelStatus(
+        hasSyntaxErrors = true,
+        hasErrorsAndNeedsBuild = true,
+        isOutOfDate = true,
+      )
+    action.update(event)
+    // Syntax errors take precedence over out of date when Fast Preview is Enabled
+    assertEquals(
+      "Paused (The preview will not update while your project contains syntax errors.)",
+      event.presentation.toString(),
+    )
 
-    viewModelStatus.isRefreshing = false
+    try {
+      FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
 
-    Assert.assertEquals(PreviewStatus.OutOfDate, getStatusInfo(projectRule.project, dataContext))
+      action.update(event)
+      // Syntax errors does NOT take precedence over out of date when Fast Preview is Disabled
+      assertEquals("Out of date (The preview is out of date)", event.presentation.toString())
+    } finally {
+      FastPreviewManager.getInstance(projectRule.project).enable()
+    }
 
-    viewModelStatus.isOutOfDate = false
+    viewModelStatus =
+      TestPreviewViewModelStatus(
+        hasSyntaxErrors = true,
+        hasErrorsAndNeedsBuild = true,
+        isOutOfDate = true,
+        isRefreshing = true,
+      )
+    action.update(event)
+    assertEquals("Loading... (The preview is updating...)", event.presentation.toString())
 
-    Assert.assertEquals(PreviewStatus.NeedsBuild, getStatusInfo(projectRule.project, dataContext))
+    // Most other statuses take precedence over runtime errors
+    viewModelStatus =
+      TestPreviewViewModelStatus(
+        hasSyntaxErrors = true,
+        hasErrorsAndNeedsBuild = true,
+        isOutOfDate = true,
+        isRefreshing = true,
+      )
+    action.update(event)
+    assertEquals("Loading... (The preview is updating...)", event.presentation.toString())
 
-    buildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    viewModelStatus = TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true, isOutOfDate = true)
+    try {
+      FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
 
-    Assert.assertEquals(PreviewStatus.SyntaxError, getStatusInfo(projectRule.project, dataContext))
+      action.update(event)
+      // Syntax errors does NOT take precedence over out of date when Fast Preview is Disabled
+      assertEquals("Out of date (The preview is out of date)", event.presentation.toString())
+    } finally {
+      FastPreviewManager.getInstance(projectRule.project).enable()
+    }
 
-    viewModelStatus.hasSyntaxErrors = false
+    viewModelStatus =
+      TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true, hasSyntaxErrors = true)
+    action.update(event)
+    assertEquals(
+      "Paused (The preview will not update while your project contains syntax errors.)",
+      event.presentation.toString(),
+    )
+  }
 
-    Assert.assertEquals(PreviewStatus.RenderIssues, getStatusInfo(projectRule.project, dataContext))
+  private fun InformationPopup.labelsDescription(): String =
+    popupComponent
+      .findAllDescendants(JLabel::class.java)
+      .map { XmlStringUtil.stripHtml(it.text) }
+      .joinToString("\n")
 
-    viewModelStatus.hasErrorsAndNeedsBuild = false
+  private fun InformationPopup.linksDescription(): String =
+    popupComponent
+      .findAllDescendants(ActionLink::class.java)
+      .map { it.text.replace("\\(.*\\)".toRegex(), "(SHORTCUT)") }
+      .joinToString("\n")
 
-    Assert.assertEquals(PreviewStatus.UpToDate, getStatusInfo(projectRule.project, dataContext))
+  @Test
+  fun `check InformationPopup states`() {
+    val fastPreviewManager = projectRule.project.fastPreviewManager
+    // Default state check
+    run {
+      val popup =
+        defaultCreateInformationPopup(projectRule.project, dataContext) {
+          isEssentialsModeEnabled
+        }!!
+      assertEquals("The preview is up to date", popup.labelsDescription())
+      assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
+    }
+
+    run {
+      viewModelStatus = TestPreviewViewModelStatus(isOutOfDate = true)
+      val popup =
+        defaultCreateInformationPopup(projectRule.project, dataContext) {
+          isEssentialsModeEnabled
+        }!!
+      assertEquals("The preview is out of date", popup.labelsDescription())
+      assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
+    }
+
+    // Verify popup for an error that auto disabled the Fast Preview
+    run {
+      fastPreviewManager.disable(DisableReason("error"))
+      try {
+        viewModelStatus = TestPreviewViewModelStatus(isOutOfDate = true)
+        val popup =
+          defaultCreateInformationPopup(projectRule.project, dataContext) {
+            isEssentialsModeEnabled
+          }!!
+        assertEquals(
+          "The code might contain errors or might not work with Preview Live Edit.",
+          popup.labelsDescription(),
+        )
+        assertEquals(
+          """
+          Build & Refresh (SHORTCUT)
+          Re-enable
+          Do not disable automatically
+          View Details
+        """
+            .trimIndent(),
+          popup.linksDescription(),
+        )
+      } finally {
+        fastPreviewManager.enable()
+      }
+    }
+
+    // Verify popup when the preview is out of date and the USER has disabled Fast Preview
+    run {
+      fastPreviewManager.disable(ManualDisabledReason)
+      try {
+        viewModelStatus = TestPreviewViewModelStatus(isOutOfDate = true)
+        val popup =
+          defaultCreateInformationPopup(projectRule.project, dataContext) {
+            isEssentialsModeEnabled
+          }!!
+        assertEquals("The preview is out of date", popup.labelsDescription())
+        assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
+      } finally {
+        fastPreviewManager.enable()
+      }
+    }
+
+    // Verify refresh status
+    run {
+      viewModelStatus =
+        TestPreviewViewModelStatus(
+          isRefreshing = true,
+          isOutOfDate =
+            true, // Leaving out of date to true to verify it does not take precedence over refresh
+        )
+      val popup =
+        defaultCreateInformationPopup(projectRule.project, dataContext) {
+          isEssentialsModeEnabled
+        }!!
+      assertEquals("The preview is updating...", popup.labelsDescription())
+      assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
+    }
+
+    // Verify syntax error status
+    run {
+      viewModelStatus =
+        TestPreviewViewModelStatus(
+          hasSyntaxErrors = true,
+          isOutOfDate =
+            true, // Leaving out of date to true to verify it does not take precedence over refresh
+        )
+      val popup =
+        defaultCreateInformationPopup(projectRule.project, dataContext) {
+          isEssentialsModeEnabled
+        }!!
+      assertEquals(
+        "The preview will not update while your project contains syntax errors.",
+        popup.labelsDescription(),
+      )
+      assertEquals(
+        """
+        Build & Refresh (SHORTCUT)
+        View Problems"""
+          .trimIndent(),
+        popup.linksDescription(),
+      )
+    }
+
+    // Verify render issues status
+    run {
+      viewModelStatus = TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true)
+      val popup =
+        defaultCreateInformationPopup(projectRule.project, dataContext) {
+          isEssentialsModeEnabled
+        }!!
+      assertEquals(
+        "Some problems were found while rendering the preview",
+        popup.labelsDescription(),
+      )
+      assertEquals(
+        """
+        Build & Refresh (SHORTCUT)
+        View Problems"""
+          .trimIndent(),
+        popup.linksDescription(),
+      )
+    }
   }
 
   @Test
-  fun testCreateInformationPopup() {
-    Assert.assertNull(createInformationPopup(projectRule.project) { null })
+  fun `test popup is triggered`() {
+    val fakePopup =
+      object : InformationPopup {
+        override val popupComponent: JComponent = object : JComponent() {}
+        override var onMouseEnteredCallback: () -> Unit = {}
 
-    run {
-      val popup = createInformationPopup(projectRule.project, dataContext)
-      Assert.assertTrue(
-        popup!!
-          .popupComponent
-          .getDescendant(JLabel::class.java) { it.text.contains("The preview is updating...") }
-          .isVisible
+        override fun hidePopup() {}
+
+        override fun showPopup(disposableParent: Disposable, event: InputEvent) {}
+
+        override fun isVisible(): Boolean = false
+
+        override fun dispose() {}
+      }
+
+    var popupRequested = 0
+    val action =
+      CommonIssueNotificationAction({ isEssentialsModeEnabled }) { _, _ ->
+        popupRequested++
+        fakePopup
+      }
+    val event =
+      TestActionEvent.createTestEvent(
+        action,
+        dataContext,
+        MouseEvent(JPanel(), 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1),
       )
-    }
-
-    viewModelStatus.isRefreshing = false
-
-    run {
-      val popup = createInformationPopup(projectRule.project, dataContext)
-      Assert.assertTrue(
-        popup!!
-          .popupComponent
-          .getDescendant(JLabel::class.java) { it.text.contains("The preview is out of date") }
-          .isVisible
-      )
-    }
-
-    viewModelStatus.isOutOfDate = false
-
-    run {
-      val popup = createInformationPopup(projectRule.project, dataContext)
-      Assert.assertTrue(
-        popup!!
-          .popupComponent
-          .getDescendant(JLabel::class.java) {
-            it.text.contains("The project needs to be compiled")
-          }
-          .isVisible
-      )
-    }
-
-    buildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
-
-    run {
-      val popup = createInformationPopup(projectRule.project, dataContext)
-      Assert.assertTrue(
-        popup!!
-          .popupComponent
-          .getDescendant(JLabel::class.java) {
-            it.text.contains(
-              "The preview will not update while your project contains syntax errors"
-            )
-          }
-          .isVisible
-      )
-    }
-
-    viewModelStatus.hasSyntaxErrors = false
-
-    run {
-      val popup = createInformationPopup(projectRule.project, dataContext)
-      Assert.assertTrue(
-        popup!!
-          .popupComponent
-          .getDescendant(JLabel::class.java) {
-            it.text.contains("Some problems were found while rendering the preview")
-          }
-          .isVisible
-      )
-    }
-
-    viewModelStatus.hasErrorsAndNeedsBuild = false
-
-    run {
-      val popup = createInformationPopup(projectRule.project, dataContext)
-      Assert.assertTrue(
-        popup!!
-          .popupComponent
-          .getDescendant(JLabel::class.java) { it.text.contains("The preview is up to date") }
-          .isVisible
-      )
-    }
+    action.update(event)
+    assertEquals(0, popupRequested)
+    action.actionPerformed(event)
+    assertEquals(1, popupRequested)
   }
 }

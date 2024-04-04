@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.adtui.compose.InformationPopup
-import com.android.tools.adtui.compose.InformationPopupImpl
-import com.android.tools.adtui.compose.IssueNotificationAction
 import com.android.tools.adtui.compose.REFRESH_BUTTON
-import com.android.tools.adtui.compose.actionLink
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
@@ -27,222 +23,27 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.actions.BuildAndRefresh
+import com.android.tools.idea.preview.actions.CommonIssueNotificationAction
 import com.android.tools.idea.preview.actions.PreviewStatus
-import com.android.tools.idea.preview.actions.ReEnableFastPreview
-import com.android.tools.idea.preview.actions.ShowEventLogAction
-import com.android.tools.idea.preview.actions.ShowProblemsPanel
-import com.android.tools.idea.preview.actions.ToggleFastPreviewAction
 import com.android.tools.idea.preview.actions.findPreviewManager
-import com.android.tools.idea.preview.fast.FastPreviewSurface
-import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
-import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
-import com.android.tools.idea.projectsystem.needsBuild
+import com.android.tools.idea.preview.actions.getStatusInfo
 import com.android.tools.idea.projectsystem.requestBuild
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.LangDataKeys
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.psi.PsiFile
-import com.intellij.ui.components.AnActionLink
 import com.intellij.util.ui.JBUI
 import java.awt.Insets
-import java.lang.ref.WeakReference
-import kotlin.reflect.KFunction0
-import org.jetbrains.annotations.VisibleForTesting
-
-/** Returns the status when Fast Preview is disabled. */
-private fun getStatus(project: Project, previewStatus: PreviewViewModelStatus) =
-  when {
-    previewStatus.isRefreshing -> PreviewStatus.Refreshing()
-
-    // No Fast Preview and Preview is out of date (only when is user disabled)
-    !project.fastPreviewManager.isAutoDisabled && previewStatus.isOutOfDate ->
-      PreviewStatus.OutOfDate
-
-    // Resources are out of date. FastPreview does not help with this.
-    previewStatus.areResourcesOutOfDate -> PreviewStatus.OutOfDate
-
-    // Build/Syntax/Render errors
-    project.needsBuild -> PreviewStatus.NeedsBuild
-    previewStatus.hasSyntaxErrors -> PreviewStatus.SyntaxError
-    previewStatus.hasErrorsAndNeedsBuild -> PreviewStatus.RenderIssues
-
-    // Fast preview refresh/failures
-    project.fastPreviewManager.isAutoDisabled -> PreviewStatus.FastPreviewFailed
-    project.fastPreviewManager.isCompiling -> PreviewStatus.FastPreviewCompiling
-
-    // Up-to-date
-    else -> PreviewStatus.UpToDate
-  }
-
-/** Returns the status when Fast Preview is enabled. */
-private fun getStatusForFastPreview(project: Project, previewStatus: PreviewViewModelStatus) =
-  when {
-    previewStatus.isRefreshing -> PreviewStatus.Refreshing()
-
-    // Syntax errors take precedence
-    previewStatus.hasSyntaxErrors -> PreviewStatus.SyntaxError
-
-    // Code is out of date
-    previewStatus.isOutOfDate -> PreviewStatus.OutOfDate
-
-    // Resources are out of date. FastPreview does not help with this.
-    previewStatus.areResourcesOutOfDate -> PreviewStatus.OutOfDate
-    project.needsBuild -> PreviewStatus.NeedsBuild
-    previewStatus.hasErrorsAndNeedsBuild -> PreviewStatus.RenderIssues
-    project.fastPreviewManager.isCompiling -> PreviewStatus.FastPreviewCompiling
-
-    // Up-to-date
-    else -> PreviewStatus.UpToDate
-  }
-
-@VisibleForTesting
-internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewStatus? {
-  val previewStatus = dataContext.getData(PREVIEW_VIEW_MODEL_STATUS) ?: return null
-  val fastPreviewEnabled = project.fastPreviewManager.isEnabled
-  return if (fastPreviewEnabled) getStatusForFastPreview(project, previewStatus)
-  else getStatus(project, previewStatus)
-}
-
-private class FileProvider(dataContext: DataContext) : () -> PsiFile? {
-  private val status = WeakReference(dataContext.getData(PREVIEW_VIEW_MODEL_STATUS))
-
-  override fun invoke(): PsiFile? {
-    return status.get()?.previewedFile
-  }
-}
-
-/**
- * Creates an [InformationPopup]. The given [dataContext] will be used by the popup to query for
- * things like the current editor.
- */
-@VisibleForTesting
-fun defaultCreateInformationPopup(project: Project, dataContext: DataContext): InformationPopup? {
-  val fileProvider = FileProvider(dataContext)::invoke
-  return getStatusInfo(project, dataContext)?.let { previewStatusNotification ->
-    val isAutoDisabled =
-      previewStatusNotification is PreviewStatus.FastPreviewFailed &&
-        project.fastPreviewManager.isAutoDisabled
-
-    with(dataContext) {
-      val linksList =
-        listOfNotNull(
-          createTitleActionLink(fileProvider),
-          createErrorsActionLink(previewStatusNotification),
-          createReenableFastPreviewActionLink(isAutoDisabled),
-          createDisableFastPreviewActionLink(isAutoDisabled),
-          createFastPreviewFailedActionLink(previewStatusNotification),
-        )
-      return@let InformationPopupImpl(
-          title = null,
-          description = previewStatusNotification.description,
-          additionalActions =
-            listOf(
-              ToggleFastPreviewAction(
-                fastPreviewSurfaceProvider = { dataContext ->
-                  dataContext.findPreviewManager(FastPreviewSurface.KEY)
-                },
-                ComposePreviewEssentialsModeManager::isEssentialsModeEnabled,
-              )
-            ),
-          links = linksList,
-        )
-        .also { newPopup ->
-          // Register the data provider of the popup to be the same as the one used in the toolbar.
-          // This allows for actions within the popup to query for things like the Editor even
-          // when the Editor is not directly related to the popup.
-          // We ensure that only EDT safe requests are passed to the dataContext and others are
-          // simply not returned. If, for example, a PSI request is made, the caller will make sure
-          // to first grab the BGT_DATA_PROVIDER and then send the request. The BGT_DATA_PROVIDER
-          // will respond to any requests since it's safe from the threading perspective.
-          DataManager.registerDataProvider(newPopup.popupComponent) { dataId ->
-            return@registerDataProvider when (dataId) {
-              PlatformCoreDataKeys.BGT_DATA_PROVIDER.name ->
-                DataProvider { dataContext.getData(it) }
-              PlatformCoreDataKeys.PROJECT.name,
-              PlatformCoreDataKeys.MODULE.name,
-              PlatformCoreDataKeys.EDITOR.name,
-              PlatformCoreDataKeys.CONTEXT_COMPONENT.name,
-              PlatformCoreDataKeys.FILE_EDITOR.name -> dataContext.getData(dataId)
-              else -> null
-            }
-          }
-        }
-    }
-  }
-}
-
-private fun DataContext.createFastPreviewFailedActionLink(
-  previewStatusNotification: PreviewStatus
-): AnActionLink? =
-  previewStatusNotification
-    .takeIf { it is PreviewStatus.FastPreviewFailed }
-    ?.let {
-      actionLink(
-        text = message("fast.preview.disabled.notification.show.details.action.title"),
-        action = ShowEventLogAction(),
-        delegateDataContext = this,
-      )
-    }
-
-private fun DataContext.createDisableFastPreviewActionLink(isAutoDisabled: Boolean): AnActionLink? =
-  isAutoDisabled
-    .takeIf { it }
-    ?.let {
-      actionLink(
-        text = message("fast.preview.disabled.notification.stop.autodisable.action.title"),
-        action = ReEnableFastPreview(false),
-        delegateDataContext = this,
-      )
-    }
-
-private fun DataContext.createReenableFastPreviewActionLink(
-  isAutoDisabled: Boolean
-): AnActionLink? =
-  isAutoDisabled
-    .takeIf { it }
-    ?.let {
-      actionLink(
-        text = message("fast.preview.disabled.notification.reenable.action.title"),
-        action = ReEnableFastPreview(),
-        delegateDataContext = this,
-      )
-    }
-
-private fun DataContext.createErrorsActionLink(it: PreviewStatus): AnActionLink? =
-  when (it) {
-    is PreviewStatus.SyntaxError,
-    PreviewStatus.RenderIssues ->
-      actionLink(message("action.view.problems"), ShowProblemsPanel(), this)
-    else -> null
-  }
-
-private fun DataContext.createTitleActionLink(fileProvider: KFunction0<PsiFile?>): AnActionLink =
-  actionLink(
-    text =
-      message("action.build.and.refresh.title").replace("&&", "&") +
-        getBuildAndRefreshShortcut().asString(),
-    // Remove any ampersand escaping for tooltips (not needed in these links)
-    action = BuildAndRefresh(fileProvider),
-    delegateDataContext = this,
-  )
 
 /**
  * Action that reports the current state of the Compose Preview.
@@ -251,11 +52,9 @@ private fun DataContext.createTitleActionLink(fileProvider: KFunction0<PsiFile?>
  * - State of Live Edit or preview out of date if Live Edit is disabled
  * - Syntax errors
  */
-class PreviewIssueNotificationAction(
-  parentDisposable: Disposable,
-  createInformationPopup: (Project, DataContext) -> InformationPopup? =
-    ::defaultCreateInformationPopup,
-) : IssueNotificationAction(::getStatusInfo, createInformationPopup), RightAlignedToolbarAction {
+class PreviewIssueNotificationAction(parentDisposable: Disposable) :
+  CommonIssueNotificationAction(ComposePreviewEssentialsModeManager::isEssentialsModeEnabled),
+  RightAlignedToolbarAction {
 
   init {
     Disposer.register(parentDisposable, this)

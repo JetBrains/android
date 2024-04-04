@@ -39,6 +39,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepres
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.actions.WearTileViewControlAction
+import com.android.tools.idea.wear.preview.essentials.WearTilePreviewEssentialsModeManager
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -70,7 +71,7 @@ internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarAction
   }
 
   override fun getNorthEastGroup(): ActionGroup =
-    DefaultActionGroup(listOf(CommonIssueNotificationAction()))
+    DefaultActionGroup(listOf(CommonIssueNotificationAction(WearTilePreviewEssentialsModeManager::isEssentialsModeEnabled)))
 }
 
 /** Provider of the [PreviewRepresentation] for Wear Tile code primitives. */
