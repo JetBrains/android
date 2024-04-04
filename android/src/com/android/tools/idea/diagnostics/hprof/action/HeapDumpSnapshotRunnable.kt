@@ -21,6 +21,7 @@ import com.android.tools.idea.diagnostics.hprof.analysis.LiveInstanceStats
 import com.android.tools.idea.diagnostics.report.HeapReportProperties
 import com.android.tools.idea.diagnostics.report.MemoryReportReason
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.HeapReportConfig
 import com.android.tools.idea.ui.GuiTestingService
@@ -144,7 +145,7 @@ class HeapDumpSnapshotRunnable(
         return false
       }
 
-      var minHeapSizeThreshold = if (ApplicationManager.getApplication().isEAP) MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB else -1
+      var minHeapSizeThreshold = if (StudioFlags.ENABLE_HEAP_REPORT_DIAGNOSTICS_DEFAULT.get()) MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB else -1
       val heapReportConfig = ServerFlagService.instance.getProtoOrNull("diagnostics/heap_reports", HeapReportConfig.getDefaultInstance())
       if (heapReportConfig != null) {
         minHeapSizeThreshold = heapReportConfig.minUsedMemoryMb.toInt()

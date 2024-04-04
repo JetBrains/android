@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.13.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.13.0-dev">
+<issues format="6" by="lint 9.0.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="9.0.0-dev">
 
     <issue
         id="ApplicationManagerIsEap"
@@ -43,17 +43,6 @@
             file="src/com/android/tools/idea/diagnostics/DiagnosticReportBuilder.java"
             line="47"
             column="60"/>
-    </issue>
-
-    <issue
-        id="ApplicationManagerIsEap"
-        message="Do not use `com.intellij.openapi.application.Application.isEap`. `Application.isEap` depends on the underlying intellij platform prebuilt, rather than the version of Studio released. Instead, consider using a StudioFlag.`"
-        errorLine1="      var minHeapSizeThreshold = if (ApplicationManager.getApplication().isEAP) MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB else -1"
-        errorLine2="                                                                         ~~~~~">
-        <location
-            file="src/com/android/tools/idea/diagnostics/hprof/action/HeapDumpSnapshotRunnable.kt"
-            line="147"
-            column="74"/>
     </issue>
 
     <issue
@@ -338,7 +327,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/model/MergedManifestInfo.java"
-            line="417"
+            line="423"
             column="9"/>
     </issue>
 

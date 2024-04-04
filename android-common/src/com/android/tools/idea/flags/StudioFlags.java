@@ -16,6 +16,7 @@
 package com.android.tools.idea.flags;
 
 import com.android.flags.BooleanFlag;
+import com.android.flags.DebugFlag;
 import com.android.flags.EnumFlag;
 import com.android.flags.Flag;
 import com.android.flags.FlagGroup;
@@ -206,6 +207,10 @@ public final class StudioFlags {
 
   //region Memory Usage Reporting
   private static final FlagGroup MEMORY_USAGE_REPORTING = new FlagGroup(FLAGS, "memory.usage.reporting", "Memory Usage Reporting");
+
+  public static final Flag<Boolean> ENABLE_HEAP_REPORT_DIAGNOSTICS_DEFAULT = new DebugFlag(
+    MEMORY_USAGE_REPORTING, "enable.heap.report.diagnostics", "Enable heap report monitoring by default",
+    "If enabled, heap reports will be enabled even if the server flag for collecting them was not available.");
 
   public static final Flag<Boolean> USE_DISPOSER_TREE_REFERENCES = new BooleanFlag(
     MEMORY_USAGE_REPORTING, "use.disposer.tree.references", "Memory report collection traversal will use disposer tree reference.",
