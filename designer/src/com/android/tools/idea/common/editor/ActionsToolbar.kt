@@ -102,7 +102,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     northEastToolbar =
       createActionToolbar("NlRhsConfigToolbar", surface, toolbarActionGroups!!.northEastGroup)
         .apply {
-          this.setReservePlaceAutoPopupIcon(false)
+          this.isReservePlaceAutoPopupIcon = false
           this.component.name = "NlRhsConfigToolbar"
           this.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
         }
