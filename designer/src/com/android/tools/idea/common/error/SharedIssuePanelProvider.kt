@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanelProvider
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
@@ -40,14 +39,13 @@ class SharedIssuePanelProvider(private val project: Project) : ProblemsViewPanel
     )
   }
 
-  @WorkerThread
-  private fun getEmptyMessage(): String {
+  private suspend fun getEmptyMessage(): String {
     val files = FileEditorManager.getInstance(project).selectedEditors.mapNotNull { it.file }
     if (files.isEmpty()) {
       return "No problems found"
     }
 
-    val psiFiles = runReadAction { files.mapNotNull { it.toPsiFile(project) } }
+    val psiFiles = readAction { files.mapNotNull { it.toPsiFile(project) } }
     val fileNameString = files.joinToString { it.name }
     return if (
       psiFiles.size == files.size && psiFiles.all { LayoutFileType.isResourceTypeOf(it) }

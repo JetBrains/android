@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -81,7 +80,7 @@ class DesignerCommonIssuePanel(
   private val tabId: String,
   nodeFactoryProvider: () -> NodeFactory,
   issueFilter: DesignerCommonIssueProvider.Filter,
-  @WorkerThread private val emptyMessageProvider: () -> String,
+  private val emptyMessageProvider: suspend () -> String,
   private val onContentPopulated: (Content) -> Unit = {},
 ) : SimpleToolWindowPanel(vertical), ProblemsViewTab, Disposable {
 
