@@ -307,8 +307,22 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     // Set boxes, styles and categories model.
     setStylesBoxModel();
     setCategoriesBoxModel(0);
-    myStylesBox.setSelectedIndex(0);
-    myCategoriesBox.setSelectedIndex(0);
+
+    if (myStylesBox.getItemCount() > 0) {
+      myStylesBox.setSelectedIndex(0);
+      myStylesBox.setVisible(true);
+    }
+    else {
+      myStylesBox.setVisible(false);
+    }
+
+    if (myCategoriesBox.getItemCount() > 0) {
+      myCategoriesBox.setSelectedIndex(0);
+      myCategoriesBox.setVisible(true);
+    }
+    else {
+      myCategoriesBox.setVisible(false);
+    }
 
     if (shouldUpdateIconList) {
       updateIconList();
@@ -337,10 +351,16 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
    * @param styleIndex The index that corresponds to a style in the {@link MaterialVdIcons#getStyles()} array
    */
   private void setCategoriesBoxModel(int styleIndex) {
-    ArrayList<String> categoriesArray = Arrays.stream(myIcons.getCategories(myIcons.getStyles()[styleIndex]))
+    String[] allStyles = myIcons.getStyles();
+    String style = styleIndex < allStyles.length ? myIcons.getStyles()[styleIndex] : "";
+    ArrayList<String> categoriesArray = Arrays.stream(myIcons.getCategories(style))
       .map((categoryName) -> categoryName.equals("av") ? "Audio/Video" : StringUtil.capitalize(categoryName))
       .collect(Collectors.toCollection(ArrayList::new));
-    categoriesArray.add(0, "All");
+
+    boolean hasCategories = !categoriesArray.isEmpty();
+    if (hasCategories) {
+      categoriesArray.add(0, "All");
+    }
     myCategoriesBox.setModel(new CollectionComboBoxModel<String>(categoriesArray, null));
   }
 

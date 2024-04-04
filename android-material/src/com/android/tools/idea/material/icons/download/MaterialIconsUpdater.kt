@@ -73,6 +73,7 @@ fun updateIconsAtDir(existingMetadata: MaterialIconsMetadata, newMetadata: Mater
 
   val updateData = getIconsUpdateData(existingMetadata, newMetadata)
   if (updateData.isEmpty()) {
+    log.info("No icons metadata update needed")
     return
   }
 
