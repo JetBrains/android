@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionablePanel
@@ -27,6 +28,7 @@ import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.margin
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
@@ -47,6 +49,7 @@ import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
+import kotlinx.coroutines.launch
 
 /** Distance between the bottom bound of model name and top bound of SceneView. */
 @SwingCoordinate private const val TOP_BAR_BOTTOM_MARGIN = 3
@@ -101,6 +104,7 @@ data class LayoutData(
  * coordinates of the [SceneView] and can be used to paint Swing elements on top of the [SceneView].
  */
 class SceneViewPeerPanel(
+  val parentDisposable: Disposable,
   val sceneView: SceneView,
   private val labelPanel: LabelPanel,
   private val sceneViewStatusIconAction: AnAction?,
@@ -110,6 +114,14 @@ class SceneViewPeerPanel(
   sceneViewRightBar: JComponent?,
   private val sceneViewErrorsPanel: JComponent?,
 ) : JPanel(), PositionablePanel, DataProvider {
+
+  val scope = AndroidCoroutineScope(parentDisposable)
+
+  init {
+    scope.launch {
+      sceneView.sceneManager.model.organizationGroup?.isOpened?.collect { invalidate() }
+    }
+  }
 
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
@@ -495,7 +507,8 @@ class SceneViewPeerPanel(
   }
 
   override fun isVisible(): Boolean {
-    return sceneView.isVisible
+    return sceneView.isVisible &&
+      sceneView.sceneManager.model.organizationGroup?.isOpened?.value ?: true
   }
 
   override fun getData(dataId: String): Any? {
