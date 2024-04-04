@@ -30,16 +30,6 @@ internal fun compile(file: PsiFile, irClassCache: MutableIrClassCache = MutableI
   return compile(listOf(LiveEditCompilerInput(ktFile, psiState)), irClassCache)
 }
 
-internal fun compile(vararg files: PsiFile, irClassCache: MutableIrClassCache = MutableIrClassCache()) : LiveEditCompilerOutput {
-  return compile( files.map { LiveEditCompilerInput(it as KtFile, it) }, irClassCache)
-}
-
-internal fun compile(file: PsiFile?, functionName: String, irClassCache: MutableIrClassCache = MutableIrClassCache()) =
-  compile(file!!, findFunction(file, functionName), irClassCache)
-
-internal fun compile(file: PsiFile, function: KtNamedFunction, irClassCache: MutableIrClassCache = MutableIrClassCache()) =
-  compile(listOf(LiveEditCompilerInput(file, function)), irClassCache)
-
 internal fun compile(inputs: List<LiveEditCompilerInput>, irClassCache: IrClassCache = MutableIrClassCache()): LiveEditCompilerOutput {
   val compiler = LiveEditCompiler(inputs.first().file.project, irClassCache)
   return compile(inputs, compiler)
@@ -59,13 +49,6 @@ internal fun compile(inputs: List<LiveEditCompilerInput>, compiler: LiveEditComp
     output = compiler.compile(inputs).get().compilerOutput
   }
   return output
-}
-
-/**
- * Look for the first named function with a given name.
- */
-internal fun findFunction(file: PsiFile?, name: String): KtNamedFunction {
-  return findFirst(file) { it.name?.contains(name) ?: false }
 }
 
 internal inline fun <reified T : PsiElement> findFirst(file: PsiFile?, crossinline match: (T) -> Boolean): T {

@@ -32,6 +32,7 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.MutableIrClassCache
+import com.android.tools.idea.run.deployment.liveedit.PsiState
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.util.toIoFile
@@ -65,8 +66,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
@@ -288,17 +287,11 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val irCache = MutableIrClassCache()
     val deviceCompilations = AtomicLong(0)
     val deviceThread = thread {
-      val function = runReadAction {
-        psiMainFile.collectDescendantsOfType<KtNamedFunction>().first {
-          it.name?.contains("TwoElementsPreview") ?: false
-        }
-      }
-
       startCountDownLatch.await()
       while (compile) {
         try {
           LiveEditCompiler(projectRule.project, irCache)
-            .compile(listOf(LiveEditCompilerInput(psiMainFile, function)))
+            .compile(listOf(LiveEditCompilerInput(psiMainFile, PsiState(psiMainFile))))
           deviceCompilations.incrementAndGet()
         } catch (e: LiveEditUpdateException) {
           Logger.getInstance(FastPreviewManagerGradleTest::class.java)

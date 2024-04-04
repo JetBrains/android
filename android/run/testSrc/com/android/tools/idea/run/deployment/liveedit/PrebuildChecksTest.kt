@@ -17,7 +17,6 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFile
 import junit.framework.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -46,30 +45,6 @@ class PrebuildChecksTest {
       Assert.fail("Expecting Exception")
     } catch (e : LiveEditUpdateException) {
       Assert.assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_BUILD_SRC_CHANGE, e.error)
-    }
-  }
-
-  @Test
-  fun bailOnJavaSrc() {
-    var file = projectRule.fixture.addFileToProject(
-      "i/am/a/java/File.java", "")
-    try {
-      checkUnsupportedPsiEvents(EditEvent(file, origin = null, unsupportedPsiEvent = UnsupportedPsiEvent.NON_KOTLIN))
-      Assert.fail("Expecting Exception")
-    } catch (e : LiveEditUpdateException) {
-      Assert.assertEquals(LiveEditUpdateException.Error.NON_KOTLIN, e.error)
-    }
-  }
-
-  @Test
-  fun bailOnXmlSrc() {
-    var file = projectRule.fixture.addFileToProject(
-      "i/am/a/java/File.XML", "")
-    try {
-      checkUnsupportedPsiEvents(EditEvent(file, origin = null, unsupportedPsiEvent = UnsupportedPsiEvent.NON_KOTLIN))
-      Assert.fail("Expecting Exception")
-    } catch (e : LiveEditUpdateException) {
-      Assert.assertEquals(LiveEditUpdateException.Error.NON_KOTLIN, e.error)
     }
   }
 }

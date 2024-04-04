@@ -184,8 +184,8 @@ public class LiveEditProjectMonitor implements Disposable {
 
   private final DeviceEventWatcher deviceWatcher = new DeviceEventWatcher();
 
-  // In manual mode, we buffer events until user triggers a LE push.
-  private final ArrayList<EditEvent> bufferedEvents = new ArrayList<>();
+  // In manual mode, we buffer files until user triggers a LE push.
+  private final ArrayList<PsiFile> bufferedFiles = new ArrayList<>();
 
   // For every files a user modify, we keep track of whether we were able to successfully compile it. As long as one file has an error,
   // LE status remains in Paused state.
@@ -207,7 +207,7 @@ public class LiveEditProjectMonitor implements Disposable {
   private final LiveEditAdbEventsListener adbEventsListener;
 
   // Care should be given when modifying this field to preserve atomicity.
-  private final ConcurrentLinkedQueue<EditEvent> changedMethodQueue = new ConcurrentLinkedQueue<>();
+  private final ConcurrentLinkedQueue<PsiFile> changedFileQueue = new ConcurrentLinkedQueue<>();
 
   private final ConcurrentHashMap<PsiFile, PsiState> psiSnapshots = new ConcurrentHashMap<>();
 
@@ -241,7 +241,7 @@ public class LiveEditProjectMonitor implements Disposable {
   }
 
   public void resetState() {
-    bufferedEvents.clear();
+    bufferedFiles.clear();
     filesWithCompilationErrors.clear();
     compiler.resetState();
     hasLoggedSinceReset = false;
@@ -269,12 +269,12 @@ public class LiveEditProjectMonitor implements Disposable {
   }
 
   private void processQueuedChanges() {
-    if (changedMethodQueue.isEmpty()) {
+    if (changedFileQueue.isEmpty()) {
       return;
     }
 
-    List<EditEvent> copy = new ArrayList<>();
-    changedMethodQueue.removeIf(e -> {
+    List<PsiFile> copy = new ArrayList<>();
+    changedFileQueue.removeIf(e -> {
       copy.add(e);
       return true;
     });
@@ -282,7 +282,7 @@ public class LiveEditProjectMonitor implements Disposable {
     updateEditableStatus(LiveEditStatus.InProgress.INSTANCE);
 
     if (!handleChangedMethods(project, copy)) {
-      changedMethodQueue.addAll(copy);
+      changedFileQueue.addAll(copy);
       mainThreadExecutor.schedule(this::processQueuedChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(),
                                   TimeUnit.MILLISECONDS);
     }
@@ -292,7 +292,7 @@ public class LiveEditProjectMonitor implements Disposable {
   public void dispose() {
     // Don't leak deviceWatcher in our ADB bridge listeners.
     adbEventsListener.removeListener(deviceWatcher);
-    changedMethodQueue.clear();
+    changedFileQueue.clear();
     liveEditDevices.clear();
     deviceWatcher.clearListeners();
     mainThreadExecutor.shutdownNow();
@@ -424,7 +424,7 @@ public class LiveEditProjectMonitor implements Disposable {
         return;
       }
 
-      changedMethodQueue.add(new EditEvent(psiFile, null, new ArrayList<>(), new ArrayList<>()));
+      changedFileQueue.add(psiFile);
 
       if (ProjectSystemUtil.getProjectSystem(project).getSyncManager().isSyncNeeded() || intermediateSyncs.get()) {
         updateEditStatus(LiveEditStatus.SyncNeeded.INSTANCE);
@@ -479,27 +479,27 @@ public class LiveEditProjectMonitor implements Disposable {
 
     // If user to trigger a LE push twice in a row with compilation errors, the second trigger would set the state to "synced" even
     // though the compilation error prevented a push on the first trigger
-    if (bufferedEvents.isEmpty()) {
+    if (bufferedFiles.isEmpty()) {
       return;
     }
 
     updateEditableStatus(LiveEditStatus.InProgress.INSTANCE);
 
-    while(!processChanges(project, bufferedEvents,
+    while(!processChanges(project, bufferedFiles,
                           LiveEditService.isLeTriggerOnSave() ? LiveEditEvent.Mode.ON_SAVE : LiveEditEvent.Mode.MANUAL)) {
         LOGGER.info("ProcessChanges was interrupted");
     }
-    bufferedEvents.clear();
+    bufferedFiles.clear();
   }
 
   @Trace
-  boolean handleChangedMethods(Project project, List<EditEvent> changes) {
+  boolean handleChangedMethods(Project project, List<PsiFile> changedFiles) {
     LOGGER.info("Change detected for project %s targeting app %s", project.getName(), applicationId);
 
     // In manual mode, we store changes and update status but defer processing.
     if (LiveEditService.Companion.isLeTriggerManual()) {
-      if (bufferedEvents.size() < 2000) {
-        bufferedEvents.addAll(changes);
+      if (bufferedFiles.size() < 2000) {
+        bufferedFiles.addAll(changedFiles);
         updateEditableStatus(LiveEditStatus.OutOfDate.INSTANCE);
       } else {
         // Something is wrong. Discard event otherwise we will run Out Of Memory
@@ -509,14 +509,14 @@ public class LiveEditProjectMonitor implements Disposable {
       return true;
     }
 
-    return processChanges(project, changes, LiveEditEvent.Mode.AUTO);
+    return processChanges(project, changedFiles, LiveEditEvent.Mode.AUTO);
   }
 
   // Allows calling processChanges correctly on the main thread executor from a test context, to prevent hacks/concurrency bugs
   // that only appear in tests due to incorrectly calling processChanges on a thread other than the executor.
   @VisibleForTesting
-  boolean processChangesForTest(Project project, List<EditEvent> changes, LiveEditEvent.Mode mode) throws Exception {
-    return mainThreadExecutor.submit(() -> processChanges(project, changes, mode)).get();
+  boolean processChangesForTest(Project project, List<PsiFile> changedFiles, LiveEditEvent.Mode mode) throws Exception {
+    return mainThreadExecutor.submit(() -> processChanges(project, changedFiles, mode)).get();
   }
 
   // Waits for the LE main thread to complete all previously scheduled work. Not perfectly reliable due to retry logic, and the
@@ -531,7 +531,7 @@ public class LiveEditProjectMonitor implements Disposable {
   /**
    * @return true is the changes were successfully processed (without being interrupted). Otherwise, false.
    */
-  private boolean processChanges(Project project, List<EditEvent> changes, LiveEditEvent.Mode mode) {
+  private boolean processChanges(Project project, List<PsiFile> changedFiles, LiveEditEvent.Mode mode) {
     LiveEditEvent.Builder event = LiveEditEvent.newBuilder().setMode(mode);
 
     long start = System.nanoTime();
@@ -541,18 +541,18 @@ public class LiveEditProjectMonitor implements Disposable {
 
     PsiDocumentManager psiManager = PsiDocumentManager.getInstance(project);
     try {
-      prebuildChecks(project, changes);
+      prebuildChecks(project, changedFiles);
 
       List<LiveEditCompilerInput> inputs = new ArrayList<>();
-      for (EditEvent change : changes) {
+      for (PsiFile file : changedFiles) {
         // The PSI might not update immediately after a file is edited. Interrupt until all changes are committed to the PSI.
-        Document doc = psiManager.getDocument(change.getFile());
+        Document doc = psiManager.getDocument(file);
         if (doc != null && psiManager.isUncommited(doc)) {
           return false;
         }
 
-        PsiState state = psiSnapshots.get(change.getFile());
-        inputs.add(new LiveEditCompilerInput(change.getFile(), state, null, null));
+        PsiState state = psiSnapshots.get(file);
+        inputs.add(new LiveEditCompilerInput(file, state));
       }
 
       compiled = compiler.compile(inputs, !LiveEditService.isLeTriggerManual(), getDevicesApiLevels());
@@ -561,8 +561,8 @@ public class LiveEditProjectMonitor implements Disposable {
       }
 
       // Remove files successfully compiled from the error set.
-      for (EditEvent change : changes) {
-        filesWithCompilationErrors.remove(change.getFile().getName());
+      for (PsiFile file : changedFiles) {
+        filesWithCompilationErrors.remove(file.getName());
       }
     } catch (LiveEditUpdateException e) {
       boolean recoverable = e.getError().getRecoverable();
@@ -574,8 +574,8 @@ public class LiveEditProjectMonitor implements Disposable {
                            LiveEditStatus.createRerunnableErrorStatus(errorMessage(e)));
 
       if (recoverable) {
-        for (EditEvent change : changes) {
-          filesWithCompilationErrors.add(change.getFile().getName());
+        for (PsiFile file : changedFiles) {
+          filesWithCompilationErrors.add(file.getName());
         }
       }
 

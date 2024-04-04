@@ -24,10 +24,8 @@ import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.DeployableToDevice
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.deployment.liveedit.DefaultApkClassProvider
-import com.android.tools.idea.run.deployment.liveedit.EditEvent
 import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditNotifications

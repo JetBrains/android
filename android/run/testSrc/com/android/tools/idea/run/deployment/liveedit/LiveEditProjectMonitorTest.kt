@@ -94,8 +94,7 @@ class LiveEditProjectMonitorTest {
     whenever(device.isEmulator).thenReturn(false)
     monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
 
-    var foo = findFunction(file, "foo")
-    monitor.handleChangedMethods(myProject, listOf(EditEvent(file, foo)))
+    monitor.handleChangedMethods(myProject, listOf(file))
     monitor.doOnManualLETrigger()
     Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
   }
@@ -116,7 +115,7 @@ class LiveEditProjectMonitorTest {
     monitor.irClassCache.update(projectRule.directApiCompileIr(file).values.first())
     monitor.liveEditDevices.update(device1, LiveEditStatus.UpToDate)
 
-    monitor.processChangesForTest(myProject, listOf(EditEvent(file, file)), LiveEditEvent.Mode.AUTO)
+    monitor.processChangesForTest(myProject, listOf(file), LiveEditEvent.Mode.AUTO)
     Assert.assertEquals(0, monitor.numFilesWithCompilationErrors())
 
     val hasPhysicalDevice = usageTracker.usages.any() {
@@ -137,7 +136,7 @@ class LiveEditProjectMonitorTest {
     whenever(device.isEmulator).thenReturn(false)
     monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
 
-    monitor.processChangesForTest(myProject, listOf(EditEvent(file, file)), LiveEditEvent.Mode.AUTO)
+    monitor.processChangesForTest(myProject, listOf(file), LiveEditEvent.Mode.AUTO)
     Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
   }
 
@@ -152,13 +151,11 @@ class LiveEditProjectMonitorTest {
     whenever(device.isEmulator).thenReturn(false)
     monitor.notifyAppDeploy("app", device, LiveEditApp(emptySet(), 32), listOf(file.virtualFile)) { true }
 
-    var foo = findFunction(file, "foo")
-    monitor.processChangesForTest(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
+    monitor.processChangesForTest(myProject, listOf(file), LiveEditEvent.Mode.AUTO)
 
     var file2 = projectRule.fixture.configureByText("B.kt", "fun foo2() {}")
     monitor.updatePsiSnapshot(file2.virtualFile)
-    var foo2 = findFunction(file2, "foo2")
-    monitor.processChangesForTest(myProject, listOf(EditEvent(file2, foo2)), LiveEditEvent.Mode.AUTO)
+    monitor.processChangesForTest(myProject, listOf(file2), LiveEditEvent.Mode.AUTO)
     Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
   }
 
@@ -206,9 +203,7 @@ class LiveEditProjectMonitorTest {
     var monitor = LiveEditProjectMonitor(
       LiveEditService.getInstance(myProject), myProject);
     var file = projectRule.fixture.configureByText("A.java", "class A() { }")
-    var event = EditEvent(file)
-    event.unsupportedPsiEvents.add(UnsupportedPsiEvent.NON_KOTLIN)
-    monitor.processChangesForTest(myProject, listOf(event), LiveEditEvent.Mode.AUTO)
+    monitor.processChangesForTest(myProject, listOf(file), LiveEditEvent.Mode.AUTO)
     Assert.assertTrue(hasMetricStatus(LiveEditEvent.Status.NON_KOTLIN))
   }
 

@@ -62,7 +62,7 @@ class PsiValidatorTest {
       val y = 100
     """.trimIndent())
 
-    monitor.processChangesForTest(projectRule.project, listOf(EditEvent(file)), LiveEditEvent.Mode.MANUAL)
+    monitor.processChangesForTest(projectRule.project, listOf(file), LiveEditEvent.Mode.MANUAL)
     val status = monitor.status(device)
     assertEquals("Out Of Date", status.title)
     assertTrue(status.description.contains("modified property"))
@@ -90,7 +90,7 @@ class PsiValidatorTest {
       }
     """.trimIndent())
 
-    monitor.processChangesForTest(projectRule.project, listOf(EditEvent(file)), LiveEditEvent.Mode.MANUAL)
+    monitor.processChangesForTest(projectRule.project, listOf(file), LiveEditEvent.Mode.MANUAL)
     val status = monitor.status(device)
     assertEquals("Out Of Date", status.title)
     assertTrue(status.description.contains("modified property"))
@@ -121,7 +121,7 @@ class PsiValidatorTest {
 
     """.trimIndent())
 
-    monitor.processChangesForTest(projectRule.project, listOf(EditEvent(file)), LiveEditEvent.Mode.MANUAL)
+    monitor.processChangesForTest(projectRule.project, listOf(file), LiveEditEvent.Mode.MANUAL)
     val status = monitor.status(device)
     assertEquals("Out Of Date", status.title)
     assertTrue(status.description.contains("modified constructor"))
@@ -160,7 +160,7 @@ class PsiValidatorTest {
 
     """.trimIndent())
 
-    monitor.processChangesForTest(projectRule.project, listOf(EditEvent(file)), LiveEditEvent.Mode.MANUAL)
+    monitor.processChangesForTest(projectRule.project, listOf(file), LiveEditEvent.Mode.MANUAL)
     val status = monitor.status(device)
     assertEquals("Loading", status.title)
   }
