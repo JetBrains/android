@@ -30,11 +30,13 @@ import com.intellij.testFramework.replaceService
  * Note that for this method to work in all situations the service class has to be final and
  * to have a `@Service` annotation.
  */
-@Suppress("UnstableApiUsage")
 fun <T : Any> ComponentManager.registerServiceInstance(serviceInterface: Class<T>, instance: T, parentDisposable: Disposable) {
   if (getService(serviceInterface) == null) {
     registerServiceInstance(serviceInterface, instance)
-    Disposer.register(parentDisposable) { (this as ComponentManagerImpl).unregisterComponent(serviceInterface) }
+    Disposer.register(parentDisposable) {
+      @Suppress("UnstableApiUsage")
+      (this as ComponentManagerImpl).unregisterComponent(serviceInterface)
+    }
     return
   }
 
