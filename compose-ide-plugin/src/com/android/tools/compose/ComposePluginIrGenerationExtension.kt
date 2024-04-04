@@ -22,6 +22,7 @@ import com.android.tools.idea.run.deployment.liveedit.CompileScope
 import com.intellij.openapi.progress.ProcessCanceledException
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 
 private val liveEditPackageName = "${CompileScope::class.java.packageName}."
@@ -36,6 +37,7 @@ class ComposePluginIrGenerationExtension : IrGenerationExtension {
           metricsDestination = null,
           generateFunctionKeyMetaClasses = true,
           intrinsicRememberEnabled = false,
+          useK2 = KotlinPluginModeProvider.isK2Mode(),
         )
         .generate(moduleFragment, pluginContext)
     } catch (e: ProcessCanceledException) {
