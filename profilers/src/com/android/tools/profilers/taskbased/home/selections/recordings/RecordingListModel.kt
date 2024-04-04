@@ -36,7 +36,8 @@ import kotlinx.coroutines.flow.asStateFlow
 class RecordingListModel(val profilers: StudioProfilers,
                          private val taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
                          private val resetTaskSelection: () -> Unit,
-                         private val setTaskSelection: (ProfilerTaskType) -> Unit = {}) : AspectObserver() {
+                         private val setTaskSelection: (ProfilerTaskType) -> Unit = {},
+                         private val openProfilerTask: () -> Unit) : AspectObserver() {
   private val _recordingList = MutableStateFlow(listOf<SessionItem>())
   val recordingList = _recordingList.asStateFlow()
   private val _selectedRecording = MutableStateFlow<SessionItem?>(null)
@@ -100,7 +101,22 @@ class RecordingListModel(val profilers: StudioProfilers,
     val sessionItems = profilers.sessionsManager.sessionArtifacts.filterIsInstance<SessionItem>().filter { !it.isOngoing }
     val newRecordingList = mutableListOf<SessionItem>()
     newRecordingList.addAll(sessionItems)
+    val oldRecordingList = _recordingList.value.toList()
     _recordingList.value = newRecordingList
+    autoOpenRecordingIfNewlyImported(oldRecordingList, newRecordingList)
+  }
+
+  /**
+   * Checks whether the updated recording list indicates the addition of a single, new imported recording. If so, the recording is
+   * automatically selected and opened.
+   */
+  private fun autoOpenRecordingIfNewlyImported(oldRecordingList: List<SessionItem>, newRecordingList: List<SessionItem>) {
+    val difference = newRecordingList.toSet() - oldRecordingList.toSet()
+    // Confirm there is one, new recording added. If so, auto open the new recording.
+    if (newRecordingList.size > oldRecordingList.size && difference.size == 1 && difference.first().isImported()) {
+      onRecordingSelection(difference.first())
+      openProfilerTask()
+    }
   }
 
   @VisibleForTesting
