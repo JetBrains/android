@@ -2696,6 +2696,12 @@ Android Studio Preview.app/Contents/plugins/firebase-testing/lib/jsch-0.1.55.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase_java_proto.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/aida_grpc.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/aida_proto.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/aida_protobuf.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/aiplugin.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/commonmark-0.20.0.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/gemini_plugin_proto.jar
 Android Studio Preview.app/Contents/plugins/git4insights/lib/git4insights.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
@@ -2781,12 +2787,6 @@ Android Studio Preview.app/Contents/plugins/repository-search/lib/repository-sea
 Android Studio Preview.app/Contents/plugins/rml-dfa-plugin/lib/rml-dfa-plugin.jar
 Android Studio Preview.app/Contents/plugins/sh/lib/sh.jar
 Android Studio Preview.app/Contents/plugins/smali/lib/smali.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/aida_grpc.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/aida_proto.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/aida_protobuf.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/commonmark-0.20.0.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/aiplugin.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/gemini_plugin_proto.jar
 Android Studio Preview.app/Contents/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar
 Android Studio Preview.app/Contents/plugins/tasks/lib/tasks-core.jar
 Android Studio Preview.app/Contents/plugins/terminal/lib/terminal.jar
