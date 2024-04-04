@@ -45,8 +45,8 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
+import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.GRID_NO_GROUP_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.modes.UiCheckInstance
@@ -383,7 +383,7 @@ class ComposePreviewRepresentationTest {
       preview.uiCheckFilterFlow.value
     )
     delayUntilCondition(250) {
-      LIST_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      DEFAULT_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
 
     // Check that the surface zooms to fit when exiting UI check mode.
@@ -479,7 +479,7 @@ class ComposePreviewRepresentationTest {
     }
 
     setModeAndWaitForRefresh(PreviewMode.Default()) {
-      LIST_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
+      DEFAULT_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayout?.value
     }
   }
 

@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManage
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
@@ -41,9 +42,6 @@ import com.intellij.openapi.project.Project
 /** List of available layouts for the Compose Preview Surface. */
 internal val PREVIEW_LAYOUT_OPTIONS =
   listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
-
-/** Default layout option selected in the preview. */
-internal val DEFAULT_PREVIEW_LAYOUT_OPTION = GRID_LAYOUT_OPTION
 
 private val COMPOSE_SUPPORTED_ACTIONS =
   ImmutableSet.of(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
@@ -124,4 +122,4 @@ internal fun createMainDesignSurfaceBuilder(
       screenViewProvider,
       isInteractive,
     )
-    .setLayoutOption(DEFAULT_PREVIEW_LAYOUT_OPTION)
+    .setLayoutOption(DEFAULT_LAYOUT_OPTION)

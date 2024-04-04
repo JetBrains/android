@@ -66,7 +66,7 @@ sealed class PreviewMode {
   /** Background color. */
   open val backgroundColor: Color = Colors.DEFAULT_BACKGROUND_COLOR
 
-  open val layoutOption: SurfaceLayoutOption = LIST_LAYOUT_OPTION
+  open val layoutOption: SurfaceLayoutOption = DEFAULT_LAYOUT_OPTION
 
   open val selected: PreviewElement<*>? = null
 
@@ -93,7 +93,7 @@ sealed class PreviewMode {
     return Objects.hashCode(backgroundColor, layoutOption, selected)
   }
 
-  class Default(override val layoutOption: SurfaceLayoutOption = LIST_LAYOUT_OPTION) :
+  class Default(override val layoutOption: SurfaceLayoutOption = DEFAULT_LAYOUT_OPTION) :
     RestorePreviewMode() {
     override fun deriveWithLayout(layoutOption: SurfaceLayoutOption): PreviewMode {
       return Default(layoutOption)

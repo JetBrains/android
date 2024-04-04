@@ -206,3 +206,6 @@ val GRID_LAYOUT_OPTION =
       false,
       SceneViewAlignment.LEFT,
     )
+
+/** The default layout that should appear when the Preview is open. */
+val DEFAULT_LAYOUT_OPTION = GRID_LAYOUT_OPTION
