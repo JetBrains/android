@@ -21,5 +21,6 @@
     <orderEntry type="module" module-name="android.sdktools.base.layoutlib-loader" />
     <orderEntry type="library" name="http-client" level="project" />
     <orderEntry type="module" module-name="android.sdktools.base.apkparser.analyzer-base" />
+    <orderEntry type="library" name="kotlin-reflect" level="project" />
   </component>
 </module>
