@@ -298,7 +298,8 @@ internal class DeviceController(
       "HALF_CLOSED" -> "HALF_OPEN"
       "HALF_FOLDED" -> "HALF_OPEN"
       "HALF_OPENED" -> "HALF_OPEN"
-      "CONCURRENT_INNER_DEFAULT" -> "DUAL_DISPLAY_MODE"
+      "CONCURRENT_INNER_DEFAULT", "DUAL" -> "DUAL_DISPLAY_MODE"
+      "REAR_DUAL" -> "REAR_DUAL_MODE"
       else -> correctedName
     }
     if (correctedName.startsWith("HALF_")) {
