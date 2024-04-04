@@ -39,7 +39,7 @@ namespace screensharing {
 // Processes control socket commands.
 class Controller : private DisplayManager::DisplayListener {
 public:
-  Controller(int socket_fd);
+  explicit Controller(int socket_fd);
   virtual ~Controller();
 
   void Run();
@@ -49,23 +49,23 @@ public:
 
 private:
   struct ClipboardListener : public ClipboardManager::ClipboardListener {
-    ClipboardListener(Controller* controller)
+    explicit ClipboardListener(Controller* controller)
         : controller_(controller) {
     }
     virtual ~ClipboardListener();
 
-    virtual void OnPrimaryClipChanged() override;
+    void OnPrimaryClipChanged() override;
 
     Controller* controller_;
   };
 
   struct DeviceStateListener : public DeviceStateManager::DeviceStateListener {
-    DeviceStateListener(Controller* controller)
+    explicit DeviceStateListener(Controller* controller)
         : controller_(controller) {
     }
     virtual ~DeviceStateListener();
 
-    virtual void OnDeviceStateChanged(int32_t device_state) override;
+    void OnDeviceStateChanged(int32_t device_state) override;
 
     Controller* controller_;
   };
@@ -108,9 +108,9 @@ private:
   void SendDeviceStateNotification();
 
   void SendDisplayConfigurations(const DisplayConfigurationRequest& request);
-  virtual void OnDisplayAdded(int32_t display_id);
-  virtual void OnDisplayRemoved(int32_t display_id);
-  virtual void OnDisplayChanged(int32_t display_id);
+  void OnDisplayAdded(int32_t display_id) override;
+  void OnDisplayRemoved(int32_t display_id) override;
+  void OnDisplayChanged(int32_t display_id) override;
   void SendPendingDisplayEvents();
 
   void SendUiSettings(const UiSettingsRequest& request);
@@ -121,7 +121,6 @@ private:
   void SetFontSize(const SetFontSizeMessage& message);
   void SetScreenDensity(const SetScreenDensityMessage& message);
 
-  // TODO: Remove the following 4 methods when b/303684492 is fixed.
   void StartDisplayPolling();
   void StopDisplayPolling();
   void PollDisplays();
