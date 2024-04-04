@@ -25,6 +25,7 @@ import com.android.tools.idea.sqlite.cli.SqliteQueries.SELECT_VIEW_NAMES
 import com.android.tools.idea.sqlite.cli.SqliteQueries.selectTableContents
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.text.Strings
+import com.intellij.util.io.awaitExit
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
@@ -184,7 +185,7 @@ private object ProcessExecutor {
     withContext(dispatcher) {
       val process = ProcessBuilder(listOf(executable)).start()
 
-      val exitCode = async { process.waitFor() }
+      val exitCode = async { process.awaitExit() }
       val errOutput = async {
         consumeProcessOutput(process.errorStream, errWriter, process, dispatcher)
       }
