@@ -38,6 +38,7 @@ import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.findPreviewManager
+import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
@@ -203,13 +204,6 @@ internal val PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE =
   DataKey.create<PsiComposePreviewElementInstance>("$PREFIX.PreviewElement")
 
 @TestOnly fun getComposePreviewManagerKeyForTests() = COMPOSE_PREVIEW_MANAGER
-
-/**
- * Returns whether the [ComposePreviewManager] corresponding to the given [DataContext] is currently
- * refreshing.
- */
-internal fun isPreviewRefreshing(context: DataContext) =
-  context.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.status()?.isRefreshing == true
 
 /** Returns whether the filter of preview is enabled. */
 internal fun isPreviewFilterEnabled(context: DataContext): Boolean {

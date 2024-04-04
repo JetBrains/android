@@ -50,6 +50,8 @@ import com.android.tools.idea.preview.modes.GRID_NO_GROUP_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.modes.UiCheckInstance
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
+import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
@@ -652,6 +654,7 @@ class ComposePreviewRepresentationTest {
     assertTrue(getData(PreviewModeManager.KEY.name) is PreviewModeManager)
     assertTrue(getData(PreviewGroupManager.KEY.name) is PreviewGroupManager)
     assertTrue(getData(PreviewFlowManager.KEY.name) is PreviewFlowManager<*>)
+    assertTrue(getData(PREVIEW_VIEW_MODEL_STATUS.name) is PreviewViewModelStatus)
   }
 
   @Test

@@ -24,7 +24,6 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
@@ -40,6 +39,8 @@ import com.android.tools.idea.preview.actions.ShowProblemsPanel
 import com.android.tools.idea.preview.actions.ToggleFastPreviewAction
 import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.fast.FastPreviewSurface
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
+import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.ide.DataManager
@@ -67,7 +68,7 @@ import kotlin.reflect.KFunction0
 import org.jetbrains.annotations.VisibleForTesting
 
 /** Returns the status when Fast Preview is disabled. */
-private fun getStatus(project: Project, previewStatus: ComposePreviewManager.Status) =
+private fun getStatus(project: Project, previewStatus: PreviewViewModelStatus) =
   when {
     previewStatus.isRefreshing -> PreviewStatus.Refreshing()
 
@@ -92,7 +93,7 @@ private fun getStatus(project: Project, previewStatus: ComposePreviewManager.Sta
   }
 
 /** Returns the status when Fast Preview is enabled. */
-private fun getStatusForFastPreview(project: Project, previewStatus: ComposePreviewManager.Status) =
+private fun getStatusForFastPreview(project: Project, previewStatus: PreviewViewModelStatus) =
   when {
     previewStatus.isRefreshing -> PreviewStatus.Refreshing()
 
@@ -114,18 +115,17 @@ private fun getStatusForFastPreview(project: Project, previewStatus: ComposePrev
 
 @VisibleForTesting
 internal fun getStatusInfo(project: Project, dataContext: DataContext): PreviewStatus? {
-  val composePreviewManager = dataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return null
-  val previewStatus = composePreviewManager.status()
+  val previewStatus = dataContext.getData(PREVIEW_VIEW_MODEL_STATUS) ?: return null
   val fastPreviewEnabled = project.fastPreviewManager.isEnabled
   return if (fastPreviewEnabled) getStatusForFastPreview(project, previewStatus)
   else getStatus(project, previewStatus)
 }
 
-private class ComposePreviewManagerFileProvider(dataContext: DataContext) : () -> PsiFile? {
-  private val composePreviewManager = WeakReference(dataContext.getData(COMPOSE_PREVIEW_MANAGER))
+private class FileProvider(dataContext: DataContext) : () -> PsiFile? {
+  private val status = WeakReference(dataContext.getData(PREVIEW_VIEW_MODEL_STATUS))
 
   override fun invoke(): PsiFile? {
-    return composePreviewManager.get()?.status()?.previewedFile
+    return status.get()?.previewedFile
   }
 }
 
@@ -135,7 +135,7 @@ private class ComposePreviewManagerFileProvider(dataContext: DataContext) : () -
  */
 @VisibleForTesting
 fun defaultCreateInformationPopup(project: Project, dataContext: DataContext): InformationPopup? {
-  val fileProvider = ComposePreviewManagerFileProvider(dataContext)::invoke
+  val fileProvider = FileProvider(dataContext)::invoke
   return getStatusInfo(project, dataContext)?.let { previewStatusNotification ->
     val isAutoDisabled =
       previewStatusNotification is PreviewStatus.FastPreviewFailed &&

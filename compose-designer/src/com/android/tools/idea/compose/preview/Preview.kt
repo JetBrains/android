@@ -78,6 +78,7 @@ import com.android.tools.idea.preview.modes.CommonPreviewModeManager
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
@@ -187,6 +188,7 @@ private class PreviewElementDataContext(
       PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name,
       PREVIEW_ELEMENT_INSTANCE.name -> previewElement
       CommonDataKeys.PROJECT.name -> project
+      PREVIEW_VIEW_MODEL_STATUS.name -> composePreviewManager.status()
       else -> null
     }
 }
@@ -615,6 +617,7 @@ class ComposePreviewRepresentation(
       PreviewFlowManager.KEY.name -> composePreviewFlowManager
       PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { slowId -> getSlowData(slowId) }
       CommonDataKeys.PROJECT.name -> project
+      PREVIEW_VIEW_MODEL_STATUS.name -> status()
       else -> null
     }
   }
@@ -630,6 +633,13 @@ class ComposePreviewRepresentation(
 
   private val delegateInteractionHandler = DelegateInteractionHandler()
   private val sceneComponentProvider = ComposeSceneComponentProvider()
+
+  /**
+   * Cached previous [ComposePreviewManager.Status] used to trigger notifications if there's been a
+   * change.
+   */
+  private val previousStatusRef: AtomicReference<ComposePreviewManager.Status?> =
+    AtomicReference(null)
 
   private val composeWorkBench: ComposePreviewView =
     UIUtil.invokeAndWaitIfNeeded(
@@ -930,13 +940,6 @@ class ComposePreviewRepresentation(
 
   private fun hasSyntaxErrors(): Boolean =
     WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
-
-  /**
-   * Cached previous [ComposePreviewManager.Status] used to trigger notifications if there's been a
-   * change.
-   */
-  private val previousStatusRef: AtomicReference<ComposePreviewManager.Status?> =
-    AtomicReference(null)
 
   override fun status(): ComposePreviewManager.Status {
     val projectBuildStatus = projectBuildStatusManager.status

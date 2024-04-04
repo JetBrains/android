@@ -18,19 +18,18 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.adtui.compose.ComposeStatus
 import com.android.tools.adtui.compose.InformationPopup
 import com.android.tools.adtui.swing.findAllDescendants
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.ActionLink
 import com.intellij.xml.util.XmlStringUtil
@@ -54,11 +53,11 @@ internal class PreviewIssueNotificationActionTest {
 
   private val composePreviewManager = TestComposePreviewManager()
 
-  // DataContext is lazy so we give projectRule time to initialize itself.
-  private val context by lazy {
-    MapDataContext().also {
-      it.put(COMPOSE_PREVIEW_MANAGER, composePreviewManager)
-      it.put(CommonDataKeys.PROJECT, projectRule.project)
+  private val context = DataContext {
+    when (it) {
+      PREVIEW_VIEW_MODEL_STATUS.name -> composePreviewManager.currentStatus
+      CommonDataKeys.PROJECT.name -> projectRule.project
+      else -> null
     }
   }
 

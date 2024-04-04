@@ -22,10 +22,10 @@ import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -218,7 +218,7 @@ class ComposeViewControlActionTest {
       )
     val context = DataContext {
       when {
-        COMPOSE_PREVIEW_MANAGER.`is`(it) -> manager
+        PREVIEW_VIEW_MODEL_STATUS.`is`(it) -> manager.currentStatus
         else -> null
       }
     }

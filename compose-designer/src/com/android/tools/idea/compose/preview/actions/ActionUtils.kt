@@ -16,9 +16,9 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.disabledIf
 import com.android.tools.idea.preview.actions.hasSceneViewErrors
+import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
