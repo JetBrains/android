@@ -1934,21 +1934,7 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-java_test(
-    name = "RefactoringFlowTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.RefactoringFlowTest"],
-    tags = COMMON_TAGS + [
-        "no_mac",
-        "no_windows",
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
+# TODO(b/331230661): Enable the test once the bug is fixed in linux, mac and chrome
 
 java_test(
     name = "DualDebuggerBreakpointsTest",
