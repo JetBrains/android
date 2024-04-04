@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.instrumentation.threading
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.StudioPathManager.isRunningFromSources
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline
 import com.intellij.execution.process.OSProcessUtil
@@ -52,8 +53,8 @@ class ThreadingChecker : ApplicationInitializedListener {
   }
 
   private fun maybeAttachThreadingAgent() {
-    if (!ApplicationManager.getApplication().isEAP) {
-      // We only allow dynamic attachment of the threading agent in EAP builds
+    if (!StudioFlags.ENABLE_THREADING_CHECKER_AGENT.get()) {
+      // We only allow dynamic attachment of the threading agent in canary builds
       return
     }
 

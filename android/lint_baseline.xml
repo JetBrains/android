@@ -46,17 +46,6 @@
     </issue>
 
     <issue
-        id="ApplicationManagerIsEap"
-        message="Do not use `com.intellij.openapi.application.Application.isEap`. `Application.isEap` depends on the underlying intellij platform prebuilt, rather than the version of Studio released. Instead, consider using a StudioFlag.`"
-        errorLine1="    if (!ApplicationManager.getApplication().isEAP) {"
-        errorLine2="                                             ~~~~~">
-        <location
-            file="src/com/android/tools/idea/instrumentation/threading/ThreadingChecker.kt"
-            line="55"
-            column="46"/>
-    </issue>
-
-    <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
         errorLine1="private val DEFAULT_PREVIEW_SIZE = JBUI.scale(50)"

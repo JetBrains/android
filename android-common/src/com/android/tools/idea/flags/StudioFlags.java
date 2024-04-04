@@ -107,6 +107,13 @@ public final class StudioFlags {
     "Changes the configuration level that controls the flag defaults. Changing the value of this flag requires restarting Android Studio",
     FeatureConfiguration.Companion.getCurrent());
 
+  //region Studio.Diagnostic
+  private static final FlagGroup STUDIO_DIAGNOSTIC = new FlagGroup(FLAGS, "studio.diagnostic", "Android Studio Diagnostics");
+  public static final Flag<Boolean> ENABLE_THREADING_CHECKER_AGENT = new DebugFlag(
+    STUDIO_DIAGNOSTIC, "threading.agent.enable", "Enable the threading checker agent",
+    "If enabled, the threading checker agent will be attached automatically to the running studio process.");
+  //endregion
+
   //region New Project Wizard
   private static final FlagGroup NPW = new FlagGroup(FLAGS, "npw", "New Project Wizard");
 
