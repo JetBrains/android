@@ -1,11 +1,11 @@
-load("//tools/base/bazel:bazel.bzl", "ImlModuleInfo", "iml_test")
-load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
-load("//tools/base/bazel:functions.bzl", "create_option_file")
-load("//tools/base/bazel:utils.bzl", "dir_archive", "is_release")
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
-load("//tools/base/bazel:expand_template.bzl", "expand_template_ex")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "AppIconInfo", "replace_app_icon")
+load("//tools/base/bazel:bazel.bzl", "ImlModuleInfo", "iml_test")
+load("//tools/base/bazel:expand_template.bzl", "expand_template_ex")
+load("//tools/base/bazel:functions.bzl", "create_option_file")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
+load("//tools/base/bazel:utils.bzl", "dir_archive", "is_release")
 
 PluginInfo = provider(
     doc = "Info for IntelliJ plugins, including those built by the studio_plugin rule",
@@ -809,35 +809,40 @@ def _android_studio_os(ctx, platform, out):
 
 script_template = """\
     #!/bin/bash
-    args=$@
     options=
     tmp_dir=$(mktemp -d -t android-studio-XXXXXXXXXX)
     if [ "$1" == "--debug" ]; then
         options="$tmp_dir/.debug.vmoptions"
 	echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005" > "$options"
-        args=${{@:2}}
+	shift
     elif [[ "$1" == "--wrapper_script_flag=--debug="* ]]; then
         debug_option="$1"
         options="$tmp_dir/.debug.vmoptions"
 	echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=${{debug_option##--wrapper_script_flag=--debug=}}" > "$options"
-	args=${{@:2}}
+	shift
+    fi
+
+    config_base_dir="$HOME/.studio_dev"
+    if [[ "$1" == "--config_base_dir="* ]]; then
+	config_base_dir="${{1##--config_base_dir=}}"
+	shift
     fi
 
     unzip -q "{zip_file}" -d "$tmp_dir"
-    mkdir -p "{config_base_dir}/.config"
-    mkdir -p "{config_base_dir}/.plugins"
-    mkdir -p "{config_base_dir}/.system"
-    mkdir -p "{config_base_dir}/.log"
-    echo "idea.config.path={config_base_dir}/.config" >> "$tmp_dir/.properties"
-    echo "idea.plugins.path={config_base_dir}/.plugins" >> "$tmp_dir/.properties"
-    echo "idea.system.path={config_base_dir}/.system" >> "$tmp_dir/.properties"
-    echo "idea.log.path={config_base_dir}/.log" >> "$tmp_dir/.properties"
+    mkdir -p "$config_base_dir/.config"
+    mkdir -p "$config_base_dir/.plugins"
+    mkdir -p "$config_base_dir/.system"
+    mkdir -p "$config_base_dir/.log"
+    echo "idea.config.path=$config_base_dir/.config" >> "$tmp_dir/.properties"
+    echo "idea.plugins.path=$config_base_dir/.plugins" >> "$tmp_dir/.properties"
+    echo "idea.system.path=$config_base_dir/.system" >> "$tmp_dir/.properties"
+    echo "idea.log.path=$config_base_dir/.log" >> "$tmp_dir/.properties"
     properties="$tmp_dir/.properties"
 
     if [ -z "$options" ]; then
         STUDIO_PROPERTIES="$properties" {command} $args
     else
-        STUDIO_VM_OPTIONS="$options" STUDIO_PROPERTIES="$properties" {command} $args
+        STUDIO_VM_OPTIONS="$options" STUDIO_PROPERTIES="$properties" {command} $@
     fi
 """
 
@@ -863,7 +868,6 @@ def _android_studio_impl(ctx):
     script = ctx.actions.declare_file("%s-run" % ctx.label.name)
     script_content = script_template.format(
         zip_file = outputs[host_platform].short_path,
-        config_base_dir = ctx.attr.config_base_dir,
         command = {
             LINUX: "$tmp_dir/android-studio/bin/studio.sh",
             MAC: "open \"$tmp_dir/" + _android_studio_prefix(ctx, MAC) + "\"",
@@ -883,7 +887,6 @@ def _android_studio_impl(ctx):
 
 _android_studio = rule(
     attrs = {
-        "config_base_dir": attr.string(),
         "host_platform_name": attr.string(),
         "codesign_entitlements": attr.label(allow_single_file = True),
         "compress": attr.bool(),
@@ -1007,11 +1010,9 @@ _android_studio = rule(
 # before patch 12. In such a case, the release_number would be 3.
 def android_studio(
         name,
-        config_base_dir = "~/.studio_dev",
         **kwargs):
     _android_studio(
         name = name,
-        config_base_dir = config_base_dir,
         compress = is_release(),
         host_platform_name = select({
             "@platforms//os:linux": LINUX.name,
