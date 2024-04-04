@@ -39,7 +39,7 @@ import org.jetbrains.annotations.VisibleForTesting
 private const val CONFIGURABLE_ID = "nele.options"
 private val DISPLAY_NAME =
   if (IdeInfo.getInstance().isAndroidStudio) "UI Tools"
-  else AndroidDesignerBundle.message("android.uibuilder.nloptionsconfigurable.displayName")
+  else message("android.uibuilder.nloptionsconfigurable.displayName")
 
 @VisibleForTesting const val LABEL_TRACK_PAD = "Track Pad"
 @VisibleForTesting
