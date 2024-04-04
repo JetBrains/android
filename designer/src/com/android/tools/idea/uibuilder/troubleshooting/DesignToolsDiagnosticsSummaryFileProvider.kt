@@ -22,15 +22,15 @@ import com.intellij.openapi.project.Project
 import java.nio.file.Files
 import java.nio.file.Paths
 
-private const val outputLogFileName: String = "DesignTools.log"
+private const val outputLogFileName: String = "UITools.log"
 
 /**
- * A [DiagnosticsSummaryFileProvider] that leverages [DesignToolsTroubleInfoCollector] to collect
- * Design Tools specific troubleshooting information that will be put into a log for the users to
- * send it in bug reports.
+ * A [DiagnosticsSummaryFileProvider] that leverages [DesignToolsTroubleInfoCollector] to collect UI
+ * Tools specific troubleshooting information that will be put into a log for the users to send it
+ * in bug reports.
  */
 class DesignToolsDiagnosticsSummaryFileProvider : DiagnosticsSummaryFileProvider {
-  override val name: String = "Design Tools"
+  override val name: String = "UI Tools"
 
   override fun getFiles(project: Project?): List<FileInfo> {
     if (project == null) return emptyList()
