@@ -199,6 +199,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
             PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
             PreviewGroupManager.KEY.name,
             PreviewFlowManager.KEY.name -> previewFlowManager
+            FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
             else -> null
           }
         }
@@ -270,6 +271,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
             PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
             PreviewGroupManager.KEY.name,
             PreviewFlowManager.KEY.name -> previewFlowManager
+            FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
             else -> null
           }
         }

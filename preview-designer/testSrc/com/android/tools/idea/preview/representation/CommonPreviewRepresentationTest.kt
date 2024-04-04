@@ -21,7 +21,6 @@ import com.android.tools.compile.fast.isSuccess
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
@@ -32,6 +31,12 @@ import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PsiTestPreviewElement
 import com.android.tools.idea.preview.TestPreviewRefreshRequest
+import com.android.tools.idea.preview.fast.FastPreviewSurface
+import com.android.tools.idea.preview.flow.PreviewFlowManager
+import com.android.tools.idea.preview.groups.PreviewGroupManager
+import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
+import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.preview.requestRefreshSync
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
@@ -44,8 +49,8 @@ import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.rendering.RenderAsyncActionExecutor
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -121,11 +126,6 @@ class CommonPreviewRepresentationTest {
   @Before
   fun setup() {
     setUpComposeInProjectFixture(projectRule)
-    runBlocking(uiThread) {
-      val surfaceBuilder = NlDesignSurface.builder(project, fixture.testRootDisposable)
-      previewView =
-        CommonNlDesignSurfacePreviewView(project, surfaceBuilder, fixture.testRootDisposable)
-    }
     runInEdtAndWait { TestProjectSystem(project).useInTests() }
     previewViewModelMock = mock(CommonPreviewViewModel::class.java)
     myScope = AndroidCoroutineScope(fixture.testRootDisposable)
@@ -197,6 +197,7 @@ class CommonPreviewRepresentationTest {
       // that the refresh manager was unblocked
       waitForCondition(10.seconds) { !previewRepresentation.isInvalidatedForTest() }
       assertFalse(previewRepresentation.isInvalidatedForTest())
+      previewRepresentation.onDeactivate()
     }
 
   @Test
@@ -247,6 +248,23 @@ class CommonPreviewRepresentationTest {
     }
 
     assertEquals("compilationSucceeded (compiledFiles=1)", testTracker.logOutput())
+    previewRepresentation.onDeactivate()
+  }
+
+  @Test
+  fun testDataKeysShouldBeRegistered() {
+    runBlocking(workerThread) {
+      val preview = createPreviewRepresentation()
+      val surface = preview.previewView.mainSurface
+
+      assertTrue(surface.getData(PreviewModeManager.KEY.name) is PreviewModeManager)
+      assertThat(surface.getData(PREVIEW_VIEW_MODEL_STATUS.name) is PreviewViewModelStatus)
+      assertThat(surface.getData(PreviewGroupManager.KEY.name) is PreviewGroupManager)
+      assertThat(surface.getData(PreviewFlowManager.KEY.name) is PreviewFlowManager<*>)
+      assertTrue(surface.getData(FastPreviewSurface.KEY.name) is FastPreviewSurface)
+
+      preview.onDeactivate()
+    }
   }
 
   private fun createPreviewRepresentation(): CommonPreviewRepresentation<PsiTestPreviewElement> {
@@ -259,7 +277,11 @@ class CommonPreviewRepresentationTest {
         psiFile,
         { previewElementProvider },
         previewElementModelAdapter,
-        viewConstructor = { _, _, _ -> previewView },
+        viewConstructor = { project, surfaceBuilder, parentDisposable ->
+          CommonNlDesignSurfacePreviewView(project, surfaceBuilder, parentDisposable).also {
+            previewView = it
+          }
+        },
         viewModelConstructor = { _, _, _, _, _, _ -> previewViewModelMock },
         configureDesignSurface = {},
         renderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED,

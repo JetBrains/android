@@ -127,23 +127,6 @@ class WearTilePreviewRepresentationTest {
     }
 
   @Test
-  fun testDataKeysShouldBeRegistered() =
-    runBlocking(workerThread) {
-      val preview = createWearTilePreviewRepresentation()
-
-      assertThat(preview.previewView.mainSurface.getData(PreviewModeManager.KEY.name))
-        .isInstanceOf(PreviewModeManager::class.java)
-      assertThat(preview.previewView.mainSurface.getData(PREVIEW_VIEW_MODEL_STATUS.name))
-        .isInstanceOf(PreviewViewModelStatus::class.java)
-      assertThat(preview.previewView.mainSurface.getData(PreviewGroupManager.KEY.name))
-        .isInstanceOf(PreviewGroupManager::class.java)
-      assertThat(preview.previewView.mainSurface.getData(PreviewFlowManager.KEY.name))
-        .isInstanceOf(PreviewFlowManager::class.java)
-
-      preview.onDeactivate()
-    }
-
-  @Test
   fun testGroupFilteringIsSupported() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()
