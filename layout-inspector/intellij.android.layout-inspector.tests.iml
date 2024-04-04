@@ -58,5 +58,6 @@
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layout-inspector.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
   </component>
 </module>

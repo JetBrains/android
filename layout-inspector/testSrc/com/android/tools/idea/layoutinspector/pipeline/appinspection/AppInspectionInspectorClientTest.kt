@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.adblib.DeviceSelector
 import com.android.fakeadbserver.DeviceState
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
@@ -547,19 +548,16 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testPerDeviceViewDebugAttributesUntouchedIfAlreadySet() {
-    inspectorRule.adbProperties.debugViewAttributes = "1"
+    setUpAdbForDebugViewAttributes(
+      MODERN_PROCESS.device.serial,
+      debugViewAttributesPreviouslyEnabled = true,
+    )
 
     inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(0)
-    assertThat(inspectorRule.adbProperties.debugViewAttributes).isEqualTo("1")
-
-    // Disconnect directly instead of calling fireDisconnected - otherwise, we don't have an easy
-    // way to wait for the disconnect to
-    // happen on a background thread
-    inspectorRule.launcher.disconnectActiveClient()
-    assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(0)
-    assertThat(inspectorRule.adbProperties.debugViewAttributes).isEqualTo("1")
+    assertThat(inspectionRule.adbSession.deviceServices.shellV2Requests.size).isEqualTo(1)
+    assertThat(inspectionRule.adbSession.deviceServices.shellV2Requests.poll().command)
+      .isEqualTo("settings get global debug_view_attributes")
   }
 
   @Test
@@ -909,6 +907,8 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testActivityRestartBannerShown() {
+    setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial)
+
     preferredProcess = null
     inspectorRule.attachDevice(MODERN_PROCESS.device)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
@@ -918,7 +918,11 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun testNoActivityRestartBannerShownWhenDebugAttributesAreAlreadySet() {
-    inspectorRule.adbProperties.debugViewAttributes = "1"
+    setUpAdbForDebugViewAttributes(
+      MODERN_PROCESS.device.serial,
+      debugViewAttributesPreviouslyEnabled = true,
+    )
+
     preferredProcess = null
     inspectorRule.attachDevice(MODERN_PROCESS.device)
     val banner = InspectorBanner(projectRule.testRootDisposable, inspectorRule.notificationModel)
@@ -1008,6 +1012,23 @@ class AppInspectionInspectorClientTest {
       .isEqualTo(
         "The Activity was restarted in order to enable view attributes inspection. This won't happen again until the setting is disabled from Developer Options."
       )
+  }
+
+  private fun setUpAdbForDebugViewAttributes(
+    deviceSerialNumber: String,
+    debugViewAttributesPreviouslyEnabled: Boolean = false,
+  ) {
+    val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
+    inspectionRule.adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings get global debug_view_attributes",
+      if (debugViewAttributesPreviouslyEnabled) "1" else "0",
+    )
+    inspectionRule.adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings put global debug_view_attributes 1",
+      "",
+    )
   }
 }
 

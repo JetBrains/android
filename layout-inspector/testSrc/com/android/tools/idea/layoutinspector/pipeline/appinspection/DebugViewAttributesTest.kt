@@ -15,63 +15,107 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
-import com.android.ddmlib.testing.FakeAdbRule
-import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
-import com.android.tools.idea.layoutinspector.AdbServiceRule
+import com.android.adblib.DeviceSelector
+import com.android.adblib.testing.FakeAdbSession
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.project.AndroidNotification
 import com.google.common.truth.Truth.assertThat
+import com.intellij.notification.NotificationType
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.replaceService
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
+import org.mockito.Mockito.verify
 
 class DebugViewAttributesTest {
-  private val commandHandler = FakeShellCommandHandler()
-  private val projectRule = AndroidProjectRule.inMemory()
-  private val adbRule = FakeAdbRule().withDeviceCommandHandler(commandHandler)
-  private val adbService = AdbServiceRule(projectRule::project, adbRule)
-  lateinit var device: DeviceDescriptor
+  @get:Rule val projectRule = ProjectRule()
+  private val process = MODERN_DEVICE.createProcess()
+  private val deviceSelector = DeviceSelector.fromSerialNumber(process.device.serial)
+  private val device = process.device
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)!!
+  private var adbSession = FakeAdbSession()
+
+  private lateinit var mockAndroidNotificationService: AndroidNotification
 
   @Before
-  fun before() {
-    val process = MODERN_DEVICE.createProcess()
-    device = process.device
-    adbRule.attachDevice(
-      device.serial,
-      device.manufacturer,
-      device.model,
-      device.version,
-      device.apiLevel.toString(),
+  fun setUp() {
+    mockAndroidNotificationService = mock()
+    projectRule.project.replaceService(
+      AndroidNotification::class.java,
+      mockAndroidNotificationService,
+      projectRule.project,
     )
   }
 
   @Test
-  fun testSetAndClear_perDeviceSetting() {
-    assertThat(DebugViewAttributes.set(projectRule.project, device)).isTrue()
-    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+  fun testEnableSettingSuccess() = runBlocking {
+    adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings get global debug_view_attributes",
+      "0",
+    )
+    adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings put global debug_view_attributes 1",
+      "",
+    )
+
+    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device)).isTrue()
+    assertThat(adbSession.deviceServices.shellV2Requests.size).isEqualTo(2)
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
+      .isEqualTo("settings get global debug_view_attributes")
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
+      .isEqualTo("settings put global debug_view_attributes 1")
   }
 
   @Test
-  fun testSetAndClearWhenPerDeviceIsZero_perDeviceSetting() {
-    commandHandler.debugViewAttributes = "0"
+  fun testEnableSettingFailure() = runBlocking {
+    adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings get global debug_view_attributes",
+      "0",
+    )
+    adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings put global debug_view_attributes 1",
+      "",
+      "error",
+    )
 
-    assertThat(DebugViewAttributes.set(projectRule.project, device)).isTrue()
-    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device)).isFalse()
+    assertThat(adbSession.deviceServices.shellV2Requests.size).isEqualTo(2)
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
+      .isEqualTo("settings get global debug_view_attributes")
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
+      .isEqualTo("settings put global debug_view_attributes 1")
+
+    // Assert that the balloon is shown.
+    verify(mockAndroidNotificationService)
+      .showBalloon(eq("Could not enable resolution traces"), any(), eq(NotificationType.WARNING))
   }
 
   @Test
-  fun testSetAndClearWhenPerDeviceIsSet_perDeviceSetting() {
-    commandHandler.debugViewAttributes = "1"
+  fun testSettingIsNotEnabledIfAlreadyEnabled() = runBlocking {
+    adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings get global debug_view_attributes",
+      "1",
+    )
+    adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings put global debug_view_attributes 1",
+      "",
+    )
 
-    assertThat(DebugViewAttributes.set(projectRule.project, device)).isFalse()
-    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
+    assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device)).isFalse()
+    assertThat(adbSession.deviceServices.shellV2Requests.size).isEqualTo(1)
+    assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
+      .isEqualTo("settings get global debug_view_attributes")
   }
 }

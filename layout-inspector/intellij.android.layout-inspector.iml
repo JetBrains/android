@@ -49,5 +49,6 @@
     <orderEntry type="module" module-name="intellij.android.streaming" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="analytics" />
+    <orderEntry type="module" module-name="android.sdktools.adblib" />
   </component>
 </module>

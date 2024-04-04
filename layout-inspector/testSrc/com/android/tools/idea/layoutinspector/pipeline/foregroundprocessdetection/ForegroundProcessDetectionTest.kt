@@ -28,8 +28,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.pipeline.adb.AdbDebugViewProperties
-import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -65,8 +63,6 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 class ForegroundProcessDetectionTest {
   private val projectRule = ProjectRule()
   private val adbRule = FakeAdbRule()
-  private val adbProperties: AdbDebugViewProperties =
-    FakeShellCommandHandler().apply { adbRule.withDeviceCommandHandler(this) }
   private val adbService = AdbServiceRule(projectRule::project, adbRule)
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)

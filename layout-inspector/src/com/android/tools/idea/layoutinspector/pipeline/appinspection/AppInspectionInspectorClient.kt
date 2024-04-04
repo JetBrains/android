@@ -90,6 +90,8 @@ class AppInspectionInspectorClient(
     AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly
   private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
+  @TestOnly
+  private val debugViewAttributes: DebugViewAttributes = DebugViewAttributes(model.project),
 ) :
   AbstractInspectorClient(
     APP_INSPECTION_CLIENT,
@@ -186,7 +188,7 @@ class AppInspectionInspectorClient(
 
         logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-        debugViewAttributesChanged = DebugViewAttributes.set(model.project, process.device)
+        debugViewAttributesChanged = debugViewAttributes.set(process.device)
         if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
           // Show the banner only if debugViewAttributes has changed and if the process was not
           // started from a fresh app deployment (in this case the Activity is restarted as soon as

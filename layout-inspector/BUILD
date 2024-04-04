@@ -64,6 +64,7 @@ iml_module(
         "//tools/adt/idea/streaming:intellij.android.streaming[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/analytics[module]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module]",
     ],
 )
 
@@ -133,6 +134,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
     ],
 )
 

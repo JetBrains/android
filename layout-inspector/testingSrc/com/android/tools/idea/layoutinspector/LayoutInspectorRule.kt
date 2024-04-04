@@ -32,8 +32,6 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.pipeline.adb.AdbDebugViewProperties
-import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
@@ -221,8 +219,6 @@ class LayoutInspectorRule(
   private lateinit var deviceModel: DeviceModel
 
   val adbRule = FakeAdbRule()
-  val adbProperties: AdbDebugViewProperties =
-    FakeShellCommandHandler().apply { adbRule.withDeviceCommandHandler(this) }
   val adbService = AdbServiceRule(projectRule::project, adbRule)
 
   lateinit var inspector: LayoutInspector
