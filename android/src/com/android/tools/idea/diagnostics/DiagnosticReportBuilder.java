@@ -18,6 +18,7 @@ package com.android.tools.idea.diagnostics;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.android.tools.idea.diagnostics.report.FreezeReport;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -44,7 +45,7 @@ public class DiagnosticReportBuilder {
     Long.getLong("studio.diagnostic.uiFreezeSampling.frameIgnoreThresholdMs", 200);
   public static final int MAX_REPORTS =
     Integer.getInteger("studio.diagnostic.uiFreezeSampling.maxReports",
-                       ApplicationManager.getApplication().isEAP() ? 10 : 3);
+                       StudioFlags.HIGHER_DEFAULT_UI_FREEZE_REPORTS_COUNT.get() ? 10 : 3);
 
   private final @NotNull Object LOCK = new Object();
   private final long myStartTime;

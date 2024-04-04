@@ -39,6 +39,7 @@ import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport;
 import com.android.tools.idea.diagnostics.typing.TypingEventWatcher;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.serverflags.ServerFlagService;
 import com.android.tools.idea.serverflags.protos.MemoryUsageReportConfiguration;
 import com.android.tools.idea.stats.StudioStatsLocalFileDumper;
@@ -192,10 +193,10 @@ public final class AndroidStudioSystemHealthMonitor {
     Integer.getInteger("studio.diagnostic.histogram.maxReports", 10);
   private static final int MAX_FREEZE_REPORTS_COUNT =
     Integer.getInteger("studio.diagnostic.freeze.maxReports",
-                       ApplicationManager.getApplication().isEAP() ? 20 : 1);
+                       StudioFlags.HIGHER_DEFAULT_MAX_FREEZE_REPORTS_COUNT.get()  ? 20 : 1);
   private static final int MAX_JFR_REPORTS_COUNT =
     Integer.getInteger("studio.diagnostic.jfr.maxReports",
-                       ApplicationManager.getApplication().isEAP() ? 20 : 1);
+                       StudioFlags.HIGHER_DEFAULT_MAX_JFR_REPORTS_COUNT.get()? 20 : 1);
 
   private static final ConcurrentMap<GcPauseInfo.GcType, SingleWriterRecorder> myGcPauseInfo = new ConcurrentHashMap<>();
   /** Maximum GC pause duration to record. Longer pause durations are truncated to keep the size of the histogram bounded. */

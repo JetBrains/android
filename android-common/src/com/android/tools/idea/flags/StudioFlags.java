@@ -112,6 +112,18 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_THREADING_CHECKER_AGENT = new DebugFlag(
     STUDIO_DIAGNOSTIC, "threading.agent.enable", "Enable the threading checker agent",
     "If enabled, the threading checker agent will be attached automatically to the running studio process.");
+
+  public static final Flag<Boolean> HIGHER_DEFAULT_MAX_FREEZE_REPORTS_COUNT = new DebugFlag(
+    STUDIO_DIAGNOSTIC, "freeze.maxreports.highdefault", "Upload more freeze reports",
+    "Use a higher default value for the max number of freeze reports to send");
+
+  public static final Flag<Boolean> HIGHER_DEFAULT_MAX_JFR_REPORTS_COUNT = new DebugFlag(
+    STUDIO_DIAGNOSTIC, "jfr.maxreports.highdefault", "Upload more jfr reports",
+    "Use a higher default value for the max number of jfr reports to send");
+
+  public static final Flag<Boolean> HIGHER_DEFAULT_UI_FREEZE_REPORTS_COUNT = new DebugFlag(
+    STUDIO_DIAGNOSTIC, "uifreezesampling.maxreports.highdefault", "Collect more ui freeze sampling reports",
+    "Use a higher default value for the max number of ui freeze sampling reports to collect");
   //endregion
 
   //region New Project Wizard
