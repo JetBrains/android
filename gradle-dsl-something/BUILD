@@ -15,6 +15,9 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.gradle",
+        "//tools/adt/idea/.idea/libraries:gradle-declarative-dsl",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )

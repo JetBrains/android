@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="gradle-declarative-dsl">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/gradle/gradle-declarative-dsl-core/8.8-20240328140806+0000/gradle-declarative-dsl-core-8.8-20240328140806+0000.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

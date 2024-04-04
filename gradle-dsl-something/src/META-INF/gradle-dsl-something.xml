@@ -15,6 +15,12 @@
         implementationClass="com.android.tools.idea.gradle.something.formatting.SomethingFormattingModelBuilder"/>
     <langCodeStyleSettingsProvider
         implementation="com.android.tools.idea.gradle.something.formatting.settings.SomethingLanguageCodeStyleSettingsProvider"/>
+    <completion.contributor language="Something"
+                            implementationClass="com.android.tools.idea.gradle.something.SomethingCompletionContributor" />
+    <completion.confidence language="Something"
+                           id="EnableAutoPopupInSomethingCompletion"
+                           implementationClass="com.android.tools.idea.gradle.something.EnableAutoPopupInSomethingCompletion" />
+
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
     <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.something.SomethingDslTransformerFactory"/>

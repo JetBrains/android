@@ -316,3 +316,10 @@ jvm_import(
     jars = ["//tools/base/adblib-tools:libadblib-tools-proto.jar"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "gradle-declarative-dsl",
+    jars = ["//prebuilts/tools/common/m2:gradle-declarative-dsl_files"],
+    visibility = ["//visibility:public"],
+)
