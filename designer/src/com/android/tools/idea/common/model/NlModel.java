@@ -31,6 +31,7 @@ import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
+import com.android.tools.idea.common.surface.organization.OrganizationGroup;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileTypeKt;
 import com.android.tools.idea.common.util.XmlTagUtil;
@@ -163,7 +164,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
    * Indicate which group this NlModel belongs. This can be used to categorize the NlModel when rendering or layouting.
    */
   @Nullable
-  private String myGroupId = null;
+  private OrganizationGroup organizationGroup = null;
 
   @NotNull
   public static NlModelBuilder builder(@NotNull Disposable parent,
@@ -1006,12 +1007,12 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   }
 
   @Nullable
-  public final String getOrganizationGroup() {
-    return myGroupId;
+  public final OrganizationGroup getOrganizationGroup() {
+    return organizationGroup;
   }
 
-  public final void setOrganizationGroup(@Nullable String groupId) {
-    myGroupId = groupId;
+  public final void setOrganizationGroup(@Nullable OrganizationGroup group) {
+    organizationGroup = group;
   }
 
   /**

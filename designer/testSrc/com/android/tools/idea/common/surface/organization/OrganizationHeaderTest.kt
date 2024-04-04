@@ -37,7 +37,7 @@ class OrganizationHeaderTest {
 
   @Test
   fun openAndCloseGroup() {
-    val group = OrganizationGroup("group")
+    val group = OrganizationGroup("method", "group")
     composeTestRule.setContent { JewelTestTheme(darkMode = false) { OrganizationHeader(group) } }
     assertEquals(true, group.isOpened.value)
     composeTestRule.onNodeWithTag("openButton").performClick()
@@ -48,7 +48,7 @@ class OrganizationHeaderTest {
 
   @Test
   fun nameIsDisplayed() {
-    val group = OrganizationGroup("Organization Display Name")
+    val group = OrganizationGroup("method", "Organization Display Name")
     composeTestRule.setContent { JewelTestTheme(darkMode = false) { OrganizationHeader(group) } }
     composeTestRule.onNodeWithTag("displayName").assertTextContains("Organization Display Name")
   }
@@ -56,7 +56,7 @@ class OrganizationHeaderTest {
   @Test
   fun createWrappedHeader() {
     UIUtil.invokeAndWaitIfNeeded {
-      val group = OrganizationGroup("group")
+      val group = OrganizationGroup("method", "group")
       val panel = createOrganizationHeader(group)
       assertNotNull(panel)
     }
@@ -65,7 +65,7 @@ class OrganizationHeaderTest {
   @Test
   @Ignore("Visual test")
   fun previewHeader() {
-    val group = OrganizationGroup("Organization Group")
+    val group = OrganizationGroup("method", "Organization Group")
     singleWindowApplication(title = "Preview") {
       JewelTestTheme(darkMode = false) { OrganizationHeader(group) }
     }

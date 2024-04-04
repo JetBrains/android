@@ -39,14 +39,13 @@ private val requiredSize = JBDimension(100, heightPx)
 /** Header for the group of previews. */
 class SceneViewHeader(
   parentContainer: JComponent,
-  organizationGroup: String?,
-  displayName: String,
+  organizationGroup: OrganizationGroup,
   createComposeHeader: (OrganizationGroup) -> JComponent,
 ) : JPanel(BorderLayout()), PositionablePanel {
 
   init {
     isOpaque = false
-    add(createComposeHeader(OrganizationGroup(displayName)), BorderLayout.CENTER)
+    add(createComposeHeader(organizationGroup), BorderLayout.CENTER)
 
     fun updateSize() {
       size = Dimension(parentContainer.width - scale(widthOffsetPx), scale(heightPx))
@@ -65,7 +64,7 @@ class SceneViewHeader(
 
   override val positionableAdapter =
     object : HeaderPositionableContent {
-      override val organizationGroup: String? = organizationGroup
+      override val organizationGroup = organizationGroup
       override val scale: Double = 1.0
       override val x
         get() = this@SceneViewHeader.x

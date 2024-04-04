@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
+import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.surface.organization.SceneViewHeader
 import com.android.tools.idea.common.surface.organization.createOrganizationHeaders
 import com.android.tools.idea.common.surface.organization.paintLines
@@ -101,7 +102,7 @@ internal class SceneViewPanel(
     invalidate()
   }
 
-  val groups = mutableMapOf<String, MutableList<JComponent>>()
+  val groups = mutableMapOf<OrganizationGroup, MutableList<JComponent>>()
 
   private val scope = AndroidCoroutineScope(disposable)
 

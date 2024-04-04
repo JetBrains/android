@@ -20,15 +20,9 @@ import javax.swing.JComponent
 
 /** Create a [SceneViewHeader] for each group with size > 1. */
 fun Collection<SceneView>.createOrganizationHeaders(parent: JComponent) =
-  this.groupBy { it.sceneManager.model.organizationGroup }
-    .filterKeys { it != null }
-    .filterValues { it.size > 1 }
-    .mapValues {
-      SceneViewHeader(
-        parent,
-        it.key,
-        it.value.first().sceneManager.model.modelDisplayName ?: "",
-        ::createOrganizationHeader,
-      )
-    }
+  this.mapNotNull { it.sceneManager.model.organizationGroup }
+    .groupingBy { it }
+    .eachCount()
+    .filterValues { count -> count > 1 }
+    .mapValues { SceneViewHeader(parent, it.key, ::createOrganizationHeader) }
     .toMutableMap()

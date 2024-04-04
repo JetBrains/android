@@ -18,6 +18,7 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.model.scaleBy
+import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionablePanel
@@ -122,7 +123,7 @@ class SceneViewPeerPanel(
 
   override val positionableAdapter =
     object : PositionableContent {
-      override val organizationGroup: String?
+      override val organizationGroup: OrganizationGroup?
         get() = sceneView.sceneManager.model.organizationGroup
 
       override val scale: Double

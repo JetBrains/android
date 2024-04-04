@@ -75,7 +75,7 @@ private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<Positi
 @VisibleForTesting
 val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<PositionableGroup> =
   { contents ->
-    val groups = mutableMapOf<String?, MutableList<PositionableContent>>()
+    val groups = mutableMapOf<Any?, MutableList<PositionableContent>>()
     for (content in contents) {
       groups.getOrPut(content.organizationGroup) { mutableListOf() }.add(content)
     }

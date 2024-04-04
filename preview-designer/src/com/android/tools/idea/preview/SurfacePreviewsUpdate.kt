@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelBuilder
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.scene.render
+import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -43,6 +44,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.util.io.await
+import com.jetbrains.rd.util.getOrCreate
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
@@ -229,6 +231,13 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   refreshEventBuilder?.withPreviewsCount(elementsToReusableModels.size)
   refreshEventBuilder?.withPreviewsToRefresh(elementsToReusableModels.size)
 
+  /** Reuse existing organizationGroup. */
+  val groups =
+    elementsToReusableModels
+      .mapNotNull { (_, model) -> model?.organizationGroup }
+      .associateBy { it.methodFqn }
+      .toMutableMap()
+
   // Second, reorder the models to reuse and create the new models needed,
   // adding placeholders for all of them, but without rendering anything yet.
   val elementsToSceneManagers =
@@ -286,8 +295,14 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       newModel.modelDisplayName = previewElement.displaySettings.name
       newModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
       newModel.setModelUpdater(modelUpdater)
-      (previewElement as? MethodPreviewElement<*>)?.let {
-        newModel.organizationGroup = it.methodFqn
+      (previewElement as? MethodPreviewElement<*>)?.let { methodPreviewElement ->
+        newModel.organizationGroup =
+          groups.getOrCreate(methodPreviewElement.methodFqn) {
+            OrganizationGroup(
+              methodPreviewElement.methodFqn,
+              methodPreviewElement.displaySettings.name,
+            )
+          }
       }
       val newSceneManager =
         withContext(AndroidDispatchers.workerThread) { addModelWithoutRender(newModel).await() }
