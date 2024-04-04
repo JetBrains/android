@@ -207,109 +207,14 @@ class LiveEditCompiler(val project: Project,
         throw internalError("Internal Error During Code Gen", t)
       }
 
-      if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
-        // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This
-        // allows the user time to undo incompatible changes without triggering an error, similar to how differ validation works.
-        validatePsiDiff(inputs, file)
+      // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This
+      // allows the user time to undo incompatible changes without triggering an error, similar to how differ validation works.
+      validatePsiDiff(inputs, file)
 
-        outputBuilder.getGeneratedCode(file, generationState.factory.asList(), irClassCache!!, inlineCandidateCache, output)
-        return@runWithCompileLock
-      }
-
-      // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
-      //    decide which classes we want to send to the device along with what extra meta-information the
-      //    agent need.
-      return@runWithCompileLock getGeneratedCode(inputs, generationState, output)
-    }
-  }
-
-  /**
-   * Pick out what classes we need from the generated list of .class files.
-   */
-  private fun getGeneratedCode(inputs: Collection<LiveEditCompilerInput>, generationState: GenerationState,
-                               output: LiveEditCompilerOutput.Builder) {
-    val compilerOutput = generationState.factory.asList()
-    val bindingContext = generationState.bindingContext
-
-    if (compilerOutput.isEmpty()) {
-      throw internalError("No compiler output.")
-    }
-
-    val selectedClasses = mutableMapOf<String, KtFile>()
-    for (input in inputs) {
-      // The function we are looking at no longer belongs to file. This is mostly an IDE refactor / copy-and-paste action.
-      // This should be solved nicely with a ClassDiffer.
-      if (input.element?.containingFile == null) {
-        continue
-      }
-
-      var internalClassName: String
-      var containingFile: KtFile
-      when(val element = input.element) {
-        // When the edit event was contained in a function
-        is KtFunction -> {
-          val desc = generationState.bindingContext[BindingContext.FUNCTION, element]
-                     ?: throw internalErrorNoBindContext("No binding context for ${element.javaClass.name}")
-          if (desc.hasComposableAnnotation()) {
-            // When a Composable is a lambda, we actually need to take into account of all the parent groups of that Composable
-            val parentGroup = input.parentGroups.takeIf { element !is KtNamedFunction }
-            val group = getGroupKey(compilerOutput, element, parentGroup)
-            group?.let { output.addGroupId(group) }
-          } else {
-            output.resetState = true
-          }
-          val (name, file) = getClassForMethod(element, desc)
-          internalClassName = name
-          containingFile = file
-        }
-
-        // When the edit event was at class level
-        is KtClass -> {
-          val desc = bindingContext[BindingContext.CLASS, element]!!
-          internalClassName = getInternalClassName(desc.containingPackage(), element.fqName.toString(), input.file)
-          containingFile = input.file as KtFile
-        }
-
-        // When the edit was at top level
-        is KtFile -> {
-          internalClassName = getInternalClassName(element.packageFqName, element.javaFileFacadeFqName.toString(), element)
-          containingFile = element
-        }
-
-        else -> throw compilationError("Event was generated for unsupported kotlin element")
-      }
-
-      if (internalClassName !in selectedClasses) {
-        selectedClasses[internalClassName] = containingFile
-      } else if (selectedClasses[internalClassName] !== containingFile) {
-        throw compilationError("Multiple KtFiles for class $internalClassName")
-      }
-    }
-
-    for ((internalClassName, inputFile) in selectedClasses) {
-      getCompiledClasses(internalClassName, inputFile, compilerOutput, output, inlineCandidateCache)
-    }
-  }
-
-  private fun getClassForMethod(targetFunction: KtFunction, desc: SimpleFunctionDescriptor): Pair<String, KtFile> {
-    val function: KtNamedFunction = targetFunction.getNamedFunctionParent()
-
-    // Class name can be either the class containing the function fragment or a KtFile
-    var className = KtNamedDeclarationUtil.getParentFqName(function).toString()
-    if (function.isTopLevel) {
-      val grandParent: KtFile = function.parent as KtFile
-      className = grandParent.javaFileFacadeFqName.toString()
-    }
-
-    checkNonPrivateInline(desc, function.containingFile)
-
-    val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
-    return internalClassName to function.containingKtFile
-  }
-
-  private inline fun checkNonPrivateInline(desc: SimpleFunctionDescriptor, file: PsiFile) {
-    if (desc.isInline && desc.visibility != DescriptorVisibilities.PRIVATE) {
-      throw nonPrivateInlineFunctionFailure(file)
+      // 3) Diff the newly generated class files from step 2 with the previously generated class files in order to decide which classes
+      //    we want to send to the device along with what extra meta-information the agent needs.
+      outputBuilder.getGeneratedCode(file, generationState.factory.asList(), irClassCache, inlineCandidateCache, output)
+      return@runWithCompileLock
     }
   }
 
