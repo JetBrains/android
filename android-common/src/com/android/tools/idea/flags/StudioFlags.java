@@ -124,6 +124,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> HIGHER_DEFAULT_UI_FREEZE_REPORTS_COUNT = new DebugFlag(
     STUDIO_DIAGNOSTIC, "uifreezesampling.maxreports.highdefault", "Collect more ui freeze sampling reports",
     "Use a higher default value for the max number of ui freeze sampling reports to collect");
+
+  public static final Flag<Boolean> REPORT_MANIFEST_INDEX_ERRORS_AS_CRASHES = new DebugFlag(
+    STUDIO_DIAGNOSTIC, "manifestindex.treaterrorsascrashes", "Treat Manifest Index query errors as crashes",
+    "Report manifest query index errors using Logger.error, which results in them being treted as crashes, and reported for" +
+    "opt-in developers.");
   //endregion
 
   //region New Project Wizard

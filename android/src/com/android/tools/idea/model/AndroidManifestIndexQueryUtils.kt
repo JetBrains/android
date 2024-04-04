@@ -19,6 +19,7 @@ package com.android.tools.idea.model
 
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidManifestIndex.Companion.getDataForManifestFile
 import com.android.tools.idea.model.AndroidManifestIndex.Companion.getDataForMergedManifestContributors
 import com.android.tools.idea.projectsystem.ManifestOverrides
@@ -260,7 +261,7 @@ fun logManifestIndexQueryError(e: Exception) {
     ApplicationManager.getApplication().isUnitTestMode -> {
       LOG.warn(e)
     }
-    ApplicationManager.getApplication().isEAP -> {
+    StudioFlags.REPORT_MANIFEST_INDEX_ERRORS_AS_CRASHES.get() -> {
       LOG.error(e)
     }
     else -> {
