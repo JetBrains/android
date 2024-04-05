@@ -38,6 +38,7 @@ enum {
 
 constexpr int TYPE_REMOTE_SUBMIX = 25;  // See https://developer.android.com/reference/android/media/AudioDeviceInfo#TYPE_REMOTE_SUBMIX
 
+constexpr int MAX_SUBSEQUENT_ERRORS = 5;
 constexpr int SAMPLE_RATE = 48000;
 constexpr int CHANNEL_COUNT = 2;
 constexpr int CHANNEL_MASK = AAUDIO_CHANNEL_STEREO;
@@ -66,15 +67,15 @@ public:
       : packet_size_((packet_size & 0x7FFFFFFF) | (config ? 0x80000000 : 0)) {
   }
 
-  int32_t GetPacketSize() const {
+  [[nodiscard]] int32_t GetPacketSize() const {
     return packet_size_ & 0x7FFFFFFF;
   }
 
-  bool IsConfig() const {
+  [[nodiscard]] bool IsConfig() const {
     return (packet_size_ & 0x80000000) != 0;
   }
 
-  std::string ToDebugString() const {
+  [[nodiscard]] std::string ToDebugString() const {
     return StringPrintf("%s audio packet size=%d", IsConfig() ? "config" : "data", GetPacketSize());
   }
 
@@ -104,7 +105,7 @@ struct CodecInputBuffer {
     return true;
   }
 
-  bool Queue(size_t data_size, uint64_t presentation_time_us, uint32_t flags) {
+  [[nodiscard]] bool Queue(size_t data_size, uint64_t presentation_time_us, uint32_t flags) {
     auto res = AMediaCodec_queueInputBuffer(codec, index, 0, data_size, presentation_time_us, flags);
     if (res == AMEDIA_OK) {
       return true;
@@ -157,11 +158,17 @@ void AudioStreamer::Run() {
   }
 
   bool continue_streaming = true;
+  consequent_deque_error_count_ = 0;
   while (continue_streaming && !streamer_stopped_) {
     CodecOutputBuffer codec_buffer(codec_, "Audio: ");
     if (!codec_buffer.Deque(-1)) {
+      if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS) {
+        Log::E("Audio streaming stopped due to repeated encoder errors");
+        break;
+      }
       continue;
     }
+    consequent_deque_error_count_ = 0;
     continue_streaming = !codec_buffer.IsEndOfStream();
 
     AudioPacketHeader packet_header(codec_buffer.IsConfig(), codec_buffer.size());
@@ -226,10 +233,16 @@ aaudio_data_callback_result_t AudioStreamer::ConsumeAudioData(AAudioStream* stre
     auto size = min(data_size, codec_input.size);
     memcpy(codec_input.buffer, audio_data, size);
     audio_data += size;
-    codec_input.Queue(size, presentation_time_us, 0);
+    bool queued_ok = codec_input.Queue(size, presentation_time_us, 0);
     if (streamer_stopped_) {
       return AAUDIO_CALLBACK_RESULT_STOP;
     }
+    if (!queued_ok && ++consequent_queue_error_count_ >= MAX_SUBSEQUENT_ERRORS) {
+      Log::E("Audio streaming stopped due to repeated errors while queuing data");
+      Stop();
+      return AAUDIO_CALLBACK_RESULT_STOP;
+    }
+    consequent_queue_error_count_ = 0;
     data_size -= size;
   }
   return AAUDIO_CALLBACK_RESULT_CONTINUE;
@@ -276,6 +289,7 @@ bool AudioStreamer::StartAudioCapture() {
   if (codec_stop_pending_) {
     return false;
   }
+  consequent_queue_error_count_ = 0;
   running_codec_ = codec_;
   AMediaCodec_start(codec_);
 
@@ -293,6 +307,7 @@ void AudioStreamer::StopAudioCapture() {
   AMediaFormat_delete(media_format_);
   media_format_ = nullptr;
   DeleteAudioStreamAndBuilder();
+  consequent_deque_error_count_ = 0;
 }
 
 void AudioStreamer::DeleteAudioStreamAndBuilder() {

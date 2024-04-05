@@ -34,7 +34,7 @@ namespace screensharing {
 // Processes control socket commands.
 class AudioStreamer {
 public:
-  AudioStreamer(int socket_fd);
+  explicit AudioStreamer(int socket_fd);
   ~AudioStreamer();
 
   // Starts the streamer's thread.
@@ -58,6 +58,8 @@ private:
   std::atomic_bool streamer_stopped_ = true;
   AAudioStreamBuilder* stream_builder_ = nullptr;
   AAudioStream* stream_ = nullptr;
+  int32_t consequent_queue_error_count_ = 0;
+  int32_t consequent_deque_error_count_ = 0;
   int64_t last_presentation_timestamp_us_ = 0;
   int32_t num_frames_in_last_sample_ = 0;
 
