@@ -16,10 +16,11 @@
 package com.android.tools.idea.res
 
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.ProgressIndicator
@@ -28,16 +29,17 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.application
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
-import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
 
 /**
  * Service that subscribes to project root changes in order to invalidate
  * [AndroidDependenciesCache], the [ResourceFolderManager] cache, and to update resource
  * repositories.
  */
-class AndroidProjectRootListener private constructor(project: Project) : Disposable.Default {
+class AndroidProjectRootListener private constructor(private val project: Project) :
+  Disposable.Default {
   init {
     val messageBusConnection = project.messageBus.connect(this)
 
@@ -50,41 +52,37 @@ class AndroidProjectRootListener private constructor(project: Project) : Disposa
       },
     )
 
-    messageBusConnection.subscribe<ProjectSystemSyncManager.SyncResultListener>(
+    messageBusConnection.subscribe(
       PROJECT_SYSTEM_SYNC_TOPIC,
-      ProjectSystemSyncManager
-        .SyncResultListener { // This event is called on the EDT. Calling
-                              // `moduleRootsOrDependenciesChanged` directly ends up executing the
-                              // DumbModeTask
-          // synchronously, which has leads to failures due to the state we're in from higher up the
-          // stack. Executing this on the EDT later
-          // avoids that situation.
-          ApplicationManager.getApplication().invokeLater {
-            moduleRootsOrDependenciesChanged(project, this@AndroidProjectRootListener)
-          }
-        },
+      ProjectSystemSyncManager.SyncResultListener {
+        // This event is called on the EDT. Calling `moduleRootsOrDependenciesChanged` directly ends
+        // up executing the DumbModeTask synchronously, which has leads to failures due to the state
+        // we're in from higher up the stack. Executing this on the EDT later avoids that situation.
+        application.invokeLater {
+          moduleRootsOrDependenciesChanged(project, this@AndroidProjectRootListener)
+        }
+      },
     )
   }
 
-  private class MyDumbModeTask(private val myProject: Project, parent: Disposable) :
-    DumbModeTask() {
+  private class MyDumbModeTask(private val project: Project, parent: Disposable) : DumbModeTask() {
     init {
       Disposer.register(parent, this)
     }
 
     override fun performInDumbMode(indicator: ProgressIndicator) {
-      if (!myProject.isDisposed) {
+      if (!project.isDisposed) {
         indicator.text = "Updating resource repository roots"
-        val moduleManager: ModuleManager = getInstance.getInstance(myProject)
-        for (module in moduleManager.modules) {
+        for (module in ModuleManager.getInstance(project).modules) {
           moduleRootsOrDependenciesChanged(module)
         }
       }
     }
 
     override fun tryMergeWith(taskFromQueue: DumbModeTask): DumbModeTask? {
-      if ((taskFromQueue is MyDumbModeTask) && taskFromQueue.myProject == myProject) return this
-      return null
+      return this.takeIf {
+        taskFromQueue is MyDumbModeTask && taskFromQueue.project == project
+      }
     }
   }
 
@@ -97,7 +95,7 @@ class AndroidProjectRootListener private constructor(project: Project) : Disposa
      */
     @JvmStatic
     fun ensureSubscribed(project: Project) {
-      project.getService(AndroidProjectRootListener::class.java)
+      project.service<AndroidProjectRootListener>()
     }
 
     /**
@@ -106,7 +104,7 @@ class AndroidProjectRootListener private constructor(project: Project) : Disposa
      * @param project the project whose module roots changed
      */
     private fun moduleRootsOrDependenciesChanged(project: Project, parentDisposable: Disposable) {
-      ReadAction.run<RuntimeException> {
+      runReadAction {
         if (!project.isDisposed) {
           MyDumbModeTask(project, parentDisposable).queue(project)
         }
@@ -119,18 +117,17 @@ class AndroidProjectRootListener private constructor(project: Project) : Disposa
      * @param module the module whose roots changed
      */
     private fun moduleRootsOrDependenciesChanged(module: Module) {
-      val facet = AndroidFacet.getInstance(module)
-      if (facet != null) {
-        if (AndroidModel.isRequired(facet) && AndroidModel.get(facet) == null) {
-          // Project not yet fully initialized. No need to do a sync now because our
-          // GradleProjectAvailableListener will be called as soon as it is and do a proper sync.
-          return
-        }
+      val facet = AndroidFacet.getInstance(module) ?: return
 
-        AndroidDependenciesCache.getInstance(module).dropCache()
-        getInstance(facet).checkForChanges()
-        StudioResourceRepositoryManager.getInstance(facet).updateRootsAndLibraries()
+      if (AndroidModel.isRequired(facet) && AndroidModel.get(facet) == null) {
+        // Project not yet fully initialized. No need to do a sync now because our
+        // GradleProjectAvailableListener will be called as soon as it is and do a proper sync.
+        return
       }
+
+      AndroidDependenciesCache.getInstance(module).dropCache()
+      ResourceFolderManager.getInstance(facet).checkForChanges()
+      StudioResourceRepositoryManager.getInstance(facet).updateRootsAndLibraries()
     }
   }
 }
