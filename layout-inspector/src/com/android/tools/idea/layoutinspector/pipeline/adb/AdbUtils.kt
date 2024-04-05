@@ -67,7 +67,7 @@ fun AndroidDebugBridge.executeShellCommand(
  * caller can have more control over when to cancel it or fetch the results.
  */
 @WorkerThread
-fun AndroidDebugBridge.startShellCommand(
+private fun AndroidDebugBridge.startShellCommand(
   device: DeviceDescriptor,
   command: String,
   timeoutSecs: Long = ADB_NEVER_TIMEOUT,
