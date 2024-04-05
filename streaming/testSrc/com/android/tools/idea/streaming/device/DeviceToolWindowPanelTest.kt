@@ -277,11 +277,14 @@ class DeviceToolWindowPanelTest {
       DeviceFoldingAction(FoldingState(4, "Rear Display Mode", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
       DeviceFoldingAction(FoldingState(5, "Dual Display Mode",
                                        EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE, FoldingState.Flag.CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
-      DeviceFoldingAction(FoldingState(6, "Flipped", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))))
+      DeviceFoldingAction(FoldingState(6, "Rear Dual Mode",
+                                       EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE, FoldingState.Flag.CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
+      DeviceFoldingAction(FoldingState(7, "Flipped", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))))
+    val disabledModes = setOf("Dual Display Mode", "Rear Dual Mode")
     for (action in foldingActions) {
       action.update(event)
       assertWithMessage("Unexpected enablement state of the ${action.templateText} action")
-          .that(event.presentation.isEnabled).isEqualTo(action.templateText != "Dual Display Mode")
+          .that(event.presentation.isEnabled).isEqualTo(action.templateText !in disabledModes)
       assertWithMessage("Unexpected visibility of the ${action.templateText} action").that(event.presentation.isVisible).isTrue()
     }
     assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(2208, 1840))

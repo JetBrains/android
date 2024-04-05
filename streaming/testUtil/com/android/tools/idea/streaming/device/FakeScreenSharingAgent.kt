@@ -1010,7 +1010,8 @@ class FakeScreenSharingAgent(
                 DeviceState{identifier=3, name='OPEN', app_accessible=true},
                 DeviceState{identifier=4, name='REAR_DISPLAY_STATE', app_accessible=true},
                 DeviceState{identifier=5, name='CONCURRENT_INNER_DEFAULT', app_accessible=true, cancel_when_requester_not_on_top=true},
-                DeviceState{identifier=6, name='FLIPPED', app_accessible=true},
+                DeviceState{identifier=6, name='REAR_DUAL', app_accessible=true},
+                DeviceState{identifier=7, name='FLIPPED', app_accessible=true},
               ]
               """.trimIndent()
           sendNotificationOrResponse(SupportedDeviceStatesNotification(supportedStates))

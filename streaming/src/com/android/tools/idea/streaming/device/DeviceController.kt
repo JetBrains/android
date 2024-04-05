@@ -268,11 +268,17 @@ internal class DeviceController(
       val name = groups["name"]?.value ?: throw IllegalArgumentException()
       val flagsSection = groups["flags"]?.value ?: ""
       val flags = parseDeviceStateFlags(flagsSection)
+      if (name == "REAR_DUAL") {
+        // For some unclear reason the video encoder connected to the second display on
+        // Samsung Fold5 doesn't produce any frames in REAR_DUAL mode. As a workaround, make that
+        // mode harder to switch to.
+        flags.add(FoldingState.Flag.CANCEL_WHEN_REQUESTER_NOT_ON_TOP)
+      }
       FoldingState(id, deviceStateNameToFoldingStateName(name), flags)
     }.toList()
   }
 
-  private fun parseDeviceStateFlags(flagsText: String): Set<FoldingState.Flag> {
+  private fun parseDeviceStateFlags(flagsText: String): EnumSet<FoldingState.Flag> {
     val flags = EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE)
     for (keyValue in flagsText.split(", ")) {
       val parts = keyValue.split('=')
