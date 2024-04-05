@@ -29,6 +29,7 @@ import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -55,7 +56,7 @@ public class AndroidProjectRootListener implements Disposable.Default {
     messageBusConnection.subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {
-        moduleRootsOrDependenciesChanged(project);
+        moduleRootsOrDependenciesChanged(project, AndroidProjectRootListener.this);
       }
     });
 
@@ -65,7 +66,8 @@ public class AndroidProjectRootListener implements Disposable.Default {
         // This event is called on the EDT. Calling `moduleRootsOrDependenciesChanged` directly ends up executing the DumbModeTask
         // synchronously, which has leads to failures due to the state we're in from higher up the stack. Executing this on the EDT later
         // avoids that situation.
-        ApplicationManager.getApplication().invokeLater(() -> moduleRootsOrDependenciesChanged(project));
+        ApplicationManager.getApplication().invokeLater(
+          () -> moduleRootsOrDependenciesChanged(project, AndroidProjectRootListener.this));
       }
     });
   }
@@ -75,10 +77,10 @@ public class AndroidProjectRootListener implements Disposable.Default {
    *
    * @param project the project whose module roots changed
    */
-  private static void moduleRootsOrDependenciesChanged(@NotNull Project project) {
+  private static void moduleRootsOrDependenciesChanged(@NotNull Project project, Disposable parentDisposable) {
     ReadAction.run(() -> {
       if (!project.isDisposed()) {
-        new MyDumbModeTask(project).queue(project);
+        new MyDumbModeTask(project, parentDisposable).queue(project);
       }
     });
   }
@@ -106,8 +108,9 @@ public class AndroidProjectRootListener implements Disposable.Default {
   private static class MyDumbModeTask extends DumbModeTask {
     private final @NotNull Project myProject;
 
-    private MyDumbModeTask(@NotNull Project project) {
+    private MyDumbModeTask(@NotNull Project project, @NotNull Disposable parent) {
       myProject = project;
+      Disposer.register(parent, this);
     }
 
     @Override
