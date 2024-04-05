@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.parser.something
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
-import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -66,7 +65,14 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
           factory.createOneParameterFactory(name, "\"placeholder\"")
 
       is GradleDslElementList, is GradleDslBlockElement -> factory.createBlock(name)
-      is GradleDslMethodCall -> factory.createFactory(name)
+      is GradleDslMethodCall -> {
+        if (element.isDoubleFunction()) {
+          val internal = factory.createFactory(element.methodName)
+          factory.createOneParameterFactory(name, internal.text)
+        }
+        else factory.createFactory(name)
+      }
+
       else -> null
     }
     psiElement ?: return null
@@ -99,6 +105,10 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
     }
   }
 
+  // this is DSL function like `implementation project(":my")` where `implementation` is name and `project` is function name
+  private fun GradleDslMethodCall.isDoubleFunction(): Boolean =
+    methodName != name && methodName.isNotEmpty()
+
   private fun getAnchor(parent: PsiElement, anchorDsl: GradleDslElement?): PsiElement? {
     var anchor = anchorDsl?.let { findLastPsiElementIn(it) }
     if (anchor == null && parent is SomethingBlock) return parent.blockEntriesStart
@@ -114,8 +124,11 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
   }
 
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement {
-    val call = createDslElement(methodCall)
-    methodCall.argumentsElement.psiElement = (call as SomethingFactory).argumentsList
+    val call = createDslElement(methodCall) as SomethingFactory
+    if (methodCall.isDoubleFunction())
+      (call.argumentsList?.arguments?.firstOrNull() as? SomethingFactory)?.argumentsList?.let { methodCall.argumentsElement.psiElement = it }
+    else
+      methodCall.argumentsElement.psiElement = call.argumentsList
     methodCall.arguments.firstOrNull()?.create()
     return call
   }
@@ -169,6 +182,5 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
     }
   }
   private fun GradleDslElement.isAlreadyCreated(): Boolean = psiElement?.findParentOfType<SomethingFile>(strict = false) != null
-
 
 }

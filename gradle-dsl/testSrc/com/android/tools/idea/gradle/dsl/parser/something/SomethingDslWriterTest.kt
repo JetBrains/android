@@ -17,6 +17,11 @@ package com.android.tools.idea.gradle.dsl.parser.something
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.blockOf
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.factoryOf
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.mapToProperties
@@ -112,6 +117,37 @@ class SomethingDslWriterTest : LightPlatformTestCase() {
     """.trimIndent()
 
     doTest(contents, expected)
+  }
+
+  fun testDoubleFunction(){
+    val file = VfsTestUtil.createFile(
+      project.guessProjectDir()!!,
+      "build.gradle.something",
+      ""
+    )
+    val dslFile = object : GradleDslFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
+    dslFile.parse()
+
+    val block = DependenciesDslElement(dslFile, GradleNameElement.create("dependenciesDeclarative"))
+    dslFile.setNewElement(block)
+
+    val doubleFunction = GradleDslMethodCall(block, GradleNameElement.create("api"), "project")
+    block.setNewElement(doubleFunction)
+
+    val label = GradleDslLiteral(doubleFunction.argumentsElement, GradleNameElement.empty())
+    label.setValue(":my")
+    doubleFunction.addNewArgument(label)
+
+    WriteCommandAction.runWriteCommandAction(project) {
+      dslFile.applyChanges()
+      dslFile.saveAllChanges()
+    }
+    val text = VfsUtil.loadText(file).replace("\r", "")
+    assertEquals("""
+      dependenciesDeclarative {
+          api(project(":my"))
+      }
+    """.trimIndent(), text)
   }
 
   private fun doTest(contents: Map<String, Any>, expected: String) {
