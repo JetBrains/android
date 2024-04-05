@@ -16,106 +16,123 @@
 package com.android.tools.idea.adddevicedialog
 
 import com.android.sdklib.deviceprovisioner.Resolution
+import com.android.sdklib.devices.Abi
 import com.google.common.collect.Range
 
-val TestDeviceSource.mediumPhone
-  get() =
-    device(
+internal object TestDevices {
+  val mediumPhone =
+    TestDevice(
+      apiRange = Range.closed(24, 34),
       manufacturer = "Generic",
       name = "Medium Phone",
-      apiRange = Range.closed(24, 34),
       resolution = Resolution(1080, 2400),
       displayDensity = 420,
       isVirtual = true,
       isRemote = false,
+      abis = listOf(Abi.ARM64_V8A),
+      isAlreadyPresent = false,
+      availabilityEstimateSeconds = 0,
     )
 
-val TestDeviceSource.remotePixel5
-  get() =
-    device(
+  val remotePixel5 =
+    TestDevice(
+      apiRange = Range.closed(30, 30),
       manufacturer = "Google",
       name = "Pixel 5",
-      apiRange = Range.closed(30, 30),
       resolution = Resolution(1080, 2340),
       displayDensity = 440,
       isVirtual = false,
       isRemote = true,
+      abis = listOf(Abi.ARM64_V8A),
+      isAlreadyPresent = false,
+      availabilityEstimateSeconds = 0,
     )
 
-val TestDeviceSource.pixelFold
-  get() =
-    device(
+  val pixelFold =
+    TestDevice(
+      apiRange = Range.closed(33, 33),
       manufacturer = "Google",
       name = "Pixel Fold",
-      apiRange = Range.closed(33, 33),
       resolution = Resolution(2208, 1840),
       displayDensity = 420,
       isVirtual = true,
       isRemote = false,
+      abis = listOf(Abi.ARM64_V8A),
+      isAlreadyPresent = false,
+      availabilityEstimateSeconds = 0,
     )
 
-val TestDeviceSource.pixelTablet
-  get() =
-    device(
+  val pixelTablet =
+    TestDevice(
+      apiRange = Range.closed(33, 33),
       manufacturer = "Google",
       name = "Pixel Tablet",
-      apiRange = Range.closed(33, 33),
       resolution = Resolution(2560, 1600),
       displayDensity = 320,
       isVirtual = true,
       isRemote = false,
+      abis = listOf(Abi.ARM64_V8A),
+      isAlreadyPresent = false,
+      availabilityEstimateSeconds = 0,
     )
 
-val TestDeviceSource.wearLargeRound
-  get() =
-    device(
+  val wearLargeRound =
+    TestDevice(
+      apiRange = Range.closed(20, 34),
       manufacturer = "Google",
       name = "Wear OS Large Round",
-      apiRange = Range.closed(20, 34),
       resolution = Resolution(454, 454),
       displayDensity = 320,
       isVirtual = true,
       isRemote = false,
+      abis = listOf(Abi.ARM64_V8A),
+      isAlreadyPresent = false,
+      availabilityEstimateSeconds = 0,
     )
 
-val TestDeviceSource.galaxyS22
-  get() =
-    device(
+  val galaxyS22 =
+    TestDevice(
+      apiRange = Range.closed(33, 33),
       manufacturer = "Samsung",
       name = "Galaxy S22",
-      apiRange = Range.closed(33, 33),
       resolution = Resolution(1440, 3088),
       displayDensity = 600,
       isVirtual = false,
       isRemote = true,
+      abis = listOf(Abi.ARM64_V8A),
+      isAlreadyPresent = false,
+      availabilityEstimateSeconds = 0,
     )
 
-val TestDeviceSource.automotive
-  get() =
-    device(
+  val automotive =
+    TestDevice(
+      apiRange = Range.closed(28, 34),
       manufacturer = "Google",
       name = "Automotive (1024p landscape)",
-      apiRange = Range.closed(28, 34),
       resolution = Resolution(1024, 768),
       displayDensity = 160,
       isVirtual = true,
       isRemote = false,
+      abis = listOf(Abi.ARM64_V8A),
+      isAlreadyPresent = false,
+      availabilityEstimateSeconds = 0,
     )
 
-val TestDeviceSource.tv4k
-  get() =
-    device(
+  val tv4k =
+    TestDevice(
+      apiRange = Range.closed(31, 34),
       manufacturer = "Google",
       name = "Television (4K)",
-      apiRange = Range.closed(31, 34),
       resolution = Resolution(3840, 2160),
       displayDensity = 640,
       isVirtual = true,
       isRemote = false,
+      abis = listOf(Abi.ARM64_V8A),
+      isAlreadyPresent = false,
+      availabilityEstimateSeconds = 0,
     )
 
-val TestDeviceSource.allTestDevices
-  get() =
+  val allTestDevices =
     listOf(
       automotive,
       galaxyS22,
@@ -126,3 +143,4 @@ val TestDeviceSource.allTestDevices
       tv4k,
       wearLargeRound,
     )
+}

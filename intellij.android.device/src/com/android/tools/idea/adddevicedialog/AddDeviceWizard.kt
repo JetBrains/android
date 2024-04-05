@@ -29,7 +29,7 @@ internal class AddDeviceWizard(val sources: List<DeviceSource>, val project: Pro
       DeviceTable(profiles, tableSelectionState = selectionState)
 
       val selection = selectionState.selection
-      val source = selection?.source
+      val source = sources.find { it.javaClass == selection?.source }
 
       if (selection == null || source == null) {
         nextAction = WizardAction.Disabled

@@ -34,7 +34,6 @@ import java.nio.file.Path
 @Immutable
 internal data class VirtualDevice
 internal constructor(
-  override val source: DeviceSource,
   override val apiRange: Range<Int>,
   override val manufacturer: String,
   override val name: String,
@@ -56,6 +55,9 @@ internal constructor(
   internal val simulatedRam: StorageCapacity,
   internal val vmHeapSize: StorageCapacity,
 ) : DeviceProfile {
+  override val source: Class<out DeviceSource>
+    get() = LocalVirtualDeviceSource::class.java
+
   override val isVirtual
     get() = true
 

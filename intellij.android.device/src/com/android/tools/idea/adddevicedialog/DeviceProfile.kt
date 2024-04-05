@@ -20,7 +20,7 @@ import com.android.sdklib.devices.Abi
 import com.google.common.collect.Range
 
 interface DeviceProfile {
-  val source: DeviceSource
+  val source: Class<out DeviceSource>
 
   // TODO: alert icon, text
 

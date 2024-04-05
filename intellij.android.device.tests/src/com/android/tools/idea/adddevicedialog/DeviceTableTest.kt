@@ -35,7 +35,7 @@ class DeviceTableTest {
     composeTestRule.setContent {
       JewelTestTheme {
         val source = TestDeviceSource()
-        source.apply { allTestDevices.forEach { add(it) } }
+        source.apply { TestDevices.allTestDevices.forEach { add(it) } }
         DeviceTable(source.profiles)
       }
     }
@@ -54,7 +54,7 @@ class DeviceTableTest {
     composeTestRule.setContent {
       JewelTestTheme {
         val source = TestDeviceSource()
-        source.apply { allTestDevices.forEach { add(it) } }
+        source.apply { TestDevices.allTestDevices.forEach { add(it) } }
         DeviceTable(source.profiles)
       }
     }

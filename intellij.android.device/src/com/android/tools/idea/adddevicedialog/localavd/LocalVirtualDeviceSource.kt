@@ -104,7 +104,6 @@ internal class LocalVirtualDeviceSource(
   private fun Device.toVirtualDevice(): VirtualDevice =
     // TODO: Check that these are appropriate defaults
     VirtualDevice(
-      source = this@LocalVirtualDeviceSource,
       apiRange = this.apiRange,
       sdkExtensionLevel = AndroidVersion(apiRange.upperEndpoint()),
       manufacturer = this.manufacturer,

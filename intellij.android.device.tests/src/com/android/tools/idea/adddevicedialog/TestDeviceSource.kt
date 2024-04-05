@@ -22,49 +22,25 @@ import com.google.common.collect.Range
 class TestDeviceSource : DeviceSource {
   override val profiles = mutableListOf<DeviceProfile>()
 
-  data class Device(
-    override val source: DeviceSource,
-    override val apiRange: Range<Int>,
-    override val manufacturer: String,
-    override val name: String,
-    override val resolution: Resolution,
-    override val displayDensity: Int,
-    override val isVirtual: Boolean,
-    override val isRemote: Boolean,
-    override val abis: List<Abi>,
-    override val isAlreadyPresent: Boolean,
-    override val availabilityEstimateSeconds: Int,
-  ) : DeviceProfile
-
-  fun add(device: Device) {
+  fun add(device: TestDevice) {
     profiles.add(device)
   }
 
-  fun device(
-    apiRange: Range<Int> = Range.closed(24, 34),
-    manufacturer: String = "Google",
-    name: String,
-    resolution: Resolution = Resolution(2000, 1200),
-    displayDensity: Int = 300,
-    isVirtual: Boolean = true,
-    isRemote: Boolean = false,
-    abis: List<Abi> = listOf(Abi.ARM64_V8A),
-    isAlreadyPresent: Boolean = false,
-    availabilityEstimateSeconds: Int = 0,
-  ): Device =
-    Device(
-      this,
-      apiRange,
-      manufacturer,
-      name,
-      resolution,
-      displayDensity,
-      isVirtual,
-      isRemote,
-      abis,
-      isAlreadyPresent,
-      availabilityEstimateSeconds,
-    )
-
   override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {}
+}
+
+data class TestDevice(
+  override val apiRange: Range<Int> = Range.closed(24, 34),
+  override val manufacturer: String = "Google",
+  override val name: String,
+  override val resolution: Resolution = Resolution(2000, 1200),
+  override val displayDensity: Int = 300,
+  override val isVirtual: Boolean = true,
+  override val isRemote: Boolean = false,
+  override val abis: List<Abi> = listOf(Abi.ARM64_V8A),
+  override val isAlreadyPresent: Boolean = false,
+  override val availabilityEstimateSeconds: Int = 0,
+) : DeviceProfile {
+  override val source: Class<out DeviceSource>
+    get() = TestDeviceSource::class.java
 }

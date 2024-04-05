@@ -23,7 +23,7 @@ fun main() {
   singleWindowApplication(title = "Add Device") {
     IntUiTheme {
       val source = TestDeviceSource()
-      source.apply { allTestDevices.forEach { add(it) } }
+      source.apply { TestDevices.allTestDevices.forEach { add(it) } }
       DeviceTable(source.profiles)
     }
   }

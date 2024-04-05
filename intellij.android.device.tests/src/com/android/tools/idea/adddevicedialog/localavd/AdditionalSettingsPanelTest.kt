@@ -32,7 +32,6 @@ import com.android.testutils.MockitoKt
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
-import com.android.tools.idea.adddevicedialog.TestDeviceSource
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.google.common.collect.Range
@@ -86,7 +85,6 @@ class AdditionalSettingsPanelTest {
 
     val device =
       VirtualDevice(
-        source = TestDeviceSource(),
         name = "Pixel 6 API 34",
         manufacturer = "Google",
         apiRange = Range.closed(21, 34),
