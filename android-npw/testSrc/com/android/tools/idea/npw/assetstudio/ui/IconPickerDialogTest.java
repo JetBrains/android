@@ -150,7 +150,7 @@ public class IconPickerDialogTest extends LightPlatformTestCase {
         JComboBox box = UIUtil.findComponentOfType(pickerPanel, JComboBox.class);
         boolean populatedTable = table != null && table.getValueAt(0, 0) != null;
         boolean populatedComboBox = box != null && box.isEnabled() && box.getItemCount() >= 1;
-        return populatedComboBox && populatedTable;
+        return !dialog.isBusy() && populatedComboBox && populatedTable;
       }
     };
     assertTrue(wait.isConditionRealized());

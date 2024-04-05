@@ -29,6 +29,8 @@ import com.intellij.util.download.FileDownloader
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createParentDirectories
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -152,11 +154,11 @@ class MaterialIconsUpdaterTest {
       MaterialIconsMetadata.parse(SdkUtils.fileToUrl(testDownloadedMetadataFile), thisLogger())
     }
 
-    updateIconsAtDir(
+    assertTrue(updateIconsAtDir(
       existingMetadata = loadExistingMetadata(),
       newMetadata = loadTestDownloadedMetadata(),
       targetDir = downloadDir
-    )
+    ))
 
     // Downloaded version of Icon 1 forces a specific file name and deletes the existing XML file
     assertThat(existingIcon1).doesNotExist()
@@ -174,12 +176,13 @@ class MaterialIconsUpdaterTest {
     val expectedMetadataContent = testDownloadedMetadataFile.readText().toExpectedJsonFormat()
     assertEquals(expectedMetadataContent, existingMetadataFile.readText())
 
-    // Calling updateIconsAtDir again will remove any unused Icons from the current metadata
-    updateIconsAtDir(
+    // Calling updateIconsAtDir again will remove any unused Icons from the current metadata.
+    // Because the metadata is already up to date, updateIconsAtDir will return false.
+    assertFalse(updateIconsAtDir(
       existingMetadata = loadExistingMetadata(),
       newMetadata = loadTestDownloadedMetadata(),
       targetDir = downloadDir
-    )
+    ))
 
     // Icon 2 should be deleted now, since it's not in use by the current metadata
     assertThat(existingIcon1.parent).exists()

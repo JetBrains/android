@@ -18,6 +18,7 @@ package com.android.tools.idea.material.icons.metadata
 import com.android.tools.idea.material.icons.common.BundledMetadataUrlProvider
 import com.android.tools.idea.material.icons.common.SdkMetadataUrlProvider
 import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.getMetadata
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.Semaphore
@@ -33,6 +34,7 @@ import java.util.function.Supplier
  * The [MaterialIconsMetadata] file is a file that gets updated infrequently, [MaterialIconsMetadataDownloadService] takes care of properly
  * managing when to actually download the file, but the instance to it must be kept around.
  */
+@Service
 class MaterialIconsMetadataDownloadCacheService {
 
   private var cachedMetadataDownloadService: MaterialIconsMetadataDownloadService? = null
@@ -72,7 +74,7 @@ class MaterialIconsMetadataDownloadCacheService {
 private fun MaterialIconsMetadataDownloadService.refreshAndGetMetadata(fallbackMetadataURL: URL): CompletableFuture<MaterialIconsMetadata> {
   val semaphore = Semaphore().apply { down() }
   val onComplete = semaphore::up
-  refresh(onComplete, onComplete)
+  refresh(onComplete, onComplete, false)
 
   return CompletableFuture.supplyAsync(Supplier {
     // Wait for async refresh to complete, then ask the service for the metadata.
