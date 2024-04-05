@@ -116,10 +116,10 @@ class LiveEditCompiler(val project: Project,
         } catch (e: LiveEditUpdateException) {
           throw e
         } catch (e : Exception) {
-          throw internalError("Unexpected error during compilation command", file, e)
           // Unlike the other exception where it is temporary errors or setup failures. These type of internal error should be
           // rare and probably worth logging for bug reports.
-          logger.log(e.stackTraceToString())
+          LOGGER.warning("Internal error during compilation command: %s\n%s", e.message, e.stackTraceToString().prependIndent("\t"))
+          throw internalError("Unexpected error during compilation command", file, e)
         }
       }
     }
