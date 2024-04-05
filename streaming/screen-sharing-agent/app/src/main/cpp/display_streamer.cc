@@ -318,6 +318,10 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(VideoPacketHeader* packet_h
       continue;
     }
 
+    if (packet_header->frame_number == 0) {
+      Log::D("Display %d: first video frame produced by the encoder", display_id_) ;
+    }
+
     if (request_sync_frame) {
       // Request another sync frame to prevent a green bar that sometimes appears at the bottom
       // of the first frame.
