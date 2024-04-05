@@ -574,6 +574,8 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun inspectorFiresErrorOnErrorEvent() = runBlocking {
+    setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial)
+
     val startFetchError = "Failed to start fetching or whatever"
 
     inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) {
@@ -598,6 +600,8 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun composeClientShowsMessageIfOlderComposeUiLibrary() {
+    setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial)
+
     inspectionRule.composeInspector.createResponseStatus =
       AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
@@ -615,6 +619,8 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun composeClientShowsMessageIfProguardedComposeUiLibrary() {
+    setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial)
+
     inspectionRule.composeInspector.createResponseStatus =
       AppInspection.CreateInspectorResponse.Status.APP_PROGUARDED
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
@@ -627,6 +633,8 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun composeClientShowsMessageIfLibraryVersionNotFound() {
+    setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial)
+
     inspectionRule.composeInspector.createResponseStatus =
       AppInspection.CreateInspectorResponse.Status.VERSION_MISSING
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
@@ -874,6 +882,8 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun errorShownOnConnectException() {
+    setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial)
+
     inspectorClientSettings.inLiveMode = true
     inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
@@ -890,6 +900,8 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun errorShownOnRefreshException() {
+    setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial)
+
     inspectorClientSettings.inLiveMode = false
     inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
@@ -931,6 +943,17 @@ class AppInspectionInspectorClientTest {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
     assertThat(banner.isVisible).isFalse()
+  }
+
+  @Test
+  fun testFailureToSetDebugViewAttributesShowsBanner() {
+    setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial, shouldFail = true)
+
+    preferredProcess = null
+    inspectorRule.attachDevice(MODERN_PROCESS.device)
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    inspectorRule.processes.selectedProcess = MODERN_PROCESS
+    verifyFailToEnableDebugViewAttributesBanner()
   }
 
   @Test
@@ -1014,24 +1037,36 @@ class AppInspectionInspectorClientTest {
       )
   }
 
+  private fun verifyFailToEnableDebugViewAttributesBanner() {
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+    val notification = inspectorRule.notificationModel.notifications.single()
+    assertThat(notification.message)
+      .isEqualTo(
+        "Failed to enable view attribute inspection. Compose inspection capabilities will be restricted until enabled."
+      )
+  }
+
   private fun setUpAdbForDebugViewAttributes(
     deviceSerialNumber: String,
     debugViewAttributesPreviouslyEnabled: Boolean = false,
+    shouldFail: Boolean = false,
   ) {
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
     inspectionRule.adbSession.deviceServices.configureShellCommand(
       deviceSelector,
       "settings get global debug_view_attributes",
-      if (debugViewAttributesPreviouslyEnabled) "1" else "0",
+      stdout = if (debugViewAttributesPreviouslyEnabled) "1" else "0",
     )
     inspectionRule.adbSession.deviceServices.configureShellCommand(
       deviceSelector,
       "settings put global debug_view_attributes 1",
-      "",
+      stdout = "",
+      stderr = if (shouldFail) "error" else "",
     )
   }
 }
 
+// TODO: Move to separate file or integrate with main test class
 class AppInspectionInspectorClientWithUnsupportedApi29 {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
@@ -1248,6 +1283,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
   }
 }
 
+// TODO: Move to separate file or integrate with main test class
 class AppInspectionInspectorClientWithFailingClientTest {
   private val usageTrackerRule = MetricsTrackerRule()
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
@@ -1304,6 +1340,8 @@ class AppInspectionInspectorClientWithFailingClientTest {
 
   @Test
   fun errorShownOnStartRequest() {
+    setUpAdbForDebugViewAttributes(MODERN_PROCESS.device.serial)
+
     throwOnState = AttachErrorState.START_REQUEST_SENT
     inspectorRule.attachDevice(MODERN_DEVICE)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
@@ -1461,6 +1499,25 @@ class AppInspectionInspectorClientWithFailingClientTest {
       .isEqualTo(expected)
     inspectorRule.disconnect()
     usageTrackerRule.testTracker.usages.clear()
+  }
+
+  private fun setUpAdbForDebugViewAttributes(
+    deviceSerialNumber: String,
+    debugViewAttributesPreviouslyEnabled: Boolean = false,
+    shouldFail: Boolean = false,
+  ) {
+    val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
+    inspectionRule.adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings get global debug_view_attributes",
+      stdout = if (debugViewAttributesPreviouslyEnabled) "1" else "0",
+    )
+    inspectionRule.adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings put global debug_view_attributes 1",
+      stdout = "",
+      stderr = if (shouldFail) "error" else "",
+    )
   }
 }
 

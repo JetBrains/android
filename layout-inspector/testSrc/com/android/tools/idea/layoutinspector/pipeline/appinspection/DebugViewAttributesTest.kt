@@ -70,7 +70,7 @@ class DebugViewAttributesTest {
     )
 
     assertThat(DebugViewAttributes(projectRule.project, adbSession).set(device))
-      .isEqualTo(SetFlagResult.Failure("settings put global debug_view_attributes 1", "error"))
+      .isEqualTo(SetFlagResult.Failure("error"))
     assertThat(adbSession.deviceServices.shellV2Requests.size).isEqualTo(2)
     assertThat(adbSession.deviceServices.shellV2Requests.poll().command)
       .isEqualTo("settings get global debug_view_attributes")

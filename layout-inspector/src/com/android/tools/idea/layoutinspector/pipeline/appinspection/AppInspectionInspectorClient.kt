@@ -44,14 +44,11 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.sdk.AndroidSdks
-import com.google.common.html.HtmlEscapers
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -93,7 +90,6 @@ class AppInspectionInspectorClient(
     AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly
   private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
-  @TestOnly
   private val debugViewAttributes: DebugViewAttributes = DebugViewAttributes(model.project),
 ) :
   AbstractInspectorClient(
@@ -200,20 +196,7 @@ class AppInspectionInspectorClient(
             }
           }
           is SetFlagResult.Failure -> {
-            if (!setFlagResult.error.isNullOrEmpty()) {
-              // TODO: update message
-              val encoder = HtmlEscapers.htmlEscaper()
-              val text =
-                encoder.escape("Unable to set the global setting:") +
-                  "<br/>" +
-                  encoder.escape("\"${setFlagResult.command}\"") +
-                  "<br/><br/>" +
-                  "Go to Developer Options on your device and enable \"View Attribute Inspection\"" +
-                  "<br/><br/>" +
-                  encoder.escape("Error: ${setFlagResult.error}")
-              AndroidNotification.getInstance(project)
-                .showBalloon("Could not enable resolution traces", text, NotificationType.WARNING)
-            }
+            showUnableToSetDebugViewAttributesBanner(notificationModel)
           }
         }
 

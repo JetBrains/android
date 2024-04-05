@@ -65,7 +65,7 @@ sealed class SetFlagResult {
   /** The flag is set. [previouslySet] is true, if the flag was already set. */
   data class Set(val previouslySet: Boolean) : SetFlagResult()
 
-  data class Failure(val command: String, val error: String?) : SetFlagResult()
+  data class Failure(val error: String?) : SetFlagResult()
 }
 
 /**
@@ -97,12 +97,11 @@ class DebugViewAttributes(
 
       when (val commandResult = executePut(adb, device, putCommand)) {
         AdbCommandResult.Success -> SetFlagResult.Set(false)
-        is AdbCommandResult.Failure ->
-          SetFlagResult.Failure(putCommand.get(), commandResult.message)
+        is AdbCommandResult.Failure -> SetFlagResult.Failure(commandResult.message)
       }
     } catch (ex: Exception) {
       Logger.getInstance(DebugViewAttributes::class.java).warn(ex)
-      SetFlagResult.Failure(putCommand.get(), ex.message ?: ex.javaClass.simpleName)
+      SetFlagResult.Failure(ex.message ?: ex.javaClass.simpleName)
     }
   }
 
@@ -144,6 +143,8 @@ class DebugViewAttributes(
 }
 
 private const val ACTIVITY_RESTART_KEY = "activity.restart"
+private const val FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION =
+  "failed.to.enable.view.attributes.inspection"
 // TODO(b/330406958): update documentation
 private const val DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL =
   "https://d.android.com/r/studio-ui/layout-inspector-activity-restart"
@@ -159,6 +160,21 @@ fun showActivityRestartedInBanner(notificationModel: NotificationModel) {
     id = ACTIVITY_RESTART_KEY,
     text = LayoutInspectorBundle.message(ACTIVITY_RESTART_KEY),
     status = EditorNotificationPanel.Status.Info,
+    actions = listOf(learnMoreAction, notificationModel.dismissAction),
+  )
+}
+
+/** Show a banner explaining why the activity was restarted after setting debug view attributes. */
+fun showUnableToSetDebugViewAttributesBanner(notificationModel: NotificationModel) {
+  val learnMoreAction =
+    StatusNotificationAction(LayoutInspectorBundle.message("learn.more")) {
+      BrowserUtil.browse(DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL)
+    }
+
+  notificationModel.addNotification(
+    id = FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION,
+    text = LayoutInspectorBundle.message(FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION),
+    status = EditorNotificationPanel.Status.Error,
     actions = listOf(learnMoreAction, notificationModel.dismissAction),
   )
 }

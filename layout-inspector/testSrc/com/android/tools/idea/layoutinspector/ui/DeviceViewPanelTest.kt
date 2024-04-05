@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.SdkConstants
+import com.android.adblib.DeviceSelector
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -134,13 +135,14 @@ private val MODERN_PROCESS =
 class DeviceViewPanelWithFullInspectorTest {
   private val scheduler = VirtualTimeScheduler()
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
+  private val process = MODERN_PROCESS
   private val appInspectorRule =
     AppInspectionInspectorRule(projectRule, withDefaultResponse = false)
   private val inspectorRule =
     LayoutInspectorRule(
       clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
       projectRule = projectRule,
-      isPreferredProcess = { it.name == MODERN_PROCESS.name },
+      isPreferredProcess = { it.name == process.name },
     )
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
@@ -169,6 +171,19 @@ class DeviceViewPanelWithFullInspectorTest {
     inspectorRule.attachDevice(MODERN_DEVICE)
     projectRule.fixture.testDataPath =
       TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
+
+    val deviceSelector = DeviceSelector.fromSerialNumber(process.device.serial)
+    appInspectorRule.adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings get global debug_view_attributes",
+      stdout = "0",
+    )
+    appInspectorRule.adbSession.deviceServices.configureShellCommand(
+      deviceSelector,
+      "settings put global debug_view_attributes 1",
+      stdout = "",
+      stderr = "",
+    )
   }
 
   @Test
@@ -178,7 +193,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
     installCommandHandlers()
     latch = CountDownLatch(1)
-    connect(MODERN_PROCESS)
+    connect(process)
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
 
     val panel = DeviceViewPanel(inspectorRule.inspector, projectRule.fixture.testRootDisposable)
@@ -262,7 +277,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
     // Start connecting, loading should show and empty text should not be visible
     inspectorRule.startLaunch(2)
-    inspectorRule.processes.selectedProcess = MODERN_PROCESS
+    inspectorRule.processes.selectedProcess = process
 
     waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading && !contentPanel.showEmptyText }
 
@@ -292,7 +307,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
     // Start connecting, loading should show
     inspectorRule.startLaunch(6)
-    inspectorRule.processes.selectedProcess = MODERN_PROCESS
+    inspectorRule.processes.selectedProcess = process
 
     waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
     waitForCondition(1, TimeUnit.SECONDS) { !contentPanel.showEmptyText }
@@ -326,7 +341,7 @@ class DeviceViewPanelWithFullInspectorTest {
       panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().selectTargetAction!!
     val dropDownAction = selectTargetAction.dropDownAction
     installCommandHandlers()
-    connect(MODERN_PROCESS)
+    connect(process)
     inspectorRule.processNotifier.addDevice(LEGACY_DEVICE)
     inspectorRule.processNotifier.addDevice(OLDER_LEGACY_DEVICE)
     if (dropDownAction is SelectProcessAction) {
@@ -407,7 +422,7 @@ class DeviceViewPanelWithFullInspectorTest {
   private fun gotoDeclaration(selectedView: Long) {
     installCommandHandlers()
     latch = CountDownLatch(1)
-    connect(MODERN_PROCESS)
+    connect(process)
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
     projectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
     projectRule.fixture.addFileToProject(
@@ -428,7 +443,7 @@ class DeviceViewPanelWithFullInspectorTest {
     model.resourceLookup.updateConfiguration(
       FolderConfiguration(),
       theme,
-      MODERN_PROCESS,
+      process,
       fontScaleFromConfig = 1.0f,
       mainDisplayOrientation = 90,
       screenSize = Dimension(600, 800),
@@ -1105,6 +1120,7 @@ class MyViewportLayoutManagerTest {
 class DeviceViewPanelWithNoClientsTest {
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.onDisk()
+  private val process = MODERN_PROCESS
   private val appInspectorRule =
     AppInspectionInspectorRule(projectRule, withDefaultResponse = false)
   private val postCreateLatch = CountDownLatch(1)
@@ -1118,7 +1134,7 @@ class DeviceViewPanelWithNoClientsTest {
           }
         ),
       projectRule = projectRule,
-      isPreferredProcess = { it.name == MODERN_PROCESS.name },
+      isPreferredProcess = { it.name == process.name },
     )
 
   @get:Rule
@@ -1141,7 +1157,7 @@ class DeviceViewPanelWithNoClientsTest {
     assertThat(contentPanel.showEmptyText).isTrue()
 
     // Start connecting, loading should show
-    inspectorRule.processes.selectedProcess = MODERN_PROCESS
+    inspectorRule.processes.selectedProcess = process
 
     waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
     waitForCondition(1, TimeUnit.SECONDS) { !contentPanel.showEmptyText }
@@ -1181,7 +1197,6 @@ class DeviceViewPanelWithNoClientsTest {
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isTrue()
     assertThat(deviceViewContentPanel.showNavigateToDebuggableProcess).isFalse()
 
-    val process = MODERN_PROCESS
     inspectorRule.processNotifier.addDevice(process.device)
     inspectorRule.processNotifier.fireConnected(process)
 
