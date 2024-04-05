@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("ChannelDefault")
 package com.android.tools.idea.flags
 
+import com.android.flags.FlagDefault
 import com.android.tools.idea.IdeChannel
 import com.google.common.annotations.VisibleForTesting
 
@@ -25,13 +25,21 @@ import com.google.common.annotations.VisibleForTesting
  * Example usage: `ChannelDefault.enabledUpTo(CANARY)` would return true for dev, nightly and canary, but false for beta, release-candidate
  * and stable versions of Studio.
  */
-internal fun enabledUpTo(leastStableChannel: IdeChannel.Channel) : Boolean = enabledUpTo(leastStableChannel, null)
+internal class ChannelDefault private constructor(private val value: Boolean, explanation: String): FlagDefault<Boolean>(explanation) {
+  override fun get(): Boolean = value
+
+  companion object {
+    @JvmStatic
+    fun enabledUpTo(leastStableChannel: IdeChannel.Channel) : ChannelDefault = enabledUpTo(leastStableChannel, null)
 
 
-@VisibleForTesting
-internal fun enabledUpTo(leastStableChannel: IdeChannel.Channel, versionProvider: (() -> String)?) : Boolean {
-  check(leastStableChannel <= IdeChannel.Channel.CANARY || leastStableChannel == IdeChannel.Channel.STABLE) {
-    "Flags must not be conditional between Beta, RC and Stable"
+    @VisibleForTesting
+    internal fun enabledUpTo(leastStableChannel: IdeChannel.Channel, versionProvider: (() -> String)?) : ChannelDefault {
+      check(leastStableChannel <= IdeChannel.Channel.CANARY || leastStableChannel == IdeChannel.Channel.STABLE) {
+        "Flags must not be conditional between Beta, RC and Stable"
+      }
+      return ChannelDefault(IdeChannel.getChannel(versionProvider) <= leastStableChannel, "Default enabled in " + IdeChannel.Channel.values().takeWhile { it <= leastStableChannel }.joinToString())
+    }
   }
-  return IdeChannel.getChannel(versionProvider) <= leastStableChannel
 }
+

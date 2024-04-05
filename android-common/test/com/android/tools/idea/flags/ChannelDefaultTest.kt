@@ -85,4 +85,6 @@ class ChannelDefaultTest {
     assertThat(enabledUpTo(IdeChannel.Channel.STABLE) { "Iguana | 2023.1.1" }).isTrue()
   }
 
+
+  private fun enabledUpTo(channel: IdeChannel.Channel, versionProvider: () -> String) = ChannelDefault.enabledUpTo(channel, versionProvider).get()
 }

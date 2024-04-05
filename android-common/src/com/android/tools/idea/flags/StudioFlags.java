@@ -63,11 +63,6 @@ public final class StudioFlags {
     return new Flags(userOverrides, new PropertyOverrides(), new ServerFlagOverrides());
   }
 
-  private static boolean applicationIsInternal() {
-    Application application = ApplicationManager.getApplication();
-    return application != null && !application.isUnitTestMode() && application.isInternal();
-  }
-
   @TestOnly
   public static void validate() {
     FLAGS.validate();
@@ -99,7 +94,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_SHOW_AGP_VERSION_COMBO_BOX = new BooleanFlag(
     NPW, "show.agp.version.combobox", "Show AGP version combobox",
     "Show a combobox to select the version of Android Gradle plugin used for the new project",
-    applicationIsInternal());
+    IdeaIsInternalDefault.INSTANCE);
 
   public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = new BooleanFlag(
     NPW, "new.native.module", "New Android Native Module",
