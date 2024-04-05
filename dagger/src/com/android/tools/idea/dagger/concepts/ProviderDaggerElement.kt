@@ -42,7 +42,7 @@ internal sealed class ProviderDaggerElementBase : DaggerElement() {
 
   abstract fun canProvideFor(consumer: ConsumerDaggerElementBase): Boolean
 
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
+  override fun doGetRelatedDaggerElements(): List<DaggerRelatedElement> =
     getRelatedDaggerElementsFromIndex<ConsumerDaggerElementBase>(getIndexKeys()).map {
       DaggerRelatedElement(
         it,

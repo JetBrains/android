@@ -225,7 +225,7 @@ internal data class AssistedFactoryMethodDaggerElement(
 
   override val metricsElementType = DaggerEditorEvent.ElementType.ASSISTED_FACTORY_METHOD
 
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
+  override fun doGetRelatedDaggerElements(): List<DaggerRelatedElement> {
     // The assisted inject constructor is always indexed with a fully-qualified name, so that's all
     // we have to look up.
     val indexKeys = listOf(returnedType.canonicalText)

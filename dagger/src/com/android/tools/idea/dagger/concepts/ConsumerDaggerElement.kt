@@ -48,7 +48,7 @@ internal sealed class ConsumerDaggerElementBase : DaggerElement() {
   val consumedType: PsiType
     get() = rawType.withoutDaggerWrapper().unboxed
 
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
+  override fun doGetRelatedDaggerElements(): List<DaggerRelatedElement> =
     getRelatedDaggerElementsFromIndex<ProviderDaggerElementBase>(consumedType.getIndexKeys()).map {
       DaggerRelatedElement(it, DaggerBundle.message("providers"), relationDescriptionKey)
     }

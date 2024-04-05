@@ -1058,6 +1058,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> DAGGER_CACHE_RELATED_ELEMENTS = new BooleanFlag(
+    EDITOR, "dagger.cache.related.elements",
+    "Enable caching related Dagger elements",
+    "If enabled, related Dagger elements will be cached rather than being recalculated every time they're required.",
+    true
+  );
+
   public static final Flag<Boolean> TRANSLATIONS_EDITOR_SYNCHRONIZATION = new BooleanFlag(
     EDITOR, "translations.editor.synchronization",
     "Synchronize translations editor with resource file updates",

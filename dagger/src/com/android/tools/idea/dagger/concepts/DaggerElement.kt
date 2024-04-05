@@ -19,6 +19,7 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.dagger.index.DaggerIndex
 import com.android.tools.idea.dagger.index.getIndexKeys
 import com.android.tools.idea.dagger.localization.DaggerBundle
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
@@ -28,6 +29,9 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
 import kotlin.reflect.KClass
 import org.jetbrains.annotations.PropertyKey
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
@@ -52,11 +56,24 @@ sealed class DaggerElement {
   abstract val metricsElementType: DaggerEditorEvent.ElementType
 
   /** Looks up related Dagger elements. */
-  abstract fun getRelatedDaggerElements(): List<DaggerRelatedElement>
+  fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
+    if (StudioFlags.DAGGER_CACHE_RELATED_ELEMENTS.get()) {
+      return CachedValuesManager.getCachedValue(psiElement) {
+        CachedValueProvider.Result(
+          doGetRelatedDaggerElements(),
+          PsiModificationTracker.MODIFICATION_COUNT,
+        )
+      }
+    }
+    return doGetRelatedDaggerElements()
+  }
+
+  /** Looks up related Dagger elements. */
+  protected abstract fun doGetRelatedDaggerElements(): List<DaggerRelatedElement>
 
   /**
    * Looks up related Dagger elements using [DaggerIndex]. Derived classes should use this to
-   * implement the part of [getRelatedDaggerElements] that finds items stored in the index.
+   * implement the part of [doGetRelatedDaggerElements] that finds items stored in the index.
    */
   internal inline fun <reified T : DaggerElement> getRelatedDaggerElementsFromIndex(
     indexKeys: List<String>
@@ -64,7 +81,7 @@ sealed class DaggerElement {
 
   /**
    * Looks up related Dagger elements using [DaggerIndex]. Derived classes should use this to
-   * implement the part of [getRelatedDaggerElements] that finds items stored in the index.
+   * implement the part of [doGetRelatedDaggerElements] that finds items stored in the index.
    */
   internal fun getRelatedDaggerElementsFromIndex(
     relatedItemTypes: Set<KClass<out DaggerElement>>,

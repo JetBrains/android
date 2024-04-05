@@ -271,7 +271,7 @@ internal data class ModuleDaggerElement(override val psiElement: PsiElement) :
       else -> null
     }
 
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
+  override fun doGetRelatedDaggerElements(): List<DaggerRelatedElement> {
     val fromIndex =
       getRelatedDaggerElementsFromIndex(
         setOf(
@@ -407,7 +407,7 @@ internal data class ComponentDaggerElement(override val psiElement: PsiElement) 
       else -> null
     }
 
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
+  override fun doGetRelatedDaggerElements(): List<DaggerRelatedElement> {
     val elementsFromIndex =
       getRelatedDaggerElementsFromIndex<ComponentDaggerElement>(classPsiType.getIndexKeys()).map {
         DaggerRelatedElement(
@@ -435,7 +435,7 @@ internal data class SubcomponentDaggerElement(override val psiElement: PsiElemen
       else -> null
     }
 
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
+  override fun doGetRelatedDaggerElements(): List<DaggerRelatedElement> {
     // Containing [sub]components are two levels up the graph. Look up the containing modules in
     // the index, and then the containing [sub]components from there. Only the parent components
     // and subcomponents are returned; the intermediate modules are not.

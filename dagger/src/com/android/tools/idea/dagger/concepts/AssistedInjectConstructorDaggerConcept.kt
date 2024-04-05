@@ -230,7 +230,7 @@ internal data class AssistedInjectConstructorDaggerElement(
 
   override val metricsElementType = DaggerEditorEvent.ElementType.ASSISTED_INJECTED_CONSTRUCTOR
 
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
+  override fun doGetRelatedDaggerElements(): List<DaggerRelatedElement> {
     return getRelatedDaggerElementsFromIndex<AssistedFactoryMethodDaggerElement>(
         constructedType.getIndexKeys()
       )
