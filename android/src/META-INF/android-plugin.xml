@@ -458,7 +458,6 @@
     <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
                     serviceImplementation="com.android.tools.idea.configurations.StudioConfigurationStateManager"/>
 
-    <projectService serviceImplementation="com.android.tools.idea.res.AndroidProjectRootListener"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceFolderRegistry"/>
     <projectService serviceImplementation="com.android.tools.idea.rendering.RenderSettings" />
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"

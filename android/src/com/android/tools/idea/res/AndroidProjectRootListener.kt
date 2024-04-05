@@ -20,6 +20,7 @@ import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -38,6 +39,7 @@ import org.jetbrains.android.facet.ResourceFolderManager
  * [AndroidDependenciesCache], the [ResourceFolderManager] cache, and to update resource
  * repositories.
  */
+@Service(Service.Level.PROJECT)
 class AndroidProjectRootListener private constructor(private val project: Project) :
   Disposable.Default {
   init {
@@ -47,7 +49,7 @@ class AndroidProjectRootListener private constructor(private val project: Projec
       ModuleRootListener.TOPIC,
       object : ModuleRootListener {
         override fun rootsChanged(event: ModuleRootEvent) {
-          moduleRootsOrDependenciesChanged(project, this@AndroidProjectRootListener)
+          moduleRootsOrDependenciesChanged()
         }
       },
     )
@@ -58,30 +60,20 @@ class AndroidProjectRootListener private constructor(private val project: Projec
         // This event is called on the EDT. Calling `moduleRootsOrDependenciesChanged` directly ends
         // up executing the DumbModeTask synchronously, which has leads to failures due to the state
         // we're in from higher up the stack. Executing this on the EDT later avoids that situation.
-        application.invokeLater {
-          moduleRootsOrDependenciesChanged(project, this@AndroidProjectRootListener)
-        }
+        application.invokeLater { moduleRootsOrDependenciesChanged() }
       },
     )
   }
 
-  private class MyDumbModeTask(private val project: Project, parent: Disposable) : DumbModeTask() {
-    init {
-      Disposer.register(parent, this)
-    }
-
-    override fun performInDumbMode(indicator: ProgressIndicator) {
+  /**
+   * Called when module roots have changed in the given project.
+   *
+   * @param project the project whose module roots changed
+   */
+  private fun moduleRootsOrDependenciesChanged() {
+    runReadAction {
       if (!project.isDisposed) {
-        indicator.text = "Updating resource repository roots"
-        for (module in ModuleManager.getInstance(project).modules) {
-          moduleRootsOrDependenciesChanged(module)
-        }
-      }
-    }
-
-    override fun tryMergeWith(taskFromQueue: DumbModeTask): DumbModeTask? {
-      return this.takeIf {
-        taskFromQueue is MyDumbModeTask && taskFromQueue.project == project
+        RootsChangedDumbModeTask(project, this).queue(project)
       }
     }
   }
@@ -97,37 +89,46 @@ class AndroidProjectRootListener private constructor(private val project: Projec
     fun ensureSubscribed(project: Project) {
       project.service<AndroidProjectRootListener>()
     }
+  }
+}
 
-    /**
-     * Called when module roots have changed in the given project.
-     *
-     * @param project the project whose module roots changed
-     */
-    private fun moduleRootsOrDependenciesChanged(project: Project, parentDisposable: Disposable) {
-      runReadAction {
-        if (!project.isDisposed) {
-          MyDumbModeTask(project, parentDisposable).queue(project)
-        }
+private class RootsChangedDumbModeTask(private val project: Project, parent: Disposable) :
+  DumbModeTask() {
+  init {
+    Disposer.register(parent, this)
+  }
+
+  override fun performInDumbMode(indicator: ProgressIndicator) {
+    if (!project.isDisposed) {
+      indicator.text = "Updating resource repository roots"
+      for (module in ModuleManager.getInstance(project).modules) {
+        moduleRootsOrDependenciesChanged(module)
       }
     }
+  }
 
-    /**
-     * Called when module roots have changed in the given module.
-     *
-     * @param module the module whose roots changed
-     */
-    private fun moduleRootsOrDependenciesChanged(module: Module) {
-      val facet = AndroidFacet.getInstance(module) ?: return
-
-      if (AndroidModel.isRequired(facet) && AndroidModel.get(facet) == null) {
-        // Project not yet fully initialized. No need to do a sync now because our
-        // GradleProjectAvailableListener will be called as soon as it is and do a proper sync.
-        return
-      }
-
-      AndroidDependenciesCache.getInstance(module).dropCache()
-      ResourceFolderManager.getInstance(facet).checkForChanges()
-      StudioResourceRepositoryManager.getInstance(facet).updateRootsAndLibraries()
+  override fun tryMergeWith(taskFromQueue: DumbModeTask): DumbModeTask? {
+    return this.takeIf {
+      taskFromQueue is RootsChangedDumbModeTask && taskFromQueue.project == project
     }
+  }
+
+  /**
+   * Called when module roots have changed in the given module.
+   *
+   * @param module the module whose roots changed
+   */
+  private fun moduleRootsOrDependenciesChanged(module: Module) {
+    val facet = AndroidFacet.getInstance(module) ?: return
+
+    if (AndroidModel.isRequired(facet) && AndroidModel.get(facet) == null) {
+      // Project not yet fully initialized. No need to do a sync now because our
+      // GradleProjectAvailableListener will be called as soon as it is and do a proper sync.
+      return
+    }
+
+    AndroidDependenciesCache.getInstance(module).dropCache()
+    ResourceFolderManager.getInstance(facet).checkForChanges()
+    StudioResourceRepositoryManager.getInstance(facet).updateRootsAndLibraries()
   }
 }
