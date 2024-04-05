@@ -15,32 +15,36 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.google.common.collect.Range
 import com.intellij.openapi.project.Project
 
 internal class AddDeviceWizard(val sources: List<DeviceSource>, val project: Project?) {
   fun createDialog(): ComposeWizard {
-    val profiles = sources.flatMap { it.profiles }
-    return ComposeWizard(project, "Add Device") {
-      nextActionName = "Configure"
-      finishActionName = "Add"
+    return ComposeWizard(project, "Add Device") { addDeviceInitialPage(sources) }
+  }
+}
 
-      val selectionState = remember { TableSelectionState<DeviceProfile>() }
-      val filterState = remember { DeviceFilterState(profiles) }
-      DeviceTable(profiles, tableSelectionState = selectionState, filterState = filterState)
+@Composable
+internal fun WizardPageScope.addDeviceInitialPage(sources: List<DeviceSource>) {
+  val profiles = remember(sources) { sources.flatMap { it.profiles } }
+  nextActionName = "Configure"
+  finishActionName = "Add"
 
-      val selection = selectionState.selection
-      val source = sources.find { it.javaClass == selection?.source }
+  val selectionState = remember { TableSelectionState<DeviceProfile>() }
+  val filterState = remember { DeviceFilterState(profiles) }
+  DeviceTable(profiles, tableSelectionState = selectionState, filterState = filterState)
 
-      if (selection == null || source == null) {
-        nextAction = WizardAction.Disabled
-        finishAction = WizardAction.Disabled
-      } else {
-        source.apply {
-          selectionUpdated(selection.applyApiLevelSelection(filterState.apiLevelFilter.apiLevel))
-        }
-      }
+  val selection = selectionState.selection
+  val source = sources.find { it.javaClass == selection?.source }
+
+  if (selection == null || source == null) {
+    nextAction = WizardAction.Disabled
+    finishAction = WizardAction.Disabled
+  } else {
+    source.apply {
+      selectionUpdated(selection.applyApiLevelSelection(filterState.apiLevelFilter.apiLevel))
     }
   }
 }

@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -31,7 +32,7 @@ internal typealias DeviceAttribute<V> = RowAttribute<DeviceProfile, V>
 
 @Composable
 internal fun DeviceFilters(filterState: DeviceFilterState, modifier: Modifier = Modifier) {
-  Column(modifier.padding(6.dp)) {
+  Column(modifier.padding(6.dp).testTag("DeviceFilters")) {
     ApiFilter(filterState.apiLevelFilter)
     for (attribute in DeviceSetAttributes) {
       SetFilter(filterState[attribute])
