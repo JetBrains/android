@@ -35,9 +35,8 @@ internal fun DeviceTable(
   devices: List<DeviceProfile>,
   modifier: Modifier = Modifier,
   tableSelectionState: TableSelectionState<DeviceProfile> = remember { TableSelectionState() },
+  filterState: DeviceFilterState = remember { DeviceFilterState(devices) },
 ) {
-  val filterState = remember { DeviceFilterState(devices) }
-
   val columns: List<TableColumn<DeviceProfile>> = remember {
     listOf(
       TableColumn("", 0.5f) {

@@ -74,3 +74,6 @@ interface DeviceProfile {
     }
   }
 }
+
+fun DeviceProfile.update(block: DeviceProfile.Builder.() -> Unit): DeviceProfile =
+  toBuilder().apply(block).build()

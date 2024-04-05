@@ -16,6 +16,7 @@
 package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.remember
+import com.google.common.collect.Range
 import com.intellij.openapi.project.Project
 
 internal class AddDeviceWizard(val sources: List<DeviceSource>, val project: Project?) {
@@ -26,7 +27,8 @@ internal class AddDeviceWizard(val sources: List<DeviceSource>, val project: Pro
       finishActionName = "Add"
 
       val selectionState = remember { TableSelectionState<DeviceProfile>() }
-      DeviceTable(profiles, tableSelectionState = selectionState)
+      val filterState = remember { DeviceFilterState(profiles) }
+      DeviceTable(profiles, tableSelectionState = selectionState, filterState = filterState)
 
       val selection = selectionState.selection
       val source = sources.find { it.javaClass == selection?.source }
@@ -35,8 +37,16 @@ internal class AddDeviceWizard(val sources: List<DeviceSource>, val project: Pro
         nextAction = WizardAction.Disabled
         finishAction = WizardAction.Disabled
       } else {
-        source.apply { selectionUpdated(selection) }
+        source.apply {
+          selectionUpdated(selection.applyApiLevelSelection(filterState.apiLevelFilter.apiLevel))
+        }
       }
     }
   }
 }
+
+private fun DeviceProfile.applyApiLevelSelection(
+  apiLevelSelection: ApiLevelSelection
+): DeviceProfile =
+  if (apiLevelSelection.apiLevel == null) this
+  else update { apiRange = Range.singleton(apiLevelSelection.apiLevel) }

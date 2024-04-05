@@ -56,5 +56,7 @@ class VirtualDeviceTest {
       )
 
     assertThat(device.toBuilder().build()).isEqualTo(device)
+    assertThat(device.update { graphicAcceleration = GpuMode.HOST }.graphicAcceleration)
+      .isEqualTo(GpuMode.HOST)
   }
 }

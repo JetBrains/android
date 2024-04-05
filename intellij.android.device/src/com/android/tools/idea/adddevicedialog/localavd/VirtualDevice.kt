@@ -133,6 +133,9 @@ internal constructor(
   }
 }
 
+internal fun VirtualDevice.update(block: VirtualDevice.Builder.() -> Unit): VirtualDevice =
+  toBuilder().apply(block).build()
+
 internal data class Custom internal constructor(internal val value: StorageCapacity) :
   ExpandedStorage() {
 
