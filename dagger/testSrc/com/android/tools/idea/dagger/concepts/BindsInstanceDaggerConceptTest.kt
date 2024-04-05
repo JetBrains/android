@@ -158,6 +158,7 @@ class BindsInstanceDaggerConceptTest {
     assertThat(
         BindsInstanceBuilderMethodIndexValue(MY_COMPONENT_BUILDER_ID, "fooFunction")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(fooProviderDaggerElement)
 
@@ -174,6 +175,7 @@ class BindsInstanceDaggerConceptTest {
       assertThat(
           BindsInstanceBuilderMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }
@@ -220,6 +222,7 @@ class BindsInstanceDaggerConceptTest {
     assertThat(
         BindsInstanceBuilderMethodIndexValue(MY_COMPONENT_BUILDER_ID, "fooFunction")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(fooProviderDaggerElement)
 
@@ -236,6 +239,7 @@ class BindsInstanceDaggerConceptTest {
       assertThat(
           BindsInstanceBuilderMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }
@@ -291,6 +295,7 @@ class BindsInstanceDaggerConceptTest {
             "foo",
           )
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(fooProviderDaggerElement)
 
@@ -306,6 +311,7 @@ class BindsInstanceDaggerConceptTest {
       assertThat(
           BindsInstanceFactoryMethodParameterIndexValue(classId, methodName, paramName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }
@@ -354,6 +360,7 @@ class BindsInstanceDaggerConceptTest {
             "foo",
           )
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(fooProviderDaggerElement)
 
@@ -369,6 +376,7 @@ class BindsInstanceDaggerConceptTest {
       assertThat(
           BindsInstanceFactoryMethodParameterIndexValue(classId, methodName, paramName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }

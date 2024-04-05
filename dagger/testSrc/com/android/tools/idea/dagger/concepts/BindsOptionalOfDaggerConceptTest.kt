@@ -179,6 +179,7 @@ class BindsOptionalOfDaggerConceptTest {
     assertThat(
         BindsOptionalOfIndexValue(MY_MODULE_ID, "functionInModule")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(functionInModuleDaggerElement)
 
@@ -200,6 +201,7 @@ class BindsOptionalOfDaggerConceptTest {
         .that(
           BindsOptionalOfIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }
@@ -251,6 +253,7 @@ class BindsOptionalOfDaggerConceptTest {
     assertThat(
         BindsOptionalOfIndexValue(MY_MODULE_ID, "functionInModule")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(functionInModuleDaggerElement)
 
@@ -268,6 +271,7 @@ class BindsOptionalOfDaggerConceptTest {
         .that(
           BindsOptionalOfIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }

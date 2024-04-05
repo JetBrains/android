@@ -37,6 +37,7 @@ import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.containers.sequenceOfNotNull
 import java.io.DataInput
 import java.io.DataOutput
 import java.util.EnumMap
@@ -192,8 +193,8 @@ internal data class ClassIndexValue(override val dataType: DataType, private val
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> =
-    listOfNotNull(JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope))
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    sequenceOfNotNull(JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope))
 
   override val daggerElementIdentifiers = identifiers
 }

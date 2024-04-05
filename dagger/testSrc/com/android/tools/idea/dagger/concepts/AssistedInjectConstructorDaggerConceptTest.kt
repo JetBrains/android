@@ -150,12 +150,14 @@ class AssistedInjectConstructorDaggerConceptTest {
     assertThat(
         AssistedInjectConstructorIndexValue(MY_ASSISTED_INJECT_CLASS_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(assistedInjectConstructorDaggerElement)
 
     assertThat(
         AssistedInjectConstructorIndexValue(MY_NOT_ASSISTED_INJECT_CLASS_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .isEmpty()
   }
@@ -204,12 +206,14 @@ class AssistedInjectConstructorDaggerConceptTest {
     assertThat(
         AssistedInjectConstructorIndexValue(MY_ASSISTED_INJECT_CLASS_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(assistedInjectConstructorDaggerElement)
 
     assertThat(
         AssistedInjectConstructorIndexValue(MY_NOT_ASSISTED_INJECT_CLASS_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .isEmpty()
   }
@@ -260,6 +264,7 @@ class AssistedInjectConstructorDaggerConceptTest {
     assertThat(
         AssistedInjectConstructorUnassistedParameterIndexValue(MY_ASSISTED_INJECT_CLASS_ID, "dep3")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(parameterDaggerElement)
 
@@ -277,6 +282,7 @@ class AssistedInjectConstructorDaggerConceptTest {
       assertThat(
           AssistedInjectConstructorUnassistedParameterIndexValue(classId, parameterName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }
@@ -325,6 +331,7 @@ class AssistedInjectConstructorDaggerConceptTest {
     assertThat(
         AssistedInjectConstructorUnassistedParameterIndexValue(MY_ASSISTED_INJECT_CLASS_ID, "dep3")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(parameterDaggerElement)
 
@@ -342,6 +349,7 @@ class AssistedInjectConstructorDaggerConceptTest {
       assertThat(
           AssistedInjectConstructorUnassistedParameterIndexValue(classId, parameterName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }

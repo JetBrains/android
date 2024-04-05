@@ -79,17 +79,14 @@ abstract class IndexValue {
   /**
    * Resolve the Dagger element represented by this [IndexValue] into one or more [DaggerElement]s.
    */
-  fun resolveToDaggerElements(project: Project, scope: GlobalSearchScope): List<DaggerElement> {
-    val candidates =
-      getResolveCandidates(project, scope).mapNotNull {
-        daggerElementIdentifiers.getDaggerElement(it)
+  fun resolveToDaggerElements(project: Project, scope: GlobalSearchScope): Sequence<DaggerElement> {
+    return getResolveCandidates(project, scope).mapNotNull { psiElement ->
+      daggerElementIdentifiers.getDaggerElement(psiElement)?.also { daggerElement ->
+        // Validate that the type of [DaggerElement] specified by this [IndexValue] matches what was
+        // resolved.
+        require(dataType.daggerElementType.isInstance(daggerElement))
       }
-
-    // Validate that the type of [DaggerElement] specified by this [IndexValue] matches what was
-    // resolved.
-    candidates.forEach { assert(dataType.daggerElementType.isInstance(it)) }
-
-    return candidates
+    }
   }
 
   /**
@@ -104,7 +101,7 @@ abstract class IndexValue {
   protected abstract fun getResolveCandidates(
     project: Project,
     scope: GlobalSearchScope,
-  ): List<PsiElement>
+  ): Sequence<PsiElement>
 
   /**
    * Identifiers that search specifically for the types of [DaggerElement]s represented by this

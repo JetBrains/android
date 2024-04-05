@@ -34,6 +34,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.containers.sequenceOfNotNull
 import java.io.DataInput
 import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
@@ -144,8 +145,8 @@ internal data class AssistedFactoryClassIndexValue(val classId: ClassId) : Index
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> =
-    listOfNotNull(JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope))
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    sequenceOfNotNull(JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope))
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -198,12 +199,12 @@ internal data class AssistedFactoryMethodIndexValue(
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.methods.filter { it.name == methodSimpleName }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.methods
+      ?.asSequence()
+      ?.filter { it.name == methodSimpleName } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }

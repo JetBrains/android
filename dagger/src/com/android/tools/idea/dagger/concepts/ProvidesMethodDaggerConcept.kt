@@ -26,7 +26,6 @@ import com.android.tools.idea.dagger.index.readClassId
 import com.android.tools.idea.dagger.index.writeClassId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiParameter
@@ -150,12 +149,12 @@ internal data class ProvidesMethodIndexValue(val classId: ClassId, val methodSim
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.methods.filter { it.name == methodSimpleName }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.methods
+      ?.asSequence()
+      ?.filter { it.name == methodSimpleName } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -215,14 +214,14 @@ internal data class ProvidesMethodParameterIndexValue(
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.methods
-      .filter { it.name == methodSimpleName }
-      .flatMap { it.parameterList.parameters.filter { p -> p.name == parameterName } }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.methods
+      ?.asSequence()
+      ?.filter { it.name == methodSimpleName }
+      ?.flatMap { it.parameterList.parameters.asSequence().filter { p -> p.name == parameterName } }
+      ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }

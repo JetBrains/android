@@ -114,12 +114,14 @@ class AssistedFactoryDaggerConceptTest {
     assertThat(
         AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(myAssistedFactoryDaggerElement)
 
     assertThat(
         AssistedFactoryClassIndexValue(NOT_AN_ASSISTED_FACTORY_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .isEmpty()
   }
@@ -150,12 +152,14 @@ class AssistedFactoryDaggerConceptTest {
     assertThat(
         AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(myAssistedFactoryDaggerElement)
 
     assertThat(
         AssistedFactoryClassIndexValue(NOT_AN_ASSISTED_FACTORY_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .isEmpty()
   }
@@ -201,6 +205,7 @@ class AssistedFactoryDaggerConceptTest {
     assertThat(
         AssistedFactoryMethodIndexValue(MY_ASSISTED_FACTORY_ID, "create1")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(myAssistedFactoryMethodDaggerElement)
 
@@ -208,6 +213,7 @@ class AssistedFactoryDaggerConceptTest {
     assertThat(
         AssistedFactoryMethodIndexValue(NOT_AN_ASSISTED_FACTORY_ID, "create2")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .isEmpty()
   }
@@ -249,6 +255,7 @@ class AssistedFactoryDaggerConceptTest {
     assertThat(
         AssistedFactoryMethodIndexValue(MY_ASSISTED_FACTORY_ID, "create1")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(myAssistedFactoryMethodDaggerElement)
 
@@ -256,6 +263,7 @@ class AssistedFactoryDaggerConceptTest {
     assertThat(
         AssistedFactoryMethodIndexValue(NOT_AN_ASSISTED_FACTORY_ID, "create2")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .isEmpty()
   }

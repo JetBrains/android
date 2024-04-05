@@ -122,12 +122,14 @@ class EntryPointMethodDaggerConceptTest {
     assertThat(
         EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(bar1DaggerElement)
 
     assertThat(
         EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(bar2DaggerElement)
 
@@ -144,6 +146,7 @@ class EntryPointMethodDaggerConceptTest {
       assertThat(
           EntryPointMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }
@@ -184,12 +187,14 @@ class EntryPointMethodDaggerConceptTest {
     assertThat(
         EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(bar1DaggerElement)
 
     assertThat(
         EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(bar2DaggerElement)
 
@@ -205,6 +210,7 @@ class EntryPointMethodDaggerConceptTest {
       assertThat(
           EntryPointMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }

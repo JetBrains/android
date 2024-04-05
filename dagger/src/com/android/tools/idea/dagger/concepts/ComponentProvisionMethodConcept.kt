@@ -184,12 +184,12 @@ internal data class ComponentProvisionMethodIndexValue(
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.methods.filter { it.name == methodSimpleName }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.methods
+      ?.asSequence()
+      ?.filter { it.name == methodSimpleName } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -232,8 +232,8 @@ internal data class ComponentProvisionPropertyIndexValue(
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> =
-    KotlinFullClassNameIndex.get(classId.asFqNameString(), project, scope).mapNotNull {
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    KotlinFullClassNameIndex[classId.asFqNameString(), project, scope].asSequence().mapNotNull {
       it.findPropertyByName(propertySimpleName)
     }
 

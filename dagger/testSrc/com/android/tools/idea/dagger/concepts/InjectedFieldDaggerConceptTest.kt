@@ -167,7 +167,8 @@ class InjectedFieldDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(heaterField))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
   }
 
   @Test
@@ -202,7 +203,8 @@ class InjectedFieldDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(heaterField))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
   }
 
   companion object {

@@ -141,11 +141,11 @@ internal data class AssistedInjectConstructorIndexValue(val classId: ClassId) : 
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> =
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
     JavaPsiFacade.getInstance(project)
       .findClass(classId.asFqNameString(), scope)
       ?.constructors
-      ?.toList() ?: emptyList()
+      ?.asSequence() ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -203,14 +203,13 @@ internal data class AssistedInjectConstructorUnassistedParameterIndexValue(
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.constructors.flatMap {
-      it.parameterList.parameters.filter { p -> p.name == parameterName }
-    }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.constructors
+      ?.asSequence()
+      ?.flatMap { it.parameterList.parameters.asSequence().filter { p -> p.name == parameterName } }
+      ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }

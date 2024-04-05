@@ -28,7 +28,6 @@ import com.android.tools.idea.dagger.index.writeClassId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.search.GlobalSearchScope
@@ -180,12 +179,12 @@ internal data class BindsInstanceBuilderMethodIndexValue(
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.methods.filter { it.name == methodSimpleName }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.methods
+      ?.asSequence()
+      ?.filter { it.name == methodSimpleName } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -246,14 +245,15 @@ internal data class BindsInstanceFactoryMethodParameterIndexValue(
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
-        ?: return emptyList()
-    return psiClass.methods
-      .filter { it.name == methodSimpleName }
-      .flatMap { it.parameterList.parameters.filter { p -> p.name == parameterSimpleName } }
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope) =
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.methods
+      ?.asSequence()
+      ?.filter { it.name == methodSimpleName }
+      ?.flatMap {
+        it.parameterList.parameters.asSequence().filter { p -> p.name == parameterSimpleName }
+      } ?: emptySequence()
 
   override val daggerElementIdentifiers = identifiers
 }

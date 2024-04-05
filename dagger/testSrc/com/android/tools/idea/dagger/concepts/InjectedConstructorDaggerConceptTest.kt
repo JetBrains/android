@@ -222,7 +222,8 @@ class InjectedConstructorDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(constructor1Element))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
   }
 
   @Test
@@ -257,7 +258,8 @@ class InjectedConstructorDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(constructor1Element))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
   }
 
   @Test
@@ -299,7 +301,8 @@ class InjectedConstructorDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(parameter1Element))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
   }
 
   @Test
@@ -339,7 +342,8 @@ class InjectedConstructorDaggerConceptTest {
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(parameter1Element))
 
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
   }
 
   companion object {

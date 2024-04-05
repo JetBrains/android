@@ -351,7 +351,8 @@ class ProvidesMethodDaggerConceptTest {
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(provideHeaterFunction))
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
     assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(bindHeaterFunction))
   }
@@ -398,7 +399,8 @@ class ProvidesMethodDaggerConceptTest {
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(provideHeaterFunction))
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
     assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(bindHeaterFunction))
   }
@@ -443,7 +445,8 @@ class ProvidesMethodDaggerConceptTest {
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(provideHeaterFunction))
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
     assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(bindHeaterFunction))
   }
@@ -500,7 +503,8 @@ class ProvidesMethodDaggerConceptTest {
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterProvidesParameter))
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
     assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterBindsParameter))
   }
@@ -561,7 +565,8 @@ class ProvidesMethodDaggerConceptTest {
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterProvidesParameter))
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
     assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterBindsParameter))
   }
@@ -612,7 +617,8 @@ class ProvidesMethodDaggerConceptTest {
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterProvidesParameter))
-    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope()).toList())
+      .isEmpty()
     assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterBindsParameter))
   }

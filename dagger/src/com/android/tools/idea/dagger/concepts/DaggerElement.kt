@@ -74,6 +74,7 @@ sealed class DaggerElement {
     val scope = project.projectScope()
 
     return indexKeys
+      .asSequence()
       // Look up the keys in the index
       .flatMap { DaggerIndex.getValues(it, scope) }
       // Remove types we aren't interested in before resolving
@@ -90,6 +91,7 @@ sealed class DaggerElement {
       .distinct()
       // Filter out any candidates that are not applicable.
       .filter(this::filterResolveCandidate)
+      .toList()
   }
 
   /**

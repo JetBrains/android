@@ -187,22 +187,26 @@ class ComponentProvisionMethodConceptTest {
     assertThat(
         ComponentProvisionMethodIndexValue(MY_COMPONENT_ID, "provisionMethodComponent")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(provisionMethodComponentDaggerElement)
     assertThat(
         ComponentProvisionPropertyIndexValue(MY_COMPONENT_ID, "fooPropertyComponent")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(provisionPropertyComponentDaggerElement)
 
     assertThat(
         ComponentProvisionMethodIndexValue(MY_SUBCOMPONENT_ID, "provisionMethodSubcomponent")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(provisionMethodSubcomponentDaggerElement)
     assertThat(
         ComponentProvisionPropertyIndexValue(MY_SUBCOMPONENT_ID, "fooPropertySubcomponent")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(provisionPropertySubcomponentDaggerElement)
 
@@ -227,6 +231,7 @@ class ComponentProvisionMethodConceptTest {
         .that(
           ComponentProvisionMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
 
@@ -234,6 +239,7 @@ class ComponentProvisionMethodConceptTest {
         .that(
           ComponentProvisionPropertyIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }
@@ -291,11 +297,13 @@ class ComponentProvisionMethodConceptTest {
     assertThat(
         ComponentProvisionMethodIndexValue(MY_COMPONENT_ID, "provisionMethodComponent")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(provisionMethodComponentDaggerElement)
     assertThat(
         ComponentProvisionMethodIndexValue(MY_SUBCOMPONENT_ID, "provisionMethodSubcomponent")
           .resolveToDaggerElements(myProject, myProject.projectScope())
+          .toList()
       )
       .containsExactly(provisionMethodSubcomponentDaggerElement)
 
@@ -316,6 +324,7 @@ class ComponentProvisionMethodConceptTest {
         .that(
           ComponentProvisionMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
+            .toList()
         )
         .isEmpty()
     }
