@@ -29,6 +29,7 @@ import com.android.tools.idea.dagger.concepts.EntryPointMethodDaggerElement
 import com.android.tools.idea.dagger.concepts.ModuleDaggerElement
 import com.android.tools.idea.dagger.concepts.ProviderDaggerElement
 import com.android.tools.idea.dagger.concepts.SubcomponentDaggerElement
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
@@ -81,6 +82,10 @@ abstract class IndexValue {
    */
   fun resolveToDaggerElements(project: Project, scope: GlobalSearchScope): Sequence<DaggerElement> {
     return getResolveCandidates(project, scope).mapNotNull { psiElement ->
+      // Resolving candidates can take a while, and this happens within a much larger read lock when
+      // "slow" gutter icons are being processed.
+      ProgressManager.checkCanceled()
+
       daggerElementIdentifiers.getDaggerElement(psiElement)?.also { daggerElement ->
         // Validate that the type of [DaggerElement] specified by this [IndexValue] matches what was
         // resolved.
