@@ -21,8 +21,8 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader
 import com.android.tools.res.ResourceNamespacing
-import gnu.trove.TIntObjectHashMap
-import gnu.trove.TObjectIntHashMap
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import org.jetbrains.annotations.VisibleForTesting
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -82,7 +82,7 @@ private fun loadIdsFromResourceClass(
     val type = ResourceType.fromClassName(innerClass.simpleName) ?: continue
     when {
       type != ResourceType.STYLEABLE -> {
-        val toIdMap = into.toIdMap.getOrPut(type, ::TObjectIntHashMap)
+        val toIdMap = into.toIdMap.getOrPut(type, ::Object2IntOpenHashMap)
         val fromIdMap = into.fromIdMap
 
         for (field in innerClass.declaredFields) {
@@ -94,7 +94,7 @@ private fun loadIdsFromResourceClass(
         }
       }
       type == ResourceType.STYLEABLE && lookForAttrsInStyleables -> {
-        val toIdMap = into.toIdMap.getOrPut(ResourceType.ATTR, ::TObjectIntHashMap)
+        val toIdMap = into.toIdMap.getOrPut(ResourceType.ATTR, ::Object2IntOpenHashMap)
         val fromIdMap = into.fromIdMap
 
         // We process fields by name, so that arrays come before indices into them. currentArray is initialized to a dummy value.
@@ -132,19 +132,19 @@ private object FrameworkResourceIds {
   private fun loadFrameworkIds(): SingleNamespaceIdMapping {
     val frameworkIds = SingleNamespaceIdMapping(ResourceNamespace.ANDROID).apply {
       // These are the counts around the S time frame, to allocate roughly the right amount of space upfront.
-      toIdMap[ResourceType.ANIM] = TObjectIntHashMap(75)
-      toIdMap[ResourceType.ATTR] = TObjectIntHashMap(1752)
-      toIdMap[ResourceType.ARRAY] = TObjectIntHashMap(181)
-      toIdMap[ResourceType.BOOL] = TObjectIntHashMap(382)
-      toIdMap[ResourceType.COLOR] = TObjectIntHashMap(151)
-      toIdMap[ResourceType.DIMEN] = TObjectIntHashMap(310)
-      toIdMap[ResourceType.DRAWABLE] = TObjectIntHashMap(519)
-      toIdMap[ResourceType.ID] = TObjectIntHashMap(526)
-      toIdMap[ResourceType.INTEGER] = TObjectIntHashMap(226)
-      toIdMap[ResourceType.LAYOUT] = TObjectIntHashMap(221)
-      toIdMap[ResourceType.PLURALS] = TObjectIntHashMap(33)
-      toIdMap[ResourceType.STRING] = TObjectIntHashMap(1585)
-      toIdMap[ResourceType.STYLE] = TObjectIntHashMap(794)
+      toIdMap[ResourceType.ANIM] = Object2IntOpenHashMap(75)
+      toIdMap[ResourceType.ATTR] = Object2IntOpenHashMap(1752)
+      toIdMap[ResourceType.ARRAY] = Object2IntOpenHashMap(181)
+      toIdMap[ResourceType.BOOL] = Object2IntOpenHashMap(382)
+      toIdMap[ResourceType.COLOR] = Object2IntOpenHashMap(151)
+      toIdMap[ResourceType.DIMEN] = Object2IntOpenHashMap(310)
+      toIdMap[ResourceType.DRAWABLE] = Object2IntOpenHashMap(519)
+      toIdMap[ResourceType.ID] = Object2IntOpenHashMap(526)
+      toIdMap[ResourceType.INTEGER] = Object2IntOpenHashMap(226)
+      toIdMap[ResourceType.LAYOUT] = Object2IntOpenHashMap(221)
+      toIdMap[ResourceType.PLURALS] = Object2IntOpenHashMap(33)
+      toIdMap[ResourceType.STRING] = Object2IntOpenHashMap(1585)
+      toIdMap[ResourceType.STYLE] = Object2IntOpenHashMap(794)
     }
 
     val rClass = LayoutLibraryLoader.getLayoutLibraryProvider().map { provider -> provider.frameworkRClass }.orElse(null)
@@ -206,11 +206,11 @@ open class ResourceIdManagerBase(
    * [compiledIds] take precedence over these, if known.
    */
   @GuardedBy("this")
-  private val dynamicToIdMap = TObjectIntHashMap<ResourceReference>()
+  private val dynamicToIdMap = Object2IntOpenHashMap<ResourceReference>()
 
   /** Inverse of [dynamicToIdMap]. */
   @GuardedBy("this")
-  private val dynamicFromIdMap = TIntObjectHashMap<ResourceReference>()
+  private val dynamicFromIdMap = Int2ObjectOpenHashMap<ResourceReference>()
 
   /**
    * Ids read from the real `R.class` file saved to disk by aapt. They are used instead of dynamic ids, to make sure numeric values compiled
@@ -270,7 +270,7 @@ open class ResourceIdManagerBase(
       return compiledId
     }
 
-    val dynamicId = dynamicToIdMap[resource]
+    val dynamicId = dynamicToIdMap.getInt(resource)
     if (dynamicId != 0) {
       return dynamicId
     }

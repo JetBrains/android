@@ -18,16 +18,16 @@ package com.android.tools.res.ids
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import gnu.trove.TIntObjectHashMap
-import gnu.trove.TObjectIntHashMap
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import java.util.EnumMap
 
 /**
  * Keeps a bidirectional mapping between type+name and a numeric id, for a known namespace.
  */
 internal class SingleNamespaceIdMapping(private val namespace: ResourceNamespace) {
-  var toIdMap = EnumMap<ResourceType, TObjectIntHashMap<String>>(ResourceType::class.java)
-  var fromIdMap = TIntObjectHashMap<Pair<ResourceType, String>>()
+  var toIdMap = EnumMap<ResourceType, Object2IntOpenHashMap<String>>(ResourceType::class.java)
+  var fromIdMap = Int2ObjectOpenHashMap<Pair<ResourceType, String>>()
 
   /**
    * Returns the id of the given resource or 0 if not known.

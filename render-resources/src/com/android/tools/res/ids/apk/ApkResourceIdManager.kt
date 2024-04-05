@@ -23,7 +23,7 @@ import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.res.ids.ResourceIdManagerBase
 import com.android.tools.res.ids.ResourceIdManagerModelModule
 import com.android.tools.res.ids.SingleNamespaceIdMapping
-import gnu.trove.TObjectIntHashMap
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import java.util.function.Consumer
 
 /**
@@ -51,7 +51,7 @@ class ApkResourceIdManager : ResourceIdManagerBase(
     forEveryResource(apkPath) { _, resType, _, resId, typeChunkEntry ->
       val (_, name) = extractNameAndNamespace(typeChunkEntry.key())
       apkResources.fromIdMap.put(resId, resType to name)
-      apkResources.toIdMap.getOrPut(resType, ::TObjectIntHashMap).put(name, resId)
+      apkResources.toIdMap.getOrPut(resType, ::Object2IntOpenHashMap).put(name, resId)
     }
   }
 }

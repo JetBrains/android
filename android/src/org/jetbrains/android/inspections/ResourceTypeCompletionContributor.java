@@ -35,10 +35,9 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.psi.util.TypeConversionUtil;
-import com.intellij.util.Consumer;
-import gnu.trove.THashSet;
-import gnu.trove.TObjectHashingStrategy;
 import java.util.ArrayList;
+import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,9 +97,9 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
     Constraints allowedValues = getAllowedValues(pos);
     if (allowedValues == null) return;
 
-    final Set<PsiElement> allowed = new THashSet<>(new TObjectHashingStrategy<>() {
+    final Set<PsiElement> allowed = new ObjectOpenCustomHashSet<>(new Hash.Strategy<PsiElement>() {
       @Override
-      public int computeHashCode(PsiElement object) {
+      public int hashCode(PsiElement object) {
         return 0;
       }
 
