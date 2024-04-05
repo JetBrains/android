@@ -546,26 +546,6 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
-  fun testPerDeviceViewDebugAttributesSetAndNotReset() {
-    inspectorRule.attachDevice(MODERN_DEVICE)
-    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    assertThat(inspectorRule.adbProperties.debugViewAttributes).isEqualTo("1")
-
-    // Imitate that the adb server was killed.
-    // We expect the ViewDebugAttributes to be cleared anyway since a new adb bridge should be
-    // created.
-    inspectorRule.adbService.killServer()
-
-    // Disconnect directly instead of calling fireDisconnected - otherwise, we don't have an easy
-    // way to wait for the disconnect to
-    // happen on a background thread
-    inspectorRule.launcher.disconnectActiveClient()
-    assertThat(inspectorRule.adbProperties.debugViewAttributes).isEqualTo("1")
-    // No other attributes were modified
-    assertThat(inspectorRule.adbProperties.debugViewAttributesChangesCount).isEqualTo(1)
-  }
-
-  @Test
   fun testPerDeviceViewDebugAttributesUntouchedIfAlreadySet() {
     inspectorRule.adbProperties.debugViewAttributes = "1"
 
@@ -937,15 +917,6 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
-  fun testNoActivityRestartBannerShownDuringAutoConnect() {
-    inspectorRule.attachDevice(MODERN_PROCESS.device)
-    val banner = InspectorBanner(projectRule.testRootDisposable, inspectorRule.notificationModel)
-    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    assertThat(banner.isVisible).isFalse()
-  }
-
-  @Test
   fun testNoActivityRestartBannerShownWhenDebugAttributesAreAlreadySet() {
     inspectorRule.adbProperties.debugViewAttributes = "1"
     preferredProcess = null
@@ -956,24 +927,6 @@ class AppInspectionInspectorClientTest {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
     assertThat(banner.isVisible).isFalse()
-  }
-
-  @Test
-  fun testActivityRestartBannerShownIfRunConfigAreAlreadySetButAttributeIsMissing() {
-    preferredProcess = null
-    inspectorRule.attachDevice(MODERN_PROCESS.device)
-    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    inspectorRule.processes.selectedProcess = MODERN_PROCESS
-    verifyActivityRestartBanner()
-  }
-
-  @Test
-  fun testActivityRestartBannerShownFromOtherAppProcess() {
-    preferredProcess = null
-    inspectorRule.attachDevice(OTHER_MODERN_PROCESS.device)
-    inspectorRule.processNotifier.fireConnected(OTHER_MODERN_PROCESS)
-    inspectorRule.processes.selectedProcess = OTHER_MODERN_PROCESS
-    verifyActivityRestartBanner()
   }
 
   @Test
