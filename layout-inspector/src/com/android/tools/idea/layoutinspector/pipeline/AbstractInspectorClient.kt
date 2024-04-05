@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
+import com.android.adblib.AdbSession
+import com.android.adblib.DeviceSelector
+import com.android.adblib.shellAsText
+import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.NotificationModel
-import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
-import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
@@ -31,9 +32,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -47,6 +46,7 @@ abstract class AbstractInspectorClient(
   final override val stats: SessionStatistics,
   @VisibleForTesting val coroutineScope: CoroutineScope,
   parentDisposable: Disposable,
+  private val adbSession: AdbSession = AdbLibService.getSession(project),
 ) : InspectorClient {
   init {
     Disposer.register(parentDisposable, this)
@@ -128,35 +128,37 @@ abstract class AbstractInspectorClient(
   }
 
   final override suspend fun connect(project: Project) {
-    withContext(AndroidDispatchers.workerThread) {
-      launchMonitor.start(this@AbstractInspectorClient)
-      assert(state == InspectorClient.State.INITIALIZED)
-      state = InspectorClient.State.CONNECTING
+    launchMonitor.start(this@AbstractInspectorClient)
+    assert(state == InspectorClient.State.INITIALIZED)
+    state = InspectorClient.State.CONNECTING
 
-      // Test that we can actually contact the device via ADB, and fail fast if we can't.
-      val adb = AdbUtils.getAdbFuture(project).await() ?: return@withContext
-      if (adb.executeShellCommand(process.device, "echo ok") != "ok") {
-        state = InspectorClient.State.DISCONNECTED
-        return@withContext
-      }
-      launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+    // Test that we can actually contact the device via ADB, and fail fast if we can't.
+    val commandOutput =
+      adbSession.deviceServices.shellAsText(
+        device = DeviceSelector.fromSerialNumber(process.device.serial),
+        command = "echo ok",
+      )
+    if (commandOutput.stdout.trim() != "ok") {
+      state = InspectorClient.State.DISCONNECTED
+      return
+    }
+    launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
 
-      try {
-        doConnect()
-        state = InspectorClient.State.CONNECTED
-      } catch (t: Throwable) {
-        launchMonitor.stop()
-        disconnect()
-        if (t !is CancellationException) {
-          Logger.getInstance(AbstractInspectorClient::class.java)
-            .warn(
-              "Connection failure with " +
-                "'use.dev.jar=${StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()}' " +
-                "'use.snapshot.jar=${StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()}' " +
-                "cause:",
-              t,
-            )
-        }
+    try {
+      doConnect()
+      state = InspectorClient.State.CONNECTED
+    } catch (t: Throwable) {
+      launchMonitor.stop()
+      disconnect()
+      if (t !is CancellationException) {
+        Logger.getInstance(AbstractInspectorClient::class.java)
+          .warn(
+            "Connection failure with " +
+              "'use.dev.jar=${StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()}' " +
+              "'use.snapshot.jar=${StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()}' " +
+              "cause:",
+            t,
+          )
       }
     }
   }
