@@ -18,6 +18,7 @@ package com.android.tools.idea.adddevicedialog
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
 import com.google.common.collect.Range
+import kotlin.time.Duration
 
 interface DeviceProfile {
   val source: Class<out DeviceSource>
@@ -36,6 +37,40 @@ interface DeviceProfile {
 
   /** Indicates that the device already exists, and we cannot create another. */
   val isAlreadyPresent: Boolean
-  /** An estimate of how many seconds it will take to acquire the device. */
-  val availabilityEstimateSeconds: Int
+  /** An estimate of how long it will take to acquire the device. */
+  val availabilityEstimate: Duration
+
+  fun toBuilder(): Builder
+
+  abstract class Builder {
+    lateinit var apiRange: Range<Int>
+
+    lateinit var manufacturer: String
+    lateinit var name: String
+    lateinit var resolution: Resolution
+    var displayDensity: Int = 0
+    var isVirtual: Boolean = false
+    var isRemote: Boolean = false
+    lateinit var abis: List<Abi>
+
+    /** Indicates that the device already exists, and we cannot create another. */
+    var isAlreadyPresent: Boolean = false
+    /** An estimate of how many seconds it will take to acquire the device. */
+    var availabilityEstimate: Duration = Duration.ZERO
+
+    abstract fun build(): DeviceProfile
+
+    fun copyFrom(profile: DeviceProfile) {
+      apiRange = profile.apiRange
+      manufacturer = profile.manufacturer
+      name = profile.name
+      resolution = profile.resolution
+      displayDensity = profile.displayDensity
+      isVirtual = profile.isVirtual
+      isRemote = profile.isRemote
+      abis = profile.abis
+      isAlreadyPresent = profile.isAlreadyPresent
+      availabilityEstimate = profile.availabilityEstimate
+    }
+  }
 }

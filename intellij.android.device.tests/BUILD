@@ -19,5 +19,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/intellij.android.device[module, test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

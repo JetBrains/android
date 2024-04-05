@@ -18,6 +18,7 @@ package com.android.tools.idea.adddevicedialog
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
 import com.google.common.collect.Range
+import kotlin.time.Duration.Companion.minutes
 
 internal object TestDevices {
   val mediumPhone =
@@ -31,7 +32,6 @@ internal object TestDevices {
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
-      availabilityEstimateSeconds = 0,
     )
 
   val remotePixel5 =
@@ -45,7 +45,7 @@ internal object TestDevices {
       isRemote = true,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
-      availabilityEstimateSeconds = 0,
+      availabilityEstimate = 5.minutes,
     )
 
   val pixelFold =
@@ -59,7 +59,6 @@ internal object TestDevices {
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
-      availabilityEstimateSeconds = 0,
     )
 
   val pixelTablet =
@@ -73,7 +72,6 @@ internal object TestDevices {
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
-      availabilityEstimateSeconds = 0,
     )
 
   val wearLargeRound =
@@ -87,7 +85,6 @@ internal object TestDevices {
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
-      availabilityEstimateSeconds = 0,
     )
 
   val galaxyS22 =
@@ -101,7 +98,6 @@ internal object TestDevices {
       isRemote = true,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
-      availabilityEstimateSeconds = 0,
     )
 
   val automotive =
@@ -115,7 +111,6 @@ internal object TestDevices {
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
-      availabilityEstimateSeconds = 0,
     )
 
   val tv4k =
@@ -129,7 +124,6 @@ internal object TestDevices {
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
-      availabilityEstimateSeconds = 0,
     )
 
   val allTestDevices =

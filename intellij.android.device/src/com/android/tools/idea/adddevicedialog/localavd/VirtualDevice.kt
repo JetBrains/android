@@ -30,6 +30,7 @@ import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.google.common.collect.Range
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.time.Duration
 
 @Immutable
 internal data class VirtualDevice
@@ -67,8 +68,69 @@ internal constructor(
   override val isAlreadyPresent: Boolean
     get() = false
 
-  override val availabilityEstimateSeconds: Int
-    get() = 0
+  override val availabilityEstimate: Duration
+    get() = Duration.ZERO
+
+  override fun toBuilder(): Builder = Builder().apply { copyFrom(this@VirtualDevice) }
+
+  class Builder : DeviceProfile.Builder() {
+    lateinit var sdkExtensionLevel: AndroidVersion
+    lateinit var skin: Skin
+    lateinit var frontCamera: AvdCamera
+    lateinit var rearCamera: AvdCamera
+    lateinit var speed: AvdNetworkSpeed
+    lateinit var latency: AvdNetworkLatency
+    lateinit var orientation: ScreenOrientation
+    lateinit var defaultBoot: Boot
+    lateinit var internalStorage: StorageCapacity
+    lateinit var expandedStorage: ExpandedStorage
+    var cpuCoreCount: Int? = null
+    lateinit var graphicAcceleration: GpuMode
+    lateinit var simulatedRam: StorageCapacity
+    lateinit var vmHeapSize: StorageCapacity
+
+    fun copyFrom(profile: VirtualDevice) {
+      super.copyFrom(profile)
+      sdkExtensionLevel = profile.sdkExtensionLevel
+      skin = profile.skin
+      frontCamera = profile.frontCamera
+      rearCamera = profile.rearCamera
+      speed = profile.speed
+      latency = profile.latency
+      orientation = profile.orientation
+      defaultBoot = profile.defaultBoot
+      internalStorage = profile.internalStorage
+      expandedStorage = profile.expandedStorage
+      cpuCoreCount = profile.cpuCoreCount
+      graphicAcceleration = profile.graphicAcceleration
+      simulatedRam = profile.simulatedRam
+      vmHeapSize = profile.vmHeapSize
+    }
+
+    override fun build(): VirtualDevice =
+      VirtualDevice(
+        apiRange = apiRange,
+        manufacturer = manufacturer,
+        name = name,
+        resolution = resolution,
+        displayDensity = displayDensity,
+        abis = abis,
+        sdkExtensionLevel = sdkExtensionLevel,
+        skin = skin,
+        frontCamera = frontCamera,
+        rearCamera = rearCamera,
+        speed = speed,
+        latency = latency,
+        orientation = orientation,
+        defaultBoot = defaultBoot,
+        internalStorage = internalStorage,
+        expandedStorage = expandedStorage,
+        cpuCoreCount = cpuCoreCount,
+        graphicAcceleration = graphicAcceleration,
+        simulatedRam = simulatedRam,
+        vmHeapSize = vmHeapSize,
+      )
+  }
 }
 
 internal data class Custom internal constructor(internal val value: StorageCapacity) :

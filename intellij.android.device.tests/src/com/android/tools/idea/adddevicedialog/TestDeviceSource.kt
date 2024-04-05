@@ -18,6 +18,7 @@ package com.android.tools.idea.adddevicedialog
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
 import com.google.common.collect.Range
+import kotlin.time.Duration
 
 class TestDeviceSource : DeviceSource {
   override val profiles = mutableListOf<DeviceProfile>()
@@ -39,8 +40,10 @@ data class TestDevice(
   override val isRemote: Boolean = false,
   override val abis: List<Abi> = listOf(Abi.ARM64_V8A),
   override val isAlreadyPresent: Boolean = false,
-  override val availabilityEstimateSeconds: Int = 0,
+  override val availabilityEstimate: Duration = Duration.ZERO,
 ) : DeviceProfile {
   override val source: Class<out DeviceSource>
     get() = TestDeviceSource::class.java
+
+  override fun toBuilder(): DeviceProfile.Builder = throw UnsupportedOperationException()
 }
