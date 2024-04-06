@@ -102,7 +102,6 @@ def main(argv):
         print("Removing obsolete file: " + relative_path)
         os.remove(absolute_path)
 
-  sys.exit(1)
   sys.exit(
       subprocess.call(
           [os.path.join(script_dir, "android-studio/bin/studio.sh")]
