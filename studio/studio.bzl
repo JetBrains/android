@@ -808,60 +808,6 @@ def _android_studio_os(ctx, platform, out):
     _lnzipper(ctx, out.basename, all_files.items(), out, attrs = attrs, keep_symlink = platform == MAC_ARM)
     return all_files
 
-experimental_runner_template = """\
-#!/usr/bin/env python3
-
-import os
-import re
-import subprocess
-import sys
-import tempfile
-
-runfiles={{
-    {runfiles}
-}}
-
-config_dir = tempfile.mkdtemp(prefix = "android-studio-")
-args = sys.argv[1:]
-env = os.environ
-
-if len(args) > 0:
-    m = re.search("--wrapper_script_flag=--debug=(\\d+)", args[0])
-    if args[0] == "--debug" or m:
-        port = m.group(1) if m else "5005"
-        options = os.path.join(config_dir, ".debug.vmptions")
-        with open(options, "w") as f:
-            f.write("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=localhost:%s\\n" % port)
-        env["STUDIO_VM_OPTIONS"] = options
-        args = args[1:]
-
-config_dirs = {{
-    "idea.config.path": ".config",
-    "idea.plugins.path": ".plugins",
-    "idea.system.path": ".system",
-    "idea.log.path": ".log",
-}}
-properties = os.path.join(config_dir, ".properties")
-with open(properties, "w") as f:
-    for p, v in config_dirs.items():
-        d = os.path.join(config_dir, v)
-        os.mkdir(d)
-        f.write("%s=%s\\n" % (p, d))
-env["STUDIO_PROPERTIES"] = properties
-
-rule_dir = os.path.dirname(os.path.realpath(__file__))
-ide_dir = os.path.join(rule_dir, "{name}")
-for root, _, files in os.walk(os.path.join(ide_dir, "android-studio")):
-    for file in files:
-        absolute_path = os.path.join(root, file)
-        relative_path = os.path.relpath(absolute_path, ide_dir)
-        if relative_path not in runfiles:
-            print("Removing obsolete file: " + relative_path)
-            os.remove(absolute_path)
-
-sys.exit(subprocess.call([os.path.join(ide_dir, "android-studio/bin/studio.sh")] + args, env=env))
-"""
-
 def _experimental_runner(ctx, name, target_to_file, out):
     files = []
     expected = []
