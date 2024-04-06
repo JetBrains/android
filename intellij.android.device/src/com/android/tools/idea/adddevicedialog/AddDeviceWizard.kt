@@ -47,7 +47,7 @@ internal fun WizardPageScope.DeviceGridPage(sources: List<DeviceSource>) {
   val selection = selectionState.selection
   val source = sources.find { it.javaClass == selection?.source }
 
-  if (selection == null || source == null) {
+  if (selection == null || source == null || !filterState.apply(selection)) {
     nextAction = WizardAction.Disabled
     finishAction = WizardAction.Disabled
   } else {
