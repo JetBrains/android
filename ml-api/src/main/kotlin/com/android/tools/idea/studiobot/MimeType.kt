@@ -104,6 +104,7 @@ value class MimeType(val mimeType: String) {
     val HEIC = MimeType("image/heic")
     val HEIF = MimeType("image/heif")
     val WEBP = MimeType("image/webp")
+    val MARKDOWN = MimeType("text/markdown")
 
     /**
      * Attribute used to indicate the role this source file plays; for example, an XML file may be a
