@@ -22,7 +22,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessModuleDir
 import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DataClass
+import org.gradle.internal.declarativedsl.analysis.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.FqName
+import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import java.io.File
@@ -60,4 +62,12 @@ class DeclarativeSchema(private val project: AnalysisSchema, private val plugin:
   fun getDataClassesByFqName(): Map<FqName, DataClass> = project.dataClassesByFqName + plugin.dataClassesByFqName
   fun getRootMemberFunctions(): List<SchemaMemberFunction> =
     project.topLevelReceiverType.memberFunctions + plugin.topLevelReceiverType.memberFunctions
+}
+fun getTopLevelReceiverByName(name: String, schema: DeclarativeSchema): FqName? =
+  getReceiverByName(name, schema.getRootMemberFunctions())
+
+fun getReceiverByName(name: String, memberFunctions: List<SchemaMemberFunction>): FqName? {
+  val dataMemberFunction = memberFunctions.find { it.simpleName == name } ?: return null
+  val accessor = (dataMemberFunction.semantics as? FunctionSemantics.AccessAndConfigure)?.accessor
+  return (accessor?.objectType as? DataTypeRef.Name)?.fqName
 }

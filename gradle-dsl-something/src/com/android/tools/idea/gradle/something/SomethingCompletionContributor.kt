@@ -34,10 +34,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
-import org.gradle.internal.declarativedsl.analysis.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.FqName
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
 
 private val declarativeFlag = object : PatternCondition<PsiElement>(null) {
   override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean =
@@ -84,15 +80,6 @@ class SomethingCompletionContributor : CompletionContributor() {
     }
     val element = schema.getDataClassesByFqName()[currentName]  ?: return emptyList()
     return element.properties.map { it.name } + element.memberFunctions.map { it.simpleName }
-  }
-
-  private fun getTopLevelReceiverByName(name: String, schema: DeclarativeSchema): FqName? =
-    getReceiverByName(name, schema.getRootMemberFunctions())
-
-  private fun getReceiverByName(name: String, memberFunctions: List<SchemaMemberFunction>): FqName? {
-    val dataMemberFunction = memberFunctions.find { it.simpleName == name } ?: return null
-    val accessor = (dataMemberFunction.semantics as? FunctionSemantics.AccessAndConfigure)?.accessor
-    return (accessor?.objectType as? DataTypeRef.Name)?.fqName
   }
 
   // create path - list of identifiers from root element to parent

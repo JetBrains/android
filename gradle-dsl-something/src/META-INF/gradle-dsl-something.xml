@@ -20,6 +20,7 @@
     <completion.confidence language="Something"
                            id="EnableAutoPopupInSomethingCompletion"
                            implementationClass="com.android.tools.idea.gradle.something.EnableAutoPopupInSomethingCompletion" />
+    <annotator language="Something" implementationClass="com.android.tools.idea.gradle.something.SomethingAnnotator"/>
 
     <psi.referenceContributor language="Something" implementation="com.android.tools.idea.gradle.something.SomethingVersionCatalogReferenceContributor"/>
   </extensions>
