@@ -29,6 +29,7 @@ public class SomethingVisitor extends PsiElementVisitor {
 
   public void visitAssignment(@NotNull SomethingAssignment o) {
     visitEntry(o);
+    // visitIdentifierOwner(o);
   }
 
   public void visitBare(@NotNull SomethingBare o) {
@@ -37,10 +38,12 @@ public class SomethingVisitor extends PsiElementVisitor {
 
   public void visitBlock(@NotNull SomethingBlock o) {
     visitEntry(o);
+    // visitIdentifierOwner(o);
   }
 
   public void visitFactory(@NotNull SomethingFactory o) {
     visitEntry(o);
+    // visitIdentifierOwner(o);
     // visitValue(o);
   }
 

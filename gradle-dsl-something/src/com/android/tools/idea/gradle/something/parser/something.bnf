@@ -56,6 +56,7 @@
 
   implements("assignment|block|factory")=[
      "com.android.tools.idea.gradle.something.psi.SomethingEntry"
+       "com.android.tools.idea.gradle.something.psi.SomethingIdentifierOwner"
   ]
   implements("identifier")=[
      "com.intellij.psi.PsiNamedElement"

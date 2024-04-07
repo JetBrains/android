@@ -19,13 +19,13 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
-import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
-import java.io.File
 import com.intellij.openapi.project.guessModuleDir
+import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DataClass
 import org.gradle.internal.declarativedsl.analysis.FqName
 import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
+import java.io.File
 
 /**
  * Gets and caches declarative schema.

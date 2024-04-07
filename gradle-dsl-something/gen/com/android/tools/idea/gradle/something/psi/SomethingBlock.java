@@ -21,7 +21,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface SomethingBlock extends SomethingEntry {
+public interface SomethingBlock extends SomethingEntry, SomethingIdentifierOwner {
 
   @Nullable
   SomethingIdentifier getIdentifier();

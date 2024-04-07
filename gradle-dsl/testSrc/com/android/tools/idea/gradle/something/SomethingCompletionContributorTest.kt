@@ -114,7 +114,6 @@ class SomethingCompletionContributorTest {
 
     check.invoke(list)
   }
-
   // Keep this method here for now as schema files suppose to go away soon
   @Throws(IOException::class)
   private fun writeToSchemaFile(filename: TestFileName) {
