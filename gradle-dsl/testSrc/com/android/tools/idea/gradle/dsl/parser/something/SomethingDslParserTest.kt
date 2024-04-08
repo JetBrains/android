@@ -106,6 +106,16 @@ class SomethingDslParserTest : LightPlatformTestCase() {
     doTest(file, expected)
   }
 
+  fun testFactoryWithMultipleArguments() {
+    val toml = """
+      androidApplication {
+        api("androidx.application", true,123)
+      }
+    """.trimIndent()
+    val expected = mapOf("android" to mapOf("api" to listOf("androidx.application", true, 123)))
+    doTest(toml, expected)
+  }
+
   fun testTwoFactoryMethods() {
     val file = """
       androidApplication {

@@ -28,14 +28,17 @@ class SomethingFileTest : LightPlatformTestCase() {
       
       baz("abc")
       
+      foo()
+      
       quux("def") {
       }
     """.trimIndent())
     val entries = file.getEntries()
-    assertThat(entries).hasSize(4)
+    assertThat(entries).hasSize(5)
     assertThat(entries[0]).isInstanceOf(SomethingBlock::class.java)
     assertThat(entries[1]).isInstanceOf(SomethingAssignment::class.java)
     assertThat(entries[2]).isInstanceOf(SomethingFactory::class.java)
-    assertThat(entries[3]).isInstanceOf(SomethingBlock::class.java)
+    assertThat(entries[3]).isInstanceOf(SomethingFactory::class.java)
+    assertThat(entries[4]).isInstanceOf(SomethingBlock::class.java)
   }
 }

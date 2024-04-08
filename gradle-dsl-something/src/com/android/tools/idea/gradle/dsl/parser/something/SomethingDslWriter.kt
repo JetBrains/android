@@ -126,10 +126,12 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement {
     val call = createDslElement(methodCall) as SomethingFactory
     if (methodCall.isDoubleFunction())
-      (call.argumentsList?.arguments?.firstOrNull() as? SomethingFactory)?.argumentsList?.let { methodCall.argumentsElement.psiElement = it }
+      call.argumentsList?.arguments?.forEach {
+        (it as? SomethingFactory)?.argumentsList?.let { arg -> methodCall.argumentsElement.psiElement = arg }
+      }
     else
       methodCall.argumentsElement.psiElement = call.argumentsList
-    methodCall.arguments.firstOrNull()?.create()
+    methodCall.arguments.forEach { it.create() }
     return call
   }
   override fun applyDslMethodCall(methodCall: GradleDslMethodCall) {

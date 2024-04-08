@@ -19,11 +19,36 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
 
 class SomethingArgumentsListTest : LightPlatformTestCase() {
-  fun testGetArguments() {
+  fun testGetStringArgument() {
     val psiFactory = SomethingPsiFactory(project)
     val factory = psiFactory.createFactory("abc")
     factory.argumentsList!!.add(psiFactory.createLiteral("def"))
     val arguments = factory.argumentsList!!.arguments
-    assertThat(arguments).hasSize(1)
+    assertThat(arguments.map { it.text }).containsExactly("\"def\"")
+  }
+
+  fun testGetIntArgument() {
+    val psiFactory = SomethingPsiFactory(project)
+    val factory = psiFactory.createFactory("abc")
+    factory.argumentsList!!.add(psiFactory.createLiteral(123))
+    val arguments = factory.argumentsList!!.arguments
+    assertThat(arguments.map { it.text }).containsExactly("123")
+  }
+
+  fun testGetMultipleArguments() {
+    val psiFactory = SomethingPsiFactory(project)
+    val factory = psiFactory.createFactory("abc")
+    factory.argumentsList!!.add(psiFactory.createLiteral(123))
+    factory.argumentsList!!.add(psiFactory.createLiteral("hello, world"))
+    factory.argumentsList!!.add(psiFactory.createLiteral(true))
+    val arguments = factory.argumentsList!!.arguments
+    assertThat(arguments.map { it.text }).containsExactly("123", "\"hello, world\"", "true").inOrder()
+  }
+
+  fun testOneParameterFactory() {
+    val psiFactory = SomethingPsiFactory(project)
+    val factory = psiFactory.createOneParameterFactory("abc", "\"hello, world\"")
+    val arguments = factory.argumentsList!!.arguments
+    assertThat(arguments.map { it.text }).containsExactly("\"hello, world\"")
   }
 }

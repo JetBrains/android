@@ -147,6 +147,67 @@ class SomethingParserTest : ParsingTestCase("no_data_path_needed", "something", 
       )
   }
 
+  fun testZeroArgumentFactory() {
+    assertThat(
+      """
+        foo()
+      """.toParseTreeText()
+    )
+      .isEqualTo(
+        """
+          FILE
+            SomethingFactoryImpl(FACTORY)
+              SomethingIdentifierImpl(IDENTIFIER)
+                PsiElement(SomethingTokenType.token)('foo')
+              PsiElement(SomethingTokenType.()('(')
+              SomethingArgumentsListImpl(ARGUMENTS_LIST)
+                <empty list>
+              PsiElement(SomethingTokenType.))(')')
+        """.trimIndent()
+      )
+  }
+
+  fun testMultiArgumentFactory() {
+    assertThat(
+      """
+        foo("hello, world!", "foo",123,456, true,    bar())
+      """.toParseTreeText()
+    )
+      .isEqualTo(
+        """
+          FILE
+            SomethingFactoryImpl(FACTORY)
+              SomethingIdentifierImpl(IDENTIFIER)
+                PsiElement(SomethingTokenType.token)('foo')
+              PsiElement(SomethingTokenType.()('(')
+              SomethingArgumentsListImpl(ARGUMENTS_LIST)
+                SomethingLiteralImpl(LITERAL)
+                  PsiElement(SomethingTokenType.string)('"hello, world!"')
+                PsiElement(SomethingTokenType.,)(',')
+                SomethingLiteralImpl(LITERAL)
+                  PsiElement(SomethingTokenType.string)('"foo"')
+                PsiElement(SomethingTokenType.,)(',')
+                SomethingLiteralImpl(LITERAL)
+                  PsiElement(SomethingTokenType.number)('123')
+                PsiElement(SomethingTokenType.,)(',')
+                SomethingLiteralImpl(LITERAL)
+                  PsiElement(SomethingTokenType.number)('456')
+                PsiElement(SomethingTokenType.,)(',')
+                SomethingLiteralImpl(LITERAL)
+                  PsiElement(SomethingTokenType.boolean)('true')
+                PsiElement(SomethingTokenType.,)(',')
+                SomethingFactoryImpl(FACTORY)
+                  SomethingIdentifierImpl(IDENTIFIER)
+                    PsiElement(SomethingTokenType.token)('bar')
+                  PsiElement(SomethingTokenType.()('(')
+                  SomethingArgumentsListImpl(ARGUMENTS_LIST)
+                    <empty list>
+                  PsiElement(SomethingTokenType.))(')')
+              PsiElement(SomethingTokenType.))(')')
+        """.trimIndent()
+      )
+  }
+
   private fun String.toParseTreeText() = createPsiFile("in-memory", this.trimIndent()).let {
     toParseTreeText(it, true, false).trim()
   }

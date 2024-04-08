@@ -56,13 +56,46 @@ public class SomethingParser implements PsiParser, LightPsiParser {
   };
 
   /* ********************************************************** */
-  // rvalue?
+  // (rvalue (OP_COMMA rvalue)*)?
   public static boolean argumentsList(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "argumentsList")) return false;
     Marker m = enter_section_(b, l, _NONE_, ARGUMENTS_LIST, "<arguments list>");
-    rvalue(b, l + 1);
+    argumentsList_0(b, l + 1);
     exit_section_(b, l, m, true, false, null);
     return true;
+  }
+
+  // rvalue (OP_COMMA rvalue)*
+  private static boolean argumentsList_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "argumentsList_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = rvalue(b, l + 1);
+    r = r && argumentsList_0_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // (OP_COMMA rvalue)*
+  private static boolean argumentsList_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "argumentsList_0_1")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!argumentsList_0_1_0(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "argumentsList_0_1", c)) break;
+    }
+    return true;
+  }
+
+  // OP_COMMA rvalue
+  private static boolean argumentsList_0_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "argumentsList_0_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, OP_COMMA);
+    r = r && rvalue(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
   }
 
   /* ********************************************************** */

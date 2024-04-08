@@ -102,8 +102,7 @@ class SomethingDslParser(
     psiFile.accept(getVisitor(dslFile, GradleNameElement.empty()))
   }
 
-
-  fun getFunctionParametersVisitor(parentMethodCall: GradleDslMethodCall): SomethingRecursiveVisitor =
+  private fun getFunctionParametersVisitor(parentMethodCall: GradleDslMethodCall): SomethingRecursiveVisitor =
     object : SomethingRecursiveVisitor() {
       override fun visitLiteral(psi: SomethingLiteral) {
         parentMethodCall.addNewArgument(GradleDslLiteral(parentMethodCall, psi, GradleNameElement.empty(), psi, LITERAL))
@@ -121,8 +120,7 @@ class SomethingDslParser(
     methodCall.psiElement = psi
     methodCall.argumentsElement.psiElement = psi.argumentsList
 
-    psi.argumentsList?.arguments?.firstOrNull()?.accept(getFunctionParametersVisitor(methodCall))
+    psi.argumentsList?.arguments?.forEach { it.accept(getFunctionParametersVisitor(methodCall)) }
     return methodCall
   }
-
 }

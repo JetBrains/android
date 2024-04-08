@@ -33,21 +33,22 @@ TOKEN=[a-z][a-zA-Z0-9]*
 
 %%
 <YYINITIAL> {
-  {WHITE_SPACE}       { return WHITE_SPACE; }
+  {WHITE_SPACE}        { return WHITE_SPACE; }
 
-  "="                 { return OP_EQ; }
-  "."                 { return OP_DOT; }
-  "{"                 { return OP_LBRACE; }
-  "}"                 { return OP_RBRACE; }
-  "("                 { return OP_LPAREN; }
-  ")"                 { return OP_RPAREN; }
-  "null"              { return NULL; }
+  "="                  { return OP_EQ; }
+  "."                  { return OP_DOT; }
+  "{"                  { return OP_LBRACE; }
+  "}"                  { return OP_RBRACE; }
+  "("                  { return OP_LPAREN; }
+  ")"                  { return OP_RPAREN; }
+  ","                  { return OP_COMMA; }
+  "null"               { return NULL; }
 
-  {LINE_COMMENT}      { return LINE_COMMENT; }
-  {NUMBER}            { return NUMBER; }
-  {STRING}            { return STRING; }
-  {BOOLEAN}           { return BOOLEAN; }
-  {TOKEN}             { return TOKEN; }
+  {LINE_COMMENT}       { return LINE_COMMENT; }
+  {NUMBER}             { return NUMBER; }
+  {STRING}             { return STRING; }
+  {BOOLEAN}            { return BOOLEAN; }
+  {TOKEN}              { return TOKEN; }
 
 }
 

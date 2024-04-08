@@ -79,13 +79,11 @@ class SomethingVisitorTest : ParsingTestCase("no_data_path_needed", "something",
 
       override fun visitAssignment(o: SomethingAssignment) {
         visits.add(SomethingAssignment::class)
-
         super.visitAssignment(o)
       }
 
       override fun visitBlock(o: SomethingBlock) {
         visits.add(SomethingBlock::class)
-
         super.visitBlock(o)
       }
 
@@ -101,7 +99,6 @@ class SomethingVisitorTest : ParsingTestCase("no_data_path_needed", "something",
 
       override fun visitProperty(o: SomethingProperty) {
         visits.add(SomethingProperty::class)
-
         super.visitProperty(o)
       }
 

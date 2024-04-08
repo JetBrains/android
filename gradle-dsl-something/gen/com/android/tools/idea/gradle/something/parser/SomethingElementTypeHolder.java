@@ -39,6 +39,7 @@ public interface SomethingElementTypeHolder {
   IElementType LINE_COMMENT = new SomethingTokenType("line_comment");
   IElementType NULL = new SomethingTokenType("null");
   IElementType NUMBER = new SomethingTokenType("number");
+  IElementType OP_COMMA = new SomethingTokenType(",");
   IElementType OP_DOT = new SomethingTokenType(".");
   IElementType OP_EQ = new SomethingTokenType("=");
   IElementType OP_LBRACE = new SomethingTokenType("{");

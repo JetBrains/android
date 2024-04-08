@@ -66,6 +66,20 @@ class SomethingLexerTest : LexerTestCase() {
     )
   }
 
+  fun testComma() {
+    doTest(
+      """
+        "foo", "bar"
+      """.trimIndent(),
+      """
+        SomethingTokenType.string ('"foo"')
+        SomethingTokenType., (',')
+        WHITE_SPACE (' ')
+        SomethingTokenType.string ('"bar"')
+      """.trimIndent()
+    )
+  }
+
   fun testBoolean() {
     doTest(
       """

@@ -36,6 +36,7 @@
     OP_RBRACE = "}"
     OP_LPAREN = "("
     OP_RPAREN = ")"
+    OP_COMMA = ","
 
     line_comment = "regexp://.*"
     number = "regexp:\d(\d|_+\d)*[Ll]?"
@@ -94,7 +95,6 @@ block ::= block_head OP_LBRACE block_entry* OP_RBRACE {
 private block_head ::= (factory | identifier)
 private block_entry ::= !'}' entry
 factory ::= identifier OP_LPAREN argumentsList OP_RPAREN {pin=2}
-// this might become a true list eventually, but the current specification only allows for single-argument factories.
-argumentsList ::= rvalue? {
+argumentsList ::= (rvalue (OP_COMMA rvalue)*)? {
    methods=[getArguments factory="" literal="" property=""]
 }
