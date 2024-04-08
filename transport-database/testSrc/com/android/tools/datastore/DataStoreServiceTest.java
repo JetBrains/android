@@ -26,7 +26,6 @@ import com.android.tools.datastore.DataStoreService.BackingNamespace;
 import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.service.CpuService;
-import com.android.tools.datastore.service.EnergyService;
 import com.android.tools.datastore.service.EventService;
 import com.android.tools.datastore.service.MemoryService;
 import com.android.tools.datastore.service.ProfilerService;
@@ -115,7 +114,6 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     expectedServices.add(EventService.class);
     expectedServices.add(CpuService.class);
     expectedServices.add(MemoryService.class);
-    expectedServices.add(EnergyService.class);
 
     List<ServicePassThrough> services = myDataStore.getRegisteredServices();
     for (ServicePassThrough service : services) {

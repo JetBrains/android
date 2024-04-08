@@ -32,7 +32,6 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Energy;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuCaptureParser;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
@@ -43,7 +42,6 @@ import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfigura
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
-import com.android.tools.profilers.energy.EnergyDuration;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -57,7 +55,6 @@ import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.android.tools.profilers.tasks.TaskAttachmentPoint;
 import com.android.tools.profilers.tasks.TaskDataOrigin;
 import com.android.tools.profilers.tasks.TaskFinishedState;
-import com.android.tools.profilers.tasks.TaskMetadataStatus;
 import com.android.tools.profilers.tasks.TaskProcessingFailedMetadata;
 import com.android.tools.profilers.tasks.TaskStartFailedMetadata;
 import com.android.tools.profilers.tasks.TaskStopFailedMetadata;
@@ -73,10 +70,6 @@ import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
 import com.google.wireless.android.sdk.stats.CpuProfilingConfig;
 import com.google.wireless.android.sdk.stats.CpuStartupProfilingMetadata;
 import com.google.wireless.android.sdk.stats.DeviceInfo;
-import com.google.wireless.android.sdk.stats.EnergyEvent;
-import com.google.wireless.android.sdk.stats.EnergyEventCount;
-import com.google.wireless.android.sdk.stats.EnergyEventMetadata;
-import com.google.wireless.android.sdk.stats.EnergyRangeMetadata;
 import com.google.wireless.android.sdk.stats.FilterMetadata;
 import com.google.wireless.android.sdk.stats.MemoryInstanceFilterMetadata;
 import com.google.wireless.android.sdk.stats.PowerProfilerCaptureMetadata;
@@ -600,16 +593,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackSelectEnergyRange(@NotNull com.android.tools.profilers.analytics.energy.EnergyRangeMetadata rangeMetadata) {
-    newTracker(AndroidProfilerEvent.Type.SELECT_ENERGY_RANGE).setEnergyRangeMetadata(rangeMetadata).track();
-  }
-
-  @Override
-  public void trackSelectEnergyEvent(@NotNull com.android.tools.profilers.analytics.energy.EnergyEventMetadata eventMetadata) {
-    newTracker(AndroidProfilerEvent.Type.SELECT_ENERGY_EVENT).setEnergyEventMetadata(eventMetadata).track();
-  }
-
-  @Override
   public void trackFilterMetadata(@NotNull com.android.tools.profilers.analytics.FilterMetadata filterMetadata) {
     newTracker(AndroidProfilerEvent.Type.FILTER).setFilterMetadata(filterMetadata).track();
   }
@@ -931,8 +914,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private CpuImportTraceMetadata myCpuImportTraceMetadata;
     @Nullable private com.android.tools.profilers.analytics.FilterMetadata myFeatureMetadata;
     @Nullable private CpuApiTracingMetadata myCpuApiTracingMetadata;
-    @Nullable private com.android.tools.profilers.analytics.energy.EnergyRangeMetadata myEnergyRangeMetadata;
-    @Nullable private com.android.tools.profilers.analytics.energy.EnergyEventMetadata myEnergyEventMetadata;
     @Nullable private ProfilerSessionCreationMetaData mySessionCreationMetadata;
     @Nullable private ProfilerSessionSelectionMetaData mySessionArtifactMetadata;
     @Nullable private ProfilingConfiguration myCpuStartupProfilingConfiguration;
@@ -999,18 +980,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull
     public Tracker setFilterMetadata(@Nullable com.android.tools.profilers.analytics.FilterMetadata filterMetadata) {
       myFeatureMetadata = filterMetadata;
-      return this;
-    }
-
-    @NotNull
-    public Tracker setEnergyRangeMetadata(@Nullable com.android.tools.profilers.analytics.energy.EnergyRangeMetadata energyRangeMetadata) {
-      myEnergyRangeMetadata = energyRangeMetadata;
-      return this;
-    }
-
-    @NotNull
-    public Tracker setEnergyEventMetadata(@Nullable com.android.tools.profilers.analytics.energy.EnergyEventMetadata energyEventMetadata) {
-      myEnergyEventMetadata = energyEventMetadata;
       return this;
     }
 
@@ -1126,8 +1095,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
       populateCpuCaptureMetadata(profilerEvent);
       populateFilterMetadata(profilerEvent);
-      populateEnergyRangeMetadata(profilerEvent);
-      populateEnergyEventMetadata(profilerEvent);
       populateMemoryInstanceFilterMetadata(profilerEvent);
 
       switch (myEventType) {
@@ -1230,45 +1197,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
       }
 
       UsageTracker.log(UsageTrackerUtils.withProjectId(event, myTrackingProject));
-    }
-
-    private void populateEnergyRangeMetadata(@NotNull AndroidProfilerEvent.Builder profilerEvent) {
-      if (myEnergyRangeMetadata == null) {
-        return;
-      }
-
-      EnergyRangeMetadata.Builder builder = EnergyRangeMetadata.newBuilder();
-      myEnergyRangeMetadata.getEventCounts().forEach(eventCount -> {
-        builder.addEventCounts(EnergyEventCount.newBuilder()
-                                 .setType(toEnergyType(eventCount.getKind()))
-                                 .setCount(eventCount.getCount())
-                                 .build());
-      });
-
-      profilerEvent.setEnergyRangeMetadata(builder.build());
-    }
-
-    private void populateEnergyEventMetadata(@NotNull AndroidProfilerEvent.Builder profilerEvent) {
-      if (myEnergyEventMetadata == null || myEnergyEventMetadata.getSubevents().isEmpty()) {
-        return;
-      }
-
-      EnergyEventMetadata.Builder builder = EnergyEventMetadata.newBuilder();
-
-      List<Common.Event> subevents = myEnergyEventMetadata.getSubevents();
-      Common.Event firstEvent = subevents.get(0);
-      builder.setType(toEnergyType(firstEvent.getEnergyEvent()));
-
-      EnergyEvent.Subtype eventSubtype = toEnergySubtype(firstEvent.getEnergyEvent());
-      if (eventSubtype != null) {
-        builder.setSubtype(eventSubtype);
-      }
-
-      for (Common.Event event : subevents) {
-        builder.addSubevents(toEnergySubevent(event.getEnergyEvent()));
-      }
-
-      profilerEvent.setEnergyEventMetadata(builder);
     }
 
     private void populateMemoryInstanceFilterMetadata(@NotNull AndroidProfilerEvent.Builder profilerEvent) {
@@ -1379,104 +1307,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
       }
       return cpuConfigInfo.build();
-    }
-
-    @NotNull
-    private static EnergyEvent.Type toEnergyType(@NotNull Energy.EnergyEventData energyEvent) {
-      return toEnergyType(EnergyDuration.Kind.from(energyEvent));
-    }
-
-    @NotNull
-    private static EnergyEvent.Type toEnergyType(@NotNull EnergyDuration.Kind energyKind) {
-      switch (energyKind) {
-        case WAKE_LOCK:
-          return EnergyEvent.Type.WAKE_LOCK;
-        case ALARM:
-          return EnergyEvent.Type.ALARM;
-        case JOB:
-          return EnergyEvent.Type.JOB;
-        case LOCATION:
-          return EnergyEvent.Type.LOCATION;
-        default:
-          return EnergyEvent.Type.UNKNOWN_EVENT_TYPE;
-      }
-    }
-
-    /**
-     * Returns the subtype of the current event, if it has one, or {@code null} if none.
-     *
-     * @param eventData
-     */
-    @Nullable
-    private static EnergyEvent.Subtype toEnergySubtype(@NotNull Energy.EnergyEventData eventData) {
-      if (eventData.getMetadataCase() == Energy.EnergyEventData.MetadataCase.WAKE_LOCK_ACQUIRED) {
-        Energy.WakeLockAcquired wakeLockAcquired = eventData.getWakeLockAcquired();
-        switch (wakeLockAcquired.getLevel()) {
-          case PARTIAL_WAKE_LOCK:
-            return EnergyEvent.Subtype.WAKE_LOCK_PARTIAL;
-          case SCREEN_DIM_WAKE_LOCK:
-            return EnergyEvent.Subtype.WAKE_LOCK_SCREEN_DIM;
-          case SCREEN_BRIGHT_WAKE_LOCK:
-            return EnergyEvent.Subtype.WAKE_LOCK_SCREEN_BRIGHT;
-          case FULL_WAKE_LOCK:
-            return EnergyEvent.Subtype.WAKE_LOCK_FULL;
-          case PROXIMITY_SCREEN_OFF_WAKE_LOCK:
-            return EnergyEvent.Subtype.WAKE_LOCK_PROXIMITY_SCREEN_OFF;
-          // Default case should never happen unless framework adds a new wake lock type and we forget to handle it
-          default:
-            return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
-        }
-      }
-      else if (eventData.getMetadataCase() == Energy.EnergyEventData.MetadataCase.ALARM_SET) {
-        Energy.AlarmSet alarmSet = eventData.getAlarmSet();
-        switch (alarmSet.getType()) {
-          case RTC:
-            return EnergyEvent.Subtype.ALARM_RTC;
-          case RTC_WAKEUP:
-            return EnergyEvent.Subtype.ALARM_RTC_WAKEUP;
-          case ELAPSED_REALTIME:
-            return EnergyEvent.Subtype.ALARM_ELAPSED_REALTIME;
-          case ELAPSED_REALTIME_WAKEUP:
-            return EnergyEvent.Subtype.ALARM_ELAPSED_REALTIME_WAKEUP;
-          // Default case should never happen unless framework adds a new alarm type and we forget to handle it
-          default:
-            return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
-        }
-      }
-
-      return null;
-    }
-
-    @NotNull
-    private static EnergyEvent.Subevent toEnergySubevent(@NotNull Energy.EnergyEventData eventData) {
-      switch (eventData.getMetadataCase()) {
-        case WAKE_LOCK_ACQUIRED:
-          return EnergyEvent.Subevent.WAKE_LOCK_ACQUIRED;
-        case WAKE_LOCK_RELEASED:
-          return EnergyEvent.Subevent.WAKE_LOCK_RELEASED;
-        case ALARM_SET:
-          return EnergyEvent.Subevent.ALARM_SET;
-        case ALARM_CANCELLED:
-          return EnergyEvent.Subevent.ALARM_CANCELLED;
-        case ALARM_FIRED:
-          return EnergyEvent.Subevent.ALARM_FIRED;
-        case JOB_SCHEDULED:
-          return EnergyEvent.Subevent.JOB_SCHEDULED;
-        case JOB_STARTED:
-          return EnergyEvent.Subevent.JOB_STARTED;
-        case JOB_STOPPED:
-          return EnergyEvent.Subevent.JOB_STOPPED;
-        case JOB_FINISHED:
-          return EnergyEvent.Subevent.JOB_FINISHED;
-        case LOCATION_UPDATE_REQUESTED:
-          return EnergyEvent.Subevent.LOCATION_UPDATE_REQUESTED;
-        case LOCATION_UPDATE_REMOVED:
-          return EnergyEvent.Subevent.LOCATION_UPDATE_REMOVED;
-        case LOCATION_CHANGED:
-          return EnergyEvent.Subevent.LOCATION_CHANGED;
-        default:
-          return EnergyEvent.Subevent.UNKNOWN_ENERGY_SUBEVENT;
-      }
     }
   }
 

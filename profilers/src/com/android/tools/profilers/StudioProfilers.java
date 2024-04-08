@@ -47,8 +47,6 @@ import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfiler;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
-import com.android.tools.profilers.energy.EnergyProfiler;
-import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.event.EventProfiler;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfiler;
@@ -308,9 +306,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     profilersBuilder.add(new CpuProfiler(this));
     profilersBuilder.add(new MemoryProfiler(this));
-    if (myIdeServices.getFeatureConfig().isEnergyProfilerEnabled()) {
-      profilersBuilder.add(new EnergyProfiler(this));
-    }
     myProfilers = profilersBuilder.build();
 
     myTimeline = new StreamingTimeline(myUpdater);
@@ -1156,16 +1151,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     ImmutableList.Builder<Class<? extends Stage>> listBuilder = ImmutableList.builder();
     listBuilder.add(CpuProfilerStage.class);
     listBuilder.add(MainMemoryProfilerStage.class);
-    // Show the energy stage in the list only when the session has JVMTI enabled or the device is above O.
-    boolean hasSession = mySelectedSession.getSessionId() != 0;
-    boolean isEnergyStageEnabled = hasSession ? mySessionsManager.getSelectedSessionMetaData().getJvmtiEnabled()
-                                              : myDevice != null && myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
     boolean isPowerProfilerDisabled =
       getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode() == PowerProfilerDisplayMode.HIDE;
-
-    if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled() && isEnergyStageEnabled && isPowerProfilerDisabled) {
-      listBuilder.add(EnergyProfilerStage.class);
-    }
 
     // Show the custom event stage in the dropdown list of profiling options when enabled
     if (getIdeServices().getFeatureConfig().isCustomEventVisualizationEnabled()) {

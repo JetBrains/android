@@ -422,11 +422,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @VisibleForTesting
   public static class FeatureConfigProd implements FeatureConfig {
     @Override
-    public boolean isEnergyProfilerEnabled() {
-      return StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get();
-    }
-
-    @Override
     public boolean isJankDetectionUiEnabled() {
       return StudioFlags.PROFILER_JANK_DETECTION_UI.get();
     }

@@ -38,7 +38,6 @@ import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
-import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel.ProfilingProcessStartingPoint;
@@ -1403,9 +1402,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testGetDirectStagesReturnsOnlyExpectedStages() {
-    // When energy flag is enabled and device is pre-O, GetDirectStages does not return Energy stage.
-    myIdeProfilerServices.enableEnergyProfiler(true);
+  public void testGetDirectStagesReturnsOnlyExpectedStages_Pre_O() {
     Common.Device deviceNougat = createDevice(AndroidVersion.VersionCodes.N_MR1, "FakeDeviceN", Common.Device.State.ONLINE);
     myTransportService.addDevice(deviceNougat);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -1415,28 +1412,14 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getDirectStages()).containsExactly(
       CpuProfilerStage.class,
       MainMemoryProfilerStage.class).inOrder();
+  }
 
+  @Test
+  public void testGetDirectStagesReturnsOnlyExpectedStages_O() {
     Common.Device deviceOreo = createDevice(AndroidVersion.VersionCodes.O, "FakeDeviceO", Common.Device.State.ONLINE);
     myTransportService.addDevice(deviceOreo);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.setProcess(deviceOreo, null);
-    assertThat(myProfilers.getDevice().getSerial()).isEqualTo("FakeDeviceO");
-
-    // When energy flag is enabled, device is O, and the Power Profiler is set to HIDE (disabled), GetDirectStages returns Energy stage.
-    myIdeProfilerServices.setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode.HIDE);
-    assertThat(myProfilers.getDirectStages()).containsExactly(
-      CpuProfilerStage.class,
-      MainMemoryProfilerStage.class,
-      EnergyProfilerStage.class).inOrder();
-
-    // When the Power Profiler is not set to HIDE (enabled), GetDirectStages does not return the Energy stage.
-    myIdeProfilerServices.setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode.DELTA);
-    assertThat(myProfilers.getDirectStages()).containsExactly(
-      CpuProfilerStage.class,
-      MainMemoryProfilerStage.class).inOrder();
-
-    // When energy flag is disabled and device is O, GetDirectStages does not return Energy stage.
-    myIdeProfilerServices.enableEnergyProfiler(false);
     assertThat(myProfilers.getDevice().getSerial()).isEqualTo("FakeDeviceO");
 
     assertThat(myProfilers.getDirectStages()).containsExactly(
@@ -1451,66 +1434,6 @@ public final class StudioProfilersTest {
       CpuProfilerStage.class,
       MainMemoryProfilerStage.class,
       CustomEventProfilerStage.class).inOrder();
-
-    // When custom event flag is disabled and device is O, GetDirectStages does not return Custom Event stage.
-    myIdeProfilerServices.enableCustomEventVisualization(false);
-    assertThat(myProfilers.getDevice().getSerial()).isEqualTo("FakeDeviceO");
-
-    assertThat(myProfilers.getDirectStages()).containsExactly(
-      CpuProfilerStage.class,
-      MainMemoryProfilerStage.class).inOrder();
-  }
-
-  @Test
-  public void testGetDirectStageReturnsEnergyOnlyForPostOSession() {
-    myIdeProfilerServices.enableTaskBasedUx(false);
-
-    // When energy flag is enabled and the session is pre-O, GetDirectStages does not return Energy stage.
-    myIdeProfilerServices.enableEnergyProfiler(true);
-    Common.Session sessionPreO = Common.Session.newBuilder()
-      .setSessionId(1).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build();
-    Common.SessionMetaData sessionPreOMetadata = Common.SessionMetaData.newBuilder()
-      .setSessionId(1).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(false).setStartTimestampEpochMs(1).build();
-
-    myTransportService.addSession(sessionPreO, sessionPreOMetadata);
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myProfilers.getSessionsManager().setSession(myProfilers.getSessionsManager().getSessionArtifacts().get(0).getSession());
-    assertThat(myProfilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled()).isFalse();
-
-    assertThat(myProfilers.getDirectStages()).containsExactly(
-      CpuProfilerStage.class,
-      MainMemoryProfilerStage.class).inOrder();
-
-    // When energy flag is enabled and the session is O, GetDirectStages returns Energy stage.
-    Common.Session sessionO = Common.Session.newBuilder()
-      .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build();
-    Common.SessionMetaData sessionOMetadata = Common.SessionMetaData.newBuilder()
-      .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(true).setStartTimestampEpochMs(1).build();
-    myTransportService.addSession(sessionO, sessionOMetadata);
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myProfilers.getSessionsManager().setSession(myProfilers.getSessionsManager().getSessionArtifacts().get(0).getSession());
-    assertThat(myProfilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled()).isTrue();
-
-    // When energy flag is enabled, the session is O, and the Power Profiler is set to HIDE (disabled),
-    // GetDirectStages returns Energy stage.
-    myIdeProfilerServices.setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode.HIDE);
-    assertThat(myProfilers.getDirectStages()).containsExactly(
-      CpuProfilerStage.class,
-      MainMemoryProfilerStage.class,
-      EnergyProfilerStage.class).inOrder();
-
-    // When the Power Profiler is not set to HIDE (enabled), GetDirectStages does not return the Energy stage.
-    myIdeProfilerServices.setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode.DELTA);
-    assertThat(myProfilers.getDirectStages()).containsExactly(
-      CpuProfilerStage.class,
-      MainMemoryProfilerStage.class).inOrder();
-
-    // When energy flag is disabled and the session is pre-O, GetDirectStages does not return Energy stage.
-    myIdeProfilerServices.enableEnergyProfiler(false);
-    assertThat(myProfilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled()).isTrue();
-    assertThat(myProfilers.getDirectStages()).containsExactly(
-      CpuProfilerStage.class,
-      MainMemoryProfilerStage.class).inOrder();
   }
 
   @Test

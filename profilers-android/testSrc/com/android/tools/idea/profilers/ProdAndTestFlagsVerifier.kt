@@ -36,7 +36,7 @@ class ProdAndTestFlagsVerifier(val method: Method, val name: String) {
       return FeatureConfig::class.java.declaredMethods.map { arrayOf(it, it.name) }.toList()
     }
 
-    val KNOWN_DIVERGENCES = mapOf("isEnergyProfilerEnabled" to "b/162495674")
+    val KNOWN_DIVERGENCES = emptyMap<String, String>()
   }
 
   @Test

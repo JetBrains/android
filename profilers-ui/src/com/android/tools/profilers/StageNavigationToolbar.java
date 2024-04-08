@@ -20,7 +20,6 @@ import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
-import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
@@ -94,7 +93,6 @@ public class StageNavigationToolbar extends JPanel {
     private static ImmutableMap<Class<? extends Stage>, String> CLASS_TO_NAME = ImmutableMap.of(
       CpuProfilerStage.class, "CPU",
       MainMemoryProfilerStage.class, "MEMORY",
-      EnergyProfilerStage.class, "ENERGY",
       CustomEventProfilerStage.class, "CUSTOM EVENTS");
 
     @Override

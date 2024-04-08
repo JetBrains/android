@@ -53,7 +53,6 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
 
   @Before
   fun setUp() {
-    ideProfilerServices.enableEnergyProfiler(true)
     // The Task-Based UX flag will be disabled for the call to setPreferredProcess, then re-enabled. This is because the setPreferredProcess
     // method changes behavior based on the flag's value, and some of the tests depend on the behavior with the flag turned off.
     ideProfilerServices.enableTaskBasedUx(false)

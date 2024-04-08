@@ -24,61 +24,6 @@
     </issue>
 
     <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
-        errorLine1="      String value = String.format(&quot;%s&amp;nbsp;(UID:&amp;nbsp;%d)&quot;, operation.getCreatorPackage(), operation.getCreatorUid());"
-        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/profilers/energy/UiHtmlText.java"
-            line="98"
-            column="22"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="  private final int VERTICAL_MARGIN_PX = JBUI.scale(8);"
-        errorLine2="                                              ~~~~~">
-        <location
-            file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoComponent.java"
-            line="44"
-            column="47"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="  private final int BOTTOM_RIGHT_EXTRA_MARGIN_PX = JBUI.scale(4);"
-        errorLine2="                                                        ~~~~~">
-        <location
-            file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoComponent.java"
-            line="46"
-            column="57"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="  private final int HORIZONTAL_PADDING_PX = JBUI.scale(10);"
-        errorLine2="                                                 ~~~~~">
-        <location
-            file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoComponent.java"
-            line="47"
-            column="50"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="  private final int MIN_TOOLTIP_WIDTH = JBUI.scale(112);"
-        errorLine2="                                             ~~~~~">
-        <location
-            file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoComponent.java"
-            line="48"
-            column="46"/>
-    </issue>
-
-    <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
         errorLine1="  public static final int MARKER_LENGTH = JBUI.scale(5);"

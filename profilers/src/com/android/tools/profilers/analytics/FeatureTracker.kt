@@ -19,8 +19,6 @@ import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.SessionMetaData
-import com.android.tools.profilers.analytics.energy.EnergyEventMetadata
-import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata
 import com.android.tools.profilers.cpu.CpuCaptureMetadata
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
@@ -334,17 +332,6 @@ interface FeatureTracker {
    * Track when a user expands or collapses the cpu threads view.
    */
   fun trackToggleCpuThreadsHideablePanel()
-
-  /**
-   * Track additional data when a user selects a range while in the energy profiler. Note that this
-   * event is sent in addition to a generic range selection event.
-   */
-  fun trackSelectEnergyRange(rangeMetadata: EnergyRangeMetadata)
-
-  /**
-   * Track additional data when a user selects an energy event to see its details.
-   */
-  fun trackSelectEnergyEvent(eventMetadata: EnergyEventMetadata)
 
   /**
    * Track when the user selects instance filter for a Memory Profiler's CaptureObject.

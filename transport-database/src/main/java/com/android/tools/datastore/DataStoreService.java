@@ -21,14 +21,12 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.service.CpuService;
-import com.android.tools.datastore.service.EnergyService;
 import com.android.tools.datastore.service.EventService;
 import com.android.tools.datastore.service.MemoryService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.datastore.service.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profiler.proto.EnergyServiceGrpc;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
@@ -198,7 +196,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     registerService(new EventService(this, myFetchExecutor));
     registerService(new CpuService(this, myFetchExecutor, myLogService));
     registerService(new MemoryService(this, unifiedTable, myFetchExecutor, myLogService));
-    registerService(new EnergyService(this, myFetchExecutor, myLogService));
   }
 
   @VisibleForTesting
@@ -280,10 +277,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getCpuClient() : null;
   }
 
-  public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient(long streamId) {
-    return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getEnergyClient() : null;
-  }
-
   public EventServiceGrpc.EventServiceBlockingStub getEventClient(long streamId) {
     return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getEventClient() : null;
   }
@@ -339,11 +332,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
 
     @Nullable
     public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
-      return null;
-    }
-
-    @Nullable
-    public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient() {
       return null;
     }
 

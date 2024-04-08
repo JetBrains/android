@@ -28,8 +28,6 @@ import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profiler.proto.EnergyProfiler;
-import com.android.tools.profiler.proto.EnergyServiceGrpc;
 import com.android.tools.profiler.proto.EventProfiler.ActivityDataResponse;
 import com.android.tools.profiler.proto.EventProfiler.EventDataRequest;
 import com.android.tools.profiler.proto.EventProfiler.EventStartRequest;
@@ -78,14 +76,12 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     EventService eventService = new EventService();
     MemoryService memoryService = new MemoryService();
     CpuService cpuService = new CpuService();
-    EnergyService energyService = new EnergyService();
     FakeGrpcServer server =
-      new FakeGrpcServer(name, transportService, profilerService, eventService, memoryService, cpuService, energyService);
+      new FakeGrpcServer(name, transportService, profilerService, eventService, memoryService, cpuService);
     // Set the links between the services and the server.
     eventService.myServer = server;
     memoryService.myServer = server;
     cpuService.myServer = server;
-    energyService.myServer = server;
     TransportService.setTestChannelName(server.getName());
     return server;
   }
@@ -228,45 +224,6 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     @Override
     public void getTraceInfo(GetTraceInfoRequest request, StreamObserver<GetTraceInfoResponse> response) {
       response.onNext(GetTraceInfoResponse.newBuilder().addAllTraceInfo(myTraceInfos).build());
-      response.onCompleted();
-    }
-  }
-
-  private static class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase {
-    private FakeGrpcServer myServer;
-
-    @Override
-    public void startMonitoringApp(EnergyProfiler.EnergyStartRequest request,
-                                   StreamObserver<EnergyProfiler.EnergyStartResponse> response) {
-      myServer.addProfiledProcess(request.getSession());
-      response.onNext(EnergyProfiler.EnergyStartResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void stopMonitoringApp(EnergyProfiler.EnergyStopRequest request,
-                                  StreamObserver<EnergyProfiler.EnergyStopResponse> response) {
-      myServer.removeProfiledProcess(request.getSession());
-      response.onNext(EnergyProfiler.EnergyStopResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void getSamples(EnergyProfiler.EnergyRequest request, StreamObserver<EnergyProfiler.EnergySamplesResponse> response) {
-      response.onNext(EnergyProfiler.EnergySamplesResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void getEvents(EnergyProfiler.EnergyRequest request, StreamObserver<EnergyProfiler.EnergyEventsResponse> response) {
-      response.onNext(EnergyProfiler.EnergyEventsResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void getEventGroup(EnergyProfiler.EnergyEventGroupRequest request,
-                              StreamObserver<EnergyProfiler.EnergyEventsResponse> response) {
-      response.onNext(EnergyProfiler.EnergyEventsResponse.getDefaultInstance());
       response.onCompleted();
     }
   }

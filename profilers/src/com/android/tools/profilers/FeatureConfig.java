@@ -24,7 +24,6 @@ import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 public interface FeatureConfig {
   boolean isComposeTracingNavigateToSourceEnabled();
   boolean isCustomEventVisualizationEnabled();
-  boolean isEnergyProfilerEnabled();
   boolean isJankDetectionUiEnabled();
   boolean isMemoryCSVExportEnabled();
   boolean isPerformanceMonitoringEnabled();

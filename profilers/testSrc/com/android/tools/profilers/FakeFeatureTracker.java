@@ -18,8 +18,6 @@ package com.android.tools.profilers;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
-import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
-import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
@@ -50,16 +48,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
    * Stores the last {@link CpuCaptureMetadata} passed to the tracker.
    */
   private CpuCaptureMetadata myLastCpuCaptureMetadata;
-
-  /**
-   * Stores the last {@link EnergyEventMetadata} passed to the tracker.
-   */
-  private EnergyEventMetadata myLastEnergyEventMetadata;
-
-  /**
-   * Stores the last {@link EnergyRangeMetadata} passed to the tracker.
-   */
-  private EnergyRangeMetadata myLastEnergyRangeMetadata;
 
   /**
    * Stores the last {@link FilterMetadata} passed to the tracker.
@@ -434,11 +422,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackSelectEnergyRange(@NotNull EnergyRangeMetadata rangeMetadata) {
-    myLastEnergyRangeMetadata = rangeMetadata;
-  }
-
-  @Override
   public void trackMemoryProfilerInstanceFilter(@NotNull CaptureObjectInstanceFilter filter) {
   }
 
@@ -537,19 +520,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
   @NotNull
   public List<Pair<AndroidProfilerEvent.Type, TraceProcessorDaemonQueryStats>> getTraceProcessorQueryMetrics() {
     return myTpdQueryMetrics;
-  }
-
-  public EnergyRangeMetadata getLastEnergyRangeMetadata() {
-    return myLastEnergyRangeMetadata;
-  }
-
-  @Override
-  public void trackSelectEnergyEvent(@NotNull EnergyEventMetadata eventMetadata) {
-    myLastEnergyEventMetadata = eventMetadata;
-  }
-
-  public EnergyEventMetadata getLastEnergyEventMetadata() {
-    return myLastEnergyEventMetadata;
   }
 
   public FilterMetadata getLastFilterMetadata() {

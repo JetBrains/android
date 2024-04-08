@@ -24,7 +24,6 @@ import com.android.tools.idea.profilers.commands.CpuTraceInterceptCommandHandler
 import com.android.tools.idea.profilers.commands.GcCommandHandler;
 import com.android.tools.idea.profilers.commands.LegacyAllocationCommandHandler;
 import com.android.tools.idea.profilers.commands.LegacyCpuTraceCommandHandler;
-import com.android.tools.idea.profilers.eventpreprocessor.EnergyUsagePreprocessor;
 import com.android.tools.idea.profilers.eventpreprocessor.SimpleperfPipelinePreprocessor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.transport.FailedToStartServerException;
@@ -113,11 +112,6 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_TRACE, cpuTraceHandler);
     }
 
-    // Instantiate and register energy usage preprocessor, which preprocesses unified events and periodically insert energy usage events
-    // to the datastore.
-    if (StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get()) {
-      proxy.registerEventPreprocessor(new EnergyUsagePreprocessor(TransportService.getInstance().getLogService()));
-    }
     SimpleperfPipelinePreprocessor traceProcessor =
       new SimpleperfPipelinePreprocessor(new SimpleperfSampleReporter(deviceToDeviceInfo(device)));
     proxy.registerEventPreprocessor(traceProcessor);
@@ -129,7 +123,6 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
     configBuilder
       .setCommon(
         configBuilder.getCommonBuilder()
-          .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
           .setProfilerUnifiedPipeline(true)
           .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get())
           .setProfilerTaskBasedUx(StudioFlags.PROFILER_TASK_BASED_UX.get()))
@@ -149,7 +142,6 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
     configBuilder
       .setCommon(
         configBuilder.getCommonBuilder()
-          .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
           .setProfilerUnifiedPipeline(true)
           .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get())
           .setProfilerKeyboardEvent(StudioFlags.PROFILER_KEYBOARD_EVENT.get())

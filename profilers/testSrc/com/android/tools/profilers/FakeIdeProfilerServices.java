@@ -98,11 +98,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   };
 
   /**
-   * Toggle for including an energy profiler in our profiler view.
-   */
-  private boolean myEnergyProfilerEnabled = false;
-
-  /**
    * Whether jank detection UI is enabled
    */
   private boolean myIsJankDetectionUiEnabled = true;
@@ -241,10 +236,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
-      @Override
-      public boolean isEnergyProfilerEnabled() {
-        return myEnergyProfilerEnabled;
-      }
 
       @Override
       public boolean isJankDetectionUiEnabled() {
@@ -455,10 +446,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
     myNativeProfilingConfigurationPreferred = nativeProfilingConfigurationPreferred;
-  }
-
-  public void enableEnergyProfiler(boolean enabled) {
-    myEnergyProfilerEnabled = enabled;
   }
 
   public void enableJankDetectionUi(boolean enabled) {

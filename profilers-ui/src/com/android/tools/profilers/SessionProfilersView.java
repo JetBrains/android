@@ -28,8 +28,6 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStageView;
-import com.android.tools.profilers.energy.EnergyProfilerStage;
-import com.android.tools.profilers.energy.EnergyProfilerStageView;
 import com.android.tools.profilers.memory.AllocationStage;
 import com.android.tools.profilers.memory.AllocationStageView;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
@@ -106,7 +104,6 @@ public class SessionProfilersView implements StudioProfilersView {
     myBinder.bind(MemoryCaptureStage.class, MemoryCaptureStageView::new);
     myBinder.bind(AllocationStage.class, AllocationStageView::new);
     myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);
-    myBinder.bind(EnergyProfilerStage.class, EnergyProfilerStageView::new);
     myBinder.bind(CustomEventProfilerStage.class, CustomEventProfilerStageView::new);
 
     myStageWithToolbarView = new StageWithToolbarView(profiler, myStageComponent, ideProfilerComponents, this::buildStageView, mySplitter);
