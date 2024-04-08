@@ -26,9 +26,7 @@ import com.android.tools.idea.flags.StudioFlags
  * [DesignSurfaceZoomController] for the [NlDesignSurface]. It contains all the zooming logic of
  * [NlDesignSurface].
  *
- * @param viewPort The visible portion of [NlDesignSurface].
- * @param sceneViewLayoutManagerProvider The layoutManager provider of [NlDesignSurface].
- * @param sceneViewPeerPanelsProvider The components provider of [NlDesignSurface].
+ * @param fitScaleProvider The provider of the scale that makes the content fit in the surface.
  * @param designerAnalyticsManager Analytics tracker responsible to track the zoom changes.
  * @param selectionModel The collection of [NlComponent]s of [DesignSurface].
  * @param scenesOwner the scene owner of this [ZoomController].
