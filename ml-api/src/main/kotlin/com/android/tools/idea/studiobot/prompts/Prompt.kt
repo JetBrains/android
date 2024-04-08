@@ -21,9 +21,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import java.util.Base64
 
 /**
- * A well-formed prompt that can be understood by the models used by Studio Bot, and has been
- * validated to conform to .aiexclude rules and context sharing setting in the project. See
- * [buildPrompt] for information on the format and how to construct a prompt.
+ * A well-formed prompt that can be understood by the models used by Studio Bot, and has been validated to conform to .aiexclude rules and
+ * context sharing setting in the project. See [buildPrompt] for information on the format and how to construct a prompt.
  */
 interface Prompt {
   val messages: List<Message>
@@ -41,11 +40,10 @@ interface Prompt {
     ) : Chunk(filesUsed)
 
     data class BlobChunk(
-      val data: ByteArray,
       val mimeType: MimeType,
       override val filesUsed: Collection<VirtualFile>,
+      val data: ByteArray,
     ) : Chunk(filesUsed) {
-      val base64Data: ByteArray by lazy { Base64.getEncoder().encode(data) }
 
       override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -53,17 +51,17 @@ interface Prompt {
 
         other as BlobChunk
 
-        if (!data.contentEquals(other.data)) return false
         if (mimeType != other.mimeType) return false
         if (filesUsed != other.filesUsed) return false
+        if (!data.contentEquals(other.data)) return false
 
         return true
       }
 
       override fun hashCode(): Int {
-        var result = data.contentHashCode()
-        result = 31 * result + mimeType.hashCode()
+        var result = mimeType.hashCode()
         result = 31 * result + filesUsed.hashCode()
+        result = 31 * result + data.contentHashCode()
         return result
       }
     }

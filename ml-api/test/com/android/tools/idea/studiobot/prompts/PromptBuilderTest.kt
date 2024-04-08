@@ -89,7 +89,6 @@ class PromptBuilderTest : BasePlatformTestCase() {
   @Test
   fun buildPrompt_withBlob() {
     val data = ByteArray(10)
-    val base64data = Base64.encodeToByteArray(data)
     val prompt =
       buildPrompt(project) {
         userMessage {
@@ -107,7 +106,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
       )
     )
     assertThat(chunks[1]).isInstanceOf(Prompt.Message.BlobChunk::class.java)
-    assertThat((chunks[1] as Prompt.Message.BlobChunk).base64Data).isEqualTo(base64data)
+    assertThat((chunks[1] as Prompt.Message.BlobChunk).data).isEqualTo(data)
   }
 
   @Test
