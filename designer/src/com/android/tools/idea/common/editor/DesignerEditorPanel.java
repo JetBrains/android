@@ -392,6 +392,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       };
       mySceneManagerToRenderListeners.put(manager, listener);
       manager.addRenderListener(listener);
+      myModelLintIssueAnnotator.annotateRenderInformationToLint(model);
     });
 
     if (myAccessoryPanel != null) {

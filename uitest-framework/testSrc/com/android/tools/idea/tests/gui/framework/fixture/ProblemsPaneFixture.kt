@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture
 
+import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.openapi.util.text.StringUtil
 import org.fest.swing.util.TextMatcher
 
@@ -37,6 +39,12 @@ class ProblemsPaneFixture(ideFrameFixture: IdeFrameFixture) :
   }
 
   fun isTabSelected(tabTitle: String) = getContent(TabNameMatcher(tabTitle))?.isSelected ?: false
+
+  fun sharedPanelIssueCount(): Int {
+    val tab = getContent(TabNameMatcher("Layout and Qualifiers")) ?: return 0
+    val panel = tab.component as? DesignerCommonIssuePanel ?: return 0
+    return panel.issueProvider.getFilteredIssues().size
+  }
 
   public override fun waitUntilIsVisible(): ToolWindowFixture {
     return super.waitUntilIsVisible()

@@ -37,6 +37,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProblemsPaneFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
@@ -612,5 +613,17 @@ public class NlEditorTest {
       .getConfigToolbar()
       .setTheme("AppCompat.NoActionBar")
       .requireTheme("NoActionBar");
+  }
+
+  @Test
+  public void testLintRun() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+
+    ProblemsPaneFixture problemsPane = new ProblemsPaneFixture(ideFrameFixture);
+    problemsPane.activate();
+
+    ideFrameFixture.getEditor().open("app/src/main/res/layout/constraint.xml").getLayoutEditor().waitForRenderToFinish();
+    assertThat(problemsPane.isTabSelected("Layout and Qualifiers")).isTrue();
+    assertThat(problemsPane.sharedPanelIssueCount()).isAtLeast(1);
   }
 }
