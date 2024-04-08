@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.editor
 
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.IssueProviderListener
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.isInResourceSubdirectory
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.codeInsight.daemon.impl.ErrorStripeUpdateManager
@@ -124,9 +123,6 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
 
 class ResourceFileTrafficLightRendererContributor : TrafficLightRendererContributor {
   override fun createRenderer(editor: Editor, file: PsiFile?): TrafficLightRenderer? {
-    if (!StudioFlags.NELE_USE_CUSTOM_TRAFFIC_LIGHTS_FOR_RESOURCES.get()) {
-      return null
-    }
     // Use this customized renderer only for resource files, returning null means that the default
     // renderer will be used.
     return ReadAction.compute<TrafficLightRenderer?, RuntimeException> {

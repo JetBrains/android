@@ -239,11 +239,6 @@ public final class StudioFlags {
     "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
     false);
 
-  public static final Flag<Boolean> NELE_USE_CUSTOM_TRAFFIC_LIGHTS_FOR_RESOURCES = new BooleanFlag(
-    NELE, "use.custom.traffic.lights.for.resources", "Base traffic lights on the errors from the shared issue panel",
-    "Use errors from the current file and qualifiers tab in the traffic light rendering for resource files.",
-    true);
-
   public static final Flag<Boolean> NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM = new BooleanFlag(
     NELE, "asset.repository.include.aars.through.project.system", "Include AARs through project system",
     "Include resource directories from AARs found through project system.",
