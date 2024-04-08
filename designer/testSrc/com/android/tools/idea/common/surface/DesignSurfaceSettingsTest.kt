@@ -24,7 +24,7 @@ import org.jetbrains.android.AndroidTestCase
 @Suppress("UnstableApiUsage")
 class DesignSurfaceSettingsTest : AndroidTestCase() {
 
-  private lateinit var defaultFilePathToZoomLevelMap: MutableMap<Pair<String, String?>, Double>
+  private lateinit var defaultFilePathToZoomLevelMap: MutableMap<String, Double>
 
   override fun setUp() {
     super.setUp()
@@ -54,9 +54,9 @@ class DesignSurfaceSettingsTest : AndroidTestCase() {
   fun testSaveLoadSettings() {
     val surfaceState = DesignSurfaceSettings.getInstance(project).surfaceState
 
-    val filePathToZoomLevelMap = mutableMapOf<Pair<String, String?>, Double>()
-    filePathToZoomLevelMap["path1" to null] = 0.1
-    filePathToZoomLevelMap["path2" to null] = 0.2
+    val filePathToZoomLevelMap = mutableMapOf<String, Double>()
+    filePathToZoomLevelMap["path1"] = 0.1
+    filePathToZoomLevelMap["path2"] = 0.2
 
     surfaceState.filePathToZoomLevelMap = filePathToZoomLevelMap
 
@@ -68,19 +68,19 @@ class DesignSurfaceSettingsTest : AndroidTestCase() {
   fun testSaveLoadSettingsSameFileSameSurfaces() {
     val surfaceState = DesignSurfaceSettings.getInstance(project).surfaceState
 
-    val filePathToZoomLevelMap = mutableMapOf<Pair<String, String?>, Double>()
-    filePathToZoomLevelMap["path1" to "23"] = 0.1
-    filePathToZoomLevelMap["path1" to "32"] = 0.2
-    filePathToZoomLevelMap["path1" to "23"] = 0.4
-    filePathToZoomLevelMap["path1" to "32"] = 0.6
+    val filePathToZoomLevelMap = mutableMapOf<String, Double>()
+    filePathToZoomLevelMap["path1:23"] = 0.1
+    filePathToZoomLevelMap["path1:32"] = 0.2
+    filePathToZoomLevelMap["path1:23"] = 0.4
+    filePathToZoomLevelMap["path1:32"] = 0.6
 
     surfaceState.filePathToZoomLevelMap = filePathToZoomLevelMap
     val anotherSurfaceState = DesignSurfaceSettings.getInstance(project).surfaceState
 
     // Check the stored value is still on the same surface
     assertEquals(2, anotherSurfaceState.filePathToZoomLevelMap.size)
-    TestCase.assertEquals(0.4, anotherSurfaceState.filePathToZoomLevelMap["path1" to "23"])
-    TestCase.assertEquals(0.6, anotherSurfaceState.filePathToZoomLevelMap["path1" to "32"])
+    TestCase.assertEquals(0.4, anotherSurfaceState.filePathToZoomLevelMap["path1:23"])
+    TestCase.assertEquals(0.6, anotherSurfaceState.filePathToZoomLevelMap["path1:32"])
 
     // Check the values are same after getting another instance.
     assertEquals(filePathToZoomLevelMap, anotherSurfaceState.filePathToZoomLevelMap)
@@ -89,11 +89,11 @@ class DesignSurfaceSettingsTest : AndroidTestCase() {
   fun testSaveLoadSettingsWhenSameFileAndDifferentSurfaces() {
     val surfaceState = DesignSurfaceSettings.getInstance(project).surfaceState
 
-    val filePathToZoomLevelMap = mutableMapOf<Pair<String, String?>, Double>()
-    filePathToZoomLevelMap["path1" to "12"] = 0.1
-    filePathToZoomLevelMap["path1" to "12"] = 0.2
-    filePathToZoomLevelMap["path1" to "12"] = 0.4
-    filePathToZoomLevelMap["path1" to "12"] = 0.2
+    val filePathToZoomLevelMap = mutableMapOf<String, Double>()
+    filePathToZoomLevelMap["path1:12"] = 0.1
+    filePathToZoomLevelMap["path1:12"] = 0.2
+    filePathToZoomLevelMap["path1:12"] = 0.4
+    filePathToZoomLevelMap["path1:12"] = 0.2
 
     surfaceState.filePathToZoomLevelMap = filePathToZoomLevelMap
 

@@ -61,7 +61,7 @@ class SurfaceState {
    * access its getter and setter. Do not access this field directly, use [saveFileScale] and
    * [loadFileScale] instead.
    */
-  var filePathToZoomLevelMap: MutableMap<Pair<String, String?>, Double> = HashMap()
+  var filePathToZoomLevelMap: MutableMap<String, Double> = HashMap()
 
   /**
    * The map of file path and the drawable background type. We use path string here because
@@ -81,19 +81,17 @@ class SurfaceState {
   fun loadFileScale(project: Project, file: VirtualFile, zoomController: ZoomController?): Double? {
     val relativePath = getRelativePathInProject(project, file) ?: return null
 
-    // If we don't find the zoom level with the [storeId] we fall back to the scale value of the
-    // sole file
-    return filePathToZoomLevelMap[relativePath to zoomController?.storeId]
-      ?: filePathToZoomLevelMap[relativePath to null]
+    return filePathToZoomLevelMap[relativePath.appendStoreId(zoomController)]
   }
 
   @Transient
   fun saveFileScale(project: Project, file: VirtualFile, zoomController: ZoomController?) {
     val relativePath = getRelativePathInProject(project, file) ?: return
+    val zoomLevelMapKey = relativePath.appendStoreId(zoomController)
     if (zoomController?.scale == null) {
-      filePathToZoomLevelMap.remove(relativePath to zoomController?.storeId)
+      filePathToZoomLevelMap.remove(zoomLevelMapKey)
     } else {
-      filePathToZoomLevelMap[relativePath to zoomController.storeId] = zoomController.scale
+      filePathToZoomLevelMap[zoomLevelMapKey] = zoomController.scale
     }
   }
 
@@ -121,4 +119,13 @@ private fun getRelativePathInProject(project: Project, file: VirtualFile): Strin
   val projectBasePath = project.basePath ?: return null
   val filePath = file.let { BackedVirtualFile.getOriginFileIfBacked(it) }.path
   return FileUtilRt.getRelativePath(projectBasePath, filePath, File.separatorChar, true)
+}
+
+/**
+ * @param zoomController The [ZoomController] containing a store id (it can be null).
+ * @return The key of the map where the scale is stored, if the store id is null returns only the
+ *   path of the file.
+ */
+private fun String.appendStoreId(zoomController: ZoomController?): String {
+  return zoomController?.storeId?.let { storeId -> "$this:$storeId" } ?: this
 }
