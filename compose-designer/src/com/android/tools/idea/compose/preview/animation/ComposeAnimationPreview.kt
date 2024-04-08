@@ -28,6 +28,7 @@ import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TransitionCurve
+import com.android.tools.idea.preview.animation.timeline.getOffsetForValue
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.intellij.openapi.project.Project
@@ -72,7 +73,7 @@ class ComposeAnimationPreview(
       val state = selected.elementState.value
       val curve =
         TransitionCurve.create(
-          state.valueOffset,
+          getOffsetForValue(state.valueOffset, timeline.sliderUI.positionProxy),
           if (state.frozen) state.frozenValue else null,
           selected.currentTransition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),

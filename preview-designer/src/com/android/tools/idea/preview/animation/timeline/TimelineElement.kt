@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.preview.animation.timeline
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.preview.animation.TooltipInfo
 import com.android.tools.idea.res.clamp
 import com.intellij.openapi.Disposable
@@ -23,8 +22,6 @@ import com.intellij.util.ui.JBUI
 import java.awt.Graphics2D
 import java.awt.Point
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 /** Proxy to slider positions. */
 interface PositionProxy {
@@ -56,24 +53,14 @@ open class ParentTimelineElement(
   positionProxy: PositionProxy,
 ) :
   TimelineElement(
-    valueOffset = valueOffset,
+    offsetPx = valueOffset,
     frozenValue,
     minX = children.minOfOrNull { it.minX } ?: 0,
     maxX = children.maxOfOrNull { it.maxX } ?: 0,
     positionProxy = positionProxy,
   ) {
 
-  private val scope = AndroidCoroutineScope(this)
-
-  init {
-    scope.launch {
-      offsetPx.collect { newOffset ->
-        children.forEach { child -> child._offsetPx.value = newOffset }
-      }
-    }
-  }
-
-  override var height = children.sumOf { it.height }
+  override val height = children.sumOf { it.height }
 
   override fun contains(x: Int, y: Int) = children.any { it.contains(x, y) }
 
@@ -81,17 +68,8 @@ open class ParentTimelineElement(
     children.forEach { it.paint(g) }
   }
 
-  override fun moveComponents(actualDeltaPx: Int) {
-    children.forEach { it.moveComponents(actualDeltaPx) }
-  }
-
   override fun getTooltip(point: Point): TooltipInfo? {
     return children.firstNotNullOfOrNull { it.getTooltip(point) }
-  }
-
-  override fun reset() {
-    super.reset()
-    children.forEach { it.reset() }
   }
 
   override var status: TimelineElementStatus = TimelineElementStatus.Inactive
@@ -103,16 +81,15 @@ open class ParentTimelineElement(
 
 /** Drawable element for timeline. Each element could be moved and frozen. */
 abstract class TimelineElement(
-  valueOffset: Int,
+  offsetPx: Int,
   val frozenValue: Int?,
   val minX: Int,
   val maxX: Int,
   protected val positionProxy: PositionProxy,
 ) : Disposable {
 
-  val _offsetPx = MutableStateFlow(0)
-  val offsetPx = _offsetPx.asStateFlow()
-  abstract var height: Int
+  val offsetPx = MutableStateFlow(offsetPx)
+  abstract val height: Int
 
   fun heightScaled(): Int = JBUI.scale(height)
 
@@ -120,36 +97,17 @@ abstract class TimelineElement(
 
   open var status: TimelineElementStatus = TimelineElementStatus.Inactive
 
-  init {
-    _offsetPx.value =
-      if (valueOffset > 0)
-        positionProxy.xPositionForValue(positionProxy.minimumValue() + valueOffset) -
-          positionProxy.minimumXPosition()
-      else
-        -positionProxy.xPositionForValue(positionProxy.minimumValue() - valueOffset) +
-          positionProxy.minimumXPosition()
-  }
-
   abstract fun contains(x: Int, y: Int): Boolean
 
   abstract fun paint(g: Graphics2D)
 
   fun move(deltaPx: Int) {
-    val previousOffsetPx = offsetPx.value
-    _offsetPx.value =
+    offsetPx.value =
       clamp(
-        previousOffsetPx + deltaPx,
+        offsetPx.value + deltaPx,
         positionProxy.minimumXPosition() - maxX,
         positionProxy.maximumXPosition() - minX,
       )
-
-    moveComponents(actualDeltaPx = offsetPx.value - previousOffsetPx)
-  }
-
-  open fun moveComponents(actualDeltaPx: Int) {}
-
-  open fun reset() {
-    _offsetPx.value = 0
   }
 
   fun contains(point: Point): Boolean {
@@ -158,3 +116,11 @@ abstract class TimelineElement(
 
   override fun dispose() {}
 }
+
+fun getOffsetForValue(valueOffset: Int, positionProxy: PositionProxy) =
+  if (valueOffset > 0)
+    positionProxy.xPositionForValue(positionProxy.minimumValue() + valueOffset) -
+      positionProxy.minimumXPosition()
+  else
+    -positionProxy.xPositionForValue(positionProxy.minimumValue() - valueOffset) +
+      positionProxy.minimumXPosition()

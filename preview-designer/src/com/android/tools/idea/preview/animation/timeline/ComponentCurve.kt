@@ -30,7 +30,7 @@ import java.awt.geom.Path2D
 
 /** Curve for one component of [AnimatedProperty]. */
 class ComponentCurve(
-  valueOffset: Int,
+  offsetPx: Int,
   frozenValue: Int?,
   val component: AnimatedProperty.AnimatedComponent<Double>,
   minX: Int,
@@ -39,7 +39,7 @@ class ComponentCurve(
   private val curve: Path2D,
   private val colorIndex: Int,
   positionProxy: PositionProxy,
-) : TimelineElement(valueOffset, frozenValue, minX, maxX, positionProxy) {
+) : TimelineElement(offsetPx, frozenValue, minX, maxX, positionProxy) {
 
   companion object {
     /**
@@ -51,7 +51,7 @@ class ComponentCurve(
      * @param colorIndex index of the color the curve should be painted
      */
     fun create(
-      valueOffset: Int,
+      offsetPx: Int,
       frozenValue: Int?,
       property: AnimatedProperty<Double>,
       componentId: Int,
@@ -97,7 +97,7 @@ class ComponentCurve(
         curve.lineTo(minX.toDouble() - zeroDurationXOffset, maxY.toDouble())
 
         return ComponentCurve(
-          valueOffset = valueOffset,
+          offsetPx = offsetPx,
           frozenValue,
           component = component,
           minX = minX,
@@ -113,8 +113,8 @@ class ComponentCurve(
   @VisibleForTesting
   val curveBaseY =
     rowMinY + InspectorLayout.timelineCurveRowHeightScaled() - InspectorLayout.curveBottomOffset()
-  private var startDiamond = Diamond(minX, curveBaseY, colorIndex)
-  private var endDiamond = Diamond(maxX, curveBaseY, colorIndex)
+  private val startDiamond = Diamond(minX + offsetPx, curveBaseY, colorIndex)
+  private val endDiamond = Diamond(maxX + offsetPx, curveBaseY, colorIndex)
   private val startDiamondNoOffset = Diamond(minX, curveBaseY, colorIndex)
   private val endDiamondNoOffset = Diamond(maxX, curveBaseY, colorIndex)
 
@@ -122,35 +122,19 @@ class ComponentCurve(
     Point(minX + InspectorLayout.labelOffset, curveBaseY + InspectorLayout.labelOffset)
 
   /** Position from where [BoxedLabel] should be painted. */
-  var boxedLabelPosition = boxedLabelPositionWithoutOffset
-    private set
+  val boxedLabelPosition =
+    Point(
+      (boxedLabelPositionWithoutOffset.x + offsetPx).coerceIn(
+        positionProxy.minimumXPosition(),
+        positionProxy.maximumXPosition(),
+      ),
+      boxedLabelPositionWithoutOffset.y,
+    )
 
-  override var height: Int = InspectorLayout.TIMELINE_CURVE_ROW_HEIGHT
+  override val height: Int = InspectorLayout.TIMELINE_CURVE_ROW_HEIGHT
 
   init {
-    moveComponents(offsetPx.value)
-  }
-
-  private var curveOffset = 0
-
-  override fun moveComponents(actualDeltaPx: Int) {
-    startDiamond = Diamond(minX + offsetPx.value, curveBaseY, colorIndex)
-    endDiamond = Diamond(maxX + offsetPx.value, curveBaseY, colorIndex)
-    boxedLabelPosition =
-      Point(
-        (boxedLabelPositionWithoutOffset.x + offsetPx.value).coerceIn(
-          positionProxy.minimumXPosition(),
-          positionProxy.maximumXPosition(),
-        ),
-        boxedLabelPositionWithoutOffset.y,
-      )
-    curveOffset += actualDeltaPx
-    curve.transform(AffineTransform.getTranslateInstance(actualDeltaPx.toDouble(), 0.0))
-  }
-
-  override fun reset() {
-    super.reset()
-    moveComponents(-curveOffset)
+    curve.transform(AffineTransform.getTranslateInstance(offsetPx.toDouble(), 0.0))
   }
 
   /** If point [x], [y] is hovering the curve. */

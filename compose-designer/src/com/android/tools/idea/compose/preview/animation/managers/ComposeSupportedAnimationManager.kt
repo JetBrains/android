@@ -42,6 +42,7 @@ import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.preview.animation.timeline.TransitionCurve
+import com.android.tools.idea.preview.animation.timeline.getOffsetForValue
 import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
@@ -368,10 +369,11 @@ open class ComposeSupportedAnimationManager(
     positionProxy: PositionProxy,
   ): TimelineElement {
     val state = elementState.value
+    val offsetPx = getOffsetForValue(state.valueOffset, positionProxy)
     return if (state.expanded) {
       val curve =
         TransitionCurve.create(
-          state.valueOffset,
+          offsetPx,
           if (state.frozen) state.frozenValue else null,
           currentTransition,
           minY,
@@ -382,7 +384,7 @@ open class ComposeSupportedAnimationManager(
       curve
     } else
       TimelineLine(
-        state.valueOffset,
+        offsetPx,
         if (state.frozen) state.frozenValue else null,
         currentTransition.startMillis?.let { positionProxy.xPositionForValue(it) }
           ?: (positionProxy.minimumXPosition()),

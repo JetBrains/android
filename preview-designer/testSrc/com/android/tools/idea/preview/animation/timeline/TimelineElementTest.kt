@@ -113,39 +113,8 @@ class TimelineElementTest {
       val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
       line.move(-100)
       assertEquals(-100, line.offsetPx.value)
-      line.reset()
-      assertEquals(0, line.offsetPx.value)
     }
   }
-
-  @Test
-  fun `move and reset parent line`(): Unit =
-    runBlocking(uiThread) {
-      val slider =
-        TestUtils.createTestSlider().apply {
-          maximum = 600
-          // Call layoutAndDispatchEvents() so positionProxy returns correct values
-          FakeUi(this.parent).apply { layoutAndDispatchEvents() }
-        }
-      slider.sliderUI.apply {
-        val line1 = TestUtils.TestTimelineElement(50, 50, positionProxy)
-        val line2 = TestUtils.TestTimelineElement(50, 50, positionProxy)
-        val parent =
-          ParentTimelineElement(0, null, listOf(line1, line2), positionProxy).apply {
-            Disposer.register(projectRule.testRootDisposable, this)
-          }
-        parent.move(100)
-        delayUntilCondition(200) { line1.offsetPx.value == 100 && line2.offsetPx.value == 100 }
-        assertEquals(100, line1.offsetPx.value)
-        assertEquals(100, line2.offsetPx.value)
-        assertEquals(100, parent.offsetPx.value)
-        parent.reset()
-        delayUntilCondition(200) { line1.offsetPx.value == 0 && line2.offsetPx.value == 0 }
-        assertEquals(0, line1.offsetPx.value)
-        assertEquals(0, line2.offsetPx.value)
-        assertEquals(0, parent.offsetPx.value)
-      }
-    }
 
   @RunsInEdt
   @Test

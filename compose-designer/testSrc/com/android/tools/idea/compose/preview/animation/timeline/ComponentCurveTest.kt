@@ -45,9 +45,10 @@ class ComponentCurveTest {
         .add(50, ComposeUnit.Color(0.2f, 0.2f, 0.2f, 0.2f))
         .add(100, ComposeUnit.Color(0.3f, 0.3f, 0.3f, 0.3f))
         .build()!!
-    val componentCurve =
+
+    var componentCurve =
       ComponentCurve.create(
-        0,
+        offsetPx = 0,
         null,
         property = property,
         componentId = 0,
@@ -57,6 +58,23 @@ class ComponentCurveTest {
       )
     slider.sliderUI.elements = listOf(componentCurve)
     val curveBaseLine = componentCurve.curveBaseY - 1 // Minus 1 so point is inside the curve.
+
+    fun moveAndRecreate(deltaPx: Int) {
+      componentCurve.move(deltaPx)
+
+      componentCurve =
+        ComponentCurve.create(
+          offsetPx = componentCurve.offsetPx.value,
+          null,
+          property = property,
+          componentId = 0,
+          rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
+          positionProxy = slider.sliderUI.positionProxy,
+          colorIndex = 0,
+        )
+
+      slider.sliderUI.elements = listOf(componentCurve)
+    }
 
     // No tooltips.
     ui.render() // paint() method within render() should be called to update BoxedLabel positions.
@@ -85,7 +103,8 @@ class ComponentCurveTest {
       slider.sliderUI.positionProxy.xPositionForValue(50) -
         slider.sliderUI.positionProxy.xPositionForValue(0)
 
-    componentCurve.move(shift50ms)
+    moveAndRecreate(shift50ms)
+
     // Point in the middle of curve baseline
     assertTrue(
       componentCurve.contains(
@@ -110,7 +129,8 @@ class ComponentCurveTest {
     // Uncomment to preview ui.
     // ui.render() // Curve is shifted to the right and starts in 50ms
 
-    componentCurve.move(-2 * shift50ms)
+    moveAndRecreate(-2 * shift50ms)
+
     // Point in the middle of curve baseline
     assertTrue(
       componentCurve.contains(

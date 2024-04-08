@@ -24,15 +24,15 @@ import com.intellij.openapi.util.Disposer
 /** Curves for all properties of [Transition]. */
 class TransitionCurve
 private constructor(
-  valueOffset: Int,
+  offsetPx: Int,
   frozenValue: Int?,
   private val propertyCurves: List<PropertyCurve>,
   positionProxy: PositionProxy,
-) : ParentTimelineElement(valueOffset, frozenValue, propertyCurves, positionProxy) {
+) : ParentTimelineElement(offsetPx, frozenValue, propertyCurves, positionProxy) {
 
   companion object {
     fun create(
-      valueOffset: Int,
+      offsetPx: Int,
       frozenValue: Int?,
       transition: Transition,
       rowMinY: Int,
@@ -52,11 +52,11 @@ private constructor(
       val curves =
         properties.filterNotNull().mapIndexed { index, it ->
           val curve =
-            PropertyCurve.create(valueOffset, frozenValue, it, currentMinY, index, positionProxy)
+            PropertyCurve.create(offsetPx, frozenValue, it, currentMinY, index, positionProxy)
           currentMinY += curve.heightScaled()
           curve
         }
-      return TransitionCurve(valueOffset, frozenValue, curves, positionProxy).also {
+      return TransitionCurve(offsetPx, frozenValue, curves, positionProxy).also {
         curves.forEach { curve -> Disposer.register(it, curve) }
       }
     }

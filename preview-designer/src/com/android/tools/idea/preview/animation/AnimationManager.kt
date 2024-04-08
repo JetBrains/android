@@ -22,7 +22,7 @@ import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.UnsupportedLabel
 import javax.swing.JComponent
 import javax.swing.JPanel
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 interface AnimationManager {
   val tabTitle: String
@@ -52,7 +52,7 @@ interface AnimationManager {
  */
 interface SupportedAnimationManager : AnimationManager {
   /** State of the [TimelineElement] for the animation. */
-  val elementState: StateFlow<ElementState>
+  val elementState: MutableStateFlow<ElementState>
 
   /** Tab that shows animation individually */
   val tabComponent: JPanel

@@ -84,8 +84,12 @@ abstract class AnimationPreview<T : AnimationManager>(
   private val bottomPanel =
     BottomPanel(rootComponent, tracker).apply {
       addResetListener {
-        timeline.sliderUI.elements.forEach { it.reset() }
-        scope.launch { resetTimelineAndUpdateWindowSize(false) }
+        scope.launch {
+          animations.filterIsInstance<SupportedAnimationManager>().forEach {
+            it.elementState.value = it.elementState.value.copy(valueOffset = 0)
+          }
+          resetTimelineAndUpdateWindowSize(false)
+        }
       }
     }
 
