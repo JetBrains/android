@@ -66,85 +66,85 @@ class SomethingDslParserTest : LightPlatformTestCase() {
   }
 
   fun testAssignmentWithString() {
-    val toml = """
+    val file = """
       androidApplication {
         namespace = "com.my"
       }
     """.trimIndent()
     val expected = mapOf("android" to mapOf("mNamespace" to "com.my"))
-    doTest(toml, expected)
+    doTest(file, expected)
   }
 
   fun testAssignmentWithNumber() {
-    val toml = """
+    val file = """
       androidApplication {
         namespace = 5
       }
     """.trimIndent()
     val expected = mapOf("android" to mapOf("mNamespace" to 5))
-    doTest(toml, expected)
+    doTest(file, expected)
   }
 
 
   fun testAssignmentWithBoolean() {
-    val toml = """
+    val file = """
       androidApplication {
         namespace = true
       }
     """.trimIndent()
     val expected = mapOf("android" to mapOf("mNamespace" to true))
-    doTest(toml, expected)
+    doTest(file, expected)
   }
 
   fun testFactory() {
-    val toml = """
+    val file = """
       androidApplication {
         api("androidx.application")
       }
     """.trimIndent()
     val expected = mapOf("android" to mapOf("api" to listOf("androidx.application")))
-    doTest(toml, expected)
+    doTest(file, expected)
   }
 
   fun testTwoFactoryMethods() {
-    val toml = """
+    val file = """
       androidApplication {
         api("androidx.application")
         api2("androidx.application2")
       }
     """.trimIndent()
     val expected = mapOf("android" to mapOf("api" to listOf("androidx.application"), "api2" to listOf("androidx.application2")))
-    doTest(toml, expected)
+    doTest(file, expected)
   }
 
   fun testFactoryMethodNumberArgument() {
-    val toml = """
+    val file = """
       androidApplication {
         api(23)
       }
     """.trimIndent()
     val expected = mapOf("android" to mapOf("api" to listOf(23)))
-    doTest(toml, expected)
+    doTest(file, expected)
   }
 
   fun testFactoryMethodBooleanArgument() {
-    val toml = """
+    val file = """
       androidApplication {
         fixit(true)
       }
     """.trimIndent()
     val expected = mapOf("android" to mapOf("fixit" to listOf(true)))
-    doTest(toml, expected)
+    doTest(file, expected)
   }
 
   fun testFactoryMethodRecursiveArgument() {
-    val toml = """
+    val file = """
       androidApplication {
         api(project(":myProject"))
       }
     """.trimIndent()
     val expected = mapOf("android" to mapOf("api" to listOf(mapOf("project" to listOf(":myProject")))))
-    doTest(toml, expected)
+    doTest(file, expected)
   }
 
   private fun doTest(text: String, expected: Map<String, Any>) {
