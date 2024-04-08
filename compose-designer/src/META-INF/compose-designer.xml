@@ -162,24 +162,8 @@
                      key="inspection.preview.recursive.name"
                      level="WEAK WARNING"/>
 
-    <fileType name="DeviceSpecFile"
-              language="DeviceSpec"
-              implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecFileType"
-              fieldName="INSTANCE"
-              extensions="dspec"/>
-    <lang.parserDefinition language="DeviceSpec"
-                           implementationClass="com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserDefinition"/>
     <languageInjectionContributor language="kotlin"
-                                  implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecInjectionContributor"/>
-    <languageInjectionPerformer language="kotlin"
-                                implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecInjectionPerformer"/>
-    <completion.contributor language="DeviceSpec"
-                            id="DeviceSpecContributor"
-                            implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecCompletionContributor"/>
-    <lang.syntaxHighlighterFactory
-      language="DeviceSpec"
-      implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecSyntaxHighlighterFactory"
-      />
+                                  implementationClass="com.android.tools.idea.compose.preview.util.device.ComposeDeviceSpecInjectionContributor"/>
 
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
 

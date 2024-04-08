@@ -23,7 +23,6 @@ import com.android.tools.idea.compose.pickers.base.enumsupport.EnumSupportValues
 import com.android.tools.idea.compose.pickers.base.enumsupport.EnumValuesProvider
 import com.android.tools.idea.compose.pickers.common.enumsupport.PsiCallEnumSupportValuesProvider
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.DeviceEnumValueBuilder
-import com.android.tools.idea.compose.pickers.preview.utils.getSdkDevices
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.configurations.CanonicalDeviceType
@@ -31,6 +30,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.android.tools.idea.preview.util.getSdkDevices
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.layoutlib.isLayoutLibTarget
 import com.android.tools.preview.config.PARAMETER_API_LEVEL

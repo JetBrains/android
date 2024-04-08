@@ -35,9 +35,9 @@ import com.android.tools.idea.compose.pickers.preview.inspector.PreviewPropertie
 import com.android.tools.idea.compose.pickers.preview.property.DeviceParameterPropertyItem
 import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
 import com.android.tools.idea.compose.pickers.preview.utils.getArgumentForParameter
-import com.android.tools.idea.compose.pickers.preview.utils.getSdkDevices
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.preview.findPreviewDefaultValues
+import com.android.tools.idea.preview.util.getSdkDevices
 import com.android.tools.preview.UNDEFINED_API_LEVEL
 import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.android.tools.preview.config.PARAMETER_API_LEVEL

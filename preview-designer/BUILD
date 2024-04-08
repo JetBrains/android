@@ -3,7 +3,11 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.preview-designer",
-    srcs = ["src"],
+    # do not sort: must match IML order
+    srcs = [
+        "src",
+        "gen",
+    ],
     iml_files = ["intellij.android.preview-designer.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
@@ -26,6 +30,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module]",
+        "//tools/adt/idea/completion:intellij.android.completion[module]",
     ],
 )
 
@@ -36,6 +41,7 @@ iml_module(
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.preview.PreviewDesignerTestSuite",
     test_data = [
+        "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/compose-ide-plugin/testData",
     ],
     test_friends = ["//tools/adt/idea/preview-designer:intellij.android.preview-designer"],

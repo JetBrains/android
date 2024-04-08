@@ -1,0 +1,107 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * MAKE SURE TO PRESERVE CUSTOM LOGIC IN _DeviceSpecLexer.flex WHEN DOING ANY CHANGES.
+ *
+ * Defines the tokens in the device spec for the `device` parameter within the @Preview annotation.
+ * The language allows to use existing devices via the 'id' or to define a new spec to be re-used in the preview. The spec
+ * allows to only define a very limited set of values for the configuration.
+ */
+{
+  parserClass='com.android.tools.idea.preview.util.device.parser.DeviceSpecParser'
+  parserUtilClass="com.android.tools.idea.preview.util.device.parser.DeviceSpecParserUtil"
+
+  extends='com.intellij.extapi.psi.ASTWrapperPsiElement'
+
+  psiClassPrefix='DeviceSpec'
+  psiImplClassSuffix='Impl'
+  psiPackage='com.android.tools.idea.preview.util.device.parser'
+  psiImplPackage='com.android.tools.idea.preview.util.device.parser.impl'
+  elementTypeHolderClass='com.android.tools.idea.preview.util.device.parser.DeviceSpecTypes'
+  elementTypeClass='com.android.tools.idea.preview.util.device.parser.DeviceSpecElementType'
+  tokenTypeClass='com.android.tools.idea.preview.util.device.parser.DeviceSpecTokenType'
+
+  extends(".*_param")=param
+
+  tokens=[
+    // literals
+    TRUE = 'true'
+    FALSE = 'false'
+    PX = 'px'
+    DP = 'dp'
+    COMMA = ','
+    EQUALS = '='
+    COLON = ':'
+
+    UNIT_KEYWORD = 'unit'
+
+    SPEC_KEYWORD = 'spec'
+    ID_KEYWORD = 'id'
+    NAME_KEYWORD = 'name'
+    LANDSCAPE_KEYWORD = 'landscape'
+    PORTRAIT_KEYWORD = 'portrait'
+    SQUARE_KEYWORD = 'square'
+
+    WIDTH_KEYWORD = 'width'
+    HEIGHT_KEYWORD = 'height'
+    PARENT_KEYWORD = 'parent'
+    ORIENTATION_KEYWORD = 'orientation'
+    IS_ROUND_KEYWORD = 'isRound'
+    CHIN_SIZE_KEYWORD = 'chinSize'
+    DPI_KEYWORD = 'dpi'
+
+    NUMERIC_T = 'regexp:\d+(\.\d)?'
+    STRING_T = 'regexp:\p{Alnum}{1}([^:,="\\]|\\.)*'
+  ]
+
+  classHeader='generatedFilesHeader.txt'
+}
+
+root ::= SPEC_KEYWORD COLON spec | ID_KEYWORD COLON STRING_T | NAME_KEYWORD COLON STRING_T
+
+/* Type definition */
+unit ::= (PX | DP)
+size_t ::= NUMERIC_T (unit)?
+orientation_t ::= LANDSCAPE_KEYWORD | PORTRAIT_KEYWORD | SQUARE_KEYWORD
+boolean_t ::= TRUE | FALSE
+
+/* Parameter definitions */
+name_param ::= NAME_KEYWORD EQUALS STRING_T
+id_param ::= ID_KEYWORD EQUALS STRING_T
+width_param::= WIDTH_KEYWORD EQUALS size_t
+height_param ::= HEIGHT_KEYWORD EQUALS size_t
+shape_param ::= "Shape" EQUALS ("Normal" | "Square" | "Round" | "Chin") // Deprecated, just here to be compatible with the old parser
+unit_param ::= UNIT_KEYWORD EQUALS unit // Deprecated, just here to be compatible with the old parser
+parent_param::= PARENT_KEYWORD EQUALS STRING_T
+orientation_param ::= ORIENTATION_KEYWORD EQUALS orientation_t
+is_round_param ::= IS_ROUND_KEYWORD EQUALS boolean_t
+chin_size_param ::= CHIN_SIZE_KEYWORD EQUALS size_t
+dpi_param ::= DPI_KEYWORD EQUALS NUMERIC_T
+
+/* Top level definitions */
+param ::= parent_param
+   | id_param
+   | name_param
+   | width_param
+   | height_param
+   | shape_param // Deprecated, just here to be compatible with the old parser
+   | unit_param // Deprecated, just here to be compatible with the old parser
+   | orientation_param
+   | is_round_param
+   | chin_size_param
+   | dpi_param { name="param" }
+spec ::= param (COMMA param)*
