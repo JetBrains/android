@@ -239,6 +239,37 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
     )
   }
 
+  fun testPluginsAlias() {
+    check(
+      """
+      plugins {
+        alias 'android-application' apply true
+      }
+      """,
+      """
+      checkDslPropertyAssignment(property="alias", value="'android-application'", parent="plugins")
+      checkMethodCall(statement="alias", parent="plugins", unnamedArguments="'android-application'")
+      checkMethodCall(statement="plugins", unnamedArguments="{ alias 'android-application' apply true }")
+      """,
+    )
+  }
+
+  fun testPluginsComputedId() {
+    check(
+      """
+      plugins {
+        id("org.jetbrains.kotlin" + ".jvm") version "1.9.0"
+      }
+      """,
+      """
+      checkDslPropertyAssignment(property="id", value=""org.jetbrains.kotlin" + ".jvm"", parent="plugins")
+      checkDslPropertyAssignment(property="version", value=""1.9.0"", parent="org.jetbrains.kotlin" + ".jvm", parentParent="plugins")
+      checkMethodCall(statement="id", parent="plugins", unnamedArguments=""org.jetbrains.kotlin" + ".jvm"")
+      checkMethodCall(statement="plugins", unnamedArguments="{ id("org.jetbrains.kotlin" + ".jvm") version "1.9.0" }")
+      """,
+    )
+  }
+
   // Test infrastructure below
 
   private fun check(@Language("groovy") gradleSource: String, expected: String) {

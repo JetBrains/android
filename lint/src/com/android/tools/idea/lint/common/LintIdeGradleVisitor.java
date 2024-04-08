@@ -123,22 +123,26 @@ public class LintIdeGradleVisitor extends GradleVisitor {
       else if (qualifierExpression instanceof GrCallExpression) {
         // look for id '...' at the top of a chain of id '...' version '...' apply true
         PsiElement deepestFirst = PsiTreeUtil.getDeepestFirst(qualifierExpression);
-        if (deepestFirst.textMatches("id")) {
-          PsiElement maybeCall = deepestFirst.getParent().getParent();
-          if (maybeCall instanceof GrCallExpression call) {
-            GrExpression[] arguments = call.getExpressionArguments();
-            if (arguments.length == 1) {
-              if (arguments[0] instanceof GrLiteral literal) {
-                if (literal.getValue() instanceof String pluginName) {
-                  result.add(pluginName);
-                  return true;
-                }
-              }
-            }
-          }
+        if (!deepestFirst.textMatches("id")) {
+          break;
         }
-
-
+        PsiElement maybeCall = deepestFirst.getParent().getParent();
+        if (!(maybeCall instanceof GrCallExpression)) {
+          break;
+        }
+        GrCallExpression call = (GrCallExpression)maybeCall;
+        GrExpression[] arguments = call.getExpressionArguments();
+        if (arguments.length != 1) {
+          break;
+        }
+        String pluginName = GradleContext.Companion.getStringLiteralValue(arguments[0].getText(), arguments[0]);
+        if (pluginName != null) {
+          result.add(pluginName);
+          return true;
+        }
+        else {
+          break;
+        }
       }
       else {
         break;
