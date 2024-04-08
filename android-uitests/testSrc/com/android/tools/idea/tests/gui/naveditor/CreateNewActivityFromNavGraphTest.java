@@ -24,11 +24,14 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixtureKt;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -93,7 +96,9 @@ public class CreateNewActivityFromNavGraphTest {
       .waitForSurfaceToLoad()
       .waitForRenderToFinish();
 
-    editorFixture.selectEditorTab(EditorFixture.Tab.SPLIT);
+    SplitEditorFixture splitEditorFixture = SplitEditorFixtureKt.getSplitEditorFixture(editorFixture);
+    splitEditorFixture.setSplitMode();
+
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertThat(nlEditorFixture.canInteractWithSurface()).isTrue();
 
