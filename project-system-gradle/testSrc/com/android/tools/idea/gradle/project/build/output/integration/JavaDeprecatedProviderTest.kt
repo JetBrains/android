@@ -19,6 +19,7 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.project.build.quickFixes.DescribedOpenGradleJdkSettingsQuickfix
 import com.android.tools.idea.gradle.project.build.quickFixes.OpenJavaLanguageSpecQuickFix
 import com.android.tools.idea.gradle.project.build.quickFixes.OpenSourceCompatibilityLinkQuickFix
 import com.android.tools.idea.gradle.project.build.quickFixes.OpenTargetCompatibilityLinkQuickFix
@@ -113,7 +114,10 @@ class JavaDeprecatedProviderTest {
     assertThat(issue).isNotNull()
     val fixes = issue!!.quickFixes
     assertThat(fixes.map { it.javaClass }).containsExactly(
-      SetJavaLanguageLevelAllQuickFix::class.java, PickLanguageLevelInPSDQuickFix::class.java, compatibilityFix,
+      SetJavaLanguageLevelAllQuickFix::class.java,
+      DescribedOpenGradleJdkSettingsQuickfix::class.java,
+      PickLanguageLevelInPSDQuickFix::class.java,
+      compatibilityFix,
       OpenJavaLanguageSpecQuickFix::class.java
     ).inOrder()
     assertThat((fixes[0] as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(LanguageLevel.JDK_1_8)

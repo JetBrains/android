@@ -16,9 +16,13 @@
 package com.android.tools.idea.gradle.project.build.quickFixes
 
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleJdkSettingsQuickfix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.util.lang.JavaVersion
+import java.util.concurrent.CompletableFuture
 import java.util.regex.Pattern
 
 /**
@@ -70,6 +74,7 @@ class JavaDeprecatedProvider : AndroidGradlePluginQuickFixProvider {
     else if (currentVersion == null || !currentVersion.isAtLeast(8)) {
       fixes.add(SetJavaLanguageLevelAllQuickFix(LanguageLevel.JDK_1_8, setJvmTarget = true))
     }
+    fixes.add(DescribedOpenGradleJdkSettingsQuickfix())
     fixes.add(PickLanguageLevelInPSDQuickFix())
     if (typeOfCompatibilityIssue == "source") {
       fixes.add(OpenSourceCompatibilityLinkQuickFix())
@@ -79,5 +84,17 @@ class JavaDeprecatedProvider : AndroidGradlePluginQuickFixProvider {
     }
     fixes.add(OpenJavaLanguageSpecQuickFix())
     return fixes
+  }
+
+}
+
+class DescribedOpenGradleJdkSettingsQuickfix : DescribedBuildIssueQuickFix {
+  val delegate = OpenGradleJdkSettingsQuickfix()
+  override val id: String get() = delegate.id
+
+  override val description: String get() = "Pick a different JDK to run Gradle..."
+
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
+    return delegate.runQuickFix(project, dataContext)
   }
 }
