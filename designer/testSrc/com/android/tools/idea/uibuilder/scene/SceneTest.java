@@ -21,7 +21,7 @@ import com.android.tools.idea.common.scene.SceneMouseInteraction;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.MinApiLayoutTestCase;
+import com.android.tools.idea.uibuilder.ApiLayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.intellij.openapi.util.Disposer;
@@ -33,7 +33,7 @@ import java.util.Arrays;
 /**
  * Base class for Scene tests
  */
-public abstract class SceneTest extends MinApiLayoutTestCase {
+public abstract class SceneTest extends ApiLayoutTestCase {
 
   protected SyncNlModel myModel;
   protected Scene myScene;

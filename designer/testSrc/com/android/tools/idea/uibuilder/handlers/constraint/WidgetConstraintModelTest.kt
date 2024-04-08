@@ -290,6 +290,21 @@ class WidgetConstraintModelTest : SceneTest() {
       .isEqualTo("16dp")
   }
 
+  fun testSetLeftMarginMinApi16TargetApi1() {
+    val widgetModel = WidgetConstraintModel {}
+    val component = myModel.find("textView2")!!
+    widgetModel.component = component
+    widgetModel.setMargin(WidgetConstraintModel.CONNECTION_LEFT, "16dp")
+    widgetModel.timer.stop()
+    widgetModel.timer.actionListeners.forEach { it.actionPerformed(ActionEvent(component, 0, "")) }
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
+    assertThat(
+        component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT)
+      )
+      .isEqualTo("16dp")
+  }
+
   fun testSetLeftMarginMinApi17() {
     val widgetModel = WidgetConstraintModel {}
     val component = myModel.find("textView2")!!
