@@ -152,7 +152,6 @@ private:
 
   UiSettings ui_settings_;
 
-  // TODO: Remove the following 2 fields when b/303684492 is fixed.
   std::map<int32_t, DisplayInfo> current_displays_;
   std::chrono::steady_clock::time_point poll_displays_until_;
 
