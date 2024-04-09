@@ -71,7 +71,7 @@ class Toggle3dActionTest {
   private lateinit var renderModel: RenderModel
 
   private val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SKP)
-  private val device: DeviceDescriptor = mock()
+  private val mockDevice: DeviceDescriptor = mock()
 
   @Before
   fun setUp() {
@@ -89,14 +89,28 @@ class Toggle3dActionTest {
     whenever(client.isConnected).thenReturn(true)
     whenever(client.inLiveMode).thenReturn(true)
     whenever(client.stats).thenAnswer { mock<SessionStatistics>() }
-    whenever(device.apiLevel).thenReturn(29)
+
+    val process =
+      object : ProcessDescriptor {
+        override val device = mockDevice
+        override val abiCpuArch = "abi"
+        override val name = "name"
+        override val packageName = "packageName"
+        override val isRunning = true
+        override val pid = 0
+        override val streamId = 0L
+      }
+
+    whenever(mockDevice.apiLevel).thenReturn(29)
+    whenever(client.process).thenReturn(process)
+
     val launcher: InspectorClientLauncher = mock()
     whenever(launcher.activeClient).thenReturn(client)
-    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
+
     renderModel = RenderModel(inspectorModel, mock(), treeSettings) { DisconnectedClient }
     layoutInspector =
       LayoutInspector(
-        coroutineScope = coroutineScope,
+        coroutineScope = AndroidCoroutineScope(disposableRule.disposable),
         processModel = mock(),
         deviceModel = mock(),
         foregroundProcessDetection = null,
@@ -108,9 +122,6 @@ class Toggle3dActionTest {
         executor = MoreExecutors.directExecutor(),
         renderModel = renderModel,
       )
-    val process: ProcessDescriptor = mock()
-    whenever(process.device).thenReturn(device)
-    whenever(client.process).thenReturn(process)
   }
 
   @Test
@@ -171,7 +182,7 @@ class Toggle3dActionTest {
   fun testOldDevice() {
     val toggle3dAction = Toggle3dAction { renderModel }
     val fakeEvent = createFakeEvent(toggle3dAction)
-    whenever(device.apiLevel).thenReturn(28)
+    whenever(mockDevice.apiLevel).thenReturn(28)
     capabilities.clear()
     toggle3dAction.update(fakeEvent)
     assertThat(fakeEvent.presentation.isEnabled).isFalse()
