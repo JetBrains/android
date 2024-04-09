@@ -24,6 +24,11 @@ fun Collection<SceneView>.createOrganizationHeaders(parent: JComponent) =
     .filterKeys { it != null }
     .filterValues { it.size > 1 }
     .mapValues {
-      SceneViewHeader(parent, it.key, it.value.first().sceneManager.model.modelDisplayName ?: "")
+      SceneViewHeader(
+        parent,
+        it.key,
+        it.value.first().sceneManager.model.modelDisplayName ?: "",
+        ::createOrganizationHeader,
+      )
     }
     .toMutableMap()
