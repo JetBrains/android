@@ -37,8 +37,8 @@ import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -48,7 +48,6 @@ import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.verify
 
 class Toggle3dActionTest {
 
@@ -63,11 +62,8 @@ class Toggle3dActionTest {
   private val scheduler = VirtualTimeScheduler()
 
   private val inspectorModel = model(disposableRule.disposable) { view(1) { view(2) { image() } } }
-  private lateinit var inspector: LayoutInspector
+  private lateinit var layoutInspector: LayoutInspector
   private lateinit var renderModel: RenderModel
-
-  private val event: AnActionEvent = mock()
-  private val presentation: Presentation = mock()
 
   private val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SKP)
   private val device: DeviceDescriptor = mock()
@@ -89,7 +85,7 @@ class Toggle3dActionTest {
     val launcher: InspectorClientLauncher = mock()
     whenever(launcher.activeClient).thenReturn(client)
     val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
-    inspector =
+    layoutInspector =
       LayoutInspector(
         coroutineScope,
         mock(),
@@ -102,69 +98,83 @@ class Toggle3dActionTest {
         mock(),
         MoreExecutors.directExecutor(),
       )
-    renderModel = RenderModel(inspectorModel, mock(), inspector.treeSettings) { DisconnectedClient }
+    renderModel =
+      RenderModel(inspectorModel, mock(), layoutInspector.treeSettings) { DisconnectedClient }
     val process: ProcessDescriptor = mock()
     whenever(process.device).thenReturn(device)
     whenever(client.process).thenReturn(process)
-    whenever(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
-    whenever(event.presentation).thenReturn(presentation)
   }
 
   @Test
   fun testUnrotated() {
     val toggle3dAction = Toggle3dAction { renderModel }
-    toggle3dAction.update(event)
-    verify(presentation).isEnabled = true
-    verify(presentation).text = "3D Mode"
-    verify(presentation).description =
-      "Visually inspect the hierarchy by clicking and dragging to rotate the layout. Enabling this " +
-        "mode consumes more device resources and might impact runtime performance."
-    verify(presentation).icon = StudioIcons.LayoutInspector.Toolbar.MODE_3D
+    val fakeEvent = createFakeEvent(toggle3dAction)
+    toggle3dAction.update(fakeEvent)
+    assertThat(fakeEvent.presentation.isEnabled).isTrue()
+    assertThat(fakeEvent.presentation.text).isEqualTo("3D Mode")
+    assertThat(fakeEvent.presentation.description)
+      .isEqualTo(
+        "Visually inspect the hierarchy by clicking and dragging to rotate the layout. Enabling this " +
+          "mode consumes more device resources and might impact runtime performance."
+      )
+    assertThat(fakeEvent.presentation.icon).isEqualTo(StudioIcons.LayoutInspector.Toolbar.MODE_3D)
   }
 
   @Test
   fun testRotated() {
     val toggle3dAction = Toggle3dAction { renderModel }
+    val fakeEvent = createFakeEvent(toggle3dAction)
     renderModel.xOff = 1.0
-    toggle3dAction.update(event)
-    verify(presentation).isEnabled = true
-    verify(presentation).text = "2D Mode"
-    verify(presentation).description =
-      "Inspect the layout in 2D mode. Enabling this mode has less impact on your device's runtime performance."
-    verify(presentation).icon = StudioIcons.LayoutInspector.Toolbar.RESET_VIEW
+    toggle3dAction.update(fakeEvent)
+    assertThat(fakeEvent.presentation.isEnabled).isTrue()
+    assertThat(fakeEvent.presentation.text).isEqualTo("2D Mode")
+    assertThat(fakeEvent.presentation.description)
+      .isEqualTo(
+        "Inspect the layout in 2D mode. " +
+          "Enabling this mode has less impact on your device's runtime performance."
+      )
+    assertThat(fakeEvent.presentation.icon)
+      .isEqualTo(StudioIcons.LayoutInspector.Toolbar.RESET_VIEW)
   }
 
   @Test
   fun testOverlay() {
     val toggle3dAction = Toggle3dAction { renderModel }
+    val fakeEvent = createFakeEvent(toggle3dAction)
     renderModel.overlay = mock()
-    toggle3dAction.update(event)
-    verify(presentation).isEnabled = false
-    verify(presentation).text = "Rotation not available when overlay is active"
+    toggle3dAction.update(fakeEvent)
+    assertThat(fakeEvent.presentation.isEnabled).isFalse()
+    assertThat(fakeEvent.presentation.text)
+      .isEqualTo("Rotation not available when overlay is active")
   }
 
   @Test
   fun testNoCapability() {
     val toggle3dAction = Toggle3dAction { renderModel }
+    val fakeEvent = createFakeEvent(toggle3dAction)
     capabilities.clear()
-    toggle3dAction.update(event)
-    verify(presentation).isEnabled = false
-    verify(presentation).text = "Error while rendering device image, rotation not available"
+    toggle3dAction.update(fakeEvent)
+    assertThat(fakeEvent.presentation.isEnabled).isFalse()
+    assertThat(fakeEvent.presentation.text)
+      .isEqualTo("Error while rendering device image, rotation not available")
   }
 
   @Test
   fun testOldDevice() {
     val toggle3dAction = Toggle3dAction { renderModel }
+    val fakeEvent = createFakeEvent(toggle3dAction)
     whenever(device.apiLevel).thenReturn(28)
     capabilities.clear()
-    toggle3dAction.update(event)
-    verify(presentation).isEnabled = false
-    verify(presentation).text = "Rotation not available for devices below API 29"
+    toggle3dAction.update(fakeEvent)
+    assertThat(fakeEvent.presentation.isEnabled).isFalse()
+    assertThat(fakeEvent.presentation.text)
+      .isEqualTo("Rotation not available for devices below API 29")
   }
 
   @Test
   fun testNoRendererFallback() {
     val toggle3dAction = Toggle3dAction { renderModel }
+    val fakeEvent = createFakeEvent(toggle3dAction)
     val window =
       window(3, 1, imageType = BITMAP_AS_REQUESTED) {
         image()
@@ -172,18 +182,20 @@ class Toggle3dActionTest {
       }
     capabilities.clear()
     inspectorModel.update(window, listOf(3), 0)
-    toggle3dAction.update(event)
-    verify(presentation).isEnabled = false
-    verify(presentation).text = "Error while rendering device image, rotation not available"
+    toggle3dAction.update(fakeEvent)
+    assertThat(fakeEvent.presentation.isEnabled).isFalse()
+    assertThat(fakeEvent.presentation.text)
+      .isEqualTo("Error while rendering device image, rotation not available")
   }
 
   @Test
   fun testRotationAnimation() {
     val toggle3dAction = Toggle3dAction { renderModel }
+    val fakeEvent = createFakeEvent(toggle3dAction)
     toggle3dAction.executorFactory = { scheduler }
     toggle3dAction.getCurrentTimeMillis = { scheduler.currentTimeNanos / 1000000 }
 
-    toggle3dAction.actionPerformed(event)
+    toggle3dAction.actionPerformed(fakeEvent)
     assertThat(renderModel.xOff).isEqualTo(0.0)
     assertThat(renderModel.yOff).isEqualTo(0.0)
     scheduler.advanceBy(30, TimeUnit.MILLISECONDS)
@@ -203,5 +215,14 @@ class Toggle3dActionTest {
     scheduler.advanceBy(500, TimeUnit.MILLISECONDS)
     assertThat(renderModel.xOff).isEqualTo(0.45)
     assertThat(renderModel.yOff).isEqualTo(0.06)
+  }
+
+  private fun createFakeEvent(anAction: AnAction): AnActionEvent {
+    return AnActionEvent.createFromAnAction(anAction, null, "") {
+      when (it) {
+        LAYOUT_INSPECTOR_DATA_KEY.name -> layoutInspector
+        else -> null
+      }
+    }
   }
 }
