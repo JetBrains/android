@@ -25,7 +25,6 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -88,7 +87,6 @@ class Toggle3dActionTest {
     whenever(client.capabilities).thenReturn(capabilities)
     whenever(client.isConnected).thenReturn(true)
     whenever(client.inLiveMode).thenReturn(true)
-    whenever(client.stats).thenAnswer { mock<SessionStatistics>() }
 
     val process =
       object : ProcessDescriptor {
