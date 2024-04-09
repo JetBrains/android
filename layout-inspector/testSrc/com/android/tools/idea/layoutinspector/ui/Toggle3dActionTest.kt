@@ -28,10 +28,13 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.Toggle3dAction
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
@@ -42,6 +45,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import icons.StudioIcons
 import java.util.concurrent.TimeUnit
 import org.junit.Before
@@ -51,6 +55,7 @@ import org.junit.Test
 
 class Toggle3dActionTest {
 
+  @get:Rule val projectRule = ProjectRule()
   @get:Rule val disposableRule = DisposableRule()
 
   @get:Rule val cleaner = MockitoCleanerRule()
@@ -76,6 +81,9 @@ class Toggle3dActionTest {
       PropertiesComponentMock(),
       disposableRule.disposable,
     )
+    val notificationModel = NotificationModel(projectRule.project)
+    val treeSettings = FakeTreeSettings()
+
     val client: InspectorClient = mock()
     whenever(client.capabilities).thenReturn(capabilities)
     whenever(client.isConnected).thenReturn(true)
@@ -85,21 +93,21 @@ class Toggle3dActionTest {
     val launcher: InspectorClientLauncher = mock()
     whenever(launcher.activeClient).thenReturn(client)
     val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
+    renderModel = RenderModel(inspectorModel, mock(), treeSettings) { DisconnectedClient }
     layoutInspector =
       LayoutInspector(
-        coroutineScope,
-        mock(),
-        mock(),
-        null,
-        mock(),
-        launcher,
-        inspectorModel,
-        mock(),
-        mock(),
-        MoreExecutors.directExecutor(),
+        coroutineScope = coroutineScope,
+        processModel = mock(),
+        deviceModel = mock(),
+        foregroundProcessDetection = null,
+        inspectorClientSettings = InspectorClientSettings(projectRule.project),
+        launcher = launcher,
+        layoutInspectorModel = inspectorModel,
+        notificationModel = notificationModel,
+        treeSettings = treeSettings,
+        executor = MoreExecutors.directExecutor(),
+        renderModel = renderModel,
       )
-    renderModel =
-      RenderModel(inspectorModel, mock(), layoutInspector.treeSettings) { DisconnectedClient }
     val process: ProcessDescriptor = mock()
     whenever(process.device).thenReturn(device)
     whenever(client.process).thenReturn(process)
