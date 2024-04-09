@@ -70,7 +70,7 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<PsiWearT
   }
 }
 
-private fun UAnnotation.isTilePreviewAnnotation() = runReadAction {
+internal fun UAnnotation.isTilePreviewAnnotation() = runReadAction {
   this.qualifiedName == TILE_PREVIEW_ANNOTATION_FQ_NAME
 }
 
@@ -140,8 +140,13 @@ private fun UMethod.findAllTilePreviewAnnotations() = findAllAnnotationsInGraph 
   it.isTilePreviewAnnotation()
 }
 
+/**
+ * Checks if a [UMethod] has the signature required for a Tile Preview. The expected signature of a
+ * Tile Preview method is to have the return type [TILE_PREVIEW_DATA_FQ_NAME] and to have either no
+ * parameters or single parameter of type [SdkConstants.CLASS_CONTEXT].
+ */
 @RequiresReadLock
-private fun UMethod?.hasTilePreviewSignature(): Boolean {
+internal fun UMethod?.hasTilePreviewSignature(): Boolean {
   if (this == null) return false
   if (this.returnType?.equalsToText(TILE_PREVIEW_DATA_FQ_NAME) != true) return false
 
