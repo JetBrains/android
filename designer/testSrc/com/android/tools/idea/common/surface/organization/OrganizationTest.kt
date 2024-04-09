@@ -18,11 +18,11 @@ package com.android.tools.idea.common.surface.organization
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ApplicationRule
 import javax.swing.JPanel
 import org.junit.Rule
 import org.junit.Test
@@ -30,7 +30,7 @@ import org.mockito.Mockito
 
 class OrganizationTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = ApplicationRule()
 
   @Test
   fun createHeaders() {
