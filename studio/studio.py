@@ -20,10 +20,10 @@ def main(argv):
       "--debug",
       dest="debug",
       nargs="?",
-      const="5005",
+      const="127.0.0.1:5005",
       help=(
           "Suspend the IDE at startup waiting for the java debugger on the"
-          " given port."
+          " given ip address:port."
       ),
   )
   parser.add_argument(
@@ -61,7 +61,7 @@ def main(argv):
   vmoptions = []
   if args.debug:
     vmoptions.append(
-        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=localhost:%s"
+        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=%s"
         % args.debug
     )
   vmoptions.extend(args.vmoptions)
