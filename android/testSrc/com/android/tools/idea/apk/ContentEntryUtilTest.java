@@ -22,6 +22,7 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.IndexingTestUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -94,6 +95,7 @@ public class ContentEntryUtilTest extends HeavyPlatformTestCase {
     ModifiableRootModel rootModel = ModuleRootManager.getInstance(module).getModifiableModel();
     ContentEntry contentEntry = rootModel.addContentEntry(rootFolder);
     ApplicationManager.getApplication().runWriteAction(rootModel::commit);
+    IndexingTestUtil.waitUntilIndexesAreReady(module.getProject());
     return contentEntry;
   }
 }
