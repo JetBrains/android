@@ -71,7 +71,7 @@ class EmptyStatePanelTest {
     get() = projectRule.disposable
   private val emptyStatePanel by lazy { createEmptyStatePanel() }
   private val ui by lazy { FakeUi(emptyStatePanel) }
-  private val emulatorPackage = FakeLocalPackage(SdkConstants.FD_EMULATOR).apply { setRevision(Revision(31, 3, 10)) }
+  private val emulatorPackage = FakeLocalPackage(SdkConstants.FD_EMULATOR).apply { setRevision(Revision(35, 1, 3)) }
   private val executedActions = mutableListOf<String>()
 
   @Before
@@ -116,10 +116,10 @@ class EmptyStatePanelTest {
   @Test
   fun testEmulatorTooOld() {
     EmulatorSettings.getInstance().launchInToolWindow = true
-    emulatorPackage.setRevision(Revision(30, 6))
+    emulatorPackage.setRevision(Revision(35, 1, 2))
     val htmlComponent = ui.getComponent<JEditorPane>()
     assertThat(htmlComponent.normalizedText).contains(
-        "To launch virtual devices in this window, install Android Emulator 31.3.10 or higher." +
+        "To launch virtual devices in this window, install Android Emulator 35.1.3 or higher." +
         " Please <font color=\"589df6\"><a href=\"CheckForUpdate\">check for updates</a></font>" +
         " and install the latest version of the Android Emulator.")
     htmlComponent.clickOnHyperlink("CheckForUpdate")

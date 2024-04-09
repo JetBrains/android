@@ -59,7 +59,7 @@ import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
-private const val MIN_REQUIRED_EMULATOR_VERSION = "31.3.10"
+private const val MIN_REQUIRED_EMULATOR_VERSION = "35.1.3"
 
 // As recommended at https://jetbrains.github.io/ui/principles/empty_state/#21.
 private const val TOP_MARGIN = 0.45
