@@ -33,11 +33,14 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ActionCallback
+import com.intellij.openapi.util.ActiveRunnable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.NonOpaquePanel
+import com.intellij.ui.tabs.JBTabs
 import com.intellij.ui.tabs.JBTabsFactory.createTabs
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.util.ui.JBUI
@@ -67,6 +70,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   @VisibleForTesting val myRetentionView: RetentionView
   @VisibleForTesting val myRetentionTab: TabInfo
   @VisibleForTesting val logsTab: TabInfo
+  @VisibleForTesting val tabs: JBTabs
 
   private var myAndroidDevice: AndroidDevice? = null
   private var myAndroidTestCaseResult: AndroidTestCaseResult? = null
@@ -74,10 +78,10 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   private var myErrorStackTrace = ""
   private var myRetentionSnapshot: File? = null
   private var needsRefreshLogsView: Boolean = true
+  private var lastSelectedTab: TabInfo? = null
 
   init {
-    val tabs = createTabs(project, parentDisposable)
-
+    tabs = createTabs(project, parentDisposable)
     // Create logcat tab.
     myLogsView = ConsoleViewImpl(project,  /*viewer=*/true)
     Disposer.register(parentDisposable, myLogsView)
@@ -134,6 +138,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     tabs.addTab(myRetentionTab)
     myRetentionTab.isHidden = true
 
+
     rootPanel = JPanel(BorderLayout()).apply {
       add(JPanel(BorderLayout()).apply {
         add(myTestResultLabel, BorderLayout.CENTER)
@@ -142,6 +147,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       add(tabs.component, BorderLayout.CENTER)
       minimumSize = Dimension()
     }
+    tabs.setSelectionChangeHandler (MyTabSelectionHandler(this))
   }
 
   fun setPackageName(packageName: String) {
@@ -269,15 +275,24 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     needsRefreshLogsView = false
     myLogsView.clear()
     if (StringUtil.isEmptyOrSpaces(myLogcat) && StringUtil.isEmptyOrSpaces(myErrorStackTrace)) {
+      lastSelectedTab = tabs!!.selectedInfo
       logsTab.isHidden = true
       return
     }
     logsTab.isHidden = false
+    lastSelectedTab?.let { tabs!!.select(it, true) }
     if (!StringUtil.isEmptyOrSpaces(myLogcat)) {
       myLogsView.print(myLogcat, ConsoleViewContentType.NORMAL_OUTPUT)
       myLogsView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT)
     }
     myLogsView.print(myErrorStackTrace, ConsoleViewContentType.ERROR_OUTPUT)
+  }
+
+  class MyTabSelectionHandler(val view: DetailsViewContentView) : JBTabs.SelectionChangeHandler {
+    override fun execute(info: TabInfo, requestFocus: Boolean, doChangeSelection: ActiveRunnable): ActionCallback {
+      view.lastSelectedTab = info
+      return doChangeSelection.run()
+    }
   }
 }
 
