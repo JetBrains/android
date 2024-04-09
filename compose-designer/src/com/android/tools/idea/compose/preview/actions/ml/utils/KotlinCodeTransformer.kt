@@ -38,6 +38,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -65,9 +66,8 @@ internal class KotlinCodeTransformer {
           studioBot
             // TODO: upgrade to gemini
             .model(project, ModelType.EXPERIMENTAL_VISION)
-            .generateCode(
+            .generateContent(
               buildPrompt(filePointer, previewFunctionCode, blob, query),
-              KotlinLanguage.INSTANCE,
               GenerationConfig(candidateCount = 1),
             )
             .first()
