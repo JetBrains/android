@@ -18,5 +18,6 @@
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-vitals.model" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" />
   </component>
 </module>

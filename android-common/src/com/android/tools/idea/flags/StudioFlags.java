@@ -1662,6 +1662,15 @@ public final class StudioFlags {
       true
     );
 
+  public static final Flag<Boolean> CRASHLYTICS_SHOW_INSIGHT =
+    new BooleanFlag(
+      APP_INSIGHTS,
+      "crashlytics.show.insight",
+      "Show insight for Crashlytics",
+      "Show AI generated insights for Crashlytics issue",
+      false
+    );
+
   public static final Flag<Boolean> PLAY_VITALS_ENABLED =
     new BooleanFlag(
       APP_INSIGHTS,
@@ -1693,6 +1702,15 @@ public final class StudioFlags {
       "Enable VCS integration for Play Vitals.",
       "Enhance code navigation in the Play Vitals tab to aid crash investigation with the recorded VCS info",
       true);
+
+  public static final Flag<Boolean> PLAY_VITALS_SHOW_INSIGHT =
+    new BooleanFlag(
+      APP_INSIGHTS,
+      "play.vitals.show.insight",
+      "Show insight for Play Vitals",
+      "Show AI generated insights for Play Vitals issue",
+      false
+    );
   // endregion App Insights
 
   // region App Links Assistant
