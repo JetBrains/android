@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import platform
 import re
 import subprocess
 import sys
@@ -93,8 +94,14 @@ def main(argv):
       f.write(l + "\n")
   env["STUDIO_PROPERTIES"] = properties_file
 
-  rule_dir = os.path.dirname(os.path.realpath(__file__))
-  for root, _, files in os.walk(os.path.join(script_dir, "android-studio")):
+  if platform.system() == "Darwin":
+    app_dir = os.path.join(script_dir, "Android Studio Preview.app")
+    run_command_list = ["open", app_dir]
+  else:
+    app_dir = os.path.join(script_dir, "android-studio")
+    run_command_list = [os.path.join(script_dir, "android-studio/bin/studio.sh")]
+
+  for root, _, files in os.walk(app_dir):
     for file in files:
       absolute_path = os.path.join(root, file)
       relative_path = os.path.relpath(absolute_path, script_dir)
@@ -104,8 +111,7 @@ def main(argv):
 
   sys.exit(
       subprocess.call(
-          [os.path.join(script_dir, "android-studio/bin/studio.sh")]
-          + unknown_args,
+          run_command_list + unknown_args,
           env=env,
       )
   )
