@@ -2454,9 +2454,6 @@ Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/completionMl
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar
 Android Studio Preview.app/Contents/plugins/configurationScript/lib/configurationScript.jar
 Android Studio Preview.app/Contents/plugins/copyright/lib/copyright.jar
-Android Studio Preview.app/Contents/plugins/declarative-gradle-focus/lib/antlr4-runtime-4.11.1.jar
-Android Studio Preview.app/Contents/plugins/declarative-gradle-focus/lib/declarative-gradle-focus.jar
-Android Studio Preview.app/Contents/plugins/declarative-gradle-focus/lib/tomlj-1.1.0.jar
 Android Studio Preview.app/Contents/plugins/design-tools/lib/design-tools.jar
 Android Studio Preview.app/Contents/plugins/design-tools/lib/layoutlib.jar
 Android Studio Preview.app/Contents/plugins/design-tools/resources/layoutlib/build.prop

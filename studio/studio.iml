@@ -8,7 +8,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="declarative-gradle.focus-plugin" />
     <orderEntry type="module" module-name="intellij.android.plugin" />
     <orderEntry type="module" module-name="android-apk" />
     <orderEntry type="module" module-name="intellij.android.compose-ide-plugin" />

@@ -1788,9 +1788,6 @@ android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
 android-studio/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar
 android-studio/plugins/configurationScript/lib/configurationScript.jar
 android-studio/plugins/copyright/lib/copyright.jar
-android-studio/plugins/declarative-gradle-focus/lib/antlr4-runtime-4.11.1.jar
-android-studio/plugins/declarative-gradle-focus/lib/declarative-gradle-focus.jar
-android-studio/plugins/declarative-gradle-focus/lib/tomlj-1.1.0.jar
 android-studio/plugins/design-tools/lib/design-tools.jar
 android-studio/plugins/design-tools/lib/layoutlib.jar
 android-studio/plugins/design-tools/resources/layoutlib/build.prop
