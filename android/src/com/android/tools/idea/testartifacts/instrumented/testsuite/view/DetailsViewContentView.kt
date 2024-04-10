@@ -70,7 +70,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   @VisibleForTesting val myRetentionView: RetentionView
   @VisibleForTesting val myRetentionTab: TabInfo
   @VisibleForTesting val logsTab: TabInfo
-  @VisibleForTesting val tabs: JBTabs
+  @VisibleForTesting val tabs: JBTabs = createTabs(project, parentDisposable)
 
   private var myAndroidDevice: AndroidDevice? = null
   private var myAndroidTestCaseResult: AndroidTestCaseResult? = null
@@ -81,7 +81,6 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   private var lastSelectedTab: TabInfo? = null
 
   init {
-    tabs = createTabs(project, parentDisposable)
     // Create logcat tab.
     myLogsView = ConsoleViewImpl(project,  /*viewer=*/true)
     Disposer.register(parentDisposable, myLogsView)
@@ -275,12 +274,12 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     needsRefreshLogsView = false
     myLogsView.clear()
     if (StringUtil.isEmptyOrSpaces(myLogcat) && StringUtil.isEmptyOrSpaces(myErrorStackTrace)) {
-      lastSelectedTab = tabs!!.selectedInfo
+      lastSelectedTab = tabs.selectedInfo
       logsTab.isHidden = true
       return
     }
     logsTab.isHidden = false
-    lastSelectedTab?.let { tabs!!.select(it, true) }
+    lastSelectedTab?.let { tabs.select(it, true) }
     if (!StringUtil.isEmptyOrSpaces(myLogcat)) {
       myLogsView.print(myLogcat, ConsoleViewContentType.NORMAL_OUTPUT)
       myLogsView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT)
