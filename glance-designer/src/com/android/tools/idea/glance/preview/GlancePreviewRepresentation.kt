@@ -18,6 +18,7 @@ package com.android.tools.idea.glance.preview
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.actions.CommonPreviewActionManager
 import com.android.tools.idea.preview.representation.CommonPreviewRepresentation
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -51,7 +52,7 @@ internal class GlancePreviewRepresentation(
   )
 
 private fun NlDesignSurface.Builder.configureDesignSurface() {
-  setActionManagerProvider(::GlancePreviewActionManager)
+  setActionManagerProvider(::CommonPreviewActionManager)
   setSupportedActions(GLANCE_APPWIDGET_SUPPORTED_ACTIONS)
   setScreenViewProvider(GLANCE_SCREEN_VIEW_PROVIDER, false)
 }
