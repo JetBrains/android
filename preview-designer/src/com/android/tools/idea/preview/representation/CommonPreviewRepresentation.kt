@@ -30,6 +30,7 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.log.LoggerWithFixedInfo
+import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.modes.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.CommonPreviewRefreshRequest
 import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
@@ -105,6 +106,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.psi.KtFile
 
 private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
 val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiPreviewElementInstance>("PreviewElement")
@@ -241,6 +243,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   @TestOnly
   internal fun hasBuildListenerSetupFinishedForTest() =
     previewBuildListenersManager.buildListenerSetupFinished
+
+  @TestOnly
+  internal fun hasFlowInitializationFinishedForTest() =
+    previewFlowManager.filteredPreviewElementsFlow.value != FlowableCollection.Uninitialized
 
   private val previewFreshnessTracker =
     CodeOutOfDateTracker.create(module, this) { requestRefresh() }
@@ -541,16 +547,38 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   private fun activate(isResuming: Boolean) {
     initializeFlows()
-    if (isResuming) {
-      surface.activate()
-    } else {
+    if (!isResuming) {
       onInit()
     }
 
-    galleryEssentialsModeManager.activate()
+    surface.activate()
+
     if (mode.value is PreviewMode.Interactive) {
       interactiveManager.resume()
     }
+
+    // At this point everything have been initialized or re-activated. Now we need to check whether
+    // a full refresh is needed or could be avoided, and all considered scenarios are listed below:
+    // - First activation: initial state is invalidated=true, so a full refresh will happen
+    // - Re-activation and build or fast compile happened while deactivated: build listeners should
+    //   have invalidated this, and then a full refresh will happen
+    // - Re-activation and any kotlin file out of date: fast compile will happen if fast preview is
+    //   enabled, and then a full refresh will happen.
+    // - Re-activation and any non-kotlin file out of date: manual invalidation done here and then
+    //   a full refresh will happen
+    if (psiCodeFileChangeDetectorService.outOfDateFiles.isNotEmpty()) invalidate()
+    val anyKtFilesOutOfDate = psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
+    if (isFastPreviewAvailable() && anyKtFilesOutOfDate) {
+      // If any files are out of date, we force a refresh when re-activating. This allows us to
+      // compile the changes if Fast Preview is enabled OR to refresh the preview elements in case
+      // the annotations have changed.
+      launch { delegateFastPreviewSurface.requestFastPreviewRefreshSync() }
+    } else if (invalidated.get()) requestRefresh()
+
+    // Gallery mode should be updated only if Preview is active / in foreground.
+    // It will help to avoid enabling gallery mode while Preview is inactive, as it will also save
+    // this state for later to restore.
+    galleryEssentialsModeManager.activate()
   }
 
   private fun CoroutineScope.initializeFlows() {
@@ -580,23 +608,35 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
           onEnterSmartMode()
         }
       }
+    }
+  }
 
-      launch(workerThread) {
-        // Keep track of the last mode that was set to ensure it is correctly disposed
-        var lastMode: PreviewMode? = null
+  init {
+    launch(workerThread) {
+      // Keep track of the last mode that was set to ensure it is correctly disposed
+      var lastMode: PreviewMode? = null
 
-        previewModeManager.mode.collect {
-          previewFlowManager.setSingleFilter(it.selected as? T)
+      previewModeManager.mode.collect {
+        (it.selected as? T).let { element -> previewFlowManager.setSingleFilter(element) }
 
+        if (PreviewModeManager.areModesOfDifferentType(lastMode, it)) {
           lastMode?.let { last -> onExit(last) }
           // The layout update needs to happen before onEnter, so that any zooming performed
           // in onEnter uses the correct preview layout when measuring scale.
           updateLayoutManager(it)
           onEnter(it)
-          lastMode = it
+        } else {
+          updateLayoutManager(it)
         }
+        lastMode = it
       }
-      launch { fpsLimitFlow.collect { interactiveManager.fpsLimit = it } }
+    }
+    launch {
+      fpsLimitFlow.collect {
+        interactiveManager.fpsLimit = it
+        // When getting out of Essentials Mode, request a refresh
+        if (!EssentialsMode.isEnabled()) requestRefresh()
+      }
     }
   }
 

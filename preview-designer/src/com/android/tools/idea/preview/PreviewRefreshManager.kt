@@ -334,6 +334,8 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
     return enqueueingJob
   }
 
+  @TestOnly fun getTotalRequestsInQueueForTest() = requestsLock.withLock { allPendingRequests.size }
+
   companion object {
     private val coroutineScope =
       AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())

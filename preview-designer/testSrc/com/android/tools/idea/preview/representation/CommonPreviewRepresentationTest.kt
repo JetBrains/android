@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.preview.representation
 
-import com.android.testutils.waitForCondition
+import com.android.testutils.delayUntilCondition
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
 import com.android.tools.configurations.Configuration
@@ -63,6 +63,7 @@ import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.CountDownLatch
+import kotlin.test.assertFails
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -108,7 +109,7 @@ private class TestPreviewElementModelAdapter(private val previewElement: PsiTest
     content: String,
     backedFile: VirtualFile,
     id: Long,
-  ): LightVirtualFile = mock(LightVirtualFile::class.java)
+  ): LightVirtualFile = InMemoryLayoutVirtualFile("test.xml", content) { backedFile }
 }
 
 class CommonPreviewRepresentationTest {
@@ -129,11 +130,10 @@ class CommonPreviewRepresentationTest {
     runInEdtAndWait { TestProjectSystem(project).useInTests() }
     previewViewModelMock = mock(CommonPreviewViewModel::class.java)
     myScope = AndroidCoroutineScope(fixture.testRootDisposable)
+    // use the "real" refresh manager and not a "for test" instance to actually test how the common
+    // representation uses it
     refreshManager =
-      PreviewRefreshManager.getInstanceForTest(
-        myScope,
-        RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED,
-      )
+      PreviewRefreshManager.getInstance(RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED)
 
     psiFile = runWriteActionAndWait {
       fixture.addFileToProjectAndInvalidate(
@@ -175,7 +175,9 @@ class CommonPreviewRepresentationTest {
       // building the project again should invalidate the preview representation
       assertFalse(previewRepresentation.isInvalidatedForTest())
       ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
-      waitForCondition(20.seconds) { previewRepresentation.isInvalidatedForTest() }
+      delayUntilCondition(delayPerIterationMs = 1000, 20.seconds) {
+        previewRepresentation.isInvalidatedForTest()
+      }
       assertTrue(previewRepresentation.isInvalidatedForTest())
 
       // unblock the refresh manager
@@ -195,7 +197,9 @@ class CommonPreviewRepresentationTest {
 
       // As a consequence of the build a refresh should happen in the preview representation now
       // that the refresh manager was unblocked
-      waitForCondition(10.seconds) { !previewRepresentation.isInvalidatedForTest() }
+      delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
+        !previewRepresentation.isInvalidatedForTest()
+      }
       assertFalse(previewRepresentation.isInvalidatedForTest())
       previewRepresentation.onDeactivate()
     }
@@ -267,6 +271,51 @@ class CommonPreviewRepresentationTest {
     }
   }
 
+  @Test
+  fun testReactivationWithoutChangesDontRefresh(): Unit =
+    runBlocking(workerThread) {
+      val previewRepresentation = createPreviewRepresentation()
+      previewRepresentation.compileAndWaitForRefresh()
+
+      assertFalse(previewRepresentation.isInvalidatedForTest())
+      previewRepresentation.onDeactivate()
+
+      // block the refresh manager with a low priority refresh that won't finish
+      TestPreviewRefreshRequest.log = StringBuilder()
+      TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
+      lateinit var blockingRefresh: TestPreviewRefreshRequest
+      var reinsertionCount = 0
+      blockingRefresh =
+        TestPreviewRefreshRequest(
+          myScope,
+          clientId = "testClient",
+          priority = 0,
+          name = "testRequest",
+          doInsideRefreshJob = {
+            while (refreshManager.getTotalRequestsInQueueForTest() == 0) {
+              delay(500)
+            }
+            // A new request came in, let it process and reinsert the blo
+            reinsertionCount++
+            refreshManager.requestRefreshSync(blockingRefresh)
+          },
+        )
+      refreshManager.requestRefreshSync(blockingRefresh)
+      TestPreviewRefreshRequest.expectedLogPrintCount.await()
+      assertEquals(0, refreshManager.getTotalRequestsInQueueForTest())
+
+      // reactivating the representation shouldn't enqueue a new refresh
+      previewRepresentation.onActivate()
+      assertFalse(previewRepresentation.isInvalidatedForTest())
+      assertFails {
+        delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
+          refreshManager.getTotalRequestsInQueueForTest() == 1
+        }
+      }
+      assertFalse(previewRepresentation.isInvalidatedForTest())
+      blockingRefresh.runningRefreshJob!!.cancel()
+    }
+
   private fun createPreviewRepresentation(): CommonPreviewRepresentation<PsiTestPreviewElement> {
     val previewElement = PsiTestPreviewElement()
     val previewElementProvider = TestPreviewElementProvider(previewElement)
@@ -291,20 +340,32 @@ class CommonPreviewRepresentationTest {
     return previewRepresentation
   }
 
-  private fun CommonPreviewRepresentation<PsiTestPreviewElement>.compileAndWaitForRefresh() {
+  private suspend fun CommonPreviewRepresentation<PsiTestPreviewElement>
+    .compileAndWaitForRefresh() {
     // wait for smart mode and status to be needs build
     waitForSmartMode(fixture.project)
-    waitForCondition(10.seconds) { getProjectBuildStatusForTest() == ProjectStatus.NeedsBuild }
+    delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
+      getProjectBuildStatusForTest() == ProjectStatus.NeedsBuild
+    }
 
     // Activate and wait for build listener setup to finish
     assertFalse(hasBuildListenerSetupFinishedForTest())
     onActivate()
-    waitForCondition(10.seconds) { hasBuildListenerSetupFinishedForTest() }
+    delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
+      hasBuildListenerSetupFinishedForTest()
+    }
+    delayUntilCondition(delayPerIterationMs = 1000, 10.seconds) {
+      hasFlowInitializationFinishedForTest()
+    }
     assertTrue(isInvalidatedForTest())
 
     // Build the project and wait for a refresh to happen, setting the 'invalidated' to false
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
-    waitForCondition(10.seconds) { !isInvalidatedForTest() }
+    delayUntilCondition(delayPerIterationMs = 1000, 20.seconds) {
+      !isInvalidatedForTest() &&
+        refreshManager.getTotalRequestsInQueueForTest() == 0 &&
+        refreshManager.refreshingTypeFlow.value == null
+    }
     assertFalse(isInvalidatedForTest())
   }
 }
