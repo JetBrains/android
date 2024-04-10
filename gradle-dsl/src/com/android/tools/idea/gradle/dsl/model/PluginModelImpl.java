@@ -106,7 +106,6 @@ public class PluginModelImpl implements PluginModel {
     return GradlePropertyModelBuilder.create(myCompleteElement)
       .addTransform(new PluginAliasTransform(ID, ArtifactDependencySpec::getName, ArtifactDependencySpecImpl::setName))
       .addTransform(new PluginNameTransform())
-      .addLanguageTransform(GradleDslNameConverter.Kind.DECLARATIVE_TOML , new MapPropertyTransform(ID))
       .buildResolved();
   }
 
@@ -117,7 +116,6 @@ public class PluginModelImpl implements PluginModel {
       .addTransform(new PluginAliasTransform(VERSION, ArtifactDependencySpec::getVersion, ArtifactDependencySpecImpl::setVersion))
       .addTransform(new LiteralToInfixTransform(VERSION))
       .addTransform(new InfixPropertyTransform(VERSION))
-      .addLanguageTransform(GradleDslNameConverter.Kind.DECLARATIVE_TOML , new MapPropertyTransform(VERSION))
       .addTransform(new InexpressiblePropertyTransform())
       .buildResolved();
   }
@@ -128,7 +126,6 @@ public class PluginModelImpl implements PluginModel {
     return GradlePropertyModelBuilder.create(myCompleteElement)
       .addTransform(new LiteralToInfixTransform(APPLY))
       .addTransform(new InfixPropertyTransform(APPLY))
-      .addLanguageTransform(GradleDslNameConverter.Kind.DECLARATIVE_TOML , new MapPropertyTransform(APPLY))
       .addTransform(new InexpressiblePropertyTransform())
       .buildResolved();
   }

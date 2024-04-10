@@ -128,25 +128,17 @@
                            order="first"/>
     <completion.contributor language="TOML"
                             implementationClass="com.android.tools.idea.gradle.completions.TomlVersionRefCompletionContributor" />
-    <completion.contributor language="TOML"
-                            implementationClass="com.android.tools.idea.gradle.completions.DeclarativeCompletionContributor" />
     <completion.confidence language="TOML"
                            id="EnableAutoPopupInLiteralForTomlVersionRefDependencyCompletion"
                            implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInLiteralForTomlVersionRefDependencyCompletion" />
-    <completion.confidence language="TOML"
-                           id="EnableAutoPopupInDeclarativeBuildCompletion"
-                           implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInDeclarativeBuildCompletion" />
     <annotator language="TOML" implementationClass="com.android.tools.idea.gradle.catalog.VersionsTomlAnnotator"/>
     <indexedRootsProvider implementation="com.android.tools.idea.gradle.index.VersionCatalogFileIndexContributor"/>
     <useScopeEnlarger implementation="com.android.tools.idea.gradle.navigation.GradleTomlUseScopeEnlarger"/>
     <vetoRenameCondition implementation="com.android.tools.idea.gradle.refactoring.GradleCatalogTomlVetoCondition"/>
     <psi.referenceContributor language="TOML"
                               implementation="com.android.tools.idea.gradle.catalog.VersionCatalogDependencyReferenceContributor" order="first"/>
-    <psi.referenceContributor language="TOML"
-                              implementation="com.android.tools.idea.gradle.declarative.DeclarativeCatalogDependencyReferenceContributor"/>
     <elementDescriptionProvider implementation="com.android.tools.idea.gradle.refactoring.VersionCatalogDescriptionProvider" order="first"/>
     <gotoDeclarationHandler implementation="com.android.tools.idea.gradle.navigation.VersionCatalogGoToDeclarationHandler"/>
-    <gotoDeclarationHandler implementation="com.android.tools.idea.gradle.navigation.DeclarativeGoToApiDeclarationHandler"/>
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
     <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
     <usageTypeProvider id="org.jetbrains.android.refactoring.GradleUsageTypeProvider"

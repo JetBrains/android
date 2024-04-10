@@ -49,17 +49,6 @@ import org.junit.Test;
  */
 public class ModuleDependencyTest extends GradleFileModelTestCase {
 
-  @Before
-  public void before() throws Exception {
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true);
-    super.before();
-  }
-
-  @After
-  public void onAfter() {
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride();
-  }
-
   @Test
   public void testParsingWithCompactNotation() throws IOException {
     writeToBuildFile(TestFile.PARSING_WITH_COMPACT_NOTATION);

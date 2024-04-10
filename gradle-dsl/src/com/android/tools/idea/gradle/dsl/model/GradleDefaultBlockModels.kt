@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.BuildScriptModel
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel
-import com.android.tools.idea.gradle.dsl.api.crashlytics.CrashlyticsModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel
@@ -28,8 +27,6 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl
 import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModelImpl
 import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationsModelImpl
-import com.android.tools.idea.gradle.dsl.model.crashlytics.CrashlyticsModelImpl
-import com.android.tools.idea.gradle.dsl.model.dependencies.DeclarativeDependenciesModelImpl
 import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl
 import com.android.tools.idea.gradle.dsl.model.java.JavaModelImpl
@@ -40,7 +37,6 @@ import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement
-import com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
@@ -50,7 +46,7 @@ import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
-import com.android.tools.idea.gradle.dsl.utils.EXT_DECLARATIVE_TOML
+
 
 class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuildFile> {
 
@@ -106,12 +102,7 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       DependenciesModel::class.java from { file ->
         val dependenciesDslElement: DependenciesDslElement = file.ensurePropertyElement(
           DependenciesDslElement.DEPENDENCIES)
-        if (file.file.name.endsWith(EXT_DECLARATIVE_TOML)) {
-          DeclarativeDependenciesModelImpl(dependenciesDslElement)
-        }
-        else {
           ScriptDependenciesModelImpl(dependenciesDslElement)
-        }
       },
 
       ExtModel::class.java from {

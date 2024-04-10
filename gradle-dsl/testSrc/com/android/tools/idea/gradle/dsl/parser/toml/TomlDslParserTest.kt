@@ -31,19 +31,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.Mockito.mock
 
-@RunWith(Parameterized::class)
-class TomlDslParserTest(private val fileName: String) : LightPlatformTestCase() {
-
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "For file: {0}")
-    fun filePath() = listOf("gradle/libs.versions.toml", "build.gradle.toml")
-  }
-
-  override fun setUp(){
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true)
-    super.setUp()
-  }
+class TomlDslParserTest : LightPlatformTestCase() {
 
   @Test
   fun testSingleLibraryLiteralString() {
@@ -351,7 +339,7 @@ class TomlDslParserTest(private val fileName: String) : LightPlatformTestCase() 
   private fun doTest(text: String, expected: Map<String,Any>) {
     val libsTomlFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
-      fileName,
+      "gradle/libs.versions.toml",
       text
     )
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, mock())) {}

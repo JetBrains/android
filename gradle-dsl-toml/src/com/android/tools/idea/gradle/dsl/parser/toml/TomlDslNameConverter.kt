@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser
+package com.android.tools.idea.gradle.dsl.parser.toml
 
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.intellij.psi.PsiElement
@@ -25,6 +27,11 @@ import org.toml.lang.psi.ext.TomlLiteralKind
 import org.toml.lang.psi.ext.kind
 
 interface TomlDslNameConverter : GradleDslNameConverter {
+
+  override fun getKind() = GradleDslNameConverter.Kind.CATALOG_TOML
+
+  override fun externalNameForParent(modelName: String, context: GradleDslElement) = ExternalNameInfo(modelName,
+                                                                                                      ExternalNameInfo.ExternalNameSyntax.UNKNOWN)
 
   override fun psiToName(element: PsiElement): String = when (element) {
     is TomlKeySegment -> GradleNameElement.escape(element.name ?: element.text)

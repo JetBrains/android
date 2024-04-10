@@ -39,12 +39,9 @@ public abstract class GradlePropertiesDslElementSchema {
     return ImmutableMap.of();
   }
 
-  /**
-   * Returns descriptions filtered by file type (Kts, Groovy, Toml). It is currently used for editor code suggestions
-   */
   @NotNull
   public ImmutableMap<String, PropertiesElementDescription<?>> getBlockElementDescriptions(GradleDslNameConverter.Kind kind) {
-    return getAllBlockElementDescriptions(kind).entrySet().stream().filter(val -> val.getValue().isValidForKind.test(kind))
+    return getAllBlockElementDescriptions(kind).entrySet().stream()
       .collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 

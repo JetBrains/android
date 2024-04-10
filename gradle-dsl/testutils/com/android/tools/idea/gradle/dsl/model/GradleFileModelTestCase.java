@@ -18,12 +18,10 @@ package com.android.tools.idea.gradle.dsl.model;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
-import static com.android.SdkConstants.FN_DECLARATIVE_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE_TOML;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
@@ -49,7 +47,6 @@ import static org.junit.runners.Parameterized.Parameter;
 import static org.junit.runners.Parameterized.Parameters;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
@@ -118,8 +115,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
   @NotNull private static final String GROOVY_LANGUAGE = "Groovy";
   @NotNull private static final String KOTLIN_LANGUAGE = "Kotlin";
-  @NotNull private static final String DECLARATIVE_LANGUAGE = "Toml";
-
   @NotNull private static final String GRADLE_DECLARATIVE_LANGUAGE = "Something";
   protected String myTestDataRelativePath;
   protected String myTestDataResolvedPath;
@@ -149,7 +144,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     return Arrays.asList(new Object[][]{
       {".gradle", GROOVY_LANGUAGE},
       {".gradle.kts", KOTLIN_LANGUAGE},
-      {".gradle.toml", DECLARATIVE_LANGUAGE},
       {".gradle.something", GRADLE_DECLARATIVE_LANGUAGE}
     });
   }
@@ -157,8 +151,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected boolean isGroovy() { return myLanguageName.equals(GROOVY_LANGUAGE); }
 
   protected boolean isKotlinScript() { return myLanguageName.equals(KOTLIN_LANGUAGE); }
-
-  protected boolean isDeclarative() { return myLanguageName.equals(DECLARATIVE_LANGUAGE); }
 
   protected boolean isGradleDeclarative() { return myLanguageName.equals(GRADLE_DECLARATIVE_LANGUAGE); }
 
@@ -168,17 +160,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
   protected void isIrrelevantForKotlinScript(String reason) {
     assumeFalse("test irrelevant for KotlinScript: " + reason, isKotlinScript());
-  }
-
-  protected void isIrrelevantForDeclarative(String reason) {
-    assumeFalse("test irrelevant for Declarative: " + reason, isDeclarative());
-  }
-
-  /**
-   * This is a marker that test case is not yet ready for declarative
-   */
-  protected void skipDeclarativeTemporary() {
-    assumeFalse("Test is not yet support Declarative build", isDeclarative());
   }
 
   protected void skipGradleDeclarativeTemporary() {
@@ -230,10 +211,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
   @Before
   public void before() throws Exception {
-    if(isDeclarative())
-      assumeTrue("'Studio declarative support' flag is false - so test does not know/care about declarative build",
-                 StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get());
-
     // ignore Gradle declarative (Something) test cases
     assumeFalse(isGradleDeclarative());
 
@@ -296,8 +273,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   private String getSettingsFileName() {
     if (isGroovy()) {
       return FN_SETTINGS_GRADLE;
-    } else if (isDeclarative()) {
-      return FN_SETTINGS_GRADLE_TOML;
     } else if (isKotlinScript()) {
       return FN_SETTINGS_GRADLE_KTS;
     } else if (isGradleDeclarative()) {
@@ -311,8 +286,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   private String getBuildFileName() {
     if (isGroovy()) {
       return FN_BUILD_GRADLE;
-    } else if (isDeclarative()) {
-      return FN_DECLARATIVE_BUILD_GRADLE;
     } else if (isKotlinScript()) {
       return FN_BUILD_GRADLE_KTS;
     } else if (isGradleDeclarative()) {
@@ -356,7 +329,6 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     throws IOException {
     final File testFile = testFileName.toFile(myTestDataResolvedPath, myTestDataExtension);
 
-    if(!testFile.exists()) skipDeclarativeTemporary(); // skip test if no file and in declarative mode
     if(!testFile.exists()) skipGradleDeclarativeTemporary(); // skip test if no file and in declarative mode
 
     VirtualFile virtualTestFile = findFileByIoFile(testFile, true);

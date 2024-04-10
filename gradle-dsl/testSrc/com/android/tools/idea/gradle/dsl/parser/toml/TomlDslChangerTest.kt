@@ -32,19 +32,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.Mockito
 
-@RunWith(Parameterized::class)
-class TomlDslChangerTest(private val fileName: String) : LightPlatformTestCase() {
-
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "For file: {0}")
-    fun filePath() = listOf("gradle/libs.versions.toml", "build.gradle.toml")
-  }
-
-  override fun setUp(){
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true)
-    super.setUp()
-  }
+class TomlDslChangerTest : LightPlatformTestCase() {
 
   @Test
   fun testDeleteSingleLiteral() {
@@ -323,7 +311,7 @@ class TomlDslChangerTest(private val fileName: String) : LightPlatformTestCase()
   private fun doTest(toml: String, expected: String, changer: GradleDslFile.() -> Unit) {
     val libsTomlFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
-      fileName,
+      "gradle/libs.versions.toml",
       toml
     )
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}

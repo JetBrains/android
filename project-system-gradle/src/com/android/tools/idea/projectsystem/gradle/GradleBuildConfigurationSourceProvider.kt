@@ -16,7 +16,6 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
-import com.android.tools.idea.flags.StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT
 import com.android.tools.idea.flags.StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
@@ -145,13 +144,6 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
           ?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
       )
 
-      if(DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get()) {
-        yieldIfNotNull(
-          projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_TOML)
-            ?.describe("Declarative Project Settings", BUILD_WIDE_ORDER_BASE)
-        )
-      }
-
       yieldIfNotNull(
         projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_KTS)
           ?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
@@ -197,7 +189,6 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
           !child.name.endsWith(SdkConstants.EXT_GRADLE) &&
             !child.name.endsWith(SdkConstants.EXT_GRADLE_KTS) &&
             !child.isGradleDeclarativeBuildFile() &&
-            !child.isDeclarativeBuildFile() &&
             child.fileType !== proguardFileType
           )
       ) {
@@ -217,9 +208,6 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
 
   private fun VirtualFile.isGradleDeclarativeBuildFile() =
     GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.get() && name.endsWith(SdkConstants.EXT_GRADLE_SOMETHING)
-
-  private fun VirtualFile.isDeclarativeBuildFile() =
-    DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get() && name.endsWith(SdkConstants.EXT_GRADLE_TOML)
 
   private val proguardFileType: FileType = FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")
 }

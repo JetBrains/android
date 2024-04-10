@@ -393,7 +393,6 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   @Test
   public void testPluginsDslParseKotlinFunction() throws Exception {
     isIrrelevantForGroovy("kotlin function not supported in plugins { } block in Groovy");
-    isIrrelevantForDeclarative("Do not support functions");
     writeToBuildFile(TestFile.PLUGINS_DSL_PARSE_KOTLIN_FUNCTION);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<PluginModel> pluginModels = buildModel.plugins();

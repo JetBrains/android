@@ -151,12 +151,12 @@ public abstract class AbstractDependenciesModel extends GradleDslBlockModel impl
 
   @Override
   public void addArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference) {
-    new ArtifactDependencyModelImpl.Factory(myDslElement).createNew(configurationName, reference, Collections.emptyList());
+    ArtifactDependencyModelImpl.createNew(myDslElement, configurationName, reference, Collections.emptyList());
   }
 
   @Override
   public void addArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference, @NotNull List<ArtifactDependencySpec> excludes) {
-    new ArtifactDependencyModelImpl.Factory(myDslElement).createNew(configurationName, reference, excludes);
+     ArtifactDependencyModelImpl.createNew(myDslElement, configurationName, reference, excludes);
   }
 
   @Override
@@ -168,7 +168,7 @@ public abstract class AbstractDependenciesModel extends GradleDslBlockModel impl
   public void addArtifact(@NotNull String configurationName,
                           @NotNull ArtifactDependencySpec dependency,
                           @NotNull List<ArtifactDependencySpec> excludes) {
-    new ArtifactDependencyModelImpl.Factory(myDslElement).createNew(configurationName, dependency, excludes);
+    ArtifactDependencyModelImpl.createNew(myDslElement, configurationName, dependency, excludes);
   }
 
   @Override
