@@ -15,21 +15,17 @@
  */
 package com.android.tools.idea.glance.preview
 
-import com.android.tools.idea.common.editor.ToolbarActionGroups
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.FilePreviewElementProvider
-import com.android.tools.idea.preview.actions.CommonIssueNotificationAction
+import com.android.tools.idea.preview.actions.CommonPreviewToolbar
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.google.wireless.android.sdk.stats.LayoutEditorState
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -41,17 +37,6 @@ internal class GlanceAppWidgetAdapterLightVirtualFile(
   originFileProvider: () -> VirtualFile?,
 ) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
 
-internal class GlanceAppWidgetPreviewToolbar(surface: DesignSurface<*>) :
-  ToolbarActionGroups(surface) {
-
-  override fun getNorthGroup(): ActionGroup {
-    return DefaultActionGroup()
-  }
-
-  override fun getNorthEastGroup(): ActionGroup =
-    DefaultActionGroup(listOf(CommonIssueNotificationAction()))
-}
-
 /** Provider of the [PreviewRepresentation] for Glance App Widget code primitives. */
 class AppWidgetPreviewRepresentationProvider(
   private val filePreviewElementFinder: FilePreviewElementFinder<PsiGlancePreviewElement> =
@@ -62,7 +47,7 @@ class AppWidgetPreviewRepresentationProvider(
     CommonRepresentationEditorFileType(
       GlanceAppWidgetAdapterLightVirtualFile::class.java,
       LayoutEditorState.Type.GLANCE_APP_WIDGET,
-      ::GlanceAppWidgetPreviewToolbar,
+      ::CommonPreviewToolbar,
     )
 
   init {
