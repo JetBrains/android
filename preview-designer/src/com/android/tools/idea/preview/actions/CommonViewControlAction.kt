@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wear.preview.actions
+package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
-import com.android.tools.idea.preview.actions.SwitchSurfaceLayoutManagerAction
-import com.android.tools.idea.preview.actions.ViewControlAction
-import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 
-class WearTileViewControlAction(layoutOptions: List<SurfaceLayoutOption>) :
-  ViewControlAction(
-    isEnabled = { !isPreviewRefreshing(it.dataContext) },
-  ) {
+class CommonViewControlAction(layoutOptions: List<SurfaceLayoutOption>) :
+  ViewControlAction(isEnabled = { !isPreviewRefreshing(it.dataContext) }) {
 
   init {
     add(

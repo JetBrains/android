@@ -37,7 +37,7 @@ import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
-import com.android.tools.idea.wear.preview.actions.WearTileViewControlAction
+import com.android.tools.idea.preview.actions.CommonViewControlAction
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -61,7 +61,7 @@ internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarAction
       // TODO(b/292057010) Enable group filtering for Gallery mode.
       GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) })
         .visibleOnlyInDefaultPreview(),
-      WearTileViewControlAction(
+      CommonViewControlAction(
           layoutOptions = listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
         )
         .visibleOnlyInStaticPreview(),

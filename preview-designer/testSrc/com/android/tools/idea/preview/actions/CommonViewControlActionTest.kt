@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wear.preview.actions
+package com.android.tools.idea.preview.actions
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -37,7 +37,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
-class WearTileViewControlActionTest {
+class CommonViewControlActionTest {
 
   @JvmField @Rule val rule = AndroidProjectRule.inMemory().onEdt()
 
@@ -67,7 +67,7 @@ class WearTileViewControlActionTest {
         createOption("Layout C", EmptySurfaceLayoutManager()),
       )
 
-    val viewControlAction = WearTileViewControlAction(options)
+    val viewControlAction = CommonViewControlAction(options)
 
     val expected = """View Control
     Switch Layout
@@ -90,7 +90,7 @@ class WearTileViewControlActionTest {
   fun testNotEnabledWhenRefreshing() {
     val event = TestActionEvent.createTestEvent(dataContext)
     val viewControlAction =
-      WearTileViewControlAction(listOf(createOption("Layout A", EmptySurfaceLayoutManager())))
+      CommonViewControlAction(listOf(createOption("Layout A", EmptySurfaceLayoutManager())))
 
     viewModelStatus.isRefreshing = false
     viewControlAction.update(event)
