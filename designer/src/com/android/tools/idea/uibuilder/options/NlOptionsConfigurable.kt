@@ -208,39 +208,6 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
           }
         }
       }
-
-      if (StudioFlags.WEAR_TILE_PREVIEW.get()) {
-        group("Wear Tile Preview") {
-          buttonsGroup(message("android.uibuilder.nloptionsconfigurable.resource.usage")) {
-            row { comment(message("essentials.mode.resource.usage", "Wear Tile Preview")) }
-              .visibleIf(essentialsModeObservable)
-
-            row {
-                radioButton(
-                    message("android.uibuilder.nloptionsconfigurable.resource.usage.default")
-                  )
-                  .bindSelected({
-                    !state.isWearTilePreviewEssentialsModeEnabled && !EssentialsMode.isEnabled()
-                  }) {
-                    state.isWearTilePreviewEssentialsModeEnabled = !it
-                  }
-              }
-              .enabledIf(essentialsModeObservable.not())
-            row {
-                radioButton(
-                    message("android.uibuilder.nloptionsconfigurable.resource.usage.essentials")
-                  )
-                  .comment(message("essentials.mode.hint"))
-                  .bindSelected({
-                    state.isWearTilePreviewEssentialsModeEnabled || EssentialsMode.isEnabled()
-                  }) {
-                    state.isWearTilePreviewEssentialsModeEnabled = it
-                  }
-              }
-              .enabledIf(essentialsModeObservable.not())
-          }
-        }
-      }
     }
   }
 

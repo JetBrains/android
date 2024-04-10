@@ -239,8 +239,5 @@
     <option name="split" hit="Split" />
     <option name="tools" hit="UI Tools" />
     <option name="ui" hit="UI Tools" />
-    <option name="preview" hit="Wear Tile Preview" />
-    <option name="tile" hit="Wear Tile Preview" />
-    <option name="wear" hit="Wear Tile Preview" />
   </configurable>
 </options>
