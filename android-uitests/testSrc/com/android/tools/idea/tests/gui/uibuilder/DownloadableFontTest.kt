@@ -19,6 +19,8 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.MoreFontsDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture
+import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PTableFixture
 import com.android.tools.idea.tests.gui.framework.fixture.properties.SectionFixture
 import com.google.common.truth.Truth.*
@@ -78,8 +80,10 @@ class DownloadableFontTest {
       .importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(180))
       .editor
 
-    myEditorFixture.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+    myEditorFixture.open("app/src/main/res/layout/activity_my.xml")
     myEditorFixture.waitForFileToActivate()
+    val splitEditorFixture: SplitEditorFixture = myEditorFixture.getSplitEditorFixture()
+    splitEditorFixture.setCodeMode()
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     myEditorFixture.select("(TextView)")
 
@@ -101,8 +105,6 @@ class DownloadableFontTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER)
     selectFontFamily(2) // Open the dropdown and select "Fonts" for a textview
-    myEditorFixture.switchToTab("Text")
-    myEditorFixture.switchToTab("Design")
     selectFontFamily(15) // Open the dropdown and select "More Fonts..."
 
     MoreFontsDialogFixture.find(guiTest.robot())
