@@ -95,7 +95,7 @@ open class ComposeSupportedAnimationManager(
    * Currently selected properties in the timeline. Updated everytime the slider has moved or the
    * state of animation has changed. Could be empty if transition is not loaded or not supported.
    */
-  var selectedProperties = listOf<AnimationUnit.TimelineUnit>()
+  private var selectedProperties = listOf<AnimationUnit.TimelineUnit>()
     private set(value) {
       field = value
       selectedPropertiesCallback(value)
@@ -106,7 +106,7 @@ open class ComposeSupportedAnimationManager(
   }
 
   /** Animation [Transition]. Could be empty for unsupported or not yet loaded transitions. */
-  var currentTransition = Transition()
+  private var currentTransition = Transition()
     private set(value) {
       field = value
       // If transition has changed, reset it offset.
@@ -366,33 +366,50 @@ open class ComposeSupportedAnimationManager(
   override fun createTimelineElement(
     parent: JComponent,
     minY: Int,
+    forIndividualTab: Boolean,
     positionProxy: PositionProxy,
   ): TimelineElement {
     val state = elementState.value
     val offsetPx = getOffsetForValue(state.valueOffset, positionProxy)
-    return if (state.expanded) {
-      val curve =
-        TransitionCurve.create(
-          offsetPx,
-          if (state.frozen) state.frozenValue else null,
-          currentTransition,
-          minY,
-          positionProxy,
-        )
-      selectedPropertiesCallback = { curve.timelineUnits = it }
-      curve.timelineUnits = selectedProperties
-      curve
-    } else
-      TimelineLine(
-        offsetPx,
-        if (state.frozen) state.frozenValue else null,
-        currentTransition.startMillis?.let { positionProxy.xPositionForValue(it) }
-          ?: (positionProxy.minimumXPosition()),
-        currentTransition.endMillis?.let { positionProxy.xPositionForValue(it) }
-          ?: positionProxy.minimumXPosition(),
-        minY,
-      )
+    val timelineElement =
+      if (state.expanded || forIndividualTab) {
+        val curve =
+          TransitionCurve.create(
+            offsetPx,
+            if (state.frozen) state.frozenValue else null,
+            currentTransition,
+            minY,
+            positionProxy,
+          )
+        selectedPropertiesCallback = { curve.timelineUnits = it }
+        curve.timelineUnits = selectedProperties
+        curve
+      } else
+        TimelineLine(
+            offsetPx,
+            if (state.frozen) state.frozenValue else null,
+            currentTransition.startMillis?.let { positionProxy.xPositionForValue(it) }
+              ?: (positionProxy.minimumXPosition()),
+            currentTransition.endMillis?.let { positionProxy.xPositionForValue(it) }
+              ?: positionProxy.minimumXPosition(),
+            minY,
+          )
+          .also {
+            card.expandedSize = TransitionCurve.expectedHeight(currentTransition)
+            card.setDuration(currentTransition.duration)
+          }
+
+    timelineElement.setNewOffsetCallback {
+      elementState.value =
+        elementState.value.copy(valueOffset = timelineElement.getValueForOffset(it, positionProxy))
+    }
+    return timelineElement
   }
+
+  private fun TimelineElement.getValueForOffset(offsetPx: Int, positionProxy: PositionProxy) =
+    if (offsetPx >= 0)
+      positionProxy.valueForXPosition(minX + offsetPx) - positionProxy.valueForXPosition(minX)
+    else positionProxy.valueForXPosition(maxX + offsetPx) - positionProxy.valueForXPosition(maxX)
 
   /**
    * Adds [timeline] to this tab's layout. The timeline is shared across all tabs, and a Swing

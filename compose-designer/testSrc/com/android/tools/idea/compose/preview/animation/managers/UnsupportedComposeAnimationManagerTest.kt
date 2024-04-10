@@ -42,7 +42,7 @@ class UnsupportedComposeAnimationManagerTest {
     val manager = ComposeUnsupportedAnimationManager(animation, "Label")
     val slider = createTestSlider()
     assertInstanceOf<UnsupportedLabel>(
-      manager.createTimelineElement(slider, 0, slider.sliderUI.positionProxy)
+      manager.createTimelineElement(slider, 0, false, slider.sliderUI.positionProxy)
     )
   }
 }

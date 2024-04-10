@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.TabsListener
@@ -137,7 +138,7 @@ abstract class AnimationPreview<T : AnimationManager>(
     Timeline(animationPreviewPanel, component).apply {
       addChangeListener { scope.launch(uiThread) { bottomPanel.clockTimeMs = value } }
     }
-  protected val clockControl = SliderClockControl(timeline)
+  private val clockControl = SliderClockControl(timeline)
 
   /**
    * Provides buttons and controls for playing, pausing, and adjusting the playback speed of the
@@ -184,6 +185,37 @@ abstract class AnimationPreview<T : AnimationManager>(
     timeline.repaint()
     timeline.revalidate()
     coordinationTab.revalidate()
+  }
+
+  @UiThread
+  private fun getTimelineElements(): List<TimelineElement> {
+    var currentY = InspectorLayout.timelineHeaderHeightScaled()
+
+    val selectedAnimation = selectedAnimation
+    val elements: List<TimelineElement> =
+      if (selectedAnimation != null) {
+        val element =
+          selectedAnimation.createTimelineElement(
+            timeline,
+            currentY,
+            forIndividualTab = true,
+            timeline.sliderUI.positionProxy,
+          )
+        listOf(element)
+      } else {
+        animations.map { animation ->
+          animation
+            .createTimelineElement(
+              timeline,
+              currentY,
+              forIndividualTab = false,
+              timeline.sliderUI.positionProxy,
+            )
+            .also { element -> currentY += element.heightScaled() }
+        }
+      }
+    elements.forEach { Disposer.tryRegister(this@AnimationPreview, it) }
+    return elements
   }
 
   // *******************
@@ -244,16 +276,6 @@ abstract class AnimationPreview<T : AnimationManager>(
     scope.launch { maxDurationPerIteration.collect { updateTimelineMaximum() } }
   }
 
-  @UiThread protected abstract fun getTimelineElements(): List<TimelineElement>
-
-  protected fun TimelineElement.getValueForOffset(offset: Int) =
-    if (offset >= 0)
-      timeline.sliderUI.positionProxy.valueForXPosition(minX + offset) -
-        timeline.sliderUI.positionProxy.valueForXPosition(minX)
-    else
-      timeline.sliderUI.positionProxy.valueForXPosition(maxX + offset) -
-        timeline.sliderUI.positionProxy.valueForXPosition(maxX)
-
   /** Triggers a render/update of the displayed preview. */
   private suspend fun renderAnimation() {
     sceneManagerProvider()?.executeCallbacksAndRequestRender()?.await()
@@ -268,6 +290,8 @@ abstract class AnimationPreview<T : AnimationManager>(
     timeline.cachedVal = 0
     // Move the timeline slider to 0.
     withContext(uiThread) { clockControl.jumpToStart() }
+    updateTimelineElements()
+    renderAnimation()
   }
 
   private fun updateTimelineMaximum() {

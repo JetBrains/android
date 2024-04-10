@@ -24,14 +24,9 @@ import com.android.tools.idea.compose.preview.animation.managers.ComposeSupporte
 import com.android.tools.idea.compose.preview.animation.managers.ComposeUnsupportedAnimationManager
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.AnimationPreview
-import com.android.tools.idea.preview.animation.InspectorLayout
-import com.android.tools.idea.preview.animation.timeline.TimelineElement
-import com.android.tools.idea.preview.animation.timeline.TransitionCurve
-import com.android.tools.idea.preview.animation.timeline.getOffsetForValue
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import javax.swing.JComponent
@@ -62,50 +57,6 @@ class ComposeAnimationPreview(
    * to. Null when there are no animations.
    */
   override var animationClock: AnimationClock? = null
-
-  /** Update list of [TimelineElement] for selected [ComposeSupportedAnimationManager]s. */
-  @UiThread
-  override fun getTimelineElements(): List<TimelineElement> {
-    val selected = selectedAnimation as? ComposeSupportedAnimationManager
-    if (selected != null) {
-      // Paint single selected animation.
-      val state = selected.elementState.value
-      val curve =
-        TransitionCurve.create(
-          getOffsetForValue(state.valueOffset, timeline.sliderUI.positionProxy),
-          if (state.frozen) state.frozenValue else null,
-          selected.currentTransition,
-          rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          timeline.sliderUI.positionProxy,
-        )
-      selected.selectedPropertiesCallback = { curve.timelineUnits = it }
-      curve.timelineUnits = selected.selectedProperties
-      if (Disposer.tryRegister(this@ComposeAnimationPreview, curve)) {
-        curve.setNewOffsetCallback {
-          selected.elementState.value =
-            selected.elementState.value.copy(valueOffset = curve.getValueForOffset(it))
-        }
-      }
-      return listOf(curve)
-    } else {
-      var minY = InspectorLayout.timelineHeaderHeightScaled()
-      return animations.map { tab ->
-        tab.createTimelineElement(timeline, minY, timeline.sliderUI.positionProxy).also { element ->
-          minY += element.heightScaled()
-          if (Disposer.tryRegister(this@ComposeAnimationPreview, element)) {
-            if (tab is ComposeSupportedAnimationManager) {
-              tab.card.expandedSize = TransitionCurve.expectedHeight(tab.currentTransition)
-              tab.card.setDuration(tab.currentTransition.duration)
-              element.setNewOffsetCallback {
-                tab.elementState.value =
-                  tab.elementState.value.copy(valueOffset = element.getValueForOffset(it))
-              }
-            }
-          }
-        }
-      }
-    }
-  }
 
   /**
    * Set clock time
@@ -224,9 +175,4 @@ class ComposeAnimationPreview(
       super.invalidatePanel().join()
       tabNames.clear()
     }
-
-  override fun dispose() {
-    super.dispose()
-    tabNames.clear()
-  }
 }

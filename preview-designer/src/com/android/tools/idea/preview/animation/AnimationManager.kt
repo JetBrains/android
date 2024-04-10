@@ -37,6 +37,7 @@ interface AnimationManager {
   fun createTimelineElement(
     parent: JComponent,
     minY: Int,
+    forIndividualTab: Boolean,
     positionProxy: PositionProxy,
   ): TimelineElement
 
@@ -78,8 +79,9 @@ abstract class UnsupportedAnimationManager(final override val tabTitle: String) 
   override fun createTimelineElement(
     parent: JComponent,
     minY: Int,
+    forIndividualTab: Boolean,
     positionProxy: PositionProxy,
-  ): UnsupportedLabel {
+  ): TimelineElement {
     return UnsupportedLabel(
       parent,
       minY,
