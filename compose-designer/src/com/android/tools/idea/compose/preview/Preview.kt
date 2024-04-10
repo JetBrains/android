@@ -28,7 +28,6 @@ import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationInspectorManager
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.flow.ComposePreviewFlowManager
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
@@ -63,6 +62,7 @@ import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.PreviewFlowManager
@@ -287,7 +287,7 @@ class ComposePreviewRepresentation(
   private val previewBuildListenersManager =
     PreviewBuildListenersManager(
       isFastPreviewSupported = true,
-      ComposePreviewEssentialsModeManager::isEssentialsModeEnabled,
+      PreviewEssentialsModeManager::isEssentialsModeEnabled,
       ::invalidate,
       ::requestRefresh,
       ::requestVisibilityAndNotificationsUpdate,
@@ -731,7 +731,7 @@ class ComposePreviewRepresentation(
         lifecycleManager = lifecycleManager,
         previewFlowManager = composePreviewFlowManager,
         previewModeManager = previewModeManager,
-        isEssentialsModeEnabled = ComposePreviewEssentialsModeManager::isEssentialsModeEnabled,
+        isEssentialsModeEnabled = PreviewEssentialsModeManager::isEssentialsModeEnabled,
         onUpdatedFromStudioEssentialsMode = {
           logComposePreviewLiteModeEvent(
             ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType
@@ -1050,9 +1050,7 @@ class ComposePreviewRepresentation(
           .setComposePreviewLiteModeEvent(
             ComposePreviewLiteModeEvent.newBuilder()
               .setType(eventType)
-              .setIsComposePreviewLiteMode(
-                ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-              )
+              .setIsComposePreviewLiteMode(PreviewEssentialsModeManager.isEssentialsModeEnabled)
           )
       )
     }

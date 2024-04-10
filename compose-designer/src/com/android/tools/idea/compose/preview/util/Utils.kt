@@ -21,9 +21,9 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.isTestFile
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
@@ -62,7 +62,7 @@ fun SceneView.isRootComponentSelected() =
  */
 fun isFastPreviewAvailable(project: Project) =
   FastPreviewManager.getInstance(project).isAvailable &&
-    !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+    !PreviewEssentialsModeManager.isEssentialsModeEnabled
 
 fun DataContext.previewElement(): PsiComposePreviewElementInstance? =
   getData(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE)

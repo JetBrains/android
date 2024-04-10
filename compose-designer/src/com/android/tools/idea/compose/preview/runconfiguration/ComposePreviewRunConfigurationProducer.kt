@@ -17,10 +17,10 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
@@ -65,7 +65,7 @@ open class ComposePreviewRunConfigurationProducer :
     context: ConfigurationContext,
     sourceElement: Ref<PsiElement>,
   ): Boolean {
-    if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) return false
+    if (PreviewEssentialsModeManager.isEssentialsModeEnabled) return false
     val module = context.module ?: context.location?.module ?: return false
     configuration.setLaunchActivity(COMPOSE_PREVIEW_ACTIVITY_FQN, true)
     context.containingComposePreviewFunction()?.let { ktNamedFunction ->
@@ -104,7 +104,7 @@ open class ComposePreviewRunConfigurationProducer :
     configuration: ComposePreviewRunConfiguration,
     context: ConfigurationContext,
   ): Boolean {
-    if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) return false
+    if (PreviewEssentialsModeManager.isEssentialsModeEnabled) return false
     context.containingComposePreviewFunction()?.let {
       val createdFromContext = configuration.composableMethodFqn == it.composePreviewFunctionFqn()
       if (createdFromContext) {

@@ -17,10 +17,10 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.tools.idea.actions.SCENE_VIEW
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.modes.UiCheckInstance
@@ -39,7 +39,7 @@ class EnableUiCheckAction :
 
   override fun update(e: AnActionEvent) {
     val isUiCheckModeEnabled = StudioFlags.COMPOSE_UI_CHECK_MODE.get()
-    val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+    val isEssentialsModeEnabled = PreviewEssentialsModeManager.isEssentialsModeEnabled
     val disableForWear =
       HardwareConfigHelper.isWear(e.getData(SCENE_VIEW)?.configuration?.device) &&
         !StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.get()

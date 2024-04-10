@@ -24,13 +24,13 @@ import com.android.tools.idea.common.surface.LabelPanel
 import com.android.tools.idea.common.surface.LayoutData
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.actions.ml.SendPreviewToStudioBotAction
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.hideIfRenderErrors
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.intellij.openapi.actionSystem.AnAction
@@ -91,15 +91,11 @@ internal class PreviewSurfaceActionManager(
       listOfNotNull(
           EnableUiCheckAction(),
           AnimationInspectorAction(
-            isEssentialsModeEnabled = {
-              ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-            },
+            isEssentialsModeEnabled = { PreviewEssentialsModeManager.isEssentialsModeEnabled },
             defaultModeDescription = message("action.animation.inspector.description"),
           ),
           EnableInteractiveAction(
-            isEssentialsModeEnabled = {
-              ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-            }
+            isEssentialsModeEnabled = { PreviewEssentialsModeManager.isEssentialsModeEnabled }
           ),
           DeployToDeviceAction(),
         )

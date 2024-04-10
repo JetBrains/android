@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.preview.actions.getPreviewManager
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.troubleshooting.TroubleInfoCollector
@@ -34,7 +34,7 @@ private fun collectComposePreviewManagerInfo(project: Project): String =
 class ComposePreviewTroubleInfoCollector : TroubleInfoCollector {
   override fun collectInfo(project: Project) =
     """
-Compose Preview Essentials Mode enabled: ${ComposePreviewEssentialsModeManager.isEssentialsModeEnabled}
+Preview Essentials Mode enabled: ${PreviewEssentialsModeManager.isEssentialsModeEnabled}
 
 ${collectComposePreviewManagerInfo(project)}
     """

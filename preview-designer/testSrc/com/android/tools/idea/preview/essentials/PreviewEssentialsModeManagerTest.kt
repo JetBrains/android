@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.essentials
+package com.android.tools.idea.preview.essentials
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
@@ -27,7 +27,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class ComposePreviewEssentialsModeManagerTest {
+class PreviewEssentialsModeManagerTest {
 
   @get:Rule val essentialsModeFlagRule = FlagRule(StudioFlags.PREVIEW_ESSENTIALS_MODE)
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -42,22 +42,22 @@ class ComposePreviewEssentialsModeManagerTest {
   @Test
   fun essentialsModeIsOnlyEnabledIfFlagIsEnabled() {
     StudioFlags.PREVIEW_ESSENTIALS_MODE.override(false)
-    assertFalse(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
+    assertFalse(PreviewEssentialsModeManager.isEssentialsModeEnabled)
 
     settings.isPreviewEssentialsModeEnabled = true
     // Even with the essentials mode enabled in the settings panel, we shouldn't be in
     // essentials mode if the flag is disabled.
-    assertFalse(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
+    assertFalse(PreviewEssentialsModeManager.isEssentialsModeEnabled)
   }
 
   @Test
   fun essentialsModeIsControlledViaSettingsIfFlagIsEnabled() {
     StudioFlags.PREVIEW_ESSENTIALS_MODE.override(true)
     settings.isPreviewEssentialsModeEnabled = false
-    assertFalse(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
+    assertFalse(PreviewEssentialsModeManager.isEssentialsModeEnabled)
 
     settings.isPreviewEssentialsModeEnabled = true
-    assertTrue(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
+    assertTrue(PreviewEssentialsModeManager.isEssentialsModeEnabled)
   }
 
   @Test
@@ -65,12 +65,12 @@ class ComposePreviewEssentialsModeManagerTest {
     StudioFlags.PREVIEW_ESSENTIALS_MODE.override(true)
     try {
       settings.isPreviewEssentialsModeEnabled = false
-      assertFalse(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
+      assertFalse(PreviewEssentialsModeManager.isEssentialsModeEnabled)
 
       // Enable Android Studio essentials mode. Note that preview essentials mode is still disabled
       // in settings.
       EssentialsMode.setEnabled(true, projectRule.project)
-      assertTrue(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
+      assertTrue(PreviewEssentialsModeManager.isEssentialsModeEnabled)
     } finally {
       EssentialsMode.setEnabled(false, projectRule.project)
     }

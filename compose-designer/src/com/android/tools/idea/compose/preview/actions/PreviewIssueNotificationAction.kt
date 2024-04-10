@@ -20,7 +20,6 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.shortcuts.asString
@@ -30,6 +29,7 @@ import com.android.tools.idea.preview.actions.CommonIssueNotificationAction
 import com.android.tools.idea.preview.actions.PreviewStatus
 import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.actions.getStatusInfo
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -53,7 +53,7 @@ import java.awt.Insets
  * - Syntax errors
  */
 class PreviewIssueNotificationAction(parentDisposable: Disposable) :
-  CommonIssueNotificationAction(ComposePreviewEssentialsModeManager::isEssentialsModeEnabled),
+  CommonIssueNotificationAction(PreviewEssentialsModeManager::isEssentialsModeEnabled),
   RightAlignedToolbarAction {
 
   init {

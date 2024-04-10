@@ -19,13 +19,13 @@ import com.android.tools.adtui.actions.ZoomActualAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.SwitchSurfaceLayoutManagerAction
 import com.android.tools.idea.preview.actions.ViewControlAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -37,13 +37,12 @@ class ComposeViewControlAction(
 ) :
   ViewControlAction(
     isEnabled = { !isPreviewRefreshing(it.dataContext) },
-    isEssentialsModeEnabled = { ComposePreviewEssentialsModeManager.isEssentialsModeEnabled },
+    isEssentialsModeEnabled = { PreviewEssentialsModeManager.isEssentialsModeEnabled },
     essentialModeDescription = message("action.scene.view.control.essentials.mode.description"),
   ) {
   init {
     if (
-      StudioFlags.COMPOSE_VIEW_FILTER.get() &&
-        !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+      StudioFlags.COMPOSE_VIEW_FILTER.get() && !PreviewEssentialsModeManager.isEssentialsModeEnabled
     ) {
       add(ComposeShowFilterAction())
       addSeparator()

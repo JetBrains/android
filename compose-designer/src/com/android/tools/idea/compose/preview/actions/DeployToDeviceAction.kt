@@ -16,11 +16,11 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.compose.preview.util.previewElement
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ParametrizedComposePreviewElementInstance
@@ -57,7 +57,7 @@ internal class DeployToDeviceAction :
       e.dataContext.previewElement()?.previewBody?.let { isTestFile(it.project, it.virtualFile) }
         ?: false
     e.presentation.apply {
-      val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+      val isEssentialsModeEnabled = PreviewEssentialsModeManager.isEssentialsModeEnabled
       isEnabled = !isTestFile && !isEssentialsModeEnabled
       isVisible = true
       text = if (isEssentialsModeEnabled) null else message("action.run.title")

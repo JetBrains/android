@@ -18,7 +18,6 @@ package com.android.tools.idea.compose.preview.flow
 import com.android.tools.idea.compose.ComposePreviewElementsModel
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.defaultFilePreviewElementFinder
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -27,6 +26,7 @@ import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.preview.FilePreviewElementProvider
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewElementFilter
 import com.android.tools.idea.preview.flow.PreviewFlowManager
@@ -171,7 +171,7 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
           isFastPreviewAvailable = { isFastPreviewAvailable(project) },
           requestFastPreviewRefresh = requestFastPreviewRefresh,
           restorePreviousMode = restorePreviousMode,
-          isEssentialsModeEnabled = ComposePreviewEssentialsModeManager::isEssentialsModeEnabled,
+          isEssentialsModeEnabled = PreviewEssentialsModeManager::isEssentialsModeEnabled,
           previewElementProvider =
             FilePreviewElementProvider(psiFilePointer, defaultFilePreviewElementFinder),
           toInstantiatedPreviewElementsFlow =
