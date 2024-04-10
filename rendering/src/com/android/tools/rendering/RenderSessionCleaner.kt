@@ -153,7 +153,37 @@ private fun disposeIfCompose(viewInfo: ViewInfo, disposeMethod: Method) {
 
 private fun findToRunTrampolined(classLoader: ModuleClassLoader): MutableCollection<*>? {
   try {
+    // For some unknown reason sometimes we end up in a situation where ComposeViewAdapter is loaded
+    // but AndroidUiDispatcher.Main is not. This seemed infeasible. However, when it happens this
+    // function is called, and we assume that we are in the Compose preview, but because
+    // AndroidUiDispatcher.Main has never been called, its lazy evaluation is called for the very
+    // first time from the non-UI thread and end-up being stuck in runBlocking(Dispatchers.Main).
+    if (!classLoader.hasLoadedClass(ANDROID_UI_DISPATCHER_FQN)) {
+      LOG.warn(
+        "Unexpected: $CLASS_COMPOSE_VIEW_ADAPTER is loaded and $ANDROID_UI_DISPATCHER_FQN is not"
+      )
+      return null
+    }
     val uiDispatcher = classLoader.loadClass(ANDROID_UI_DISPATCHER_FQN)
+    if (!classLoader.hasLoadedClass(ANDROID_UI_DISPATCHER_COMPANION_FQN)) {
+      LOG.warn(
+        "Unexpected: $ANDROID_UI_DISPATCHER_FQN is loaded and $ANDROID_UI_DISPATCHER_COMPANION_FQN is not"
+      )
+      return null
+    }
+    // This is very hacky, but it might allow us to avoid calling getMain when it has never been
+    // called before.
+    val ANDROID_UI_DISPATCHER_COMPANION_VALUE_FQN = "$ANDROID_UI_DISPATCHER_COMPANION_FQN\$Main\$2"
+    if (classLoader.hasLoadedClass(ANDROID_UI_DISPATCHER_COMPANION_VALUE_FQN)) {
+      val uiDispatcherCompanionValue =
+        classLoader.loadClass(ANDROID_UI_DISPATCHER_COMPANION_VALUE_FQN)
+      try {
+        val instanceField = uiDispatcherCompanionValue.getField("INSTANCE")
+        if (instanceField[null] == null) {
+          LOG.warn("Unexpected: uninitialized AndroidUiDispatcher.Main")
+        }
+      } catch (ignore: ReflectiveOperationException) {}
+    }
     val uiDispatcherCompanion = classLoader.loadClass(ANDROID_UI_DISPATCHER_COMPANION_FQN)
     val uiDispatcherCompanionField = uiDispatcher.getDeclaredField("Companion")
     val uiDispatcherCompanionObj = uiDispatcherCompanionField[null]
