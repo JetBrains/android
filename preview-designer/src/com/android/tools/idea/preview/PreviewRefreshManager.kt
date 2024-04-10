@@ -119,28 +119,31 @@ interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
 
 enum class CommonPreviewRefreshType(override val priority: Int) : RefreshType {
   /** Previews are inflated and rendered. */
-  NORMAL(0),
+  NORMAL(1),
+
+  /** The existing Previews that need a quality change are re-rendered, but no inflation is done. */
+  QUALITY(0),
 }
 
 /**
  * A common implementation of [PreviewRefreshRequest].
  *
  * @param clientId see [PreviewRefreshRequest.clientId]
+ * @param refreshType a [RefreshType] value used for prioritizing the requests and that could
+ *   influence the logic in [delegateRefresh].
  * @param delegateRefresh method responsible for performing the refresh
  * @param onRefreshCompleted optional completable that will be completed once the refresh is
  *   completed. If the request is skipped and replaced with another one, then this completable will
  *   be completed when the other one is completed. If the refresh gets cancelled, this completable
  *   will be completed exceptionally.
- * @param refreshType a [RefreshType] value used for prioritizing the requests and that could
- *   influence the logic in [delegateRefresh].
  * @param refreshEventBuilder see [PreviewRefreshRequest.refreshEventBuilder]
  * @param requestId identifier used for testing and logging/debugging.
  */
 class CommonPreviewRefreshRequest(
   override val clientId: String,
+  override val refreshType: RefreshType,
   private val delegateRefresh: (PreviewRefreshRequest) -> Job,
   private var onRefreshCompleted: CompletableDeferred<Unit>? = null,
-  override val refreshType: RefreshType = CommonPreviewRefreshType.NORMAL,
   override val refreshEventBuilder: PreviewRefreshEventBuilder? = null,
   val requestId: String = UUID.randomUUID().toString().substring(0, 5),
 ) : PreviewRefreshRequest {

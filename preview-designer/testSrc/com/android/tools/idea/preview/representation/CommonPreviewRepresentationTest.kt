@@ -26,6 +26,7 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PreviewRefreshManager
@@ -70,6 +71,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -149,28 +151,21 @@ class CommonPreviewRepresentationTest {
     }
   }
 
+  @After
+  fun tearDown() {
+    StudioFlags.PREVIEW_RENDER_QUALITY.clearOverride()
+  }
+
   @Test
   fun testFullRefreshIsTriggeredOnSuccessfulBuild() =
     runBlocking(workerThread) {
+      // Turn off flag to make sure quality refreshes won't affect the asserts in this test
+      StudioFlags.PREVIEW_RENDER_QUALITY.override(false)
       val previewRepresentation = createPreviewRepresentation()
       previewRepresentation.compileAndWaitForRefresh()
 
       // block the refresh manager with a high priority refresh that won't finish
-      TestPreviewRefreshRequest.log = StringBuilder()
-      TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
-      val blockingRefresh =
-        TestPreviewRefreshRequest(
-          myScope,
-          clientId = "testClient",
-          priority = 100,
-          name = "testRequest",
-          doInsideRefreshJob = {
-            while (true) {
-              delay(500)
-            }
-          },
-        )
-      refreshManager.requestRefreshSync(blockingRefresh)
+      val blockingRefresh = blockRefreshManager()
 
       // building the project again should invalidate the preview representation
       assertFalse(previewRepresentation.isInvalidatedForTest())
@@ -272,37 +267,17 @@ class CommonPreviewRepresentationTest {
   }
 
   @Test
-  fun testReactivationWithoutChangesDontRefresh(): Unit =
+  fun testReactivationWithoutChangesDontFullRefresh(): Unit =
     runBlocking(workerThread) {
+      // Turn off flag to make sure quality refreshes won't affect the asserts in this test
+      StudioFlags.PREVIEW_RENDER_QUALITY.override(false)
       val previewRepresentation = createPreviewRepresentation()
       previewRepresentation.compileAndWaitForRefresh()
 
       assertFalse(previewRepresentation.isInvalidatedForTest())
       previewRepresentation.onDeactivate()
 
-      // block the refresh manager with a low priority refresh that won't finish
-      TestPreviewRefreshRequest.log = StringBuilder()
-      TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
-      lateinit var blockingRefresh: TestPreviewRefreshRequest
-      var reinsertionCount = 0
-      blockingRefresh =
-        TestPreviewRefreshRequest(
-          myScope,
-          clientId = "testClient",
-          priority = 0,
-          name = "testRequest",
-          doInsideRefreshJob = {
-            while (refreshManager.getTotalRequestsInQueueForTest() == 0) {
-              delay(500)
-            }
-            // A new request came in, let it process and reinsert the blo
-            reinsertionCount++
-            refreshManager.requestRefreshSync(blockingRefresh)
-          },
-        )
-      refreshManager.requestRefreshSync(blockingRefresh)
-      TestPreviewRefreshRequest.expectedLogPrintCount.await()
-      assertEquals(0, refreshManager.getTotalRequestsInQueueForTest())
+      val blockingRefresh = blockRefreshManager()
 
       // reactivating the representation shouldn't enqueue a new refresh
       previewRepresentation.onActivate()
@@ -315,6 +290,59 @@ class CommonPreviewRepresentationTest {
       assertFalse(previewRepresentation.isInvalidatedForTest())
       blockingRefresh.runningRefreshJob!!.cancel()
     }
+
+  @Test
+  fun testReactivationWithoutChangesDoesQualityRefresh(): Unit =
+    runBlocking(workerThread) {
+      val previewRepresentation = createPreviewRepresentation()
+      previewRepresentation.compileAndWaitForRefresh()
+
+      assertFalse(previewRepresentation.isInvalidatedForTest())
+      var blockingRefresh = blockRefreshManager()
+      previewRepresentation.onDeactivate()
+      // Quality refresh on deactivation to decrease qualities
+      delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
+        refreshManager.getTotalRequestsInQueueForTest() == 1
+      }
+      assertFalse(previewRepresentation.isInvalidatedForTest())
+      // unblock and wait for the quality refresh to be taken out of the queue
+      blockingRefresh.runningRefreshJob!!.cancel()
+      delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
+        refreshManager.getTotalRequestsInQueueForTest() == 0
+      }
+
+      blockingRefresh = blockRefreshManager()
+      previewRepresentation.onActivate()
+      // Another quality refresh on reactivation
+      assertFalse(previewRepresentation.isInvalidatedForTest())
+      delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
+        refreshManager.getTotalRequestsInQueueForTest() == 1
+      }
+      assertFalse(previewRepresentation.isInvalidatedForTest())
+      blockingRefresh.runningRefreshJob!!.cancel()
+    }
+
+  private suspend fun blockRefreshManager(): TestPreviewRefreshRequest {
+    // block the refresh manager with a high priority refresh that won't finish
+    TestPreviewRefreshRequest.log = StringBuilder()
+    TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
+    val blockingRefresh =
+      TestPreviewRefreshRequest(
+        myScope,
+        clientId = "testClient",
+        priority = 100,
+        name = "testRequest",
+        doInsideRefreshJob = {
+          while (true) {
+            delay(500)
+          }
+        },
+      )
+    refreshManager.requestRefreshSync(blockingRefresh)
+    TestPreviewRefreshRequest.expectedLogPrintCount.await()
+    assertEquals(0, refreshManager.getTotalRequestsInQueueForTest())
+    return blockingRefresh
+  }
 
   private fun createPreviewRepresentation(): CommonPreviewRepresentation<PsiTestPreviewElement> {
     val previewElement = PsiTestPreviewElement()
