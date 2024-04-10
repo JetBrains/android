@@ -172,9 +172,9 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                       message("android.uibuilder.nloptionsconfigurable.resource.usage.default")
                     )
                     .bindSelected({
-                      !state.isComposePreviewEssentialsModeEnabled && !EssentialsMode.isEnabled()
+                      !state.isPreviewEssentialsModeEnabled && !EssentialsMode.isEnabled()
                     }) {
-                      state.isComposePreviewEssentialsModeEnabled = !it
+                      state.isPreviewEssentialsModeEnabled = !it
                     }
               }
               .enabledIf(essentialsModeObservable.not())
@@ -193,9 +193,9 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                   // TODO(b/327343295) add "Learn More" link when the DAC page is live
                   .comment(message("essentials.mode.hint"))
                   .bindSelected({
-                    state.isComposePreviewEssentialsModeEnabled || EssentialsMode.isEnabled()
+                    state.isPreviewEssentialsModeEnabled || EssentialsMode.isEnabled()
                   }) {
-                    state.isComposePreviewEssentialsModeEnabled = it
+                    state.isPreviewEssentialsModeEnabled = it
                   }
               }
               .enabledIf(essentialsModeObservable.not())

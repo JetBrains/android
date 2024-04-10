@@ -92,7 +92,7 @@ open class PerfgateComposeGradleTestBase {
         fixture.editor.executeAndSave { fixture.editor.insertText(generatePreviewAnnotations(nPreviewsToAdd)) }
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
         FileDocumentManager.getInstance().saveAllDocuments()
-        if(AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled) {
+        if(AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled) {
           composePreviewRepresentation.requestRefreshForTest()
         }
       }

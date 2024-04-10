@@ -28,6 +28,6 @@ object ComposePreviewEssentialsModeManager {
   val isEssentialsModeEnabled: Boolean
     get() =
       StudioFlags.PREVIEW_ESSENTIALS_MODE.get() &&
-        (AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled ||
+        (AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled ||
           EssentialsMode.isEnabled())
 }

@@ -36,7 +36,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
 
   @After
   fun tearDown() {
-    AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = false
+    AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled = false
   }
 
   @Test
@@ -168,7 +168,7 @@ class PerfgateComposeEssentialsGradleTest : PerfgateComposeGradleTestBase() {
   private fun setUpEssentialsMode() = runBlocking {
     projectRule.runAndWaitForRefresh {
       runWriteActionAndWait {
-        AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = true
+        AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled = true
         ApplicationManager.getApplication()
           .messageBus
           .syncPublisher(NlOptionsConfigurable.Listener.TOPIC)

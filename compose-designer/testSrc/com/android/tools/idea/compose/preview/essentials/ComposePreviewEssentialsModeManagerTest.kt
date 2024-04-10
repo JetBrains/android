@@ -44,7 +44,7 @@ class ComposePreviewEssentialsModeManagerTest {
     StudioFlags.PREVIEW_ESSENTIALS_MODE.override(false)
     assertFalse(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
 
-    settings.isComposePreviewEssentialsModeEnabled = true
+    settings.isPreviewEssentialsModeEnabled = true
     // Even with the essentials mode enabled in the settings panel, we shouldn't be in
     // essentials mode if the flag is disabled.
     assertFalse(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
@@ -53,10 +53,10 @@ class ComposePreviewEssentialsModeManagerTest {
   @Test
   fun essentialsModeIsControlledViaSettingsIfFlagIsEnabled() {
     StudioFlags.PREVIEW_ESSENTIALS_MODE.override(true)
-    settings.isComposePreviewEssentialsModeEnabled = false
+    settings.isPreviewEssentialsModeEnabled = false
     assertFalse(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
 
-    settings.isComposePreviewEssentialsModeEnabled = true
+    settings.isPreviewEssentialsModeEnabled = true
     assertTrue(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
   }
 
@@ -64,7 +64,7 @@ class ComposePreviewEssentialsModeManagerTest {
   fun previewEssentialsModeIsEnabledIfStudioEssentialsModeIsEnabled() {
     StudioFlags.PREVIEW_ESSENTIALS_MODE.override(true)
     try {
-      settings.isComposePreviewEssentialsModeEnabled = false
+      settings.isPreviewEssentialsModeEnabled = false
       assertFalse(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
 
       // Enable Android Studio essentials mode. Note that preview essentials mode is still disabled

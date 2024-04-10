@@ -337,10 +337,10 @@ class MultiPreviewUsageTrackerTest {
 
     try {
       val settings = AndroidEditorSettings.getInstance().globalState
-      settings.isComposePreviewEssentialsModeEnabled = false
+      settings.isPreviewEssentialsModeEnabled = false
       assertFalse(logAndGetMultiPreviewEvent().isComposePreviewLiteMode)
 
-      settings.isComposePreviewEssentialsModeEnabled = true
+      settings.isPreviewEssentialsModeEnabled = true
       assertTrue(logAndGetMultiPreviewEvent().isComposePreviewLiteMode)
     } finally {
       StudioFlags.PREVIEW_ESSENTIALS_MODE.clearOverride()

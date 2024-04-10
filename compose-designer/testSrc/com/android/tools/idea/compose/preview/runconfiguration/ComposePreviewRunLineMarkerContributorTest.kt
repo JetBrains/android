@@ -54,7 +54,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
   override fun tearDown() {
     super.tearDown()
     StudioFlags.PREVIEW_ESSENTIALS_MODE.clearOverride()
-    AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = false
+    AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled = false
   }
 
   override fun configureAdditionalModules(
@@ -93,7 +93,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
   }
 
   fun testGetInfoWhenEssentialsModeIsEnabled() {
-    AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = true
+    AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled = true
     val file =
       myFixture.addFileToProjectAndInvalidate(
         "src/Test.kt",
