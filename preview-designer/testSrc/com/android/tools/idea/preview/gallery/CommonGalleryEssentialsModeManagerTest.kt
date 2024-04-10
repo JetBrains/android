@@ -31,10 +31,10 @@ import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.jetbrains.rd.util.AtomicInteger
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -48,10 +48,10 @@ class CommonGalleryEssentialsModeManagerTest {
     get() = projectRule.project
 
   private val previewModeManager = CommonPreviewModeManager()
-  private val isEssentialsModeEnabled = AtomicBoolean(false)
 
   private lateinit var scope: CoroutineScope
   private lateinit var lifecycleManager: PreviewLifecycleManager
+  private lateinit var settings: AndroidEditorSettings.GlobalState
 
   @Before
   fun setup() {
@@ -65,12 +65,13 @@ class CommonGalleryEssentialsModeManagerTest {
         onDeactivate = {},
         onDelayedDeactivate = {},
       )
+    settings = AndroidEditorSettings.getInstance().globalState
   }
 
   @After
   fun tearDown() {
-    isEssentialsModeEnabled.set(false)
     EssentialsMode.setEnabled(false, project)
+    settings.isPreviewEssentialsModeEnabled = false
   }
 
   @Test
@@ -93,7 +94,7 @@ class CommonGalleryEssentialsModeManagerTest {
 
   @Test
   fun testNoUpdatesOccurWhenGalleryModeAndEssentialsModeAreAlreadySet() {
-    enableEssentialsMode()
+    triggerPreviewEssentialsModeUpdate(true)
     previewModeManager.setMode(PreviewMode.Gallery(null))
 
     val refreshCount = AtomicInteger(0)
@@ -136,7 +137,7 @@ class CommonGalleryEssentialsModeManagerTest {
   @Test
   fun testGalleryModeShouldBeSetWhenManagerIsActivated() {
     val previewElements = listOf(TestPreviewElement("element 1"), TestPreviewElement("element 2"))
-    enableEssentialsMode()
+    triggerPreviewEssentialsModeUpdate(true)
     testRefreshIsRequested(
       previewElements = previewElements,
       expectedUpdatedFromStudioEssentialsModeCount = 0,
@@ -237,9 +238,8 @@ class CommonGalleryEssentialsModeManagerTest {
     return CommonGalleryEssentialsModeManager(
         project = project,
         lifecycleManager = lifecycleManager,
-        previewModeManager = previewModeManager,
         previewFlowManager = previewFlowManager,
-        isEssentialsModeEnabled = { isEssentialsModeEnabled.get() },
+        previewModeManager = previewModeManager,
         onUpdatedFromStudioEssentialsMode = onUpdatedFromStudioEssentialsMode,
         onUpdatedFromPreviewEssentialsMode = onUpdatedFromPreviewEssentialsMode,
         requestRefresh = requestRefresh,
@@ -247,17 +247,12 @@ class CommonGalleryEssentialsModeManagerTest {
       .also { Disposer.register(projectRule.testRootDisposable, it) }
   }
 
-  private fun enableEssentialsMode() {
-    isEssentialsModeEnabled.set(true)
-  }
-
   private fun triggerStudioEssentialsModeUpdate(value: Boolean) {
-    isEssentialsModeEnabled.set(value)
     EssentialsMode.setEnabled(value, project)
   }
 
   private fun triggerPreviewEssentialsModeUpdate(value: Boolean) {
-    isEssentialsModeEnabled.set(value)
+    settings.isPreviewEssentialsModeEnabled = value
     ApplicationManager.getApplication()
       .messageBus
       .syncPublisher(NlOptionsConfigurable.Listener.TOPIC)

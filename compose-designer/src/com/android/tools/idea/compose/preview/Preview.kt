@@ -287,7 +287,6 @@ class ComposePreviewRepresentation(
   private val previewBuildListenersManager =
     PreviewBuildListenersManager(
       isFastPreviewSupported = true,
-      PreviewEssentialsModeManager::isEssentialsModeEnabled,
       ::invalidate,
       ::requestRefresh,
       ::requestVisibilityAndNotificationsUpdate,
@@ -731,7 +730,6 @@ class ComposePreviewRepresentation(
         lifecycleManager = lifecycleManager,
         previewFlowManager = composePreviewFlowManager,
         previewModeManager = previewModeManager,
-        isEssentialsModeEnabled = PreviewEssentialsModeManager::isEssentialsModeEnabled,
         onUpdatedFromStudioEssentialsMode = {
           logComposePreviewLiteModeEvent(
             ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType

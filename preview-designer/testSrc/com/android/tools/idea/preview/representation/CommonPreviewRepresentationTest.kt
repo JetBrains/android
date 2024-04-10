@@ -334,7 +334,6 @@ class CommonPreviewRepresentationTest {
         viewModelConstructor = { _, _, _, _, _, _ -> previewViewModelMock },
         configureDesignSurface = {},
         renderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED,
-        isEssentialsModeEnabled = { false },
       )
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
     return previewRepresentation

@@ -17,6 +17,7 @@ package com.android.tools.idea.preview
 
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModel
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
@@ -42,7 +43,6 @@ import org.jetbrains.kotlin.idea.base.util.module
  */
 class PreviewBuildListenersManager(
   private val isFastPreviewSupported: Boolean,
-  private val isEssentialsModeEnabled: () -> Boolean,
   private val invalidate: () -> Unit,
   private val refresh: () -> Unit,
   private val requestVisibilityAndNotificationsUpdate: () -> Unit = {},
@@ -86,7 +86,9 @@ class PreviewBuildListenersManager(
             // If Fast Preview is enabled, prefetch the daemon for the current configuration.
             // This should not happen when essentials mode is enabled.
             FastPreviewManager.getInstance(module.project).let {
-              if (it.isEnabled && !isEssentialsModeEnabled()) it.preStartDaemon(module)
+              if (it.isEnabled && !PreviewEssentialsModeManager.isEssentialsModeEnabled) {
+                it.preStartDaemon(module)
+              }
             }
           }
           afterBuildComplete(isSuccessful = true)

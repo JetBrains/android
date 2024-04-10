@@ -29,7 +29,6 @@ import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
-import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
@@ -70,7 +69,7 @@ internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarAction
   }
 
   override fun getNorthEastGroup(): ActionGroup =
-    DefaultActionGroup(listOf(CommonIssueNotificationAction(PreviewEssentialsModeManager::isEssentialsModeEnabled)))
+    DefaultActionGroup(listOf(CommonIssueNotificationAction()))
 }
 
 /** Provider of the [PreviewRepresentation] for Wear Tile code primitives. */

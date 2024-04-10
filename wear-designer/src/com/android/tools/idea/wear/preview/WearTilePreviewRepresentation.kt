@@ -18,7 +18,6 @@ package com.android.tools.idea.wear.preview
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
-import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.representation.CommonPreviewRepresentation
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -44,7 +43,6 @@ internal class WearTilePreviewRepresentation(
     ::WearTilePreviewViewModel,
     NlDesignSurface.Builder::configureDesignSurface,
     renderingTopic = RenderAsyncActionExecutor.RenderingTopic.WEAR_TILE_PREVIEW,
-    isEssentialsModeEnabled = PreviewEssentialsModeManager::isEssentialsModeEnabled,
   )
 
 private fun NlDesignSurface.Builder.configureDesignSurface() {

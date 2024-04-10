@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.gallery
 
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -40,9 +41,6 @@ import com.intellij.openapi.project.Project
  *   [PreviewFlowManager.allPreviewElementsFlow] will be used as the selected preview element. See
  *   [PreviewFlowManager].
  * @param previewModeManager used to switch modes. See [PreviewModeManager].
- * @param isEssentialsModeEnabled function returning whether essentials mode is enabled or not. This
- *   method should check if either of Android Studio or the preview type's specific essentials mode
- *   is enabled.
  * @param onUpdatedFromStudioEssentialsMode callback that is invoked whenever an update is triggered
  *   by a change in Android Studio's Essentials Mode. See [EssentialsModeMessenger].
  * @param onUpdatedFromPreviewEssentialsMode callback that is invoked whenever an update is trigger
@@ -55,7 +53,6 @@ class CommonGalleryEssentialsModeManager<T : PreviewElement<*>>(
   private val lifecycleManager: PreviewLifecycleManager,
   private val previewFlowManager: PreviewFlowManager<T>,
   private val previewModeManager: PreviewModeManager,
-  private val isEssentialsModeEnabled: () -> Boolean,
   private val onUpdatedFromStudioEssentialsMode: () -> Unit,
   private val onUpdatedFromPreviewEssentialsMode: () -> Unit,
   private val requestRefresh: () -> Unit,
@@ -98,10 +95,9 @@ class CommonGalleryEssentialsModeManager<T : PreviewElement<*>>(
   private fun updateGalleryMode(sourceCallback: (() -> Unit)? = null) {
     // If Preview is inactive - don't update Gallery.
     if (!lifecycleManager.isActive()) return
-    val essentialsModeIsEnabled = isEssentialsModeEnabled()
     val galleryModeIsSet = previewModeManager.mode.value is PreviewMode.Gallery
     // Only update gallery mode if needed
-    if (essentialsModeIsEnabled == galleryModeIsSet) return
+    if (PreviewEssentialsModeManager.isEssentialsModeEnabled == galleryModeIsSet) return
 
     if (galleryModeIsSet) {
       // There is no need to switch back to Default mode as toolbar is available.

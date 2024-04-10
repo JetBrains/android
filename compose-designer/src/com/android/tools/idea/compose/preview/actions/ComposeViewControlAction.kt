@@ -37,7 +37,6 @@ class ComposeViewControlAction(
 ) :
   ViewControlAction(
     isEnabled = { !isPreviewRefreshing(it.dataContext) },
-    isEssentialsModeEnabled = { PreviewEssentialsModeManager.isEssentialsModeEnabled },
     essentialModeDescription = message("action.scene.view.control.essentials.mode.description"),
   ) {
   init {

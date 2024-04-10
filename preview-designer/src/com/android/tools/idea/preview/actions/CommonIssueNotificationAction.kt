@@ -107,11 +107,7 @@ private class FileProvider(dataContext: DataContext) : () -> PsiFile? {
  * things like the current editor.
  */
 @VisibleForTesting
-fun defaultCreateInformationPopup(
-  project: Project,
-  dataContext: DataContext,
-  isEssentialsModeEnabled: () -> Boolean,
-): InformationPopup? {
+fun defaultCreateInformationPopup(project: Project, dataContext: DataContext): InformationPopup? {
   val fileProvider = FileProvider(dataContext)::invoke
   return getStatusInfo(project, dataContext)?.let { previewStatusNotification ->
     val isAutoDisabled =
@@ -135,8 +131,7 @@ fun defaultCreateInformationPopup(
               ToggleFastPreviewAction(
                 fastPreviewSurfaceProvider = { dataContext ->
                   dataContext.findPreviewManager(FastPreviewSurface.KEY)
-                },
-                isEssentialsModeEnabled,
+                }
               )
             ),
           links = linksList,
@@ -223,10 +218,9 @@ private fun DataContext.createTitleActionLink(fileProvider: KFunction0<PsiFile?>
 
 /** Common [IssueNotificationAction] that can be used for most previews. */
 open class CommonIssueNotificationAction(
-  isEssentialsModeEnabled: () -> Boolean,
   createInformationPopup: (Project, DataContext) -> InformationPopup? = { project, dataContext ->
-    defaultCreateInformationPopup(project, dataContext, isEssentialsModeEnabled)
-  },
+    defaultCreateInformationPopup(project, dataContext)
+  }
 ) : IssueNotificationAction(::getStatusInfo, createInformationPopup), RightAlignedToolbarAction {
   override fun margins(): Insets {
     return JBUI.insets(3)

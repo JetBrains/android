@@ -26,7 +26,6 @@ import com.android.tools.idea.preview.actions.hasSceneViewErrors
 import com.android.tools.idea.preview.actions.hideIfRenderErrors
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
-import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -46,14 +45,7 @@ internal class WearTilePreviewActionManager(surface: DesignSurface<LayoutlibScen
 
   override fun getSceneViewContextToolbarActions(): List<AnAction> =
     listOf(Separator()) +
-      listOfNotNull(
-          AnimationInspectorAction(
-            isEssentialsModeEnabled = PreviewEssentialsModeManager::isEssentialsModeEnabled
-          ),
-          EnableInteractiveAction(
-            isEssentialsModeEnabled = PreviewEssentialsModeManager::isEssentialsModeEnabled
-          ),
-        )
+      listOfNotNull(AnimationInspectorAction(), EnableInteractiveAction())
         .disabledIf { context -> isPreviewRefreshing(context) || hasSceneViewErrors(context) }
         .hideIfRenderErrors()
         .visibleOnlyInStaticPreview()

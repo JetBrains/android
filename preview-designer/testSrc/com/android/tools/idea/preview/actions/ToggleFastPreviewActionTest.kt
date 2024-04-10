@@ -32,11 +32,7 @@ internal class ToggleFastPreviewActionTest {
     val manager = FastPreviewManager.getInstance(projectRule.project)
     assertTrue(manager.isEnabled)
     assertTrue(manager.isAvailable)
-    val action =
-      ToggleFastPreviewAction(
-        fastPreviewSurfaceProvider = { null },
-        isEssentialsModeEnabled = { false },
-      )
+    val action = ToggleFastPreviewAction(fastPreviewSurfaceProvider = { null })
     val event = TestActionEvent.createTestEvent()
 
     action.actionPerformed(event)

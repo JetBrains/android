@@ -61,7 +61,6 @@ class CommonIssueNotificationActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private var viewModelStatus = TestPreviewViewModelStatus()
-  private var isEssentialsModeEnabled = false
   private val dataContext = DataContext {
     when (it) {
       PREVIEW_VIEW_MODEL_STATUS.name -> viewModelStatus
@@ -72,7 +71,7 @@ class CommonIssueNotificationActionTest {
 
   @Test
   fun `check simple states`() {
-    val action = CommonIssueNotificationAction({ isEssentialsModeEnabled }, ::noPopupFactor)
+    val action = CommonIssueNotificationAction()
     val event = TestActionEvent.createTestEvent(dataContext)
 
     action.update(event)
@@ -120,7 +119,7 @@ class CommonIssueNotificationActionTest {
 
   @Test
   fun `check state priorities`() {
-    val action = CommonIssueNotificationAction({ isEssentialsModeEnabled }, ::noPopupFactor)
+    val action = CommonIssueNotificationAction(::noPopupFactor)
     val event = TestActionEvent.createTestEvent(dataContext)
 
     viewModelStatus =
@@ -204,20 +203,14 @@ class CommonIssueNotificationActionTest {
     val fastPreviewManager = projectRule.project.fastPreviewManager
     // Default state check
     run {
-      val popup =
-        defaultCreateInformationPopup(projectRule.project, dataContext) {
-          isEssentialsModeEnabled
-        }!!
+      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
       assertEquals("The preview is up to date", popup.labelsDescription())
       assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
 
     run {
       viewModelStatus = TestPreviewViewModelStatus(isOutOfDate = true)
-      val popup =
-        defaultCreateInformationPopup(projectRule.project, dataContext) {
-          isEssentialsModeEnabled
-        }!!
+      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
       assertEquals("The preview is out of date", popup.labelsDescription())
       assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
@@ -227,10 +220,7 @@ class CommonIssueNotificationActionTest {
       fastPreviewManager.disable(DisableReason("error"))
       try {
         viewModelStatus = TestPreviewViewModelStatus(isOutOfDate = true)
-        val popup =
-          defaultCreateInformationPopup(projectRule.project, dataContext) {
-            isEssentialsModeEnabled
-          }!!
+        val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
         assertEquals(
           "The code might contain errors or might not work with Preview Live Edit.",
           popup.labelsDescription(),
@@ -255,10 +245,7 @@ class CommonIssueNotificationActionTest {
       fastPreviewManager.disable(ManualDisabledReason)
       try {
         viewModelStatus = TestPreviewViewModelStatus(isOutOfDate = true)
-        val popup =
-          defaultCreateInformationPopup(projectRule.project, dataContext) {
-            isEssentialsModeEnabled
-          }!!
+        val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
         assertEquals("The preview is out of date", popup.labelsDescription())
         assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
       } finally {
@@ -274,10 +261,7 @@ class CommonIssueNotificationActionTest {
           isOutOfDate =
             true, // Leaving out of date to true to verify it does not take precedence over refresh
         )
-      val popup =
-        defaultCreateInformationPopup(projectRule.project, dataContext) {
-          isEssentialsModeEnabled
-        }!!
+      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
       assertEquals("The preview is updating...", popup.labelsDescription())
       assertEquals("Build & Refresh (SHORTCUT)", popup.linksDescription())
     }
@@ -290,10 +274,7 @@ class CommonIssueNotificationActionTest {
           isOutOfDate =
             true, // Leaving out of date to true to verify it does not take precedence over refresh
         )
-      val popup =
-        defaultCreateInformationPopup(projectRule.project, dataContext) {
-          isEssentialsModeEnabled
-        }!!
+      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
       assertEquals(
         "The preview will not update while your project contains syntax errors.",
         popup.labelsDescription(),
@@ -310,10 +291,7 @@ class CommonIssueNotificationActionTest {
     // Verify render issues status
     run {
       viewModelStatus = TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true)
-      val popup =
-        defaultCreateInformationPopup(projectRule.project, dataContext) {
-          isEssentialsModeEnabled
-        }!!
+      val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
       assertEquals(
         "Some problems were found while rendering the preview",
         popup.labelsDescription(),
@@ -345,11 +323,10 @@ class CommonIssueNotificationActionTest {
       }
 
     var popupRequested = 0
-    val action =
-      CommonIssueNotificationAction({ isEssentialsModeEnabled }) { _, _ ->
-        popupRequested++
-        fakePopup
-      }
+    val action = CommonIssueNotificationAction { _, _ ->
+      popupRequested++
+      fakePopup
+    }
     val event =
       TestActionEvent.createTestEvent(
         action,

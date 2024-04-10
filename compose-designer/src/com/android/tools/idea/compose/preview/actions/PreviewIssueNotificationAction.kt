@@ -29,7 +29,6 @@ import com.android.tools.idea.preview.actions.CommonIssueNotificationAction
 import com.android.tools.idea.preview.actions.PreviewStatus
 import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.actions.getStatusInfo
-import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -53,8 +52,7 @@ import java.awt.Insets
  * - Syntax errors
  */
 class PreviewIssueNotificationAction(parentDisposable: Disposable) :
-  CommonIssueNotificationAction(PreviewEssentialsModeManager::isEssentialsModeEnabled),
-  RightAlignedToolbarAction {
+  CommonIssueNotificationAction(), RightAlignedToolbarAction {
 
   init {
     Disposer.register(parentDisposable, this)

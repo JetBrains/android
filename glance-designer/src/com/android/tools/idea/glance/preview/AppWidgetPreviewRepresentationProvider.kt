@@ -20,7 +20,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.FilePreviewElementProvider
 import com.android.tools.idea.preview.actions.CommonIssueNotificationAction
@@ -50,7 +49,7 @@ internal class GlanceAppWidgetPreviewToolbar(surface: DesignSurface<*>) :
   }
 
   override fun getNorthEastGroup(): ActionGroup =
-    DefaultActionGroup(listOf(CommonIssueNotificationAction(EssentialsMode::isEnabled)))
+    DefaultActionGroup(listOf(CommonIssueNotificationAction()))
 }
 
 /** Provider of the [PreviewRepresentation] for Glance App Widget code primitives. */

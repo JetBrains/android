@@ -26,7 +26,6 @@ import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.preview.FilePreviewElementProvider
-import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewElementFilter
 import com.android.tools.idea.preview.flow.PreviewFlowManager
@@ -171,7 +170,6 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
           isFastPreviewAvailable = { isFastPreviewAvailable(project) },
           requestFastPreviewRefresh = requestFastPreviewRefresh,
           restorePreviousMode = restorePreviousMode,
-          isEssentialsModeEnabled = PreviewEssentialsModeManager::isEssentialsModeEnabled,
           previewElementProvider =
             FilePreviewElementProvider(psiFilePointer, defaultFilePreviewElementFinder),
           toInstantiatedPreviewElementsFlow =

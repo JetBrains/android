@@ -16,7 +16,6 @@
 package com.android.tools.idea.glance.preview
 
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.representation.CommonPreviewRepresentation
@@ -49,7 +48,6 @@ internal class GlancePreviewRepresentation(
     NlDesignSurface.Builder::configureDesignSurface,
     renderingTopic = RenderAsyncActionExecutor.RenderingTopic.GLANCE_PREVIEW,
     useCustomInflater = false,
-    isEssentialsModeEnabled = EssentialsMode::isEnabled,
   )
 
 private fun NlDesignSurface.Builder.configureDesignSurface() {

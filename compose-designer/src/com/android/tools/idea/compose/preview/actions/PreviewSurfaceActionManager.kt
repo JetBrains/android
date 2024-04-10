@@ -30,7 +30,6 @@ import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.hideIfRenderErrors
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
-import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.intellij.openapi.actionSystem.AnAction
@@ -91,12 +90,9 @@ internal class PreviewSurfaceActionManager(
       listOfNotNull(
           EnableUiCheckAction(),
           AnimationInspectorAction(
-            isEssentialsModeEnabled = { PreviewEssentialsModeManager.isEssentialsModeEnabled },
-            defaultModeDescription = message("action.animation.inspector.description"),
+            defaultModeDescription = message("action.animation.inspector.description")
           ),
-          EnableInteractiveAction(
-            isEssentialsModeEnabled = { PreviewEssentialsModeManager.isEssentialsModeEnabled }
-          ),
+          EnableInteractiveAction(),
           DeployToDeviceAction(),
         )
         .disabledIfRefreshingOrRenderErrors()

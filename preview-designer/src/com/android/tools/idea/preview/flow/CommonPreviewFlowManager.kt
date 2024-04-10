@@ -27,6 +27,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PsiPreviewElement
 import com.android.tools.idea.preview.PsiPreviewElementInstance
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
@@ -153,7 +154,6 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
     isFastPreviewAvailable: () -> Boolean,
     requestFastPreviewRefresh: suspend () -> Unit,
     restorePreviousMode: () -> Unit,
-    isEssentialsModeEnabled: () -> Boolean,
     previewElementProvider: PreviewElementProvider<K>,
     toInstantiatedPreviewElementsFlow: (Flow<FlowableCollection<K>>) -> Flow<FlowableCollection<T>>,
   ) {
@@ -316,7 +316,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
             if (
               previewModeManager.mode.value !is PreviewMode.Interactive &&
                 previewModeManager.mode.value !is PreviewMode.AnimationInspection &&
-                !isEssentialsModeEnabled()
+                !PreviewEssentialsModeManager.isEssentialsModeEnabled
             )
               requestRefresh()
           }

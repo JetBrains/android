@@ -43,6 +43,7 @@ import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PsiPreviewElementInstance
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
@@ -132,7 +133,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     ) -> CommonPreviewViewModel,
   configureDesignSurface: NlDesignSurface.Builder.() -> Unit,
   renderingTopic: RenderingTopic,
-  private val isEssentialsModeEnabled: () -> Boolean,
   useCustomInflater: Boolean = true,
 ) :
   PreviewRepresentation,
@@ -235,7 +235,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private val previewBuildListenersManager =
     PreviewBuildListenersManager(
       isFastPreviewSupported = isFastPreviewAvailable(),
-      isEssentialsModeEnabled,
       ::invalidate,
       ::requestRefresh,
     )
@@ -305,7 +304,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         lifecycleManager = lifecycleManager,
         previewFlowManager = previewFlowManager,
         previewModeManager = previewModeManager,
-        isEssentialsModeEnabled = isEssentialsModeEnabled,
         onUpdatedFromStudioEssentialsMode = {},
         onUpdatedFromPreviewEssentialsMode = {},
         requestRefresh = ::requestRefresh,
@@ -595,7 +593,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
           isFastPreviewAvailable = ::isFastPreviewAvailable,
           requestFastPreviewRefresh = delegateFastPreviewSurface::requestFastPreviewRefreshSync,
           restorePreviousMode = ::restorePrevious,
-          isEssentialsModeEnabled = isEssentialsModeEnabled,
           previewElementProvider = previewElementProvider,
         ) {
           it
@@ -709,5 +706,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
    * should not be available in this case.
    */
   private fun isFastPreviewAvailable() =
-    FastPreviewManager.getInstance(project).isAvailable && !isEssentialsModeEnabled()
+    FastPreviewManager.getInstance(project).isAvailable &&
+      !PreviewEssentialsModeManager.isEssentialsModeEnabled
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.preview.actions
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.PreviewBundle.message
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -27,8 +28,7 @@ import com.intellij.ui.EditorNotifications
 
 /** Action that toggles the Fast Preview state. */
 class ToggleFastPreviewAction(
-  private val fastPreviewSurfaceProvider: (DataContext) -> FastPreviewSurface?,
-  private val isEssentialsModeEnabled: () -> Boolean,
+  private val fastPreviewSurfaceProvider: (DataContext) -> FastPreviewSurface?
 ) : AnAction(null, null, null) {
   /** BGT is needed when calling [findPreviewManager] because it accesses the VirtualFile */
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -56,7 +56,7 @@ class ToggleFastPreviewAction(
       presentation.isEnabledAndVisible = false
       return
     }
-    if (isEssentialsModeEnabled()) {
+    if (PreviewEssentialsModeManager.isEssentialsModeEnabled) {
       presentation.description =
         message("action.preview.fast.refresh.disabled.in.essentials.mode.description")
       presentation.isEnabled = false

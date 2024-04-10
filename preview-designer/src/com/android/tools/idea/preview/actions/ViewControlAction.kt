@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.actions
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.preview.PreviewBundle.message
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -32,7 +33,6 @@ import com.intellij.ui.icons.copyIcon
  */
 open class ViewControlAction(
   private val isEnabled: (e: AnActionEvent) -> Boolean,
-  private val isEssentialsModeEnabled: () -> Boolean,
   private val essentialModeDescription: String =
     message("action.scene.view.control.essentials.mode.description"),
 ) :
@@ -46,7 +46,7 @@ open class ViewControlAction(
     super.update(e)
     e.presentation.isEnabled = isEnabled(e)
     e.presentation.description =
-      if (isEssentialsModeEnabled()) essentialModeDescription
+      if (PreviewEssentialsModeManager.isEssentialsModeEnabled) essentialModeDescription
       else message("action.scene.view.control.description")
   }
 

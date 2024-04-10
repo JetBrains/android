@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.preview.PreviewBundle.message
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
@@ -27,12 +28,9 @@ import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
 /**
  * Action to open the Animation Preview to analyze animations in details.
  *
- * @param isEssentialsModeEnabled returns true if Essentials Mode is enabled. The action is disabled
- *   when Essentials Mode is enabled.
  * @param defaultModeDescription the description that will be used for the action
  */
 class AnimationInspectorAction(
-  private val isEssentialsModeEnabled: () -> Boolean,
   private val defaultModeDescription: String = message("action.animation.inspector.description")
 ) :
   DumbAwareAction(
@@ -44,7 +42,7 @@ class AnimationInspectorAction(
 
   override fun update(e: AnActionEvent) {
     e.presentation.apply {
-      val isEssentialsModeEnabled = isEssentialsModeEnabled()
+      val isEssentialsModeEnabled = PreviewEssentialsModeManager.isEssentialsModeEnabled
       isEnabled = !isEssentialsModeEnabled
       // Only display the animation inspector icon if there are animations to be inspected.
       isVisible = e.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)?.hasAnimations == true
