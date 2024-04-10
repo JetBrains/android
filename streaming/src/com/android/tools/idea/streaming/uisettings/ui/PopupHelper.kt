@@ -31,7 +31,7 @@ import javax.swing.JComponent
 import javax.swing.SwingUtilities
 
 /**
- * Show the UI settings popup relative to the ActionButton if possible.
+ * Shows the UI settings popup relative to the ActionButton if possible.
  */
 internal fun showUiSettingsPopup(panel: JComponent, action: AnAction, event: AnActionEvent, displayView: AbstractDisplayView) {
   val balloon = JBPopupFactory.getInstance()
@@ -48,28 +48,30 @@ internal fun showUiSettingsPopup(panel: JComponent, action: AnAction, event: AnA
   val component = event.findComponentForAction(action) as? JComponent ?: displayView
   val position = findRelativePoint(component, displayView)
 
-  // Hide the balloon if Studio looses focus:
+  // Hide the balloon if Studio looses focus.
   val window = SwingUtilities.windowForComponent(position.component)
-  val listener = object : WindowAdapter() {
-    override fun windowLostFocus(event: WindowEvent) {
-      balloon.hide()
+  if (window != null) {
+    val listener = object : WindowAdapter() {
+      override fun windowLostFocus(event: WindowEvent) {
+        balloon.hide()
+      }
     }
+    window.addWindowFocusListener(listener)
+    Disposer.register(balloon) { window.removeWindowFocusListener(listener) }
   }
-  window?.addWindowFocusListener(listener)
-  Disposer.register(balloon) { window?.removeWindowFocusListener(listener) }
 
-  // Hide the balloon when the device window closes:
+  // Hide the balloon when the device window closes.
   Disposer.register(displayView, balloon)
 
-  // Show the balloon above the component if there is room, otherwise below:
+  // Show the balloon above the component if there is room, otherwise below.
   balloon.show(position, Balloon.Position.above)
 }
 
 /**
- * Find the point for displaying the balloon.
- * - If [component] is a DeviceView or EmulatorView (ex: when action is invoked from the keyboard) show the point NW of the [component]
- * - If [component] is in a popup itself, convert the point relative to the [displayView]
- * - default: show the popup pointing to the center of the button that was pressed
+ * Returns the point for displaying the balloon.
+ * - If [component] is a DeviceView or EmulatorView (ex: when action is invoked from the keyboard) returns the point NW of the [component]
+ * - If [component] is in a popup itself, converts the point relative to the [displayView]
+ * - Otherwise, returns the center of the button that was pressed
  */
 private fun findRelativePoint(component: JComponent, displayView: AbstractDisplayView): RelativePoint {
   return when {
