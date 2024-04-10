@@ -196,6 +196,8 @@
       <reference ref="android.device.overview.button"/>
       <separator/>
       <reference ref="android.streaming.ui.settings"/>
+      <!-- Placeholder group for placing the Wear Health Services button registered in a separate module. -->
+      <group id="android.emulator.wear.health.services"/>
       <separator/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
