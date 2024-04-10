@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 /** Suppress inspection that require composable function names to start with a lower case letter. */
 class ComposeSuppressor : InspectionSuppressor {
   override fun isSuppressedFor(element: PsiElement, toolId: String): Boolean {
-    return toolId == "FunctionName" &&
+    return (toolId == "FunctionName" || toolId == "TestFunctionName") &&
       element.language == KotlinLanguage.INSTANCE &&
       element.node.elementType == KtTokens.IDENTIFIER &&
       element.parent.isComposableFunction()
