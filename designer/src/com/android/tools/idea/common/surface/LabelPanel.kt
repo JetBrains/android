@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.adtui.common.SwingCoordinate
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
@@ -45,5 +46,10 @@ open class LabelPanel(initialLayoutData: LayoutData) : JBLabel() {
       toolTipText = layoutData.modelTooltip ?: layoutData.modelName
       isVisible = true
     }
+  }
+
+  companion object {
+    /** Minimum allowed width for the [LabelPanel]. */
+    @SwingCoordinate const val MIN_WIDTH = 20
   }
 }
