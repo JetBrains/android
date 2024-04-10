@@ -22,7 +22,6 @@ import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.FilePreviewElementProvider
-import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.actions.CommonIssueNotificationAction
 import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
@@ -30,6 +29,7 @@ import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
 import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
@@ -39,7 +39,6 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepres
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.actions.WearTileViewControlAction
-import com.android.tools.idea.wear.preview.essentials.WearTilePreviewEssentialsModeManager
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -71,7 +70,7 @@ internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarAction
   }
 
   override fun getNorthEastGroup(): ActionGroup =
-    DefaultActionGroup(listOf(CommonIssueNotificationAction(WearTilePreviewEssentialsModeManager::isEssentialsModeEnabled)))
+    DefaultActionGroup(listOf(CommonIssueNotificationAction(PreviewEssentialsModeManager::isEssentialsModeEnabled)))
 }
 
 /** Provider of the [PreviewRepresentation] for Wear Tile code primitives. */
