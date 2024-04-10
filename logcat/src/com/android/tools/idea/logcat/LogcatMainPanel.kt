@@ -133,7 +133,6 @@ import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
-import com.intellij.openapi.keymap.impl.ui.ActionsTreeUtil
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
@@ -495,7 +494,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(Separator.create())
       add(ClearLogcatAction())
       add(Separator.create())
-      ActionsTreeUtil.getActions("Logcat.PopupActions").forEach {
+      ActionManager.getInstance().getAction("Logcat.PopupActions")?.let {
         add(it)
       }
     }
