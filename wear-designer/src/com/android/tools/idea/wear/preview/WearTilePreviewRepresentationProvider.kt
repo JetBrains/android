@@ -15,32 +15,18 @@
  */
 package com.android.tools.idea.wear.preview
 
-import com.android.tools.idea.common.editor.ToolbarActionGroups
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.FilePreviewElementProvider
-import com.android.tools.idea.preview.actions.CommonIssueNotificationAction
-import com.android.tools.idea.preview.actions.GroupSwitchAction
-import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
-import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
-import com.android.tools.idea.preview.actions.isPreviewRefreshing
-import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
-import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
-import com.android.tools.idea.preview.modes.GALLERY_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.GRID_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.LIST_LAYOUT_OPTION
+import com.android.tools.idea.preview.actions.CommonPreviewToolbar
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
-import com.android.tools.idea.preview.actions.CommonViewControlAction
 import com.google.wireless.android.sdk.stats.LayoutEditorState
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -52,26 +38,6 @@ internal class WearTileAdapterLightVirtualFile(
   originFileProvider: () -> VirtualFile?,
 ) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
 
-internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGroups(surface) {
-
-  override fun getNorthGroup(): ActionGroup {
-    return DefaultActionGroup(
-      StopInteractivePreviewAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
-      StopAnimationInspectorAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
-      // TODO(b/292057010) Enable group filtering for Gallery mode.
-      GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) })
-        .visibleOnlyInDefaultPreview(),
-      CommonViewControlAction(
-          layoutOptions = listOf(LIST_LAYOUT_OPTION, GRID_LAYOUT_OPTION, GALLERY_LAYOUT_OPTION)
-        )
-        .visibleOnlyInStaticPreview(),
-    )
-  }
-
-  override fun getNorthEastGroup(): ActionGroup =
-    DefaultActionGroup(listOf(CommonIssueNotificationAction()))
-}
-
 /** Provider of the [PreviewRepresentation] for Wear Tile code primitives. */
 class WearTilePreviewRepresentationProvider(
   private val filePreviewElementFinder: FilePreviewElementFinder<PsiWearTilePreviewElement> =
@@ -82,7 +48,7 @@ class WearTilePreviewRepresentationProvider(
     CommonRepresentationEditorFileType(
       WearTileAdapterLightVirtualFile::class.java,
       LayoutEditorState.Type.WEAR_TILE,
-      ::WearTilePreviewToolbar,
+      ::CommonPreviewToolbar,
     )
 
   init {
