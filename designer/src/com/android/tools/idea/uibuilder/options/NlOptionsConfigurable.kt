@@ -159,7 +159,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
       }
 
       val essentialsModeObservable = createEssentialsModeObservable()
-      group("Compose Preview") {
+      group("Preview Settings") {
         if (StudioFlags.PREVIEW_ESSENTIALS_MODE.get()) {
           buttonsGroup(message("android.uibuilder.nloptionsconfigurable.resource.usage")) {
             row { comment(message("essentials.mode.resource.usage", "Compose Preview")) }

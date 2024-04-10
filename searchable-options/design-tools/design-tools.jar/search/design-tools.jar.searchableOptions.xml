@@ -204,8 +204,6 @@
   </configurable>
   <configurable id="nele.options" configurable_name="UI Tools">
     <option name="code" hit="Code" />
-    <option name="compose" hit="Compose Preview" />
-    <option name="preview" hit="Compose Preview" />
     <option name="compose" hit="Compose files with previews:" />
     <option name="files" hit="Compose files with previews:" />
     <option name="previews" hit="Compose files with previews:" />
@@ -234,6 +232,8 @@
     <option name="navigation" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
     <option name="other" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
     <option name="resources" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="preview" hit="Preview Settings" />
+    <option name="settings" hit="Preview Settings" />
     <option name="resource" hit="Resource Usage:" />
     <option name="usage" hit="Resource Usage:" />
     <option name="split" hit="Split" />
