@@ -25,6 +25,14 @@ import org.jetbrains.annotations.NotNull;
 
 @State(name = "AndroidEditors", storages = @Storage("androidEditors.xml"))
 public class AndroidEditorSettings implements PersistentStateComponent<AndroidEditorSettings.MyState> {
+
+  /**
+   * The default mode of the editor that can be chosen when opening a file for the first time.
+   * Possible choices are:
+   * - Code: It shows only an editor with the code of the file.
+   * - Design: It shows only a preview of the render result of the file.
+   * - Split: It shows a split screen with both Code and Design.
+   */
   public enum EditorMode {
     CODE("Code", AllIcons.General.LayoutEditorOnly),
     SPLIT("Split", AllIcons.General.LayoutEditorPreview),
@@ -49,6 +57,30 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
     @NotNull
     public Icon getIcon() {
       return myIcon;
+    }
+  }
+
+  /**
+   * The different layouts to organise the way to show previews:
+   * - List: organises the previews in a vertical oriented list.
+   * - Grid: organises the previews into a grid.
+   * - Gallery: shows one single preview at a time.
+   */
+  public enum LayoutType {
+    LIST("List"),
+    GRID("Grid"),
+    GALLERY("Gallery");
+
+    @NotNull
+    private final String myDisplayName;
+
+    LayoutType(@NotNull String displayName){
+      myDisplayName = displayName;
+    }
+
+    @NotNull
+    public String getDisplayName(){
+      return myDisplayName;
     }
   }
 
@@ -102,12 +134,16 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
 
   public static class GlobalState {
     private EditorMode myPreferredEditorMode;
-    private EditorMode myPreferredDrawableEditorMode;
-    private EditorMode myPreferredComposableEditorMode;
-    private EditorMode myPreferredPreviewableEditorMode;
+    private EditorMode myPreferredResourcesEditorMode;
     private EditorMode myPreferredKotlinEditorMode;
+    private LayoutType myPreferredLayoutType;
     private double myMagnifySensitivity = DEFAULT_MAGNIFY_SENSITIVITY;
     private boolean myPreviewEssentialsModeEnabled = false;
+
+    /**
+     * When true, it always shows split mode if file contains a @Preview annotation.
+     */
+    private boolean myShowSplitViewForPreviewFiles = true;
 
     public EditorMode getPreferredEditorMode() {
       return myPreferredEditorMode;
@@ -117,28 +153,20 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
       myPreferredEditorMode = preferredEditorMode;
     }
 
-    public EditorMode getPreferredDrawableEditorMode() {
-      return myPreferredDrawableEditorMode;
+    public EditorMode getPreferredResourcesEditorMode() {
+      return myPreferredResourcesEditorMode;
     }
 
-    public void setPreferredDrawableEditorMode(EditorMode preferredDrawableEditorMode) {
-      myPreferredDrawableEditorMode = preferredDrawableEditorMode;
+    public void setPreferredResourcesEditorMode(EditorMode preferredResourcesEditorMode) {
+      myPreferredResourcesEditorMode = preferredResourcesEditorMode;
     }
 
-    public EditorMode getPreferredComposableEditorMode() {
-      return myPreferredComposableEditorMode;
+    public boolean getShowSplitViewForPreviewFiles() {
+      return myShowSplitViewForPreviewFiles;
     }
 
-    public void setPreferredComposableEditorMode(EditorMode preferredComposableEditorMode) {
-      myPreferredComposableEditorMode = preferredComposableEditorMode;
-    }
-
-    public EditorMode getPreferredPreviewableEditorMode() {
-      return myPreferredPreviewableEditorMode;
-    }
-
-    public void setPreferredPreviewableEditorMode(EditorMode preferredPreviewableEditorMode) {
-      myPreferredPreviewableEditorMode = preferredPreviewableEditorMode;
+    public void setShowSplitViewForPreviewFiles(boolean showSplitViewForPreviewFiles) {
+      myShowSplitViewForPreviewFiles = showSplitViewForPreviewFiles;
     }
 
     public EditorMode getPreferredKotlinEditorMode() {
@@ -147,6 +175,14 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
 
     public void setPreferredKotlinEditorMode(EditorMode preferredKotlinEditorMode) {
       myPreferredKotlinEditorMode = preferredKotlinEditorMode;
+    }
+
+    public void setPreferredPreviewLayoutMode(LayoutType preferredLayoutType) {
+      myPreferredLayoutType = preferredLayoutType;
+    }
+
+    public LayoutType getPreferredPreviewLayoutMode() {
+      return myPreferredLayoutType;
     }
 
     public double getMagnifySensitivity() {

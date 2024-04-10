@@ -405,7 +405,7 @@ private fun findAnimationDrawable(sceneManager: LayoutlibSceneManager): Animatio
 }
 
 fun AndroidEditorSettings.GlobalState.preferredDrawableSurfaceState() =
-  when (preferredDrawableEditorMode) {
+  when (preferredResourcesEditorMode) {
     AndroidEditorSettings.EditorMode.CODE -> DesignerEditorPanel.State.DEACTIVATED
     AndroidEditorSettings.EditorMode.SPLIT -> DesignerEditorPanel.State.SPLIT
     AndroidEditorSettings.EditorMode.DESIGN -> DesignerEditorPanel.State.FULL
