@@ -378,6 +378,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/ij-platform/aiplugin.ij-platform.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/ij-platform/aiplugin.ij-platform.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/gradle/native-symbolizer.gradle.iml" filepath="$PROJECT_DIR$/native-symbolizer/gradle/native-symbolizer.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.tests.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.tests.iml" />

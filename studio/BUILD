@@ -669,6 +669,7 @@ studio_plugin(
         "aiplugin.jar": [
             "//tools/vendor/google/ml/aiplugin/core:aiplugin.core",
             "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
+            "//tools/vendor/google/ml/aiplugin/lang/kotlin:aiplugin.lang.kotlin",
         ],
     },
     visibility = ["//visibility:public"],
