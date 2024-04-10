@@ -26,6 +26,6 @@ object WearTilePreviewEssentialsModeManager {
 
   val isEssentialsModeEnabled: Boolean
     get() =
-      (AndroidEditorSettings.getInstance().globalState.isWearTilePreviewEssentialsModeEnabled ||
+      (AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled ||
         EssentialsMode.isEnabled())
 }

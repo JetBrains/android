@@ -294,7 +294,7 @@ class WearTilePreviewRepresentationTest {
   private var wearTilePreviewEssentialsModeEnabled: Boolean = false
     set(value) {
       runWriteActionAndWait {
-        AndroidEditorSettings.getInstance().globalState.isWearTilePreviewEssentialsModeEnabled =
+        AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled =
           value
         ApplicationManager.getApplication()
           .messageBus

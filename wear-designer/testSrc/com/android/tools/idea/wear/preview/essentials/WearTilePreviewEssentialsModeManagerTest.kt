@@ -43,16 +43,16 @@ class WearTilePreviewEssentialsModeManagerTest {
 
   @Test
   fun essentialsModeIsControlledViaSettings() {
-    settings.isWearTilePreviewEssentialsModeEnabled = false
+    settings.isPreviewEssentialsModeEnabled = false
     assertFalse(WearTilePreviewEssentialsModeManager.isEssentialsModeEnabled)
 
-    settings.isWearTilePreviewEssentialsModeEnabled = true
+    settings.isPreviewEssentialsModeEnabled = true
     assertTrue(WearTilePreviewEssentialsModeManager.isEssentialsModeEnabled)
   }
 
   @Test
   fun previewEssentialsModeIsEnabledIfStudioEssentialsModeIsEnabled() {
-    settings.isWearTilePreviewEssentialsModeEnabled = false
+    settings.isPreviewEssentialsModeEnabled = false
     assertFalse(WearTilePreviewEssentialsModeManager.isEssentialsModeEnabled)
 
     // Enable Android Studio essentials mode. Note that preview essentials mode is still disabled
