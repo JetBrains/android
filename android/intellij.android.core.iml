@@ -267,7 +267,6 @@
     <orderEntry type="library" name="asm-tools" level="project" />
     <orderEntry type="module" module-name="kotlin.base.analysis" />
     <orderEntry type="module" module-name="kotlin.base.psi" />
-    <orderEntry type="library" name="CGLIB" level="project" />
     <orderEntry type="module" module-name="kotlin.code-insight.impl-base" />
     <orderEntry type="module" module-name="kotlin.core" />
   </component>
