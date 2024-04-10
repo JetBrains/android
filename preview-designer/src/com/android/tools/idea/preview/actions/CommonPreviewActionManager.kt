@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wear.preview
+package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.preview.actions.AnimationInspectorAction
-import com.android.tools.idea.preview.actions.EnableInteractiveAction
-import com.android.tools.idea.preview.actions.PreviewStatusIcon
-import com.android.tools.idea.preview.actions.disabledIf
-import com.android.tools.idea.preview.actions.hasSceneViewErrors
-import com.android.tools.idea.preview.actions.hideIfRenderErrors
-import com.android.tools.idea.preview.actions.isPreviewRefreshing
-import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import javax.swing.JComponent
 
-/** Wear tile specific [ActionManager] for the [DesignSurface]. */
-internal class WearTilePreviewActionManager(surface: DesignSurface<LayoutlibSceneManager>) :
+/** Common preview [ActionManager] for the [DesignSurface]. */
+class CommonPreviewActionManager(surface: DesignSurface<LayoutlibSceneManager>) :
   ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
   override fun registerActionsShortcuts(component: JComponent) {}
 
