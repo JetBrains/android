@@ -55,7 +55,7 @@ class OpenWearHealthServicesPanelAction : AbstractEmulatorAction(configFilter = 
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isEnabledAndVisible = StudioFlags.SYNTHETIC_HAL_PANEL.get()
+    event.presentation.isEnabledAndVisible = StudioFlags.WEAR_HEALTH_SERVICES_PANEL.get()
   }
 
   override fun actionPerformed(e: AnActionEvent) {

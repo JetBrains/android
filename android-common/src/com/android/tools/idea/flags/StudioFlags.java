@@ -1433,8 +1433,8 @@ public final class StudioFlags {
 
   private static final FlagGroup WEAR_HEALTH_SERVICES = new FlagGroup(FLAGS, "wear.health.services", "Wear Health Services");
 
-  public static final Flag<Boolean> SYNTHETIC_HAL_PANEL = new BooleanFlag(
-    WEAR_HEALTH_SERVICES, "synthetic.hal.panel.enabled", "Enable synthetic HAL panel",
+  public static final Flag<Boolean> WEAR_HEALTH_SERVICES_PANEL = new BooleanFlag(
+    WEAR_HEALTH_SERVICES, "enable.panel", "Enable Wear Health Services panel",
     "If enabled, a button to display panel for modifying emulator sensors will appear",
     ChannelDefault.enabledUpTo(CANARY)
   );

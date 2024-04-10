@@ -40,7 +40,7 @@ class OpenWearHealthServicesPanelActionTest {
 
   @Before
   fun setUp() {
-    StudioFlags.SYNTHETIC_HAL_PANEL.override(true)
+    StudioFlags.WEAR_HEALTH_SERVICES_PANEL.override(true)
     emulatorView =
       EmulatorView(
         projectRule.testRootDisposable,
