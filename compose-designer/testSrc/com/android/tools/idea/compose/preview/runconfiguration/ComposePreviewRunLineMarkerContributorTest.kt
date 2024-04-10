@@ -48,12 +48,12 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
     super.setUp()
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
-    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.override(true)
+    StudioFlags.PREVIEW_ESSENTIALS_MODE.override(true)
   }
 
   override fun tearDown() {
     super.tearDown()
-    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.clearOverride()
+    StudioFlags.PREVIEW_ESSENTIALS_MODE.clearOverride()
     AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = false
   }
 

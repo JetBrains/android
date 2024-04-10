@@ -1224,15 +1224,15 @@ public final class StudioFlags {
     PREVIEW_COMMON, "keep.image.on.error", "Keeps the last valid image after a render error",
     "If enabled, when an error happens, the surface will keep the last valid image",
     true);
+
+  public static final Flag<Boolean> PREVIEW_ESSENTIALS_MODE = new BooleanFlag(
+    PREVIEW_COMMON, "essentials.mode", "Enable Preview Essentials Mode",
+    "If enabled, Preview Essentials Mode will be enabled.",
+    ChannelDefault.enabledUpTo(CANARY));
   //endregion
 
   //region Compose
   private static final FlagGroup COMPOSE = new FlagGroup(FLAGS, "compose", "Compose");
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_ESSENTIALS_MODE = new BooleanFlag(
-    COMPOSE, "preview.essentials.mode", "Enable Compose Preview Essentials Mode",
-    "If enabled, Compose Preview Essentials Mode will be enabled.",
-    ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE = new BooleanFlag(
     COMPOSE, "preview.scroll.on.caret.move", "Enable the Compose Preview scrolling when the caret moves",

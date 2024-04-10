@@ -29,7 +29,7 @@ import org.junit.Test
 
 class ComposePreviewEssentialsModeManagerTest {
 
-  @get:Rule val essentialsModeFlagRule = FlagRule(StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE)
+  @get:Rule val essentialsModeFlagRule = FlagRule(StudioFlags.PREVIEW_ESSENTIALS_MODE)
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var settings: GlobalState
@@ -41,7 +41,7 @@ class ComposePreviewEssentialsModeManagerTest {
 
   @Test
   fun essentialsModeIsOnlyEnabledIfFlagIsEnabled() {
-    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.override(false)
+    StudioFlags.PREVIEW_ESSENTIALS_MODE.override(false)
     assertFalse(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
 
     settings.isComposePreviewEssentialsModeEnabled = true
@@ -52,7 +52,7 @@ class ComposePreviewEssentialsModeManagerTest {
 
   @Test
   fun essentialsModeIsControlledViaSettingsIfFlagIsEnabled() {
-    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.override(true)
+    StudioFlags.PREVIEW_ESSENTIALS_MODE.override(true)
     settings.isComposePreviewEssentialsModeEnabled = false
     assertFalse(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
 
@@ -62,7 +62,7 @@ class ComposePreviewEssentialsModeManagerTest {
 
   @Test
   fun previewEssentialsModeIsEnabledIfStudioEssentialsModeIsEnabled() {
-    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.override(true)
+    StudioFlags.PREVIEW_ESSENTIALS_MODE.override(true)
     try {
       settings.isComposePreviewEssentialsModeEnabled = false
       assertFalse(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)

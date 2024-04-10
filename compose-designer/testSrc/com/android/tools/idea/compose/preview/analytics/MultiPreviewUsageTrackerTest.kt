@@ -329,7 +329,7 @@ class MultiPreviewUsageTrackerTest {
 
   @Test
   fun testLogEvent_EssentialsMode() {
-    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.override(true)
+    StudioFlags.PREVIEW_ESSENTIALS_MODE.override(true)
     fun logAndGetMultiPreviewEvent() =
       MultiPreviewUsageTracker.getInstance(null)
         .logEvent(MultiPreviewEvent(listOf(), ""))
@@ -343,7 +343,7 @@ class MultiPreviewUsageTrackerTest {
       settings.isComposePreviewEssentialsModeEnabled = true
       assertTrue(logAndGetMultiPreviewEvent().isComposePreviewLiteMode)
     } finally {
-      StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.clearOverride()
+      StudioFlags.PREVIEW_ESSENTIALS_MODE.clearOverride()
     }
   }
 
