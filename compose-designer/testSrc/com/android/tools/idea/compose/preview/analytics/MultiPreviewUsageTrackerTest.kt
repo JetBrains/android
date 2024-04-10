@@ -70,7 +70,7 @@ class MultiPreviewUsageTrackerTest {
   @Test
   fun testLogEvent_empty() {
     val multiPreviewUsageTracker = MultiPreviewUsageTracker.getInstance(null)
-    val multiPreviewEvent = MultiPreviewEvent(listOf(), "fileName")
+    val multiPreviewEvent = MultiPreviewEvent(emptySequence(), "fileName")
     val androidStudioEvent = multiPreviewUsageTracker.logEvent(multiPreviewEvent)
 
     assertEquals(AndroidStudioEvent.EventKind.COMPOSE_MULTI_PREVIEW, androidStudioEvent.kind)
@@ -92,10 +92,10 @@ class MultiPreviewUsageTrackerTest {
         import $COMPOSABLE_ANNOTATION_FQN
 
         ${
-        buildMultiPreviewGraph(1, 7,
-                               listOf(Pair(0, 1), Pair(1, 2), Pair(1, 3), Pair(2, 4), Pair(2, 5), Pair(3, 6), Pair(3, 7)),
-                               setOf(0, 2, 4, 6),)
-      }
+          buildMultiPreviewGraph(1, 7,
+                                 listOf(Pair(0, 1), Pair(1, 2), Pair(1, 3), Pair(2, 4), Pair(2, 5), Pair(3, 6), Pair(3, 7)),
+                                 setOf(0, 2, 4, 6),)
+        }
       """
           .trimIndent(),
       )
@@ -161,11 +161,11 @@ class MultiPreviewUsageTrackerTest {
         import $COMPOSABLE_ANNOTATION_FQN
 
         ${
-        buildMultiPreviewGraph(2, 11,
-                               listOf(Pair(0, 2), Pair(0, 3), Pair(1, 4), Pair(1, 5), Pair(2, 6), Pair(2, 10), Pair(3, 7),
-                                      Pair(4, 7), Pair(5, 8), Pair(5, 9), Pair(6, 10), Pair(7, 11), Pair(8, 12), Pair(9, 12),),
-                               setOf(0, 2, 4, 6, 12),)
-      }
+          buildMultiPreviewGraph(2, 11,
+                                 listOf(Pair(0, 2), Pair(0, 3), Pair(1, 4), Pair(1, 5), Pair(2, 6), Pair(2, 10), Pair(3, 7),
+                                        Pair(4, 7), Pair(5, 8), Pair(5, 9), Pair(6, 10), Pair(7, 11), Pair(8, 12), Pair(9, 12),),
+                                 setOf(0, 2, 4, 6, 12),)
+        }
       """
           .trimIndent(),
       )
@@ -251,12 +251,12 @@ class MultiPreviewUsageTrackerTest {
         import $COMPOSABLE_ANNOTATION_FQN
 
         ${
-        buildMultiPreviewGraph(2, 11,
-                               listOf(Pair(0, 2), Pair(0, 3), Pair(1, 4), Pair(1, 5), Pair(2, 6), Pair(2, 10),
-                                      Pair(3, 7), Pair(4, 7), Pair(5, 8), Pair(5, 9), Pair(6, 10),
-                                      Pair(7, 11), Pair(8, 12), Pair(9, 12), Pair(11, 3), Pair(11, 4),),
-                               setOf(0, 2, 4, 6, 12),)
-      }
+          buildMultiPreviewGraph(2, 11,
+                                 listOf(Pair(0, 2), Pair(0, 3), Pair(1, 4), Pair(1, 5), Pair(2, 6), Pair(2, 10),
+                                        Pair(3, 7), Pair(4, 7), Pair(5, 8), Pair(5, 9), Pair(6, 10),
+                                        Pair(7, 11), Pair(8, 12), Pair(9, 12), Pair(11, 3), Pair(11, 4),),
+                                 setOf(0, 2, 4, 6, 12),)
+        }
       """
           .trimIndent(),
       )
@@ -332,7 +332,7 @@ class MultiPreviewUsageTrackerTest {
     StudioFlags.PREVIEW_ESSENTIALS_MODE.override(true)
     fun logAndGetMultiPreviewEvent() =
       MultiPreviewUsageTracker.getInstance(null)
-        .logEvent(MultiPreviewEvent(listOf(), ""))
+        .logEvent(MultiPreviewEvent(emptySequence(), ""))
         .composeMultiPreviewEvent
 
     try {
@@ -419,8 +419,9 @@ class MultiPreviewUsageTrackerTest {
 
   @Test
   fun testGraphHashCode_previewParameter() {
-    val baseEvent = addFileAndCreateMultiPreviewEvent("baseFile", baseFileContent)
-    val testFileContent =
+    val baseEvent: MultiPreviewEvent =
+      addFileAndCreateMultiPreviewEvent("baseFile", baseFileContent)
+    val testFileContent: String =
       baseFileContent
         .replace("package a", "package b")
         .replaceFirst("@Preview", "@Preview(name = \"nameParam\")")
@@ -472,7 +473,9 @@ class MultiPreviewUsageTrackerTest {
     return MultiPreviewEvent(clearComposableFqnData(getPreviewNodes(vFile)), "fileName")
   }
 
-  private fun clearComposableFqnData(nodes: List<MultiPreviewNode>): List<MultiPreviewNode> {
+  private fun clearComposableFqnData(
+    nodes: Sequence<MultiPreviewNode>
+  ): Sequence<MultiPreviewNode> {
     nodes.forEach { it.nodeInfo.withComposableFqn("") }
     return nodes
   }
@@ -484,9 +487,10 @@ class MultiPreviewUsageTrackerTest {
         COMPOSABLE_ANNOTATION_FQ_NAME,
         COMPOSABLE_ANNOTATION_NAME,
       ) { methods ->
-        getPreviewNodes(methods, true).asSequence()
+        getPreviewNodes(methods, true)
       }
       .filterIsInstance<MultiPreviewNode>()
+      .asSequence()
   }
 }
 

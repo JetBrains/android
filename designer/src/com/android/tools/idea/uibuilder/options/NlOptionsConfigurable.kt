@@ -15,6 +15,7 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
@@ -37,6 +38,7 @@ private val DISPLAY_NAME =
   else message("android.uibuilder.nloptionsconfigurable.displayName")
 
 @VisibleForTesting const val LABEL_TRACK_PAD = "Track Pad"
+
 @VisibleForTesting
 const val LABEL_MAGNIFY_ZOOMING_SENSITIVITY = "Magnify zooming (pinch) sensitivity"
 
@@ -73,8 +75,23 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
     }
   }
 
-  private lateinit var preferredDrawablesEditorMode: ComboBox<AndroidEditorSettings.EditorMode>
+  private class LayoutModeCellRenderer :
+    SimpleListCellRenderer<AndroidEditorSettings.LayoutType>() {
+    override fun customize(
+      list: JList<out AndroidEditorSettings.LayoutType>,
+      value: AndroidEditorSettings.LayoutType?,
+      index: Int,
+      selected: Boolean,
+      hasFocus: Boolean,
+    ) {
+      value?.let { text = it.displayName }
+    }
+  }
+
+  private lateinit var preferredResourcesEditorMode: ComboBox<AndroidEditorSettings.EditorMode>
   private lateinit var preferredEditorMode: ComboBox<AndroidEditorSettings.EditorMode>
+  private lateinit var myPreferredLayoutType: ComboBox<AndroidEditorSettings.LayoutType>
+  private lateinit var shouldShowSplitView: JBCheckBox
 
   private var magnifySensitivity: JSlider? = null
 
@@ -87,6 +104,11 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
     return comboBox(AndroidEditorSettings.EditorMode.values().asList(), EditorModeCellRenderer())
   }
 
+  private fun Row.editorPreviewLayoutModeComboBox():
+    Cell<ComboBox<AndroidEditorSettings.LayoutType>> {
+    return comboBox(AndroidEditorSettings.LayoutType.values().asList(), LayoutModeCellRenderer())
+  }
+
   override fun createPanel(): DialogPanel {
     // The bazel test //tools/adt/idea/searchable-options:searchable_options_test compares the
     // created option list with a static xml file, which doesn't include the options added at
@@ -96,31 +118,32 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
     val showMagnify = MAGNIFY_SUPPORTED && !GraphicsEnvironment.isHeadless()
 
     return panel {
-      group("Default Editor Mode") {
-        row("Drawables:") { preferredDrawablesEditorMode = editorModeComboBox().component }
-        row("Other Resources (e.g. Layout, Menu, Navigation):") {
-          preferredEditorMode = editorModeComboBox().component
-        }
-        row("Compose files with previews:") {
+      group("Editor View Mode") {
+        row("Resources:") {
           editorModeComboBox()
             .bindItem(
-              { state.preferredPreviewableEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
-              state::setPreferredPreviewableEditorMode,
+              { state.preferredResourcesEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
+              state::setPreferredResourcesEditorMode,
             )
+            .apply { preferredResourcesEditorMode = component }
         }
-        row("Compose files without previews:") {
-          editorModeComboBox()
-            .bindItem(
-              { state.preferredComposableEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
-              state::setPreferredComposableEditorMode,
-            )
-        }
-        row("Other Kotlin files:") {
+        row("Kotlin:") {
           editorModeComboBox()
             .bindItem(
               { state.preferredKotlinEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
               state::setPreferredKotlinEditorMode,
             )
+            .apply { preferredEditorMode = component }
+        }
+        indent {
+          row {
+            checkBox(message("android.uibuilder.nloptionsconfigurable.show.preview.split.mode"))
+              .bindSelected(
+                { state.showSplitViewForPreviewFiles },
+                state::setShowSplitViewForPreviewFiles,
+              )
+              .apply { shouldShowSplitView = component }
+          }
         }
       }
       if (showMagnify) {
@@ -154,6 +177,14 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
       }
 
       group("Preview Settings") {
+        row(message("android.uibuilder.nloptionsconfigurable.view.mode.default")) {
+          editorPreviewLayoutModeComboBox()
+            .bindItem(
+              { state.preferredPreviewLayoutMode ?: AndroidEditorSettings.LayoutType.GRID },
+              state::setPreferredPreviewLayoutMode,
+            )
+            .apply { myPreferredLayoutType = this.component }
+        }
         if (StudioFlags.PREVIEW_ESSENTIALS_MODE.get()) {
           buttonsGroup(message("android.uibuilder.nloptionsconfigurable.resource.usage")) {
             lateinit var defaultModeRadioButton: Cell<JBRadioButton>
@@ -198,8 +229,10 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
   override fun isModified(): Boolean {
     val magnifySensitivityValue = magnifySensitivity?.value
     return super<BoundConfigurable>.isModified() ||
-      preferredDrawablesEditorMode.selectedItem != state.preferredDrawableEditorMode ||
+      preferredResourcesEditorMode.selectedItem != state.preferredResourcesEditorMode ||
       preferredEditorMode.selectedItem != state.preferredEditorMode ||
+      shouldShowSplitView.isSelected != state.showSplitViewForPreviewFiles ||
+      myPreferredLayoutType.selectedItem != state.preferredPreviewLayoutMode ||
       (magnifySensitivityValue != null &&
         magnifySensitivityValue != doubleToPercentageValue(state.magnifySensitivity))
   }
@@ -207,9 +240,12 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
   @Throws(ConfigurationException::class)
   override fun apply() {
     super.apply()
-    state.preferredDrawableEditorMode =
-      preferredDrawablesEditorMode.selectedItem as AndroidEditorSettings.EditorMode
+    state.preferredResourcesEditorMode =
+      preferredResourcesEditorMode.selectedItem as AndroidEditorSettings.EditorMode
     state.preferredEditorMode = preferredEditorMode.selectedItem as AndroidEditorSettings.EditorMode
+    state.showSplitViewForPreviewFiles = shouldShowSplitView.isSelected
+    state.preferredPreviewLayoutMode =
+      myPreferredLayoutType.selectedItem as AndroidEditorSettings.LayoutType
     magnifySensitivity?.let { state.magnifySensitivity = percentageValueToDouble(it.value) }
     fireOptionsChanged()
   }
@@ -217,17 +253,24 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
   override fun reset() {
     super<BoundConfigurable>.reset()
 
-    // Handle the case where preferredDrawableEditorMode and preferredEditorMode were not set for
+    // Handle the case where preferredResourcesEditorMode, preferredEditorMode and
+    // preferredPreviewLayoutMode were not set for
     // the first time yet.
-    if (state.preferredDrawableEditorMode == null && state.preferredEditorMode == null) {
+    if (
+      state.preferredResourcesEditorMode == null &&
+        state.preferredEditorMode == null &&
+        state.preferredPreviewLayoutMode == null
+    ) {
       // Default drawables to SPLIT and other resource types to DESIGN
-      preferredDrawablesEditorMode.selectedItem = AndroidEditorSettings.EditorMode.SPLIT
-      preferredEditorMode.selectedItem = AndroidEditorSettings.EditorMode.DESIGN
+      preferredResourcesEditorMode.selectedItem = AndroidEditorSettings.EditorMode.SPLIT
+      preferredEditorMode.selectedItem = AndroidEditorSettings.EditorMode.CODE
+      myPreferredLayoutType.selectedItem = AndroidEditorSettings.LayoutType.GRID
     } else {
-      preferredDrawablesEditorMode.selectedItem = state.preferredDrawableEditorMode
+      preferredResourcesEditorMode.selectedItem = state.preferredResourcesEditorMode
       preferredEditorMode.selectedItem = state.preferredEditorMode
+      myPreferredLayoutType.selectedItem = state.preferredPreviewLayoutMode
     }
-
+    shouldShowSplitView.isSelected = state.showSplitViewForPreviewFiles
     magnifySensitivity?.value = doubleToPercentageValue(state.magnifySensitivity)
   }
 }
