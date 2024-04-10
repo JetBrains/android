@@ -791,7 +791,12 @@ class DeviceViewPanelTest {
     // Add another window
     val window2 = window(ROOT2, ROOT2, 0, 0, 100, 200) { view(VIEW2, 50, 20, 30, 40) { image() } }
 
-    model.update(window2, listOf(ROOT, ROOT2), 1)
+    val latch = CountDownLatch(1)
+    model.update(window2, listOf(ROOT, ROOT2), 1) { latch.countDown() }
+    latch.await()
+
+    // Make sure model has been refreshed.
+    contentPanelModel.refresh()
     waitForCondition(10.seconds) { contentPanelModel.hitRects.size == 4 }
 
     // we should still have the manually set zoom
