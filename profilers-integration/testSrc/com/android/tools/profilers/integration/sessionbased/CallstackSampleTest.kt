@@ -57,15 +57,14 @@ class CallstackSampleTest : ProfilersTestBase() {
 
         verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 120)
         verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 120)
-        // Waiting for UI Component specific to profiling with complete data
-        studio.waitForComponentByClass("TooltipLayeredPane", "InstructionsPanel", "InstructionsComponent")
+
+        studio.waitForComponentByClass("TooltipLayeredPane", "TimelineScrollbar")
 
         startCallstackSample(studio)
 
         verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+start\\s+attempted\$", 120)
 
         studio.waitForComponentByClass("TooltipLayeredPane", "RecordingOptionsView", "FlexibleGrid", "ProfilerCombobox")
-        studio.waitForComponentByClass("TooltipLayeredPane", "HideablePanel", "CpuListScrollPane", "DragAndDropList")
 
         verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+start\\s+succeeded\$", 120)
 

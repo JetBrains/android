@@ -53,7 +53,7 @@ class NativeAllocationsTest : ProfilersTestBase() {
         verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 300)
         verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 120)
 
-        studio.waitForComponentByClass("TooltipLayeredPane", "InstructionsPanel", "InstructionsComponent")
+        studio.waitForComponentByClass("TooltipLayeredPane", "TimelineScrollbar")
 
         startNativeAllocations(studio)
 
