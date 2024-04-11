@@ -86,8 +86,9 @@ class BottomPanel(rootComponent: JComponent, private val tracker: AnimationTrack
 
   private inner class ResetTimelineAction :
     DumbAwareAction(
-      message("animation.inspector.action.reset.timeline"), null,
-      StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED
+      message("animation.inspector.action.reset.timeline"),
+      null,
+      StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED,
     ) {
     override fun actionPerformed(e: AnActionEvent) {
       resetListeners.forEach { it() }

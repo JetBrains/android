@@ -130,7 +130,11 @@ class AnimationCard(
   }
 
   private inner class ExpandAction :
-    DumbAwareAction(message("animation.inspector.action.expand"), null, UIUtil.getTreeCollapsedIcon()) {
+    DumbAwareAction(
+      message("animation.inspector.action.expand"),
+      null,
+      UIUtil.getTreeCollapsedIcon(),
+    ) {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 

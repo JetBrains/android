@@ -108,8 +108,9 @@ class PlaybackControls(
     /** Snap the animation to the start state. */
     inner class GoToStartAction :
       DumbAwareAction(
-        message("animation.inspector.action.go.to.start"), null,
-        StudioIcons.LayoutEditor.Motion.GO_TO_START
+        message("animation.inspector.action.go.to.start"),
+        null,
+        StudioIcons.LayoutEditor.Motion.GO_TO_START,
       ) {
       override fun actionPerformed(e: AnActionEvent) {
         clockControl.jumpToStart()
@@ -130,8 +131,9 @@ class PlaybackControls(
     /** Snap the animation to the end state. */
     inner class GoToEndAction :
       DumbAwareAction(
-        message("animation.inspector.action.go.to.end"), null,
-        StudioIcons.LayoutEditor.Motion.GO_TO_END
+        message("animation.inspector.action.go.to.end"),
+        null,
+        StudioIcons.LayoutEditor.Motion.GO_TO_END,
       ) {
       override fun actionPerformed(e: AnActionEvent) {
         clockControl.jumpToEnd()
@@ -157,7 +159,8 @@ class PlaybackControls(
    */
   private inner class PlayPauseAction(parentDisposable: Disposable) :
     DumbAwareAction(
-      message("animation.inspector.action.play"), null,
+      message("animation.inspector.action.play"),
+      null,
       StudioIcons.LayoutEditor.Motion.PLAY,
     ),
     Disposable {
