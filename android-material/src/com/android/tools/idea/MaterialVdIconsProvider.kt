@@ -39,9 +39,11 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.blockingContextScope
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.progress.getCancellable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -130,7 +132,9 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
             if (icons.styles.isEmpty()) {
               LOG.warn("No icons loaded for style=$style.")
             }
-          } catch (t: Throwable) {
+          }
+          catch (_: ProcessCanceledException) {}
+          catch (t: Throwable) {
             LOG.error("Error loading icons.", t)
           }
         }
@@ -146,11 +150,17 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
     @Suppress("UnstableApiUsage")
     blockingContextScope {
       backgroundExecutor.submit {
-        // When finished loading, copy icons to the Android/Sdk directory.
-        copyBundledIcons(metadata, icons)
+        try {
+          // When finished loading, copy icons to the Android/Sdk directory.
+          copyBundledIcons(metadata, icons)
 
-        // Then, download the most recent metadata file and any new icons.
-        iconsUpdated = updateMetadataAndIcons(metadata)
+          // Then, download the most recent metadata file and any new icons.
+          iconsUpdated = updateMetadataAndIcons(metadata)
+        }
+        catch (_: ProcessCanceledException) {}
+        catch (t: Throwable) {
+          LOG.error( "Error updating icons.", t)
+        }
       }
     }
     if (iconsUpdated) {

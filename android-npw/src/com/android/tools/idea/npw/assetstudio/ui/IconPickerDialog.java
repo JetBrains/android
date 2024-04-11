@@ -241,6 +241,8 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     myCategoriesBox.setVisible(false);
     myStylesBox.addItemListener(myStylesBoxListener);
     myCategoriesBox.addItemListener(myCategoriesBoxListener);
+    myStylesBox.setName("Styles");
+    myCategoriesBox.setName("Categories");
     refreshIconList(metadataUrlProvider, iconsUrlProvider, true);
   }
 
