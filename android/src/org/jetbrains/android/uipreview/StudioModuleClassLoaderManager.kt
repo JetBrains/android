@@ -102,8 +102,8 @@ private class ModuleClassLoaderProjectHelperService(val project: Project) :
  * This is a wrapper around a class preloading [CompletableFuture] that allows for the proper
  * disposal of the resources used.
  */
-class Preloader(
-  moduleClassLoader: StudioModuleClassLoader,
+class Preloader<T : ModuleClassLoader>(
+  moduleClassLoader: T,
   classesToPreload: Collection<String> = emptyList()
 ) {
   private val classLoader = SoftReference(moduleClassLoader)
@@ -132,7 +132,7 @@ class Preloader(
     classLoaderToDispose?.dispose()
   }
 
-  fun getClassLoader(): StudioModuleClassLoader? {
+  fun getClassLoader(): T? {
     cancel() // Stop preloading since we are going to use the class loader
     return classLoader.get()
   }
@@ -158,68 +158,8 @@ class Preloader(
     classLoader.get()?.let { it.nonProjectLoadedClasses.size + it.projectLoadedClasses.size } ?: 0
 }
 
-private val PRELOADER: Key<Preloader> = Key.create(::PRELOADER.qualifiedName<StudioModuleClassLoaderManager>())
+private val PRELOADER: Key<Preloader<StudioModuleClassLoader>> = Key.create(::PRELOADER.qualifiedName<StudioModuleClassLoaderManager>())
 val HATCHERY: Key<ModuleClassLoaderHatchery> = Key.create(::HATCHERY.qualifiedName<StudioModuleClassLoaderManager>())
-
-private fun calculateTransformationsUniqueId(
-  projectClassesTransformationProvider: ClassTransform,
-  nonProjectClassesTransformationProvider: ClassTransform
-): String? {
-  return Hashing.goodFastHash(64)
-    .newHasher()
-    .putString(projectClassesTransformationProvider.id, Charsets.UTF_8)
-    .putString(nonProjectClassesTransformationProvider.id, Charsets.UTF_8)
-    .hash()
-    .toString()
-}
-
-fun StudioModuleClassLoader.areTransformationsUpToDate(
-  projectClassesTransformationProvider: ClassTransform,
-  nonProjectClassesTransformationProvider: ClassTransform
-): Boolean {
-  return (calculateTransformationsUniqueId(
-    this.projectClassesTransform,
-    this.nonProjectClassesTransform
-  ) ==
-    calculateTransformationsUniqueId(
-      projectClassesTransformationProvider,
-      nonProjectClassesTransformationProvider
-    ))
-}
-
-/**
- * Checks if the [StudioModuleClassLoader] has the same transformations and parent [ClassLoader]
- * making it compatible but not necessarily up-to-date because it does not check the state of user
- * project files. Compatibility means that the [StudioModuleClassLoader] can be used if it did not
- * load any classes from the user source code. This allows for pre-loading the classes from
- * dependencies (which are usually more stable than user code) and speeding up the preview update
- * when user changes the source code (but not dependencies).
- */
-fun StudioModuleClassLoader.isCompatible(
-  parent: ClassLoader?,
-  projectTransformations: ClassTransform,
-  nonProjectTransformations: ClassTransform
-) =
-  when {
-    !this.isCompatibleParentClassLoader(parent) -> {
-      StudioModuleClassLoaderManager.LOG.debug("Parent has changed, discarding ModuleClassLoader")
-      false
-    }
-    !this.areTransformationsUpToDate(projectTransformations, nonProjectTransformations) -> {
-      StudioModuleClassLoaderManager.LOG.debug(
-        "Transformations have changed, discarding ModuleClassLoader"
-      )
-      false
-    }
-    !this.areDependenciesUpToDate() -> {
-      StudioModuleClassLoaderManager.LOG.debug("Files have changed, discarding ModuleClassLoader")
-      false
-    }
-    else -> {
-      StudioModuleClassLoaderManager.LOG.debug("ModuleClassLoader is up to date")
-      true
-    }
-  }
 
 private fun <T> UserDataHolder.getOrCreate(key: Key<T>, factory: () -> T): T {
   getUserData(key)?.let {

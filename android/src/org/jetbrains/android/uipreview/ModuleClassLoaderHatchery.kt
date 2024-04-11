@@ -88,7 +88,7 @@ private class Clutch(
   private val donor: StudioModuleClassLoaderCreationContext,
   copies: Int = COPIES
 ) {
-  private val eggs = ConcurrentLinkedQueue<Preloader>()
+  private val eggs = ConcurrentLinkedQueue<Preloader<StudioModuleClassLoader>>()
   init {
     repeat(copies) { cloner(donor)?.let { eggs.add(Preloader(it, donor.classesToPreload)) } }
   }
