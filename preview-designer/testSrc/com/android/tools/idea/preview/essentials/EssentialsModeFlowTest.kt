@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.modes.essentials
+package com.android.tools.idea.preview.essentials
 
 import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ProjectRule
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -28,17 +32,24 @@ class EssentialsModeFlowTest {
   private val project
     get() = projectRule.project
 
+  private lateinit var settings: AndroidEditorSettings.GlobalState
+
+  @Before
+  fun setUp() {
+    settings = AndroidEditorSettings.getInstance().globalState
+  }
+
   @After
   fun tearDown() {
-    EssentialsMode.setEnabled(false, project)
+    settings.isPreviewEssentialsModeEnabled = false
   }
 
   @Test
   fun flowIsInitialized() {
-    EssentialsMode.setEnabled(false, project)
+    setPreviewEssentialsMode(false)
     assertEquals(false, essentialsModeFlow(project, projectRule.disposable).value)
 
-    EssentialsMode.setEnabled(true, project)
+    setPreviewEssentialsMode(true)
     assertEquals(true, essentialsModeFlow(project, projectRule.disposable).value)
   }
 
@@ -47,10 +58,18 @@ class EssentialsModeFlowTest {
     val flow = essentialsModeFlow(project, projectRule.disposable)
     assertEquals(false, flow.value)
 
-    EssentialsMode.setEnabled(true, project)
+    setPreviewEssentialsMode(true)
     assertEquals(true, flow.value)
 
-    EssentialsMode.setEnabled(false, project)
+    setPreviewEssentialsMode(false)
     assertEquals(false, flow.value)
+  }
+
+  private fun setPreviewEssentialsMode(value: Boolean) {
+    settings.isPreviewEssentialsModeEnabled = value
+    ApplicationManager.getApplication()
+      .messageBus
+      .syncPublisher(NlOptionsConfigurable.Listener.TOPIC)
+      .onOptionsChanged()
   }
 }

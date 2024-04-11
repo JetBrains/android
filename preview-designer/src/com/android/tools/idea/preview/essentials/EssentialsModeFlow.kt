@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.modes.essentials
+package com.android.tools.idea.preview.essentials
 
+import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-/** Returns a flow that is updated each time [EssentialsMode] is updated. */
+/**
+ * Returns a flow that is updated each time [NlOptionsConfigurable]s are updated. The flow value
+ * will be the current state of preview essentials mode.
+ */
 fun essentialsModeFlow(project: Project, parentDisposable: Disposable): StateFlow<Boolean> {
-  val flow = MutableStateFlow(EssentialsMode.isEnabled())
-
-  val essentialsModeMessagingService = service<EssentialsModeMessenger>()
+  val flow = MutableStateFlow(PreviewEssentialsModeManager.isEssentialsModeEnabled)
   project.messageBus
     .connect(parentDisposable)
     .subscribe(
-      essentialsModeMessagingService.TOPIC,
-      EssentialsModeMessenger.Listener { flow.value = EssentialsMode.isEnabled() },
+      NlOptionsConfigurable.Listener.TOPIC,
+      NlOptionsConfigurable.Listener {
+        flow.value = PreviewEssentialsModeManager.isEssentialsModeEnabled
+      },
     )
-
   return flow
 }

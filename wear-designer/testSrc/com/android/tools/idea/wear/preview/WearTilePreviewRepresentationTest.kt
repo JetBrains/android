@@ -23,14 +23,11 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.editors.build.ProjectStatus
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.actions.GroupSwitchAction
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
-import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
-import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
@@ -54,9 +51,6 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -68,6 +62,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import kotlin.time.Duration.Companion.seconds
 
 class WearTilePreviewRepresentationTest {
   private val logger = Logger.getInstance(WearTilePreviewRepresentation::class.java)
@@ -100,7 +97,6 @@ class WearTilePreviewRepresentationTest {
 
   @After
   fun tearDown() {
-    EssentialsMode.setEnabled(false, project)
     wearTilePreviewEssentialsModeEnabled = false
   }
 
@@ -224,7 +220,7 @@ class WearTilePreviewRepresentationTest {
   @Test
   fun testInteractivePreviewManagerFpsLimitIsInitializedWhenEssentialsModeIsEnabled() =
     runBlocking(workerThread) {
-      EssentialsMode.setEnabled(true, project)
+      wearTilePreviewEssentialsModeEnabled = true
       val preview = createWearTilePreviewRepresentation(expectedModelCount = 1)
 
       assertEquals(10, preview.interactiveManager.fpsLimit)
@@ -239,10 +235,10 @@ class WearTilePreviewRepresentationTest {
 
       assertEquals(30, preview.interactiveManager.fpsLimit)
 
-      EssentialsMode.setEnabled(true, project)
+      wearTilePreviewEssentialsModeEnabled = true
       retryUntilPassing(5.seconds) { assertEquals(10, preview.interactiveManager.fpsLimit) }
 
-      EssentialsMode.setEnabled(false, project)
+      wearTilePreviewEssentialsModeEnabled = false
       retryUntilPassing(5.seconds) { assertEquals(30, preview.interactiveManager.fpsLimit) }
 
       preview.onDeactivate()
