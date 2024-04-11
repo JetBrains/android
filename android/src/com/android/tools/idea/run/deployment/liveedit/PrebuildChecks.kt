@@ -19,7 +19,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.kotlinEap
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlin
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedBuildSrcChange
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.virtualFileNotExist
 import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.PluginId
@@ -56,15 +58,18 @@ internal fun checkIwiAvailable() {
 
 internal fun checkSupportedFiles(file: PsiFile) {
   val virtualFile = file.virtualFile ?: return // Extremely unlikely, but possible.
-  if (!virtualFile.exists()) {
-    throw LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-                                  "deleted Kotlin file ${virtualFile.path}", file, null)
+
+  // Filter out non-kotlin file first so we don't end up with a lot of metrics related to non-kolin files.
+  if (file !is KtFile) {
+    throw nonKotlin(file)
   }
+
   if (virtualFile.path.contains("buildSrc")) {
     throw unsupportedBuildSrcChange(file.virtualFile.path)
   }
-  if (file !is KtFile) {
-    throw LiveEditUpdateException(LiveEditUpdateException.Error.NON_KOTLIN, file.name, file, null)
+
+  if (!virtualFile.exists()) {
+    throw virtualFileNotExist(virtualFile, file)
   }
 }
 

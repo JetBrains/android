@@ -16,9 +16,10 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.google.wireless.android.sdk.stats.LiveEditEvent.Status
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 
-class LiveEditUpdateException(val error: Error, val details: String = "", val source: PsiFile?, cause : Throwable?) : RuntimeException(details, cause) {
+class LiveEditUpdateException private constructor(val error: Error, val details: String = "", val source: PsiFile?, cause : Throwable?) : RuntimeException(details, cause) {
 
   /**
    * @param message Short description
@@ -37,11 +38,31 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     UNABLE_TO_INLINE("Unable to inline function", "%", true, Status.UNABLE_TO_INLINE),
     UNABLE_TO_LOCATE_COMPOSE_GROUP("Unable to locate Compose Invalid Group", "%", false, Status.UNABLE_TO_LOCATE_COMPOSE_GROUP),
     UNSUPPORTED_BUILD_SRC_CHANGE("buildSrc/ sources not supported", "%", false, Status.UNSUPPORTED_BUILD_SRC_CHANGE),
+
     UNSUPPORTED_SRC_CHANGE_RECOVERABLE("Unsupported change", "%", true, Status.UNSUPPORTED_SRC_CHANGE_RECOVERABLE),
     UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE),
+
+    UNSUPPORTED_SRC_CHANGE_ACCESS_ADDED("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_ACCESS_REMOVED("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_CLINIT("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_ENCLOSING_METHOD("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_FIELD_ADDED("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_INTERFACE("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_INIT("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_FIELD_REMOVED("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_FIELD_MODIFIED("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_METHOD_ADDED("Unsupported change", "added method(s): %", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_METHOD_REMOVED("Unsupported change", "removed method(s): %", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_SIGNATURE("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_SUPER_CLASS("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_USER_CLASS_ADDED("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_WHEN_ENUM_PATH("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+
     UNSUPPORTED_TEST_SRC_CHANGE("Test sources not supported", "%", false, Status.UNSUPPORTED_TEST_SRC_CHANGE),
     UNABLE_TO_DESUGAR("Live Edit post-processing failure", "%", false, Status.UNABLE_TO_DESUGAR),
     UNSUPPORTED_BUILD_LIBRARY_DESUGAR("Live Edit post-processing failure", "%", false, Status.UNSUPPORTED_BUILD_LIBRARY_DESUGAR),
+    VIRTUAL_FILE_NOT_EXIST("Modifying virtual file that does not exist", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE),  // TODO: Separate Tracking Metrics.
     BAD_MIN_API("Live Edit min-api detection failure", "%", false, Status.BAD_MIN_API),
 
     INTERNAL_ERROR("Internal Error", "%", false, Status.INTERNAL_ERROR),
@@ -75,11 +96,53 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     fun nonKotlin(file: PsiFile) =
       LiveEditUpdateException(Error.NON_KOTLIN, source = file, cause = null)
 
-    fun unsupportedUnrecoverableSourceModification(type: String, file: PsiFile) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, type, file, null)
+    fun unsupportedSourceModificationAddedMethod(location: String, msg: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_METHOD_ADDED, "in $location, $msg", null, null)
 
-    fun unsupportedRecoverableSourceModification(type: String, file: PsiFile) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_RECOVERABLE, type, file, null)
+    fun unsupportedSourceModificationRemovedMethod(location: String, msg: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_METHOD_REMOVED, "in $location, $msg", null, null)
+
+    fun unsupportedSourceModificationAddedAccess(location: String, msg: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_ACCESS_ADDED, "in $location, $msg", null, null)
+
+    fun unsupportedSourceModificationRemovedAccess(location: String, msg: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_ACCESS_REMOVED, "in $location, $msg", null, null)
+
+    fun unsupportedSourceModificationAddedField(location: String, msg: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_FIELD_ADDED, "in $location, $msg", null, null)
+
+    fun unsupportedSourceModificationRemovedField(location: String, msg: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_FIELD_REMOVED, "in $location, $msg", null, null)
+
+    fun unsupportedSourceModificationModifiedField(location: String, msg: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_FIELD_MODIFIED, "in $location, $msg", null, null)
+
+    fun unsupportedSourceModificationSignature(location: String, msg: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_SIGNATURE, "in $location, $msg", null, null)
+
+    fun unsupportedSourceModificationSuperClass(location: String, msg: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_SUPER_CLASS, "in $location, $msg", null, null)
+
+    fun unsupportedSourceModificationInterface(location: String, msg: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_INTERFACE, "in $location, $msg", null, null)
+
+    fun unsupportedSourceModificationEnclosingMethod(location: String, msg: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_ENCLOSING_METHOD, "in $location, $msg", null, null)
+
+    fun unsupportedSourceModificationAddedUserClass(msg: String, file: PsiFile) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_USER_CLASS_ADDED, msg, file, null)
+
+    fun unsupportedSourceModificationWhenEnumPath(msg: String, file: PsiFile) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_WHEN_ENUM_PATH, msg, file, null)
+
+    fun unsupportedSourceModificationConstructor(msg: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR, msg, null, null)
+
+    fun unsupportedSourceModificationClinit(msg: String) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_CLINIT, msg, null, null)
+
+    fun unsupportedSourceModificationInit(msg: String, file: PsiFile) =
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_INIT, msg, file, null)
 
     fun unsupportedBuildSrcChange(name: String) =
       LiveEditUpdateException(Error.UNSUPPORTED_BUILD_SRC_CHANGE, name, null, null)
@@ -112,6 +175,9 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     fun badMinAPIError(details: String, cause: Throwable? = null) {
       throw LiveEditUpdateException(Error.BAD_MIN_API, details, null, cause)
     }
+
+    fun virtualFileNotExist(virtualFile: VirtualFile, file: PsiFile) =
+      LiveEditUpdateException(Error.VIRTUAL_FILE_NOT_EXIST, details = "deleted Kotlin file ${virtualFile.path}", source = file, cause = null)
   }
 
   fun isCompilationError() : Boolean {

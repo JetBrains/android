@@ -179,7 +179,7 @@ class BasicCompileTest {
     val exception = Assert.assertThrows(LiveEditUpdateException::class.java) {
       compile(file, cache)
     }
-    assertEquals(exception.error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE)
+    assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_USER_CLASS_ADDED, exception.error)
     assertEquals(exception.details, "added new class C in Test.kt")
   }
 
@@ -273,7 +273,7 @@ class BasicCompileTest {
       compile(file, cache)
       fail("Expected exception due to modified constructor")
     } catch (e: LiveEditUpdateException) {
-      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, e.error)
+      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR, e.error)
       assertContains(e.details, "MyClass")
     }
   }
@@ -300,7 +300,7 @@ class BasicCompileTest {
       fail("Expected exception due to modified field")
     }
     catch (e: LiveEditUpdateException) {
-      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, e.error)
+      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR, e.error)
       assertContains(e.details, "MyClass")
       println(e.details)
     }
@@ -318,7 +318,7 @@ class BasicCompileTest {
       compile(next, cache)
       fail("Expected exception due to modified static initializer")
     } catch (e: LiveEditUpdateException) {
-      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, e.error)
+      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_CLINIT, e.error)
       assertContains(e.details, "static initializer")
     }
   }
@@ -352,7 +352,7 @@ class BasicCompileTest {
       compile(file, cache)
       fail("Expected exception due to modified constructor")
     } catch (e: LiveEditUpdateException) {
-      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, e.error)
+      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_WHEN_ENUM_PATH, e.error)
       assertContains(e.details, "Changing `when` on enum code path")
     }
   }

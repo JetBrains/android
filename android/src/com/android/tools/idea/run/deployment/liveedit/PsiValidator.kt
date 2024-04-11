@@ -67,8 +67,7 @@ private fun validateConstructors(psiFile: PsiFile,
   for (entry in oldConstructors) {
     val other = newConstructors[entry.key] ?: continue
     if (other != entry.value) {
-      return LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-                                    "in $psiFile, modified constructor $entry.key", psiFile, null)
+      return LiveEditUpdateException.unsupportedSourceModificationConstructor("in $psiFile, modified constructor $entry.key")
     }
   }
   return null
@@ -79,8 +78,7 @@ private fun validateInitBlocks(psiFile: PsiFile, oldInit: Map<Int, String>, newI
   val old = oldInit.toSortedMap().map { it.value }
   val new = newInit.toSortedMap().map { it.value }
   if (old != new) {
-    return LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-                                  "in $psiFile, modified init block", psiFile, null)
+    return LiveEditUpdateException.unsupportedSourceModificationInit("in $psiFile, modified init block", psiFile)
   }
   return null
 }
@@ -89,8 +87,8 @@ private fun validateProperties(psiFile: PsiFile, oldProps: Map<FqName, String>, 
   for (entry in oldProps) {
     val other = newProps[entry.key] ?: continue
     if (other != entry.value) {
-      return LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-                                    "in $psiFile, modified property ${entry.key.shortName()} of ${entry.key.parent()}", psiFile, null)
+      return LiveEditUpdateException.unsupportedSourceModificationModifiedField(
+        "$psiFile", "modified property ${entry.key.shortName()} of ${entry.key.parent()}")
     }
   }
   return null
