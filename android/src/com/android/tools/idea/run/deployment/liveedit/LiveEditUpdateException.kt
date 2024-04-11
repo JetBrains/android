@@ -32,41 +32,38 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     // Sorted lexicographically for readability and consistency
     ANALYSIS_ERROR("Resolution Analysis Error", "%", true, Status.ANALYSIS_ERROR),
     COMPILATION_ERROR("Compilation Error", "%", true, Status.COMPILATION_ERROR),
-    KOTLIN_EAP("Compilation Error", "%", true, Status.COMPILATION_ERROR),  // TODO: Separate Tracking Metrics.
+    KOTLIN_EAP("Compilation Error", "%", true, Status.KOTLIN_EAP),
     NON_KOTLIN("Modifying a non-Kotlin file is not supported", "%", false, Status.NON_KOTLIN),
     NON_PRIVATE_INLINE_FUNCTION("Modified function is a non-private inline function", "%", true, Status.NON_PRIVATE_INLINE_FUNCTION),
     UNABLE_TO_INLINE("Unable to inline function", "%", true, Status.UNABLE_TO_INLINE),
     UNABLE_TO_LOCATE_COMPOSE_GROUP("Unable to locate Compose Invalid Group", "%", false, Status.UNABLE_TO_LOCATE_COMPOSE_GROUP),
     UNSUPPORTED_BUILD_SRC_CHANGE("buildSrc/ sources not supported", "%", false, Status.UNSUPPORTED_BUILD_SRC_CHANGE),
 
-    UNSUPPORTED_SRC_CHANGE_RECOVERABLE("Unsupported change", "%", true, Status.UNSUPPORTED_SRC_CHANGE_RECOVERABLE),
-    UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE),
-
-    UNSUPPORTED_SRC_CHANGE_ACCESS_ADDED("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_ACCESS_REMOVED("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_CLINIT("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_ENCLOSING_METHOD("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_FIELD_ADDED("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_INTERFACE("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_INIT("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_FIELD_REMOVED("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_FIELD_MODIFIED("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_METHOD_ADDED("Unsupported change", "added method(s): %", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_METHOD_REMOVED("Unsupported change", "removed method(s): %", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_SIGNATURE("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_SUPER_CLASS("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_USER_CLASS_ADDED("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
-    UNSUPPORTED_SRC_CHANGE_WHEN_ENUM_PATH("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE), // TODO: Separate Tracking Metrics.
+    UNSUPPORTED_SRC_CHANGE_ACCESS_ADDED("Unsupported change", "%", false, Status.UNSUPPORTED_ADDED_ACCESS),
+    UNSUPPORTED_SRC_CHANGE_ACCESS_REMOVED("Unsupported change", "%", false, Status.UNSUPPORTED_REMOVED_ACCESS),
+    UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR("Unsupported change", "%", false, Status.UNSUPPORTED_CONSTRUCTOR),
+    UNSUPPORTED_SRC_CHANGE_CLINIT("Unsupported change", "%", false, Status.UNSUPPORTED_CLINIT),
+    UNSUPPORTED_SRC_CHANGE_ENCLOSING_METHOD("Unsupported change", "%", false, Status.UNSUPPORTED_ENCLOSING_METHOD),
+    UNSUPPORTED_SRC_CHANGE_FIELD_ADDED("Unsupported change", "%", false, Status.UNSUPPORTED_ADDED_FIELD),
+    UNSUPPORTED_SRC_CHANGE_INTERFACE("Unsupported change", "%", false, Status.UNSUPPORTED_INTERFACE),
+    UNSUPPORTED_SRC_CHANGE_INIT("Unsupported change", "%", false, Status.UNSUPPORTED_INIT),
+    UNSUPPORTED_SRC_CHANGE_FIELD_REMOVED("Unsupported change", "%", false, Status.UNSUPPORTED_REMOVED_FIELD),
+    UNSUPPORTED_SRC_CHANGE_FIELD_MODIFIED("Unsupported change", "%", false, Status.UNSUPPORTED_MODIFIED_FIELD),
+    UNSUPPORTED_SRC_CHANGE_METHOD_ADDED("Unsupported change", "added method(s): %", false, Status.UNSUPPORTED_ADDED_METHOD),
+    UNSUPPORTED_SRC_CHANGE_METHOD_REMOVED("Unsupported change", "removed method(s): %", false, Status.UNSUPPORTED_REMOVED_METHOD),
+    UNSUPPORTED_SRC_CHANGE_SIGNATURE("Unsupported change", "%", false, Status.UNSUPPORTED_SIGNATURE),
+    UNSUPPORTED_SRC_CHANGE_SUPER_CLASS("Unsupported change", "%", false, Status.UNSUPPORTED_SUPER_CLASS),
+    UNSUPPORTED_SRC_CHANGE_USER_CLASS_ADDED("Unsupported change", "%", false, Status.UNSUPPORTED_ADDED_CLASS),
+    UNSUPPORTED_SRC_CHANGE_WHEN_ENUM_PATH("Unsupported change", "%", false, Status.UNSUPPORTED_WHEN_ENUM_PATH),
 
     UNSUPPORTED_TEST_SRC_CHANGE("Test sources not supported", "%", false, Status.UNSUPPORTED_TEST_SRC_CHANGE),
     UNABLE_TO_DESUGAR("Live Edit post-processing failure", "%", false, Status.UNABLE_TO_DESUGAR),
     UNSUPPORTED_BUILD_LIBRARY_DESUGAR("Live Edit post-processing failure", "%", false, Status.UNSUPPORTED_BUILD_LIBRARY_DESUGAR),
-    VIRTUAL_FILE_NOT_EXIST("Modifying virtual file that does not exist", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE),  // TODO: Separate Tracking Metrics.
+    VIRTUAL_FILE_NOT_EXIST("Modifying virtual file that does not exist", "%", false, Status.VIRTUAL_FILE_NOT_EXIST),
     BAD_MIN_API("Live Edit min-api detection failure", "%", false, Status.BAD_MIN_API),
 
     INTERNAL_ERROR("Internal Error", "%", false, Status.INTERNAL_ERROR),
-    INTERNAL_ERROR_NO_BINDING_CONTEXT("Internal Error", "%", false, Status.INTERNAL_ERROR), // TODO: Separate Tracking Metrics.
+    INTERNAL_ERROR_NO_BINDING_CONTEXT("Internal Error", "%", false, Status.INTERNAL_ERROR_NO_BINDING_CONTEXT),
 
     KNOWN_ISSUE("Known Issue", "%", true, Status.KNOWN_ISSUE),
   }
