@@ -25,6 +25,8 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DocumentationWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixtureKt;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -90,9 +92,10 @@ public class QuickDocumentationTest {
     assertThat(javaMethodDocumentationContent.contains("Overrides:")).isTrue();
     assertThat(javaMethodDocumentationContent.contains("psi_element://androidx.fragment.app.FragmentActivity#onCreate(android.os.Bundle)")).isTrue();
 
-    editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR, Wait.seconds(30));
-
+    editor.open("app/src/main/res/layout/activity_main.xml");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+    SplitEditorFixture splitEditorFixture = SplitEditorFixtureKt.getSplitEditorFixture(editor);
+    splitEditorFixture.setCodeMode();
 
     editor.moveBetween("AppBar", "Layout");
     getQuickDocumentation();
