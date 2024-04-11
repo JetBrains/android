@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.TestActionEvent
@@ -78,22 +79,22 @@ internal class PreviewIssueNotificationActionTest {
     val event = TestActionEvent.createTestEvent(context)
 
     action.update(event)
-    assertEquals("Up-to-date (The preview is up to date)", event.presentation.toString())
+    assertEquals("Up-to-date (The preview is up to date)", event.presentation.asString())
 
     composePreviewManager.currentStatus = originStatus.copy(hasRuntimeErrors = true)
     action.update(event)
     assertEquals(
       "Render Issues (Some problems were found while rendering the preview)",
-      event.presentation.toString()
+      event.presentation.asString()
     )
 
     composePreviewManager.currentStatus = originStatus.copy(isOutOfDate = true)
     action.update(event)
-    assertEquals("Out of date (The preview is out of date)", event.presentation.toString())
+    assertEquals("Out of date (The preview is out of date)", event.presentation.asString())
     try {
       FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
       action.update(event)
-      assertEquals("Out of date (The preview is out of date)", event.presentation.toString())
+      assertEquals("Out of date (The preview is out of date)", event.presentation.asString())
     } finally {
       FastPreviewManager.getInstance(projectRule.project).enable()
     }
@@ -102,12 +103,12 @@ internal class PreviewIssueNotificationActionTest {
     action.update(event)
     assertEquals(
       "Paused (The preview will not update while your project contains syntax errors.)",
-      event.presentation.toString()
+      event.presentation.asString()
     )
 
     composePreviewManager.currentStatus = originStatus.copy(isRefreshing = true)
     action.update(event)
-    assertEquals("Loading... (The preview is updating...)", event.presentation.toString())
+    assertEquals("Loading... (The preview is updating...)", event.presentation.asString())
 
     composePreviewManager.currentStatus = originStatus.copy(hasRuntimeErrors = true)
     action.update(event)
@@ -116,7 +117,7 @@ internal class PreviewIssueNotificationActionTest {
     assertEquals(ComposeStatus.Presentation.Warning, statusInfo.presentation)
     assertEquals(
       "Render Issues (Some problems were found while rendering the preview)",
-      event.presentation.toString()
+      event.presentation.asString()
     )
   }
 
@@ -131,7 +132,7 @@ internal class PreviewIssueNotificationActionTest {
     // Syntax errors take precedence over out of date when Fast Preview is Enabled
     assertEquals(
       "Paused (The preview will not update while your project contains syntax errors.)",
-      event.presentation.toString()
+      event.presentation.asString()
     )
 
     try {
@@ -139,7 +140,7 @@ internal class PreviewIssueNotificationActionTest {
 
       action.update(event)
       // Syntax errors does NOT take precedence over out of date when Fast Preview is Disabled
-      assertEquals("Out of date (The preview is out of date)", event.presentation.toString())
+      assertEquals("Out of date (The preview is out of date)", event.presentation.asString())
     } finally {
       FastPreviewManager.getInstance(projectRule.project).enable()
     }
@@ -152,7 +153,7 @@ internal class PreviewIssueNotificationActionTest {
         isRefreshing = true
       )
     action.update(event)
-    assertEquals("Loading... (The preview is updating...)", event.presentation.toString())
+    assertEquals("Loading... (The preview is updating...)", event.presentation.asString())
 
     // Most other statuses take precedence over runtime errors
     composePreviewManager.currentStatus =
@@ -163,7 +164,7 @@ internal class PreviewIssueNotificationActionTest {
         isRefreshing = true
       )
     action.update(event)
-    assertEquals("Loading... (The preview is updating...)", event.presentation.toString())
+    assertEquals("Loading... (The preview is updating...)", event.presentation.asString())
 
     composePreviewManager.currentStatus =
       originStatus.copy(
@@ -175,7 +176,7 @@ internal class PreviewIssueNotificationActionTest {
 
       action.update(event)
       // Syntax errors does NOT take precedence over out of date when Fast Preview is Disabled
-      assertEquals("Out of date (The preview is out of date)", event.presentation.toString())
+      assertEquals("Out of date (The preview is out of date)", event.presentation.asString())
     } finally {
       FastPreviewManager.getInstance(projectRule.project).enable()
     }
@@ -188,7 +189,7 @@ internal class PreviewIssueNotificationActionTest {
     action.update(event)
     assertEquals(
       "Paused (The preview will not update while your project contains syntax errors.)",
-      event.presentation.toString()
+      event.presentation.asString()
     )
   }
 
@@ -341,4 +342,6 @@ internal class PreviewIssueNotificationActionTest {
     action.actionPerformed(event)
     assertEquals(1, popupRequested)
   }
+  
+  private fun Presentation.asString() = "$text ($description)" 
 }
