@@ -92,6 +92,15 @@ class SomethingDslWriterTest : LightPlatformTestCase() {
     doTest(contents, expected)
   }
 
+  fun testFactoryWithNoArguments() {
+    val contents = mapOf("factory" to factoryOf<String>())
+    val expected = """
+      factory()
+     """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
   fun testFactoryWithIntArgument() {
     val contents = mapOf("factory" to factoryOf(123))
     val expected = """

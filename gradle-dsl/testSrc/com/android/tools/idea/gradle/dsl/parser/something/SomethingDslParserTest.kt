@@ -157,6 +157,16 @@ class SomethingDslParserTest : LightPlatformTestCase() {
     doTest(file, expected)
   }
 
+  fun testFactoryMethodNoAttributes(){
+    val file = """
+      androidApplication {
+        method()
+      }
+    """.trimIndent()
+    val expected = mapOf("android" to mapOf("method" to listOf<String>()))
+    doTest(file, expected)
+  }
+
   private fun doTest(text: String, expected: Map<String, Any>) {
     val somethingFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
