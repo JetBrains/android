@@ -813,7 +813,7 @@ PROJECT                       : kotlinMultiPlatform
             HomePath                      :  [-]
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: Kotlin/Native: stdlib [=]
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5 [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION> [=]
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.nativeMain
         BUILD_TASKS
@@ -878,7 +878,7 @@ PROJECT                       : kotlinMultiPlatform
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: Kotlin/Native: stdlib [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5 [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION> [=]
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.appleMain
             Scope                         : Test
@@ -950,7 +950,7 @@ PROJECT                       : kotlinMultiPlatform
             SdkType                       : KotlinSDK
             HomePath                      :  [-]
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5 [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION> [=]
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
                 REBUILD                       : :module2:assemble, :module2:clean
@@ -1011,7 +1011,7 @@ PROJECT                       : kotlinMultiPlatform
             SdkType                       : KotlinSDK
             HomePath                      :  [-]
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5 [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION> [=]
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
             Scope                         : Test
@@ -1203,7 +1203,7 @@ PROJECT                       : kotlinMultiPlatform
             HomePath                      :  [-]
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: Kotlin/Native: stdlib [=]
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5 [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION> [=]
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.appleMain
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.nativeMain
@@ -1398,7 +1398,7 @@ PROJECT                       : kotlinMultiPlatform
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: Kotlin/Native: stdlib [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5 [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION> [=]
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.appleMain
             Scope                         : Test
@@ -1727,7 +1727,7 @@ PROJECT                       : kotlinMultiPlatform
             HomePath                      :  [-]
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: Kotlin/Native: stdlib [=]
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5 [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION> [=]
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
         BUILD_TASKS
                 ASSEMBLE                      : :module2:assemble
@@ -1791,7 +1791,7 @@ PROJECT                       : kotlinMultiPlatform
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: Kotlin/Native: stdlib [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5 [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION> [=]
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.appleMain
             Scope                         : Test
@@ -1942,7 +1942,7 @@ PROJECT                       : kotlinMultiPlatform
         Module                        : kotlinMultiPlatform.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: Kotlin/Native: stdlib
-            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-2.0.0-Beta5/klib/common/stdlib
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-2.0.0-RC1/klib/common/stdlib
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar
@@ -2057,7 +2057,7 @@ PROJECT                       : kotlinMultiPlatform
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION>
             *CLASSES                      : jar://<PROJECT>/.kotlin/metadata/kotlinTransformedMetadataLibraries/org.jetbrains.kotlin-kotlin-stdlib-<KOTLIN_VERSION>.klib!/
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/

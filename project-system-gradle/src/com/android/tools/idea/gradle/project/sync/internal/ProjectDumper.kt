@@ -81,10 +81,7 @@ class ProjectDumper(
   private val gradleHashPattern = Regex("[0-9a-f]{${gradleHashStub.length - 3},${gradleHashStub.length}}")
   private val gradleLongHashPattern = Regex("[0-9a-f]{${gradleLongHashStub.length - 3},${gradleLongHashStub.length}}")
   private val gradleVersionPattern = Regex("gradle-[^/]*${SdkConstants.GRADLE_LATEST_VERSION}")
-  private val kotlinVersionPattern =
-    // org.jetbrains.kotlin:kotlin-something:<version> or kotlin-something-<version>
-    // where <version> could be 1.7.0, 1.3.1-eap-23, or 1.7.20-Beta
-    Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-zA-Z]*)*:)|(?:kotlin(?:-[0-9a-zA-Z]+)*)-)(\\d+\\.\\d+.[0-9a-zA-Z\\-]+)")
+  private val kotlinVersionPattern = Regex("\\d+\\.\\d+\\.[0-9a-zA-Z\\-]+") // Examples: 1.7.0, 1.3.1-eap-23, 1.7.20-Beta
   private val dotAndroidFolderPathPattern = Regex("^/([_/0-9a-z])+\\.android")
   private val transformFolderPattern = Regex("/transforms-\\d/")
   private val konanFolderPathRegex = Regex("^/([_/0-9a-z])+\\.konan")
@@ -154,13 +151,9 @@ class ProjectDumper(
 
   fun String.replaceKnownPatterns(): String =
     this
-      .replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
+      .replaceAgpVersion()
+      .replaceKotlinVersion()
       .replace(ANDROID_TOOLS_BASE_VERSION, "<ANDROID_TOOLS_BASE_VERSION>")
-      .let {
-        kotlinVersionPattern.find(it)?.let { match ->
-          it.replace(match.groupValues[1], "<KOTLIN_VERSION>")
-        } ?: it
-      }
       .let {
         if (it.contains(gradleVersionPattern)) {
           it.replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
@@ -203,14 +196,10 @@ class ProjectDumper(
       .replace(gradleHashPattern, gradleHashStub)
       .replace(gradleDistPattern, "/$gradleDistStub/")
       .replaceAgpVersion()
+      .replaceKotlinVersion()
       .replace(ANDROID_TOOLS_BASE_VERSION, "<ANDROID_TOOLS_BASE_VERSION>")
       .replace(dotAndroidFolderPathPattern, "<.ANDROID>")
       .replace(konanFolderPathRegex, "<KONAN>")
-      .let {
-        kotlinVersionPattern.find(it)?.let { match ->
-          it.replace(match.groupValues[1], "<KOTLIN_VERSION>")
-        } ?: it
-      }
       .let {
         if (it.contains(gradleVersionPattern)) {
           it.replaceGradleVersion()
@@ -223,6 +212,28 @@ class ProjectDumper(
   fun String.replaceAgpVersion(): String = replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
 
   fun String.replaceGradleVersion() = replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
+
+  private fun String.replaceKotlinVersion(): String {
+    return split("\n").map { line ->
+      when {
+        // Ignore kotlinx for now, we can process it later if we want
+        line.contains("org.jetbrains.kotlinx") || line.contains("org/jetbrains/kotlinx") -> line
+
+        // Find org.jetbrains.kotlin(.native):something(:commonMain):<version>
+        //   or org/jetbrains/kotlin(/native)/something/<version>/something-<version>
+        line.contains("org.jetbrains.kotlin") || line.contains("org/jetbrains/kotlin") -> {
+          line.replace(kotlinVersionPattern, "<KOTLIN_VERSION>")
+        }
+
+        // Also look for Kotlin version in strings such as "jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/<SHA1>/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-1.9.20.jar!/"
+        line.contains("lib/kotlin-") -> {
+          line.substringBefore("kotlin-") + "kotlin-" + line.substringAfter("kotlin-").replace(kotlinVersionPattern, "<KOTLIN_VERSION>")
+        }
+
+        else -> line
+      }
+    }.joinToString("\n")
+  }
 
   fun appendLine(data: String) {
     output.append(currentNestingPrefix)

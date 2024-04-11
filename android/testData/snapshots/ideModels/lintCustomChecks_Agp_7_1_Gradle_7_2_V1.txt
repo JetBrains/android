@@ -463,7 +463,7 @@ MODULE                        : project
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/android/tools/external/com-intellij/intellij-core/<VERSION>/intellij-core-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
-                                file                          : <M2>/com/android/tools/external/com-intellij/kotlin-compiler/<KOTLIN_VERSION>/kotlin-compiler-<KOTLIN_VERSION>.jar
+                                file                          : <M2>/com/android/tools/external/com-intellij/kotlin-compiler/<VERSION>/kotlin-compiler-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/android/tools/external/org-jetbrains/uast/<VERSION>/uast-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency

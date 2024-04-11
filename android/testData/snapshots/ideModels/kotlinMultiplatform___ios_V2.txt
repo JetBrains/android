@@ -2873,8 +2873,8 @@ MODULE                        : kotlinMultiPlatform.module2
             appleMain
                 - dependency                  : :module2::module2/commonMain
                 - dependency                  : :module2::module2/nativeMain
-                - dependency                  : org.jetbrains.kotlin.native:stdlib:2.0.0-Beta5
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin.native:stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION>
             appleTest
                 - dependency                  : :module2::module2/appleMain
                 - dependency                  : :module2::module2/commonMain
@@ -2882,19 +2882,19 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : :module2::module2/iosMain
                 - dependency                  : :module2::module2/nativeMain
                 - dependency                  : :module2::module2/nativeTest
-                - dependency                  : org.jetbrains.kotlin.native:stdlib:2.0.0-Beta5
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin.native:stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION>
             commonMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION>
             commonTest
                 - dependency                  : :module2::module2/commonMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION>
             iosArm64Main
                 - dependency                  : :module2::module2/appleMain
                 - dependency                  : :module2::module2/commonMain
                 - dependency                  : :module2::module2/iosMain
                 - dependency                  : :module2::module2/nativeMain
-                - dependency                  : org.jetbrains.kotlin.native:stdlib:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin.native:stdlib:<KOTLIN_VERSION>
             iosArm64Test
                 - dependency                  : :module2::module2/appleMain
                 - dependency                  : :module2::module2/appleTest
@@ -2905,19 +2905,19 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : :module2::module2/iosTest
                 - dependency                  : :module2::module2/nativeMain
                 - dependency                  : :module2::module2/nativeTest
-                - dependency                  : org.jetbrains.kotlin.native:stdlib:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin.native:stdlib:<KOTLIN_VERSION>
             iosMain
                 - dependency                  : :module2::module2/appleMain
                 - dependency                  : :module2::module2/commonMain
                 - dependency                  : :module2::module2/nativeMain
-                - dependency                  : org.jetbrains.kotlin.native:stdlib:2.0.0-Beta5
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin.native:stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION>
             iosSimulatorArm64Main
                 - dependency                  : :module2::module2/appleMain
                 - dependency                  : :module2::module2/commonMain
                 - dependency                  : :module2::module2/iosMain
                 - dependency                  : :module2::module2/nativeMain
-                - dependency                  : org.jetbrains.kotlin.native:stdlib:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin.native:stdlib:<KOTLIN_VERSION>
             iosSimulatorArm64Test
                 - dependency                  : :module2::module2/appleMain
                 - dependency                  : :module2::module2/appleTest
@@ -2928,7 +2928,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : :module2::module2/iosTest
                 - dependency                  : :module2::module2/nativeMain
                 - dependency                  : :module2::module2/nativeTest
-                - dependency                  : org.jetbrains.kotlin.native:stdlib:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin.native:stdlib:<KOTLIN_VERSION>
             iosTest
                 - dependency                  : :module2::module2/appleMain
                 - dependency                  : :module2::module2/appleTest
@@ -2937,14 +2937,14 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : :module2::module2/iosMain
                 - dependency                  : :module2::module2/nativeMain
                 - dependency                  : :module2::module2/nativeTest
-                - dependency                  : org.jetbrains.kotlin.native:stdlib:2.0.0-Beta5
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin.native:stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION>
             iosX64Main
                 - dependency                  : :module2::module2/appleMain
                 - dependency                  : :module2::module2/commonMain
                 - dependency                  : :module2::module2/iosMain
                 - dependency                  : :module2::module2/nativeMain
-                - dependency                  : org.jetbrains.kotlin.native:stdlib:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin.native:stdlib:<KOTLIN_VERSION>
             iosX64Test
                 - dependency                  : :module2::module2/appleMain
                 - dependency                  : :module2::module2/appleTest
@@ -2955,19 +2955,19 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : :module2::module2/iosX64Main
                 - dependency                  : :module2::module2/nativeMain
                 - dependency                  : :module2::module2/nativeTest
-                - dependency                  : org.jetbrains.kotlin.native:stdlib:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin.native:stdlib:<KOTLIN_VERSION>
             nativeMain
                 - dependency                  : :module2::module2/commonMain
-                - dependency                  : org.jetbrains.kotlin.native:stdlib:2.0.0-Beta5
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin.native:stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION>
             nativeTest
                 - dependency                  : :module2::module2/appleMain
                 - dependency                  : :module2::module2/commonMain
                 - dependency                  : :module2::module2/commonTest
                 - dependency                  : :module2::module2/iosMain
                 - dependency                  : :module2::module2/nativeMain
-                - dependency                  : org.jetbrains.kotlin.native:stdlib:2.0.0-Beta5
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin.native:stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION>
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion

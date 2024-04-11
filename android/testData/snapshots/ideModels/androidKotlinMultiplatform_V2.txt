@@ -3112,7 +3112,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             commonMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:2.0.0-Beta5
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:<KOTLIN_VERSION>
             commonTest
                 - dependency                  : :kmpSecondLib::kmpSecondLib/commonMain
                 - dependency                  : :kmpSecondLib::kmpSecondLib/jvmMain

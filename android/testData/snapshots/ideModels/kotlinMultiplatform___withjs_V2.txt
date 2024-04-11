@@ -2309,7 +2309,7 @@
         kotlinMppGradleModel          : {main=main, test=test} (KotlinMPPGradleModelImpl)
             dependencyMap
                 1                             : DefaultExternalLibraryDependency
-                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/2.0.0-Beta5/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                 10                            : DefaultFileCollectionDependency
                     - files                       : <ROOT>/jsModule/build/classes/kotlin/main [-]
                 11                            : DefaultFileCollectionDependency
