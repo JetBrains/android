@@ -16,13 +16,18 @@
 package com.android.tools.idea.gradle.something.formatting
 
 import com.android.tools.idea.gradle.something.SomethingLanguage
+import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.ARGUMENTS_LIST
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.ASSIGNMENT
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.BLOCK
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.FACTORY
+import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.LITERAL
+import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.OP_COMMA
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.OP_DOT
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.OP_EQ
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.OP_LBRACE
+import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.OP_LPAREN
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.OP_RBRACE
+import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.OP_RPAREN
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.PROPERTY
 import com.intellij.formatting.SpacingBuilder
 import com.intellij.psi.codeStyle.CodeStyleSettings
@@ -38,6 +43,11 @@ data class SomethingFormatContext(
       val commonSettings = settings.getCommonSettings(SomethingLanguage.INSTANCE)
       val elements = TokenSet.create(ASSIGNMENT, FACTORY, BLOCK)
       val builder = SpacingBuilder(commonSettings)
+        // factory
+        .after(OP_COMMA).spacing(1, 1, 0, false, 0)
+        .before(OP_COMMA).spacing(0, 0, 0, false, 0)
+        .after(OP_LPAREN).spacing(0, 0, 0, false, 0)
+        .before(OP_RPAREN).spacing(0, 0, 0, false, 0)
         // =
         .around(OP_EQ).spacing(1, 1, 0, false, 0)
         // block

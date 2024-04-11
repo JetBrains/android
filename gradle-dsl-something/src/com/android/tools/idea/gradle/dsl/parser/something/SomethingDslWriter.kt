@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
+import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder
 import com.android.tools.idea.gradle.something.psi.SomethingArgumentsList
 import com.android.tools.idea.gradle.something.psi.SomethingAssignment
 import com.android.tools.idea.gradle.something.psi.SomethingBlock
@@ -37,6 +38,7 @@ import com.android.tools.idea.gradle.something.psi.SomethingFile
 import com.android.tools.idea.gradle.something.psi.SomethingPsiFactory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.findParentOfType
 
 class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWriter, SomethingDslNameConverter {
@@ -80,8 +82,15 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
     val anchor = getAnchor(parentPsiElement, element.anchor)
     val addedElement = parentPsiElement.addAfter(psiElement, anchor)
 
+    // after processing
+    val comma = factory.createComma()
     when (parentPsiElement) {
       is SomethingBlock -> addedElement.addAfter(factory.createNewline(), null)
+      is SomethingArgumentsList ->
+        if (parentPsiElement.arguments.size > 1)
+          parentPsiElement.addBefore(comma, addedElement)
+        else Unit
+        // TODO add logic for inserting attribute in the first place
     }
 
     element.psiElement = when (addedElement) {

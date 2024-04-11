@@ -101,6 +101,33 @@ class SomethingDslWriterTest : LightPlatformTestCase() {
     doTest(contents, expected)
   }
 
+  fun testFactoryWithMultipleArguments() {
+    val contents = mapOf("factory" to factoryOf<Any>("value1", 123, true))
+    val expected = """
+      factory("value1", 123, true)
+     """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testFactoryWithEmbeddedMultipleArguments() {
+    val contents = mapOf("factory" to factoryOf(mapOf("factory2" to factoryOf<Any>("value1")), 123, true))
+    val expected = """
+      factory(factory2("value1"), 123, true)
+     """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testFactoryWithEmbeddedMultipleArguments2() {
+    val contents = mapOf("factory" to factoryOf(mapOf("factory2" to factoryOf<Any>("value2", mapOf("factory3" to factoryOf<Any>("value3", false)))), 123))
+    val expected = """
+      factory(factory2("value2", factory3("value3", false)), 123)
+     """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
   fun testFactoryWithIntArgument() {
     val contents = mapOf("factory" to factoryOf(123))
     val expected = """

@@ -79,6 +79,27 @@ class SomethingFormatterTest {
   }
 
   @Test
+  fun testFactoryMultiArgument() {
+    doTest("""
+      factory(    "val1",123,
+false    )
+      ""","""
+      factory("val1", 123, false)
+      """)
+  }
+
+  @Test
+  fun testFactoryMultiArgumentAndEmbeddedFunctions() {
+    doTest("""
+      factory(    factory2(   "val1"
+      ),123,
+false    )
+      ""","""
+      factory(factory2("val1"), 123, false)
+      """)
+  }
+
+  @Test
   fun testComplexFile() {
     val before = """
         plugins{ id("org.gradle.experimental.android-application")  }      androidApplication
