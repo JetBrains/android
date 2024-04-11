@@ -730,12 +730,6 @@ class ComposePreviewRepresentation(
         lifecycleManager = lifecycleManager,
         previewFlowManager = composePreviewFlowManager,
         previewModeManager = previewModeManager,
-        onUpdatedFromStudioEssentialsMode = {
-          logComposePreviewLiteModeEvent(
-            ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType
-              .STUDIO_ESSENTIALS_MODE_SWITCH
-          )
-        },
         onUpdatedFromPreviewEssentialsMode = {
           logComposePreviewLiteModeEvent(
             ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.PREVIEW_LITE_MODE_SWITCH

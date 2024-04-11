@@ -191,27 +191,6 @@ class WearTilePreviewRepresentationTest {
     }
 
   @Test
-  fun testGalleryModeIsEnabledWhenEnablingStudioEssentialsMode() =
-    runBlocking(workerThread) {
-      val preview = createWearTilePreviewRepresentation()
-
-      assertThat(preview.previewView.mainSurface.models).hasSize(2)
-      assertThat(preview.previewView.galleryMode).isNull()
-
-      // enable studio essentials mode
-      run {
-        EssentialsMode.setEnabled(true, project)
-
-        val previewElement =
-          preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().first()
-
-        expectGalleryModeIsSet(preview, previewElement)
-      }
-
-      preview.onDeactivate()
-    }
-
-  @Test
   fun testGalleryModeIsEnabledWhenEnablingWearTilePreviewEssentialsMode() =
     runBlocking(workerThread) {
       val preview = createWearTilePreviewRepresentation()

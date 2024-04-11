@@ -16,7 +16,6 @@
 package com.android.tools.idea.preview.essentials
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
 /**
@@ -28,6 +27,5 @@ object PreviewEssentialsModeManager {
   val isEssentialsModeEnabled: Boolean
     get() =
       StudioFlags.PREVIEW_ESSENTIALS_MODE.get() &&
-        (AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled ||
-          EssentialsMode.isEnabled())
+        AndroidEditorSettings.getInstance().globalState.isPreviewEssentialsModeEnabled
 }

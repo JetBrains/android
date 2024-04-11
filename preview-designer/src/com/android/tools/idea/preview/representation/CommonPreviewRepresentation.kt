@@ -31,7 +31,6 @@ import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.modes.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.CommonPreviewRefreshRequest
 import com.android.tools.idea.preview.CommonPreviewRefreshType
@@ -334,7 +333,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         lifecycleManager = lifecycleManager,
         previewFlowManager = previewFlowManager,
         previewModeManager = previewModeManager,
-        onUpdatedFromStudioEssentialsMode = {},
         onUpdatedFromPreviewEssentialsMode = {},
         requestRefresh = ::requestRefresh,
       )
@@ -710,7 +708,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       fpsLimitFlow.collect {
         interactiveManager.fpsLimit = it
         // When getting out of Essentials Mode, request a refresh
-        if (!EssentialsMode.isEnabled()) requestRefresh()
+        if (!PreviewEssentialsModeManager.isEssentialsModeEnabled) requestRefresh()
       }
     }
   }

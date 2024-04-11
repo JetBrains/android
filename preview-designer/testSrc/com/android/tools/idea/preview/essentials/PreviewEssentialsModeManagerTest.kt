@@ -17,7 +17,6 @@ package com.android.tools.idea.preview.essentials
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.GlobalState
@@ -58,21 +57,5 @@ class PreviewEssentialsModeManagerTest {
 
     settings.isPreviewEssentialsModeEnabled = true
     assertTrue(PreviewEssentialsModeManager.isEssentialsModeEnabled)
-  }
-
-  @Test
-  fun previewEssentialsModeIsEnabledIfStudioEssentialsModeIsEnabled() {
-    StudioFlags.PREVIEW_ESSENTIALS_MODE.override(true)
-    try {
-      settings.isPreviewEssentialsModeEnabled = false
-      assertFalse(PreviewEssentialsModeManager.isEssentialsModeEnabled)
-
-      // Enable Android Studio essentials mode. Note that preview essentials mode is still disabled
-      // in settings.
-      EssentialsMode.setEnabled(true, projectRule.project)
-      assertTrue(PreviewEssentialsModeManager.isEssentialsModeEnabled)
-    } finally {
-      EssentialsMode.setEnabled(false, projectRule.project)
-    }
   }
 }

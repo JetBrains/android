@@ -23,7 +23,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.disposableCallbackFlow
-import com.android.tools.idea.modes.essentials.EssentialsMode
+import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.rendering.isCancellationException
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -68,7 +68,8 @@ interface RenderQualityPolicy {
   fun getTargetQuality(scale: Double, isVisible: Boolean): Float
 }
 
-fun getDefaultPreviewQuality() = if (EssentialsMode.isEnabled()) 0.75f else 0.95f
+fun getDefaultPreviewQuality() =
+  if (PreviewEssentialsModeManager.isEssentialsModeEnabled) 0.75f else 0.95f
 
 /**
  * Default [RenderQualityManager] implementation, configurable by a [RenderQualityPolicy], that
