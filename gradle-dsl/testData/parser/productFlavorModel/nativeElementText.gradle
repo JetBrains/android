@@ -20,6 +20,11 @@ android {
       abiFilters = ['abiFilter5']
       abiFilter 'abiFilter6'
       abiFilters 'abiFilter7'
+      cFlags '-DcFlags'
+      jobs 12
+      ldLibs 'ldLibs8', 'ldLibs9', 'ldLibs10'
+      moduleName 'myModule'
+      stl 'stlport'
     }
   }
 }

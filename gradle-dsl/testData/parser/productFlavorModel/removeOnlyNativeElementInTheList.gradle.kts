@@ -18,6 +18,7 @@ android {
     }
     ndk {
       abiFilters += setOf("abiFilterZ")
+      ldLibs += listOf("ldLibsZ")
     }
   }
 }

@@ -22,4 +22,15 @@ import org.jetbrains.annotations.NotNull;
 public interface NdkOptionsModel extends GradleBlockModel {
   @NotNull
   ResolvedPropertyModel abiFilters();
+
+  @NotNull ResolvedPropertyModel cFlags();
+
+  @NotNull ResolvedPropertyModel jobs();
+
+  @NotNull ResolvedPropertyModel ldLibs();
+
+  @NotNull ResolvedPropertyModel moduleName();
+
+  @NotNull ResolvedPropertyModel stl();
+
 }
