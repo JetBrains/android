@@ -93,8 +93,8 @@ internal class KotlinCodeTransformer {
         "Review Code Changes",
         originalContent,
         modifiedContent,
-        "Original code",
-        "Modified code in ${psiFile.name}; review & revert if necessary",
+        "${psiFile.name} (Original)",
+        "${psiFile.name} (Proposed)",
       )
 
     // wrapping the request in a chain to make sure user data is taken into account
