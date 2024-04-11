@@ -17,9 +17,9 @@ android {
       }
     }
     ndk {
-      abiFilters("abiFilter5")
-      abiFilter("abiFilter6")
-      abiFilters("abiFilter7")
+      abiFilters += setOf("abiFilter5")
+      abiFilters += setOf("abiFilter6")
+      abiFilters += setOf("abiFilter7")
     }
   }
 }

@@ -17,8 +17,7 @@ android {
       }
     }
     ndk {
-      abiFilters("abiFilter5")
-      abiFilters("abiFilter7")
+      abiFilters += setOf("abiFilter5", "abiFilter7")
     }
   }
 }

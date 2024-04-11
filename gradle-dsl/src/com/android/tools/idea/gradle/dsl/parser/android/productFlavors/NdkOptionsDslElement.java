@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.model.android.productFlavors.Ndk
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL;
@@ -43,14 +44,12 @@ public class NdkOptionsDslElement extends GradleDslBlockElement {
 
   private static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"abiFilters", property, ABI_FILTERS, VAL},
-    {"abiFilters", atLeast(0), ABI_FILTERS, OTHER},
-    {"abiFilter", exactly(1), ABI_FILTERS, OTHER}
   }).collect(toModelMap());
 
   private static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
     {"abiFilters", property, ABI_FILTERS, VAR},
-    {"abiFilters", atLeast(0), ABI_FILTERS, OTHER},
-    {"abiFilter", exactly(1), ABI_FILTERS, OTHER}
+    {"abiFilters", atLeast(0), ABI_FILTERS, AUGMENT_LIST},
+    {"abiFilter", exactly(1), ABI_FILTERS, AUGMENT_LIST},
   }).collect(toModelMap());
 
   private static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
@@ -64,16 +63,6 @@ public class NdkOptionsDslElement extends GradleDslBlockElement {
 
   public NdkOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    String property = element.getName();
-    if (property.equals("abiFilters") || property.equals("abiFilter")) {
-      addToParsedExpressionList(ABI_FILTERS, element);
-      return;
-    }
-    super.addParsedElement(element);
   }
 
   public static final class NdkOptionsDslElementSchema extends GradlePropertiesDslElementSchema {

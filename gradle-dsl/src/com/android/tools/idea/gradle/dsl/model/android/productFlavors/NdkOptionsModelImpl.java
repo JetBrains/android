@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android.productFlavors;
 
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
+
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.NdkOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class NdkOptionsModelImpl extends GradleDslBlockModel implements NdkOptionsModel {
-  @NonNls public static final String ABI_FILTERS = "mAbiFilters";
+  @NonNls public static final ModelPropertyDescription ABI_FILTERS = new ModelPropertyDescription("mAbiFilters", MUTABLE_SET);
 
   public NdkOptionsModelImpl(@NotNull NdkOptionsDslElement dslElement) {
     super(dslElement);
