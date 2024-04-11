@@ -39,4 +39,19 @@ abstract class ModuleClassLoader(parent: ClassLoader?, loader: Loader) :
 
   /** Returns if the given [fqcn] has been loaded by this [ModuleClassLoader]. */
   abstract fun hasLoadedClass(fqcn: String): Boolean
+
+  /** Set of fqcns of loaded classes from the user code. */
+  abstract val projectLoadedClasses: Set<String>
+
+  /** Set of fqcns of loaded classes from the user code dependencies (libraries etc.) */
+  abstract val nonProjectLoadedClasses: Set<String>
+
+  /** Transforms applied to classes from the user code. */
+  abstract val projectClassesTransform: ClassTransform
+
+  /** Transforms applied to classes from the user code dependencies (libraries etc.) */
+  abstract val nonProjectClassesTransform: ClassTransform
+
+  /** Clears the internal state of [ModuleClassLoader] and makes it unusable. */
+  abstract fun dispose()
 }

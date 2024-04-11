@@ -252,15 +252,19 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     return myParentAtConstruction;
   }
 
+  @Override
   @NotNull
   public Set<String> getNonProjectLoadedClasses() { return myImpl.getNonProjectLoadedClassNames(); }
 
+  @Override
   @NotNull
   public Set<String> getProjectLoadedClasses() { return myImpl.getProjectLoadedClassNames(); }
 
+  @Override
   @NotNull
   public ClassTransform getProjectClassesTransform() { return myImpl.getProjectTransforms(); }
 
+  @Override
   @NotNull
   public ClassTransform getNonProjectClassesTransform() { return myImpl.getNonProjectTransforms(); }
 
@@ -381,7 +385,8 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     return isDisposed.get();
   }
 
-  void dispose() {
+  @Override
+  public void dispose() {
     isDisposed.set(true);
     myImpl.dispose();
     ourDisposeService.submit(() -> {
