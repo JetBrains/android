@@ -256,12 +256,17 @@ void ClipboardChangedNotification::Serialize(Base128OutputStream& stream) const 
 
 void SupportedDeviceStatesNotification::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
-  stream.WriteBytes(text_);
+  size_t num_states = device_states_.size();
+  stream.WriteUInt32(num_states);
+  for (int i = 0; i < num_states; ++i) {
+    device_states_[i].Serialize(stream);
+  }
+  stream.WriteInt32(device_state_id_ + 1);  // Offset by 1 to efficiently represent -1.
 }
 
 void DeviceStateNotification::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
-  stream.WriteInt32(device_state_);
+  stream.WriteInt32(device_state_id_ + 1);  // Offset by 1 to efficiently represent -1.
 }
 
 void DisplayAddedNotification::Serialize(Base128OutputStream& stream) const {

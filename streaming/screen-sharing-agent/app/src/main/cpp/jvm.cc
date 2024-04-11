@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#include <assert.h>
+#include <cassert>
+#include <mutex>
 
 #include "casts.h"
 #include "jvm.h"
@@ -23,6 +24,12 @@
 namespace screensharing {
 
 using namespace std;
+
+namespace {
+
+mutex static_initialization_mutex_;
+
+}
 
 JObject& JObject::operator=(JObject&& other) noexcept {
   DeleteRef();
@@ -394,6 +401,43 @@ string JThrowable::Describe() const {
   JString str = JString(jni, jni->CallStaticObjectMethod(clazz.ref(), method, ref()));
   return str.GetValue();
 }
+
+int32_t JNumber::IntValue() {
+  InitializeStatics(GetJni());
+  return CallIntMethod(int_value_method_);
+}
+
+void JNumber::InitializeStatics(Jni jni) {
+  unique_lock lock(static_initialization_mutex_);
+  if (int_value_method_ == nullptr) {
+    JClass iterable_class = jni.GetClass("java/lang/Number");
+    int_value_method_ = iterable_class.GetMethod("intValue", "()I");
+  }
+}
+
+jmethodID JNumber::int_value_method_ = nullptr;
+
+JIterator JIterable::Iterator() {
+  JNIEnv* jni = GetJni();
+  InitializeStatics(jni);
+  return JIterator(CallObjectMethod(iterator_method_));
+}
+
+void JIterable::InitializeStatics(Jni jni) {
+  unique_lock lock(static_initialization_mutex_);
+  if (iterator_method_ == nullptr) {
+    JClass iterable_class = jni.GetClass("java/lang/Iterable");
+    iterator_method_ = iterable_class.GetMethod("iterator", "()Ljava/util/Iterator;");
+    JClass iterator_class = jni.GetClass("java/util/Iterator");
+    JIterator::has_next_method_ = iterator_class.GetMethod("hasNext", "()Z");
+    JIterator::next_method_ = iterator_class.GetMethod("next", "()Ljava/lang/Object;");
+  }
+}
+
+jmethodID JIterable::iterator_method_ = nullptr;
+jmethodID JIterator::has_next_method_ = nullptr;
+jmethodID JIterator::next_method_ = nullptr;
+
 
 JavaVM* Jvm::jvm_ = nullptr;
 jint Jvm::jni_version_ = 0;

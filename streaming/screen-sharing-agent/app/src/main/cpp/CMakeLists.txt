@@ -37,6 +37,7 @@ add_library(
         concurrent_list.cc
         control_messages.cc
         controller.cc
+        device_state.cc
         display_streamer.cc
         io_exception.cc
         jvm.cc

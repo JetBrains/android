@@ -117,7 +117,7 @@ internal class DeviceToolWindowPanel(
 
     private fun updateMainToolbarLater() {
       EventQueue.invokeLater {
-        mainToolbar.updateActionsImmediately()
+        mainToolbar.updateActionsAsync()
       }
     }
   }

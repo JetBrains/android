@@ -288,6 +288,54 @@ public:
   std::string Describe() const;
 };
 
+class JNumber : public JObject {
+public:
+  using JObject::JObject;
+  explicit JNumber(JObject&& number) noexcept
+      : JObject::JObject(std::move(number)) {}
+
+  [[nodiscard]] int32_t IntValue();
+
+private:
+  static void InitializeStatics(Jni jni);
+
+  static jmethodID int_value_method_;
+};
+
+class JIterator : public JObject {
+public:
+  using JObject::JObject;
+  explicit JIterator(JObject&& iterator) noexcept
+      : JObject::JObject(std::move(iterator)) {}
+
+  [[nodiscard]] bool HasNext() {
+    return CallBooleanMethod(has_next_method_);
+  }
+  JObject Next() {
+    return CallObjectMethod(next_method_);
+  }
+
+private:
+  friend class JIterable;
+
+  static jmethodID has_next_method_;
+  static jmethodID next_method_;
+};
+
+class JIterable : JObject {
+public:
+  using JObject::JObject;
+  explicit JIterable(JObject&& iterable) noexcept
+      : JObject::JObject(std::move(iterable)) {}
+
+  [[nodiscard]] JIterator Iterator();
+
+private:
+  static void InitializeStatics(Jni jni);
+
+  static jmethodID iterator_method_;
+};
+
 class Jni {
 public:
   Jni(JNIEnv* jni_env)

@@ -34,6 +34,7 @@ import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
+import com.android.tools.idea.streaming.device.DeviceState.Property.PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgent.ControlMessageFilter
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.device.actions.DeviceFoldingAction
@@ -80,7 +81,6 @@ import java.awt.event.KeyEvent.VK_P
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.file.Path
-import java.util.EnumSet
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.Control
 import javax.sound.sampled.Line
@@ -270,16 +270,14 @@ class DeviceToolWindowPanelTest {
     assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
     val foldingActions = foldingGroup.getChildren(event)
     assertThat(foldingActions).asList().containsExactly(
-      DeviceFoldingAction(FoldingState(0, "Closed", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
-      DeviceFoldingAction(FoldingState(1, "Tent", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
-      DeviceFoldingAction(FoldingState(2, "Half-Open", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
-      DeviceFoldingAction(FoldingState(3, "Open", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
-      DeviceFoldingAction(FoldingState(4, "Rear Display Mode", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
-      DeviceFoldingAction(FoldingState(5, "Dual Display Mode",
-                                       EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE, FoldingState.Flag.CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
-      DeviceFoldingAction(FoldingState(6, "Rear Dual Mode",
-                                       EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE, FoldingState.Flag.CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
-      DeviceFoldingAction(FoldingState(7, "Flipped", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))))
+      DeviceFoldingAction(FoldingState(0, "Closed")),
+      DeviceFoldingAction(FoldingState(1, "Tent")),
+      DeviceFoldingAction(FoldingState(2, "Half-Open")),
+      DeviceFoldingAction(FoldingState(3, "Open")),
+      DeviceFoldingAction(FoldingState(4, "Rear Display Mode")),
+      DeviceFoldingAction(FoldingState(5, "Dual Display Mode", setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
+      DeviceFoldingAction(FoldingState(6, "Rear Dual Mode", setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
+      DeviceFoldingAction(FoldingState(7, "Flipped")))
     val disabledModes = setOf("Dual Display Mode", "Rear Dual Mode")
     for (action in foldingActions) {
       action.update(event)

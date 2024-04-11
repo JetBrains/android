@@ -17,10 +17,10 @@
 #pragma once
 
 #include <mutex>
-#include <string>
-#include <set>
+#include <vector>
 
 #include "concurrent_list.h"
+#include "device_state.h"
 #include "jvm.h"
 
 namespace screensharing {
@@ -28,20 +28,16 @@ namespace screensharing {
 // Provides access to the "device_state" service.
 class DeviceStateManager {
 public:
+  // See android.hardware.devicestate.DeviceStateManager.INVALID_DEVICE_STATE_IDENTIFIER.
+  static constexpr int32_t INVALID_DEVICE_STATE_IDENTIFIER = -1;
+
   struct DeviceStateListener {
     virtual void OnDeviceStateChanged(int32_t device_state) = 0;
   };
 
-  // Returns a string equivalent to the 'adb shell cmd device_state print-states' command, e.g.
-  // "Supported states: [
-  //   DeviceState{identifier=0, name='CLOSE', app_accessible=true},
-  //   DeviceState{identifier=1, name='TENT', app_accessible=true},
-  //   DeviceState{identifier=2, name='HALF_FOLDED', app_accessible=true},
-  //   DeviceState{identifier=3, name='OPEN', app_accessible=true},
-  // ]"
-  [[nodiscard]] static std::string GetSupportedStates();
+  [[nodiscard]] static const std::vector<DeviceState>& GetSupportedDeviceStates(Jni jni);
 
-  [[nodiscard]] static int32_t GetDeviceState(Jni jni);
+  [[nodiscard]] static int32_t GetDeviceStateIdentifier(Jni jni);
 
   static void RequestState(Jni jni, int32_t state_id, int32_t flags);
 
@@ -72,65 +68,13 @@ private:
   // List of device state listeners.
   static ConcurrentList<DeviceStateListener> device_state_listeners_;
 
+  static std::vector<DeviceState> supported_device_states_;
   static std::mutex state_mutex_;
-  static int32_t base_state_;  // GUARDED_BY(state_mutex_)
-  static int32_t current_state_;  // GUARDED_BY(state_mutex_)
+  static int32_t base_state_identifier_;  // GUARDED_BY(state_mutex_)
+  static int32_t current_state_identifier_;  // GUARDED_BY(state_mutex_)
   static bool state_overridden_;  // GUARDED_BY(state_mutex_)
 
   DISALLOW_COPY_AND_ASSIGN(DeviceStateManager);
-};
-
-class DeviceState {
-public:
-  DeviceState();
-  explicit DeviceState(const JObject& device_state);
-  explicit DeviceState(int32_t identifier);
-
-  DeviceState& operator=(DeviceState&& other) noexcept;
-
-  [[nodiscard]] int32_t identifier() const { return identifier_; }
-  [[nodiscard]] const std::string& name() const;
-  [[nodiscard]] bool HasSystemProperty(int32_t property) const { return system_properties_.count(property) != 0; }
-  [[nodiscard]] bool HasPhysicalProperty(int32_t property) const { return physical_properties_.count(property) != 0; }
-
-private:
-  static std::mutex static_initialization_mutex_;
-  static bool statics_initialized_;  // GUARDED_BY(static_initialization_mutex_)
-  // DeviceState class.
-  static jmethodID get_identifier_method_;  // GUARDED_BY(static_initialization_mutex_)
-  static jmethodID get_name_method_;  // GUARDED_BY(static_initialization_mutex_)
-  static jmethodID get_configuration_method_;  // GUARDED_BY(static_initialization_mutex_)
-  // DeviceState.Configuration class.
-  static jfieldID system_properties_field_;  // GUARDED_BY(static_initialization_mutex_)
-  static jfieldID physical_properties_field_;  // GUARDED_BY(static_initialization_mutex_)
-
-  int32_t identifier_;
-  std::string name_;
-  std::set<int32_t> system_properties_;
-  std::set<int32_t> physical_properties_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeviceState);
-};
-
-class DeviceStateInfo {
-public:
-  explicit DeviceStateInfo(const JObject& device_state_info);
-
-  [[nodiscard]] const DeviceState& base_state() { return base_state_; }
-  [[nodiscard]] const DeviceState& current_state() { return current_state_; }
-  [[nodiscard]] int32_t base_state_identifier() const { return base_state_.identifier(); }
-  [[nodiscard]] int32_t current_state_identifier() const { return current_state_.identifier(); }
-
-private:
-  static std::mutex static_initialization_mutex_;
-  static bool statics_initialized_;  // GUARDED_BY(static_initialization_mutex_)
-  static jfieldID base_state_field_;  // GUARDED_BY(static_initialization_mutex_)
-  static jfieldID current_state_field_;  // GUARDED_BY(static_initialization_mutex_)
-
-  DeviceState base_state_;
-  DeviceState current_state_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeviceStateInfo);
 };
 
 }  // namespace screensharing

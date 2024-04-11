@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.UiThread
-import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.ShellV2Protocol
 import com.android.sdklib.AndroidVersionUtil
 import com.android.tools.adtui.ImageUtils
@@ -28,6 +27,7 @@ import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.interpolate
 import com.android.tools.idea.streaming.core.putUInt
 import com.android.tools.idea.streaming.core.rotatedByQuadrants
+import com.android.tools.idea.streaming.device.DeviceState.Property.PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
 import com.intellij.openapi.Disposable
@@ -111,13 +111,14 @@ import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import kotlin.math.sin
 import kotlin.time.Duration
+import com.android.fakeadbserver.DeviceState as FakeDeviceState
 
 /**
  * Fake Screen Sharing Agent for use in tests.
  */
 class FakeScreenSharingAgent(
   val displaySize: Dimension,
-  private val deviceState: DeviceState,
+  private val fakeDeviceState: FakeDeviceState,
   private val roundDisplay: Boolean = false,
   private val foldedSize: Dimension? = null,
 ) : Disposable {
@@ -126,7 +127,7 @@ class FakeScreenSharingAgent(
       "FakeScreenSharingAgent", AndroidExecutors.getInstance().workerThreadExecutor, 1)
   private val singleThreadedDispatcher = executor.asCoroutineDispatcher()
   private val agentsScope = CoroutineScope(singleThreadedDispatcher + Job())
-  private val featureLevel = AndroidVersionUtil.androidVersionFromDeviceProperties(deviceState.properties)?.featureLevel ?: 0
+  private val featureLevel = AndroidVersionUtil.androidVersionFromDeviceProperties(this.fakeDeviceState.properties)?.featureLevel ?: 0
   private var startTime = 0L
 
   private var videoChannel: SuspendingSocketChannel? = null
@@ -170,8 +171,24 @@ class FakeScreenSharingAgent(
         }
       }
     }
+  private val supportedDeviceStates = when (foldedSize) {
+    null -> listOf()
+    else -> listOf(
+      DeviceState(0, "CLOSE"),
+      DeviceState(1, "TENT"),
+      DeviceState(2, "HALF_FOLDED"),
+      DeviceState(3, "OPEN"),
+      DeviceState(4, "REAR_DISPLAY_STATE"),
+      DeviceState(5, "CONCURRENT_INNER_DEFAULT", systemProperties = setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP)),
+      DeviceState(6, "REAR_DUAL"),
+      DeviceState(7, "FLIPPED"),
+    )
+  }
+
   @Volatile
-  private var foldingState: FoldingState? = foldedSize?.let { FoldingState.OPEN }
+  private var deviceState: DeviceState? = supportedDeviceStates.find { it.name == "OPEN" }
+  private val deviceStateIdentifier
+    get() = deviceState?.id ?: -1
 
   @Volatile
   var maxVideoEncoderResolution = 2048 // Many phones, for example Galaxy Z Fold3, have VP8 encoder limited to 2048x2048 resolution.
@@ -271,8 +288,8 @@ class FakeScreenSharingAgent(
     }
     val controller = Controller(controlChannel)
     this.controller = controller
-    deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME")
-    deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")
+    this.fakeDeviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME")
+    this.fakeDeviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")
     if (startTime == 0L) {
       // Shutdown has been triggered - abort run.
       shutdownChannels()
@@ -585,9 +602,9 @@ class FakeScreenSharingAgent(
   }
 
   private fun requestDeviceState(message: RequestDeviceStateMessage) {
-    checkNotNull(foldedSize) { "The device is not foldable" }
-    if (foldingState?.ordinal != message.state) {
-      foldingState = FoldingState.values()[message.state]
+    check(supportedDeviceStates.isNotEmpty()) { "The device is not foldable" }
+    if (deviceState?.id != message.deviceStateId) {
+      deviceState = supportedDeviceStates.find { it.id == message.deviceStateId }
       sendDeviceStateNotification()
       agentsScope.launch {
         for (displayStreamer in displayStreamers.values) {
@@ -598,7 +615,7 @@ class FakeScreenSharingAgent(
   }
 
   private fun sendDeviceStateNotification() {
-    sendNotificationOrResponse(DeviceStateNotification(foldingState!!.ordinal))
+    sendNotificationOrResponse(DeviceStateNotification(deviceStateIdentifier))
   }
 
   private fun sendDisplayConfigurations(message: DisplayConfigurationRequest) {
@@ -804,8 +821,8 @@ class FakeScreenSharingAgent(
     }
 
     private fun getFoldedDisplaySize(): Dimension {
-      return when (foldingState) {
-        FoldingState.CLOSED, FoldingState.TENT -> foldedSize ?: displaySize
+      return when (deviceState?.name) {
+        "CLOSE", "TENT" -> foldedSize ?: displaySize
         else -> displaySize
       }
     }
@@ -1001,20 +1018,8 @@ class FakeScreenSharingAgent(
     suspend fun run() {
       var exitCode = 0
       try {
-        if (foldedSize != null) {
-          val supportedStates = """
-              Supported states: [
-                DeviceState{identifier=0, name='CLOSE', app_accessible=true},
-                DeviceState{identifier=1, name='TENT'},
-                DeviceState{identifier=2, name='HALF_FOLDED', app_accessible=true},
-                DeviceState{identifier=3, name='OPEN', app_accessible=true},
-                DeviceState{identifier=4, name='REAR_DISPLAY_STATE', app_accessible=true},
-                DeviceState{identifier=5, name='CONCURRENT_INNER_DEFAULT', app_accessible=true, cancel_when_requester_not_on_top=true},
-                DeviceState{identifier=6, name='REAR_DUAL', app_accessible=true},
-                DeviceState{identifier=7, name='FLIPPED', app_accessible=true},
-              ]
-              """.trimIndent()
-          sendNotificationOrResponse(SupportedDeviceStatesNotification(supportedStates))
+        if (supportedDeviceStates.size > 1) {
+          sendNotificationOrResponse(SupportedDeviceStatesNotification(supportedDeviceStates, deviceStateIdentifier))
           sendDeviceStateNotification()
         }
 
@@ -1122,8 +1127,6 @@ class FakeScreenSharingAgent(
       }
     }
   }
-
-  private enum class FoldingState { CLOSED, TENT, HALF_FOLDED, OPEN, REAR_DISPLAY_STATE, CONCURRENT_INNER_DEFAULT, FLIPPED }
 
   companion object {
     @JvmStatic

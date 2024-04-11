@@ -26,5 +26,6 @@ std::string RTrim(std::string str);
 // Parses the string representing a decimal integer number. Returns def_value if the string doesn't
 // represent an integer.
 int32_t ParseInt(const char* str, int32_t def_value);
+int32_t ParseInt(const std::string& str, int32_t def_value);
 
 }  // namespace screensharing

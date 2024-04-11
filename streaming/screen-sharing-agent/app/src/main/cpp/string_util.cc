@@ -38,4 +38,8 @@ int32_t ParseInt(const char* str, int32_t def_value) {
   return result;
 }
 
+int32_t ParseInt(const std::string& str, int32_t def_value) {
+  return ParseInt(str.c_str(), def_value);
+}
+
 }  // namespace screensharing

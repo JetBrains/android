@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include <inttypes.h>
-
+#include <cinttypes>
 #include <map>
 #include <memory>
 #include <vector>
 
 #include <android/input.h>
 
+#include "accessors/device_state_manager.h"
 #include "accessors/display_info.h"
 #include "base128_input_stream.h"
 #include "base128_output_stream.h"
@@ -376,17 +376,17 @@ private:
 };
 
 // Requests a device state (folding pose) change. A DeviceStateNotification message will be sent
-// when and if the device state actually changes. If state is equal to PHYSICAL_STATE, the device
+// when and if the device state actually changes. If device_state_id is equal to PHYSICAL_STATE, the device
 // will return to its actual physical state.
 class RequestDeviceStateMessage : ControlMessage {
 public:
-  RequestDeviceStateMessage(int state)
+  explicit RequestDeviceStateMessage(int device_state_id)
       : ControlMessage(TYPE),
-        state_(state) {
+        device_state_id_(device_state_id) {
   }
-  virtual ~RequestDeviceStateMessage() = default;
+  ~RequestDeviceStateMessage() override = default;
 
-  int state() const { return state_; }
+  [[nodiscard]] int state_id() const { return device_state_id_; }
 
   static constexpr int PHYSICAL_STATE = -1;
 
@@ -397,7 +397,7 @@ private:
 
   static RequestDeviceStateMessage* Deserialize(Base128InputStream& stream);
 
-  int state_;
+  int device_state_id_;
 
   DISALLOW_COPY_AND_ASSIGN(RequestDeviceStateMessage);
 };
@@ -502,26 +502,25 @@ private:
 // Notification of supported device states.
 class SupportedDeviceStatesNotification : ControlMessage {
 public:
-  SupportedDeviceStatesNotification(const std::string& text)
+  explicit SupportedDeviceStatesNotification(const std::vector<DeviceState>& device_states, int32_t device_state_id)
       : ControlMessage(TYPE),
-        text_(text) {
+        device_states_(device_states),
+        device_state_id_(device_state_id) {
   }
-  SupportedDeviceStatesNotification(std::string&& text)
-      : ControlMessage(TYPE),
-        text_(text) {
-  }
-  virtual ~SupportedDeviceStatesNotification() = default;
+  ~SupportedDeviceStatesNotification() override = default;
 
-  const std::string& text() const { return text_; }
+  [[nodiscard]] const std::vector<DeviceState>& device_states() const { return device_states_; }
+  [[nodiscard]] int32_t device_state_id() const { return device_state_id_; }
 
-  virtual void Serialize(Base128OutputStream& stream) const;
+  void Serialize(Base128OutputStream& stream) const override;
 
   static constexpr int TYPE = 17;
 
 private:
   friend class ControlMessage;
 
-  std::string text_;
+  const std::vector<DeviceState>& device_states_;
+  int32_t device_state_id_;
 
   DISALLOW_COPY_AND_ASSIGN(SupportedDeviceStatesNotification);
 };
@@ -530,22 +529,22 @@ private:
 // sharing agent starts on a foldable device.
 class DeviceStateNotification : ControlMessage {
 public:
-  DeviceStateNotification(int32_t device_state)
+  explicit DeviceStateNotification(int32_t device_state_id)
       : ControlMessage(TYPE),
-        device_state_(device_state) {
+        device_state_id_(device_state_id) {
   }
-  virtual ~DeviceStateNotification() = default;
+  ~DeviceStateNotification() override = default;
 
-  int32_t device_state() const { return device_state_; }
+  [[nodiscard]] int32_t device_state_id() const { return device_state_id_; }
 
-  virtual void Serialize(Base128OutputStream& stream) const;
+  void Serialize(Base128OutputStream& stream) const override;
 
   static constexpr int TYPE = 18;
 
 private:
   friend class ControlMessage;
 
-  int32_t device_state_;
+  int32_t device_state_id_;
 
   DISALLOW_COPY_AND_ASSIGN(DeviceStateNotification);
 };
