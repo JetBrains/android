@@ -15,29 +15,16 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.java;
 
-import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.SOURCE_COMPATIBILITY;
-import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.TARGET_COMPATIBILITY;
-import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.GROOVY;
-import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.KOTLIN;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.intellij.psi.PsiElement;
+import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Holds the data in addition to the project element, which added by Java plugin
@@ -45,6 +32,15 @@ import org.jetbrains.annotations.Nullable;
 public class JavaDslElement extends BaseCompileOptionsDslElement {
   public static final PropertiesElementDescription<JavaDslElement> JAVA =
     new PropertiesElementDescription<>("java", JavaDslElement.class, JavaDslElement::new);
+
+  public static final ImmutableMap<String,PropertiesElementDescription<?>> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"toolchain", ToolchainDslElement.TOOLCHAIN}
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
+  @Override
+  public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(Kind kind) {
+    return CHILD_PROPERTIES_ELEMENTS_MAP;
+  }
 
   public JavaDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.api.java;
 
-import com.android.tools.idea.gradle.dsl.api.android.BaseCompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface JavaModel extends BaseCompileOptionsModel {
-
+public interface ToolchainModel extends GradleBlockModel {
   @NotNull
-  ToolchainModel toolchain();
+  JavaLanguageVersionPropertyModel languageVersion();
 }
-
-
