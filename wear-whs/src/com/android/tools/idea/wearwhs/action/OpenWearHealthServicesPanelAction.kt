@@ -49,14 +49,11 @@ private val WHS_STATE_KEY = Key<WearHealthServicesStateManager>(WearHealthServic
 /**
  * Opens the Wear Health Services Tool Window
  */
-class OpenWearHealthServicesPanelAction : AbstractEmulatorAction(configFilter = { it.deviceType == DeviceType.WEAR && it.api >= 33 }) {
+class OpenWearHealthServicesPanelAction : AbstractEmulatorAction(configFilter = {
+  StudioFlags.WEAR_HEALTH_SERVICES_PANEL.get() && it.deviceType == DeviceType.WEAR && it.api >= 33
+}) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  override fun update(event: AnActionEvent) {
-    super.update(event)
-    event.presentation.isEnabledAndVisible = StudioFlags.WEAR_HEALTH_SERVICES_PANEL.get()
-  }
 
   override fun actionPerformed(e: AnActionEvent) {
     showWearHealthServicesToolPopup(this@OpenWearHealthServicesPanelAction, e)
