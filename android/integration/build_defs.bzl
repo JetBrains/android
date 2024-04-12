@@ -12,7 +12,7 @@ INTEGRATION_TEST_GRADLE_VERSION = "//tools/base/build-system:gradle-distrib-8.6"
 INTEGRATION_TEST_SYSTEM_IMAGE = "@system_image_android-31_default_x86_64//:x86_64-android-31-images"
 
 # Kotlin version used in test projects
-KOTLIN_VERSION_FOR_TESTS = "1.9.20"
+KOTLIN_VERSION_FOR_TESTS = "1.9.22"
 
 # Kotlin artifacts required for building test projects
 # NOTE: These artifacts should have the same version. If you need more versions, create a separate list (e.g., KOTLIN_1_9_0_ARTIFACTS).
