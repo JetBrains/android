@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.text.StringUtil;
 
+import com.intellij.util.SlowOperations;
 import javax.swing.*;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -299,7 +300,7 @@ public class DrawTextRegion extends DrawRegion {
     //  getResourceResolver in non-smart mode.
     if (DumbService.getInstance(nlc.getModel().getProject()).isDumb()) return -1;
     Configuration configuration = nlc.getModel().getConfiguration();
-    ResourceResolver resourceResolver = configuration.getResourceResolver();
+    ResourceResolver resourceResolver = SlowOperations.allowSlowOperations(configuration::getResourceResolver);
 
     Integer size = null;
 
