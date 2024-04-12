@@ -3,15 +3,10 @@ package com.android.tools.idea.uibuilder.options
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.modes.essentials.EssentialsMode
-import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
 import com.android.tools.idea.uibuilder.options.AndroidDesignerBundle.message
 import com.intellij.ide.ui.search.SearchableOptionContributor
 import com.intellij.ide.ui.search.SearchableOptionProcessor
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.service
-import com.intellij.openapi.observable.properties.AtomicBooleanProperty
-import com.intellij.openapi.observable.util.not
 import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
@@ -158,47 +153,36 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
         }
       }
 
-      val essentialsModeObservable = createEssentialsModeObservable()
       group("Preview Settings") {
         if (StudioFlags.PREVIEW_ESSENTIALS_MODE.get()) {
           buttonsGroup(message("android.uibuilder.nloptionsconfigurable.resource.usage")) {
-            row { comment(message("essentials.mode.resource.usage", "Compose Preview")) }
-              .visibleIf(essentialsModeObservable)
-
             lateinit var defaultModeRadioButton: Cell<JBRadioButton>
             row {
-                defaultModeRadioButton =
-                  radioButton(
-                      message("android.uibuilder.nloptionsconfigurable.resource.usage.default")
-                    )
-                    .bindSelected({
-                      !state.isPreviewEssentialsModeEnabled && !EssentialsMode.isEnabled()
-                    }) {
-                      state.isPreviewEssentialsModeEnabled = !it
-                    }
-              }
-              .enabledIf(essentialsModeObservable.not())
-            indent {
-                row {
-                  checkBox("Enable live updates")
-                    .bindSelected(fastPreviewState::isEnabled) { fastPreviewState.isEnabled = it }
-                    .enabledIf(defaultModeRadioButton.selected)
-                }
-              }
-              .enabledIf(essentialsModeObservable.not())
-            row {
+              defaultModeRadioButton =
                 radioButton(
-                    message("android.uibuilder.nloptionsconfigurable.resource.usage.essentials")
+                    message("android.uibuilder.nloptionsconfigurable.resource.usage.default")
                   )
-                  // TODO(b/327343295) add "Learn More" link when the DAC page is live
-                  .comment(message("essentials.mode.hint"))
-                  .bindSelected({
-                    state.isPreviewEssentialsModeEnabled || EssentialsMode.isEnabled()
-                  }) {
-                    state.isPreviewEssentialsModeEnabled = it
+                  .bindSelected({ !state.isPreviewEssentialsModeEnabled }) {
+                    state.isPreviewEssentialsModeEnabled = !it
                   }
+            }
+            indent {
+              row {
+                checkBox("Enable live updates")
+                  .bindSelected(fastPreviewState::isEnabled) { fastPreviewState.isEnabled = it }
+                  .enabledIf(defaultModeRadioButton.selected)
               }
-              .enabledIf(essentialsModeObservable.not())
+            }
+            row {
+              radioButton(
+                  message("android.uibuilder.nloptionsconfigurable.resource.usage.essentials")
+                )
+                // TODO(b/327343295) add "Learn More" link when the DAC page is live
+                .comment(message("essentials.mode.hint"))
+                .bindSelected({ state.isPreviewEssentialsModeEnabled }) {
+                  state.isPreviewEssentialsModeEnabled = it
+                }
+            }
           }
         } else {
           row {
@@ -209,19 +193,6 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
         }
       }
     }
-  }
-
-  private fun createEssentialsModeObservable(): AtomicBooleanProperty {
-    val essentialsModeEnabled = AtomicBooleanProperty(EssentialsMode.isEnabled())
-    val essentialsModeMessagingService = service<EssentialsModeMessenger>()
-    ApplicationManager.getApplication()
-      .messageBus
-      .connect(disposable!!)
-      .subscribe(
-        essentialsModeMessagingService.TOPIC,
-        EssentialsModeMessenger.Listener { essentialsModeEnabled.set(EssentialsMode.isEnabled()) },
-      )
-    return essentialsModeEnabled
   }
 
   override fun isModified(): Boolean {
