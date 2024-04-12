@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.something
 
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder
+import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.BLOCK_COMMENT_CONTENTS
+import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.BLOCK_COMMENT_END
+import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.BLOCK_COMMENT_START
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.LINE_COMMENT
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.STRING
 import com.android.tools.idea.gradle.something.parser.SomethingLexer
@@ -49,7 +52,7 @@ class SomethingParserDefinition : ParserDefinition {
 
   companion object {
     val FILE_ELEMENT_TYPE = IFileElementType(SomethingLanguage.INSTANCE)
-    val COMMENT_TOKENS = TokenSet.create(LINE_COMMENT)
+    val COMMENT_TOKENS = TokenSet.create(LINE_COMMENT, BLOCK_COMMENT_START, BLOCK_COMMENT_CONTENTS, BLOCK_COMMENT_END)
     val STRING_LITERAL_TOKENS = TokenSet.create(STRING)
   }
 }

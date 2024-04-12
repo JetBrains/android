@@ -34,6 +34,117 @@ class SomethingLexerTest : LexerTestCase() {
     )
   }
 
+  fun testBlockComment() {
+    doTest(
+      """
+        /* foo */ "abc"
+      """.trimIndent(),
+      """
+        SomethingTokenType./* ('/*')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS (' foo ')
+        SomethingTokenType.*/ ('*/')
+        WHITE_SPACE (' ')
+        SomethingTokenType.string ('"abc"')
+      """.trimIndent()
+    )
+  }
+
+  fun testKDocComment() {
+    doTest(
+      """
+        /** foo */ "abc"
+      """.trimIndent(),
+      """
+        SomethingTokenType./* ('/*')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS ('*')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS (' foo ')
+        SomethingTokenType.*/ ('*/')
+        WHITE_SPACE (' ')
+        SomethingTokenType.string ('"abc"')
+      """.trimIndent()
+    )
+  }
+
+  fun testMultiLineBlockComment() {
+    doTest(
+      """
+        /*
+         * foo
+         */ "abc"
+      """.trimIndent(),
+      """
+        SomethingTokenType./* ('/*')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS ('\n ')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS ('*')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS (' foo\n ')
+        SomethingTokenType.*/ ('*/')
+        WHITE_SPACE (' ')
+        SomethingTokenType.string ('"abc"')
+      """.trimIndent()
+    )
+  }
+
+  fun testMixedComment() {
+    doTest(
+      """
+        /* foo // bar */ "abc"
+      """.trimIndent(),
+      """
+        SomethingTokenType./* ('/*')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS (' foo ')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS ('/')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS ('/')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS (' bar ')
+        SomethingTokenType.*/ ('*/')
+        WHITE_SPACE (' ')
+        SomethingTokenType.string ('"abc"')
+      """.trimIndent()
+    )
+  }
+
+  fun testNestedComments() {
+    doTest(
+      """
+        /* foo
+           bar /* baz */
+           quux
+         */ "abc"
+      """.trimIndent(),
+      """
+        SomethingTokenType./* ('/*')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS (' foo\n   bar ')
+        SomethingTokenType./* ('/*')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS (' baz ')
+        SomethingTokenType.*/ ('*/')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS ('\n   quux\n ')
+        SomethingTokenType.*/ ('*/')
+        WHITE_SPACE (' ')
+        SomethingTokenType.string ('"abc"')
+      """.trimIndent()
+    )
+  }
+
+  fun testBlockCommentEdgeCases() {
+    doTest(
+      """
+        /**/ "abc"
+        /***/ "def"
+      """.trimIndent(),
+      """
+        SomethingTokenType./* ('/*')
+        SomethingTokenType.*/ ('*/')
+        WHITE_SPACE (' ')
+        SomethingTokenType.string ('"abc"')
+        WHITE_SPACE ('\n')
+        SomethingTokenType./* ('/*')
+        SomethingTokenType.BLOCK_COMMENT_CONTENTS ('*')
+        SomethingTokenType.*/ ('*/')
+        WHITE_SPACE (' ')
+        SomethingTokenType.string ('"def"')
+      """.trimIndent()
+    )
+  }
+
   fun testNumber() {
     doTest(
       """

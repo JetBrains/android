@@ -27,6 +27,7 @@ enum class SomethingTextAttributes(fallback: TextAttributesKey) {
   NUMBER(DefaultLanguageHighlighterColors.NUMBER),
   STRING(DefaultLanguageHighlighterColors.STRING),
   LINE_COMMENT(DefaultLanguageHighlighterColors.LINE_COMMENT),
+  BLOCK_COMMENT(DefaultLanguageHighlighterColors.BLOCK_COMMENT),
   KEYWORD(DefaultLanguageHighlighterColors.KEYWORD),
   ;
 
@@ -43,6 +44,9 @@ class SomethingHighlighter: SyntaxHighlighterBase() {
       SomethingElementTypeHolder.NUMBER -> SomethingTextAttributes.NUMBER.keys
       SomethingElementTypeHolder.BOOLEAN -> SomethingTextAttributes.KEYWORD.keys
       SomethingElementTypeHolder.LINE_COMMENT -> SomethingTextAttributes.LINE_COMMENT.keys
+      SomethingElementTypeHolder.BLOCK_COMMENT_START,
+      SomethingElementTypeHolder.BLOCK_COMMENT_CONTENTS,
+      SomethingElementTypeHolder.BLOCK_COMMENT_END -> SomethingTextAttributes.BLOCK_COMMENT.keys
       SomethingElementTypeHolder.NULL -> SomethingTextAttributes.KEYWORD.keys
       else -> return TextAttributesKey.EMPTY_ARRAY
     }

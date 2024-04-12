@@ -13,6 +13,13 @@ import static com.android.tools.idea.gradle.something.parser.SomethingElementTyp
   public _SomethingLexer() {
     this((java.io.Reader)null);
   }
+
+  private int commentLevel = 0;
+
+  private void startBlockComment() {
+      commentLevel = 1;
+      yybegin(IN_BLOCK_COMMENT);
+  }
 %}
 
 %public
@@ -26,12 +33,23 @@ EOL=\R
 WHITE_SPACE=\s+
 
 LINE_COMMENT="//".*
+BLOCK_COMMENT_START="/*"
+BLOCK_COMMENT_END="*/"
 NUMBER=[0-9]([0-9]|_+[0-9])*[Ll]?
 STRING=\"([^\"\r\n\\]|\\[^\r\n])*\"?
 BOOLEAN=(true|false)
 TOKEN=[a-z][a-zA-Z0-9]*
 
+%state IN_BLOCK_COMMENT
+
 %%
+<IN_BLOCK_COMMENT> {
+  {BLOCK_COMMENT_START} { commentLevel++; return BLOCK_COMMENT_START; }
+  {BLOCK_COMMENT_END}  { if (--commentLevel == 0) yybegin(YYINITIAL); return BLOCK_COMMENT_END; }
+  [^*/]+               { return BLOCK_COMMENT_CONTENTS; }
+  [^]                  { return BLOCK_COMMENT_CONTENTS; }
+}
+
 <YYINITIAL> {
   {WHITE_SPACE}        { return WHITE_SPACE; }
 
@@ -45,6 +63,7 @@ TOKEN=[a-z][a-zA-Z0-9]*
   "null"               { return NULL; }
 
   {LINE_COMMENT}       { return LINE_COMMENT; }
+  {BLOCK_COMMENT_START} { startBlockComment(); return BLOCK_COMMENT_START; }
   {NUMBER}             { return NUMBER; }
   {STRING}             { return STRING; }
   {BOOLEAN}            { return BOOLEAN; }

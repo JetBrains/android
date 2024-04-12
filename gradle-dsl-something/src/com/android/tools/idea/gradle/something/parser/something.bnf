@@ -30,6 +30,10 @@
   classHeader='generatedFilesHeader.txt'
 
   tokens = [
+    // Note: we do not generate the lexer from these token definitions (any more) because of the need
+    // to support nested comments, and potentially other non-regular constructs.  We need to maintain this
+    // list of tokens so that the SomethingElementTypeHolder has all necessary fields generated (corresponding
+    // to these token names).
     OP_EQ = "="
     OP_DOT = "."
     OP_LBRACE = "{"
@@ -37,6 +41,10 @@
     OP_LPAREN = "("
     OP_RPAREN = ")"
     OP_COMMA = ","
+
+    BLOCK_COMMENT_START = "/*"
+    BLOCK_COMMENT_END = "*/"
+    BLOCK_COMMENT_CONTENTS = "BLOCK_COMMENT_CONTENTS"
 
     line_comment = "regexp://.*"
     number = "regexp:\d(\d|_+\d)*[Ll]?"
