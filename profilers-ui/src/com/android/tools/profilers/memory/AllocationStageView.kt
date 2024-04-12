@@ -38,6 +38,7 @@ import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
+import java.util.function.DoubleSupplier
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JList
@@ -278,9 +279,9 @@ class AllocationTimelineComponent(stageView: AllocationStageView, timeAxis: JCom
 
   override fun makeScrollbar() = null // the timeline always contains the allocation range, so no need for scrollbar
 
-  override fun makeLineChart() = super.makeLineChart().apply {
+  override fun fillEndSupplier() = DoubleSupplier {
     // Dynamically fill up to the latest point in data-range (instead of all the way to the right by default)
-    setFillEndSupplier { (stage.timeline.dataRange.max - stage.minTrackingTimeUs) / (stage.timeline.viewRange.max - stage.minTrackingTimeUs) }
+    (stage.timeline.dataRange.max - stage.minTrackingTimeUs) / (stage.timeline.viewRange.max - stage.minTrackingTimeUs)
   }
 }
 

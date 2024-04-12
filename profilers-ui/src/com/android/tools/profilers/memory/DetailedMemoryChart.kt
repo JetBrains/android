@@ -40,6 +40,7 @@ import java.awt.Color
 import java.awt.LayoutManager
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.util.function.DoubleSupplier
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -68,7 +69,8 @@ class DetailedMemoryChart {
               tooltipPanel: JPanel,
               viewComponent: JComponent,
               isLiveAllocationTrackingReady: Boolean,
-              shouldShowTooltip: () -> Boolean) {
+              shouldShowTooltip: () -> Boolean,
+              fillEndSupplier: DoubleSupplier) {
     this.memoryUsage = memoryUsage
     this.legends = legends
     this.timeline = timeline
@@ -77,7 +79,7 @@ class DetailedMemoryChart {
     this.rangeSelectionModel = rangeSelectionModel
 
     this.rangeSelectionComponent = makeRangeSelectionComponent()
-    this.lineChart = makeLineChart(memoryUsage, isLiveAllocationTrackingReady);
+    this.lineChart = makeLineChart(memoryUsage, isLiveAllocationTrackingReady, fillEndSupplier);
     this.overlay = OverlayComponent(rangeSelectionComponent)
     this.overlayPanel = transparentPanel().apply {
       border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
@@ -119,7 +121,7 @@ class DetailedMemoryChart {
     setCursorSetter(AdtUiUtils::setTooltipCursor)
   }
 
-  fun makeLineChart(memoryUsage: DetailedMemoryUsage, isLiveAllocationTrackingReady: Boolean): LineChart {
+  fun makeLineChart(memoryUsage: DetailedMemoryUsage, isLiveAllocationTrackingReady: Boolean, fillEndSupplier: DoubleSupplier): LineChart {
     return memoryUsage.let { memUsage ->
       LineChart(memUsage).apply {
         // Always show series in their captured state in live allocation mode.
@@ -149,7 +151,7 @@ class DetailedMemoryChart {
         configure(memUsage.totalMemorySeries, LineConfig(JBColor.BLACK))
         setRenderOffset(0, LineConfig.DEFAULT_DASH_STROKE.lineWidth.toInt() / 2)
         setTopPadding(ProfilerLayout.Y_AXIS_TOP_MARGIN)
-        setFillEndGap(true)
+        setFillEndSupplier(fillEndSupplier)
       }
     }
   }

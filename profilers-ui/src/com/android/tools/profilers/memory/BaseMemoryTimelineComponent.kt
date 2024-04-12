@@ -39,6 +39,8 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import org.jetbrains.annotations.VisibleForTesting
+import java.util.function.DoubleSupplier
 import javax.swing.Icon
 import javax.swing.JComponent
 
@@ -61,7 +63,8 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
                                               stageView.tooltipPanel,
                                               stageView.profilersView.component,
                                               stage.isLiveAllocationTrackingReady,
-                                              ::shouldShowTooltip)
+                                              ::shouldShowTooltip,
+                                              fillEndSupplier())
     garbageCollectionComponent = GarbageCollectionComponent()
     lineChart = detailedMemoryChart.lineChart
     rangeSelectionComponent = detailedMemoryChart.rangeSelectionComponent
@@ -87,6 +90,12 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
   }
 
   protected open fun shouldShowTooltip() = true
+
+  /**
+   * The supplier to determine how to fill the end area in the line chart.
+   */
+  @VisibleForTesting
+  open fun fillEndSupplier(): DoubleSupplier = LineChart.ALWAYS_1
 
   protected open fun makeScrollbar(): JComponent? =
     TimelineScrollbar(stage.timeline, this)
@@ -121,9 +130,6 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
       }.build()
 
   private fun makeRangeSelectionComponent() = detailedMemoryChart.makeRangeSelectionComponent()
-
-  protected open fun makeLineChart(): LineChart = detailedMemoryChart.makeLineChart(stage.detailedMemoryUsage,
-                                                                                    stage.isLiveAllocationTrackingReady)
 
   companion object {
     // TODO(b/116430034): use real icons when they're done.

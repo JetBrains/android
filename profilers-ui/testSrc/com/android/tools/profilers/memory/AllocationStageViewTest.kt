@@ -213,6 +213,18 @@ class AllocationStageViewTest(private val isLive: Boolean) {
     }
   }
 
+  @Test
+  fun `timeline fills to the latest point in data-range, not all the way to the right by default`() {
+    Assume.assumeTrue(isLive)
+    stage.liveAllocationSamplingMode = FULL
+    stage.startLiveDataTimeline()
+    // Set the data range before the view range. Otherwise, setting data range can trigger `AllocationStage.onNewData()`
+    // which may increase or decrease `viewRange.max` by 1 microsecond to force a repaint, failing this test.
+    stage.timeline.dataRange.max = stage.minTrackingTimeUs + 600.0
+    stage.timeline.viewRange.max = stage.minTrackingTimeUs + 1000.0
+    assertThat(stageView.timelineComponent.fillEndSupplier().asDouble).isEqualTo(0.6)
+  }
+
   private fun tick() = timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
   private fun requestSamplingRate(rate: Int) =
