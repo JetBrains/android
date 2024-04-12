@@ -157,6 +157,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @NotNull private NlModelUpdaterInterface myModelUpdater;
 
   @NotNull private DataContext myDataContext;
+  @NotNull private ResourceResolver myCachedResourceResolver;
 
   /**
    * Indicate which group this NlModel belongs. This can be used to categorize the NlModel when rendering or layouting.
@@ -215,6 +216,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
     myUpdateQueue.suspend();
     myModelUpdater = Objects.requireNonNullElseGet(modelUpdater, DefaultModelUpdater::new);
     myDataContext = dataContext;
+    myCachedResourceResolver = myConfiguration.getResourceResolver();
   }
 
   @NotNull
@@ -301,7 +303,8 @@ public class NlModel implements ModificationTracker, DataContextHolder {
         if (myThemeUpdateComputation.get() != computationToken) {
           return; // A new update has already been scheduled.
         }
-        ApplicationManager.getApplication().invokeLater(() -> myConfiguration.setTheme(theme), a -> myDisposed);
+        myConfiguration.setTheme(theme);
+        myCachedResourceResolver = myConfiguration.getResourceResolver();
       }
     }
     finally {
@@ -851,6 +854,19 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @Nullable
   public String getModelTooltip() {
     return myModelTooltip;
+  }
+
+  /**
+   * Returns the latest calculated {@link ResourceResolver}. This is just to be used from those context where obtaining the resource
+   * resolver can not be done like the UI thread.
+   * The cached resource resolver is updated after every model update, including theme changes.
+   *
+   * @deprecated Call Configuration.getResourceResolver from a background context
+   */
+  @SuppressWarnings("DeprecatedIsStillUsed")
+  @NotNull
+  public ResourceResolver getCachedResourceResolver() {
+    return myCachedResourceResolver;
   }
 
   @Override

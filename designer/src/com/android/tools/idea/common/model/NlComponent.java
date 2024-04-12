@@ -539,19 +539,7 @@ public class NlComponent implements NlAttributesHolder {
         return null;
       }
 
-      ResourceResolver resolver = null;
-      try {
-        resolver =
-          Futures.getChecked(myModel.getNlComponentExecutor().submit(() -> myModel.getConfiguration().getResourceResolver()),
-                             ExecutionException.class,
-                             500,
-                             TimeUnit.MILLISECONDS);
-      }
-      catch (ExecutionException ignored) {
-      }
-      if (resolver == null) {
-        return null;
-      }
+      ResourceResolver resolver = myModel.getCachedResourceResolver();
       StyleResourceValue styleResValue = resolver.getStyle(styleRef);
       if (styleResValue == null) {
         return null;
