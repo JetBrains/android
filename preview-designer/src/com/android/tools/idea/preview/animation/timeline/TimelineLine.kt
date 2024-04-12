@@ -34,14 +34,8 @@ import java.awt.RenderingHints
  * @param rowMinY minimum y when row with animation line start.
  * @param positionProxy [PositionProxy] for the slider. @
  */
-class TimelineLine(
-  valueOffset: Int,
-  frozenValue: Int?,
-  minX: Int,
-  maxX: Int,
-  rowMinY: Int,
-  positionProxy: PositionProxy,
-) : TimelineElement(valueOffset, frozenValue, minX, maxX, positionProxy) {
+class TimelineLine(valueOffset: Int, frozenValue: Int?, minX: Int, maxX: Int, rowMinY: Int) :
+  TimelineElement(valueOffset, frozenValue, minX, maxX) {
 
   /** Middle of the row. */
   private val middleY = rowMinY + timelineLineRowHeightScaled() / 2
@@ -57,7 +51,7 @@ class TimelineLine(
   override var height: Int = InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
   override fun contains(x: Int, y: Int): Boolean {
-    return x in rectNoOffset.x + offsetPx.value..rectNoOffset.maxX.toInt() + offsetPx.value &&
+    return x in rectNoOffset.x + offsetPx..rectNoOffset.maxX.toInt() + offsetPx &&
       y in rectNoOffset.y..rectNoOffset.maxY.toInt()
   }
 
@@ -67,7 +61,7 @@ class TimelineLine(
   override fun paint(g: Graphics2D) {
     (g.create() as Graphics2D).apply {
       setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-      if (offsetPx.value != 0) {
+      if (offsetPx != 0) {
         color = InspectorColors.LINE_COLOR
         stroke = InspectorLayout.dashedStroke
         drawRoundRect(
@@ -83,7 +77,7 @@ class TimelineLine(
       val yOffset = if (status == TimelineElementStatus.Dragged) -2 else 0
       val rect =
         Rectangle(
-          rectNoOffset.x + offsetPx.value,
+          rectNoOffset.x + offsetPx,
           rectNoOffset.y + yOffset,
           rectNoOffset.width,
           rectNoOffset.height,
@@ -102,8 +96,8 @@ class TimelineLine(
       }
       color = InspectorColors.LINE_COLOR
       fillRoundRect(rect.x, rect.y, rect.width, rect.height, lineHeightScaled(), lineHeightScaled())
-      paintCircle(this, minX + offsetPx.value, middleY + yOffset)
-      paintCircle(this, maxX + offsetPx.value, middleY + yOffset)
+      paintCircle(this, minX + offsetPx, middleY + yOffset)
+      paintCircle(this, maxX + offsetPx, middleY + yOffset)
     }
   }
 

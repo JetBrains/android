@@ -37,16 +37,16 @@ class TimelineLineTest {
     // Call layoutAndDispatchEvents() so positionProxy returns correct values
     val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
     slider.sliderUI.apply {
-      val line = TimelineLine(0, null, 50, 150, 50, positionProxy)
+      val line = TimelineLine(0, null, 50, 150, 50)
       assertFalse(line.contains(30, 85))
       assertTrue(line.contains(51, 85))
       assertTrue(line.contains(150, 85))
       assertFalse(line.contains(160, 85))
-      line.move(-100)
-      assertFalse(line.contains(30 - 100, 85))
-      assertTrue(line.contains(50 - 100, 85))
-      assertTrue(line.contains(150 - 100, 85))
-      assertFalse(line.contains(160 - 100, 85))
+      val lineWithOffset = TimelineLine(-100, null, 50, 150, 50)
+      assertFalse(lineWithOffset.contains(30 - 100, 85))
+      assertTrue(lineWithOffset.contains(50 - 100, 85))
+      assertTrue(lineWithOffset.contains(150 - 100, 85))
+      assertFalse(lineWithOffset.contains(160 - 100, 85))
       // No tooltips.
       ui.render()
       assertEquals(0, slider.scanForTooltips().size)
@@ -60,16 +60,10 @@ class TimelineLineTest {
     slider.sliderUI.apply {
       elements =
         listOf(
-          TimelineLine(0, null, 50, 150, 50, positionProxy).apply {
-            status = TimelineElementStatus.Hovered
-          },
-          TimelineLine(0, null, 50, 150, 150, positionProxy).apply {
-            status = TimelineElementStatus.Dragged
-          },
-          TimelineLine(0, null, 50, 150, 250, positionProxy).apply {
-            status = TimelineElementStatus.Inactive
-          },
-          TimelineLine(0, null, 50, 150, 350, positionProxy).apply {},
+          TimelineLine(0, null, 50, 150, 50).apply { status = TimelineElementStatus.Hovered },
+          TimelineLine(0, null, 50, 150, 150).apply { status = TimelineElementStatus.Dragged },
+          TimelineLine(0, null, 50, 150, 250).apply { status = TimelineElementStatus.Inactive },
+          TimelineLine(0, null, 50, 150, 350).apply {},
         )
     }
     // Call layoutAndDispatchEvents() so positionProxy returns correct values

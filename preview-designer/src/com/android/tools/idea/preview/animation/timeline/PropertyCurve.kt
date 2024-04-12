@@ -29,8 +29,7 @@ private constructor(
   frozenValue: Int?,
   private val property: AnimatedProperty<Double>,
   private val componentCurves: List<ComponentCurve>,
-  positionProxy: PositionProxy,
-) : ParentTimelineElement(offsetPx, frozenValue, componentCurves, positionProxy) {
+) : ParentTimelineElement(offsetPx, frozenValue, componentCurves) {
 
   companion object {
     fun create(
@@ -54,7 +53,7 @@ private constructor(
             )
           }
           .toList()
-      return PropertyCurve(offsetPx, frozenValue, property, curves, positionProxy)
+      return PropertyCurve(offsetPx, frozenValue, property, curves)
     }
   }
 

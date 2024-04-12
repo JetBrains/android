@@ -246,7 +246,7 @@ abstract class AnimationPreview<T : AnimationManager>(
 
   @UiThread protected abstract fun getTimelineElements(): List<TimelineElement>
 
-  protected fun TimelineElement.getValueOffset(offset: Int) =
+  protected fun TimelineElement.getValueForOffset(offset: Int) =
     if (offset >= 0)
       timeline.sliderUI.positionProxy.valueForXPosition(minX + offset) -
         timeline.sliderUI.positionProxy.valueForXPosition(minX)

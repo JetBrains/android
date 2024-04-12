@@ -185,11 +185,11 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
       val ui = FakeUi(slider.parent)
       // Nothing is selected.
       assertNull(slider.sliderUI.activeElement)
-      assertEquals(0, slider.sliderUI.elements.first().offsetPx.value)
+      assertEquals(0, slider.sliderUI.elements.first().offsetPx)
       // Drag timeline over the first element, but don't stop on element itself.
       ui.mouse.drag(45, 45, 100, 100)
       // Element hasn't moved.
-      assertEquals(0, slider.sliderUI.elements.first().offsetPx.value)
+      assertEquals(0, slider.sliderUI.elements.first().offsetPx)
       assertEquals(TimelineElementStatus.Inactive, slider.sliderUI.elements.first().status)
     }
 
@@ -232,6 +232,10 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
             TestUtils.TestTimelineElement(50, 100, positionProxy),
           )
       }
+      var newOffset = 0
+      slider.sliderUI.elements[0].setNewOffsetCallback { newOffset = it }
+      var newOffset1 = 0
+      slider.sliderUI.elements[1].setNewOffsetCallback { newOffset1 = it }
       val ui = FakeUi(slider.parent)
       // Nothing is selected.
       assertNull(slider.sliderUI.activeElement)
@@ -242,15 +246,9 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
       ui.mouse.moveTo(55, 55)
       ui.mouse.drag(55, 55, 20, 120)
       // First element has moved, second element stays in place.
-      assertEquals(20, slider.sliderUI.elements[0].offsetPx.value)
-      assertEquals(0, slider.sliderUI.elements[1].offsetPx.value)
+      assertEquals(20, newOffset)
+      assertEquals(0, newOffset1)
       assertEquals(1, endOfDragCallback)
-      // Drag element back
-      ui.mouse.moveTo(75, 55)
-      ui.mouse.drag(75, 55, -20, 120)
-      assertEquals(2, endOfDragCallback)
-      // First element is back to its place.
-      assertEquals(0, slider.sliderUI.elements[0].offsetPx.value)
     }
 
   @Test
@@ -267,6 +265,10 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
           )
       }
     }
+    var newOffset = 0
+    slider.sliderUI.elements[0].setNewOffsetCallback { newOffset = it }
+    var newOffset1 = 0
+    slider.sliderUI.elements[1].setNewOffsetCallback { newOffset1 = it }
     val ui = FakeUi(slider.parent)
     // Nothing is selected.
     assertNull(slider.sliderUI.activeElement)
@@ -276,8 +278,8 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     ui.mouse.moveTo(55, 55)
     ui.mouse.drag(55, 55, 20, 120)
     // Nothing has moved
-    assertEquals(0, slider.sliderUI.elements[0].offsetPx.value)
-    assertEquals(0, slider.sliderUI.elements[1].offsetPx.value)
+    assertEquals(0, newOffset)
+    assertEquals(0, newOffset1)
     assertEquals(0, endOfDragCallback)
   }
 
@@ -291,8 +293,9 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
       val child1 = TestUtils.TestTimelineElement(50, 50, slider.sliderUI.positionProxy)
       val child2 = TestUtils.TestTimelineElement(100, 100, slider.sliderUI.positionProxy)
       val parent =
-        ParentTimelineElement(0, null, listOf(child1, child2), slider.sliderUI.positionProxy)
-          .apply { Disposer.register(projectRule.testRootDisposable, this) }
+        ParentTimelineElement(0, null, listOf(child1, child2)).apply {
+          Disposer.register(projectRule.testRootDisposable, this)
+        }
       slider.sliderUI.elements = listOf(parent)
       // Nothing is selected.
       assertNull(slider.sliderUI.activeElement)
@@ -325,6 +328,8 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
       slider.sliderUI.apply {
         elements = listOf(TestUtils.TestTimelineElement(50, 50, positionProxy))
       }
+      var newOffset = 0
+      slider.sliderUI.elements[0].setNewOffsetCallback { newOffset = it }
       val ui = FakeUi(slider.parent)
       // Drag element
       ui.mouse.moveTo(149, 55)
@@ -332,7 +337,7 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
       // Uncomment to preview ui.
       // ui.render()
       // First element can't move outside of the slider.
-      assertEquals(-138, slider.sliderUI.elements[0].offsetPx.value)
+      assertEquals(-138, newOffset)
     }
 
   @Test
@@ -344,6 +349,8 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
       slider.sliderUI.apply {
         elements = listOf(TestUtils.TestTimelineElement(50, 50, positionProxy))
       }
+      var newOffset = 0
+      slider.sliderUI.elements[0].setNewOffsetCallback { newOffset = it }
       val ui = FakeUi(slider.parent)
       // Drag element
       ui.mouse.moveTo(51, 55)
@@ -351,7 +358,7 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
       // Uncomment to preview ui.
       // ui.render()
       // First element can't move outside of the slider.
-      assertEquals(237, slider.sliderUI.elements[0].offsetPx.value)
+      assertEquals(237, newOffset)
     }
 
   @Test

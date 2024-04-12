@@ -57,16 +57,16 @@ object TestUtils {
     positionProxy: PositionProxy,
     valueOffset: Int = 0,
     frozenValue: Int? = null,
-  ) : TimelineElement(valueOffset, frozenValue, x, x + TEST_ELEMENT_WIDTH, positionProxy) {
+  ) : TimelineElement(valueOffset, frozenValue, x, x + TEST_ELEMENT_WIDTH) {
     override fun contains(x: Int, y: Int): Boolean {
-      return x in this.x + offsetPx.value..this.x + TEST_ELEMENT_WIDTH + offsetPx.value &&
+      return x in this.x + offsetPx..this.x + TEST_ELEMENT_WIDTH + offsetPx &&
         y in this.y..this.y + TEST_ELEMENT_HEIGHT
     }
 
     override var height = TEST_ELEMENT_ROW_HEIGHT
 
     override fun paint(g: Graphics2D) {
-      g.fillRect(x + offsetPx.value, y, TEST_ELEMENT_WIDTH, TEST_ELEMENT_HEIGHT)
+      g.fillRect(x + offsetPx, y, TEST_ELEMENT_WIDTH, TEST_ELEMENT_HEIGHT)
     }
 
     override fun getTooltip(point: Point): TooltipInfo? =

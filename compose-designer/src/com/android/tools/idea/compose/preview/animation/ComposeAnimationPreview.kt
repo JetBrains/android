@@ -22,7 +22,6 @@ import com.android.tools.idea.compose.preview.animation.managers.AnimatedVisibil
 import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeSupportedAnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.ComposeUnsupportedAnimationManager
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.preview.animation.InspectorLayout
@@ -82,11 +81,9 @@ class ComposeAnimationPreview(
       selected.selectedPropertiesCallback = { curve.timelineUnits = it }
       curve.timelineUnits = selected.selectedProperties
       if (Disposer.tryRegister(this@ComposeAnimationPreview, curve)) {
-        AndroidCoroutineScope(curve).launch {
-          curve.offsetPx.collect {
-            selected.elementState.value =
-              selected.elementState.value.copy(valueOffset = curve.getValueOffset(it))
-          }
+        curve.setNewOffsetCallback {
+          selected.elementState.value =
+            selected.elementState.value.copy(valueOffset = curve.getValueForOffset(it))
         }
       }
       return listOf(curve)
@@ -99,11 +96,9 @@ class ComposeAnimationPreview(
             if (tab is ComposeSupportedAnimationManager) {
               tab.card.expandedSize = TransitionCurve.expectedHeight(tab.currentTransition)
               tab.card.setDuration(tab.currentTransition.duration)
-              AndroidCoroutineScope(this).launch {
-                element.offsetPx.collect {
-                  tab.elementState.value =
-                    tab.elementState.value.copy(valueOffset = element.getValueOffset(it))
-                }
+              element.setNewOffsetCallback {
+                tab.elementState.value =
+                  tab.elementState.value.copy(valueOffset = element.getValueForOffset(it))
               }
             }
           }

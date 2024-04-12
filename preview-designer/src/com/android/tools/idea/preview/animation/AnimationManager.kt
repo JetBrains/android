@@ -80,6 +80,11 @@ abstract class UnsupportedAnimationManager(final override val tabTitle: String) 
     minY: Int,
     positionProxy: PositionProxy,
   ): UnsupportedLabel {
-    return UnsupportedLabel(parent, minY, positionProxy)
+    return UnsupportedLabel(
+      parent,
+      minY,
+      positionProxy.minimumXPosition(),
+      positionProxy.maximumXPosition(),
+    )
   }
 }

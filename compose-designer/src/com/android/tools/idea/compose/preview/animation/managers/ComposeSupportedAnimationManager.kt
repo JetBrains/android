@@ -391,7 +391,6 @@ open class ComposeSupportedAnimationManager(
         currentTransition.endMillis?.let { positionProxy.xPositionForValue(it) }
           ?: positionProxy.minimumXPosition(),
         minY,
-        positionProxy,
       )
   }
 

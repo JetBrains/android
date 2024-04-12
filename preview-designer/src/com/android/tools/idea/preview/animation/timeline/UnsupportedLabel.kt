@@ -41,38 +41,28 @@ private const val LEARN_MORE_LINK =
   "https://developer.android.com/jetpack/compose/tooling/animation-preview"
 
 /** Label displayed in [TimelinePanel] for unsupported components. */
-class UnsupportedLabel(parent: JComponent, private val rowMinY: Int, positionProxy: PositionProxy) :
-  TimelineElement(
-    0,
-    null,
-    positionProxy.minimumXPosition(),
-    positionProxy.maximumXPosition(),
-    positionProxy,
-  ) {
+class UnsupportedLabel(parent: JComponent, rowMinY: Int, minX: Int, maxX: Int) :
+  TimelineElement(0, null, minX, maxX) {
 
   init {
     JBUIScale.addUserScaleChangeListener { resize() }
   }
-
-  private val label = LabelPanel.findOrCreateNew(parent).apply { this.location = labelPosition }
 
   private fun resize() {
     // Adjust label position if parent component was resized.
     label.location = labelPosition
   }
 
-  private val labelPosition: Point
-    get() =
-      Point(
-        positionProxy.minimumXPosition() + InspectorLayout.labelOffset -
-          InspectorLayout.boxedLabelOffset,
-        rowMinY + InspectorLayout.labelOffset / 2,
-      )
+  private val labelPosition =
+    Point(
+      minX + InspectorLayout.labelOffset - InspectorLayout.boxedLabelOffset,
+      rowMinY + InspectorLayout.labelOffset / 2,
+    )
+
+  private val label = LabelPanel.findOrCreateNew(parent).apply { this.location = labelPosition }
 
   /** [UnsupportedLabel] has a fixed height. */
-  override var height: Int
-    get() = InspectorLayout.UNSUPPORTED_ROW_HEIGHT
-    set(_) {}
+  override val height = InspectorLayout.UNSUPPORTED_ROW_HEIGHT
 
   override fun contains(x: Int, y: Int): Boolean = label.bounds.contains(x, y)
 

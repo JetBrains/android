@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDI
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TimelineElementStatus
+import com.android.tools.idea.res.clamp
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.UIUtil
@@ -352,8 +353,20 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
     override fun mouseDragged(e: MouseEvent) {
       super.mouseDragged(e)
       tooltipAdapter.mouseDragged(e)
-      if (activeElement?.status == TimelineElementStatus.Dragged) {
-        activeElement?.move(e.x - dragStartXPoint)
+      val draggedElement = activeElement
+      if (draggedElement?.status == TimelineElementStatus.Dragged) {
+        val deltaPx = e.x - dragStartXPoint
+        /**
+         * Forces the final newOffsetPx value to respect at least one of the boundaries of timeline,
+         * preventing the element from moving entirely outside the allowed range.
+         */
+        val newOffsetPx =
+          clamp(
+            draggedElement.offsetPx + deltaPx,
+            timeline.sliderUI.positionProxy.minimumXPosition() - draggedElement.maxX,
+            timeline.sliderUI.positionProxy.maximumXPosition() - draggedElement.minX,
+          )
+        activeElement?.setNewOffset(newOffsetPx)
         dragStartXPoint = e.x
       } else {
         updateThumbLocationAndSliderValue()

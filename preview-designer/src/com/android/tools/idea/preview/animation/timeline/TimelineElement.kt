@@ -16,12 +16,10 @@
 package com.android.tools.idea.preview.animation.timeline
 
 import com.android.tools.idea.preview.animation.TooltipInfo
-import com.android.tools.idea.res.clamp
 import com.intellij.openapi.Disposable
 import com.intellij.util.ui.JBUI
 import java.awt.Graphics2D
 import java.awt.Point
-import kotlinx.coroutines.flow.MutableStateFlow
 
 /** Proxy to slider positions. */
 interface PositionProxy {
@@ -50,14 +48,12 @@ open class ParentTimelineElement(
   valueOffset: Int,
   frozenValue: Int?,
   private val children: List<TimelineElement>,
-  positionProxy: PositionProxy,
 ) :
   TimelineElement(
     offsetPx = valueOffset,
     frozenValue,
     minX = children.minOfOrNull { it.minX } ?: 0,
     maxX = children.maxOfOrNull { it.maxX } ?: 0,
-    positionProxy = positionProxy,
   ) {
 
   override val height = children.sumOf { it.height }
@@ -81,14 +77,12 @@ open class ParentTimelineElement(
 
 /** Drawable element for timeline. Each element could be moved and frozen. */
 abstract class TimelineElement(
-  offsetPx: Int,
+  val offsetPx: Int,
   val frozenValue: Int?,
   val minX: Int,
   val maxX: Int,
-  protected val positionProxy: PositionProxy,
 ) : Disposable {
 
-  val offsetPx = MutableStateFlow(offsetPx)
   abstract val height: Int
 
   fun heightScaled(): Int = JBUI.scale(height)
@@ -101,13 +95,8 @@ abstract class TimelineElement(
 
   abstract fun paint(g: Graphics2D)
 
-  fun move(deltaPx: Int) {
-    offsetPx.value =
-      clamp(
-        offsetPx.value + deltaPx,
-        positionProxy.minimumXPosition() - maxX,
-        positionProxy.maximumXPosition() - minX,
-      )
+  fun setNewOffset(deltaPx: Int) {
+    newOffsetCallback(deltaPx)
   }
 
   fun contains(point: Point): Boolean {
@@ -115,6 +104,18 @@ abstract class TimelineElement(
   }
 
   override fun dispose() {}
+
+  private var newOffsetCallback: (Int) -> Unit = {}
+
+  /**
+   * Sets the callback invoked when this [TimelineElement] is moved(dragged on timeline) and have a
+   * new offset. The callback receives a new offset in pixels (`offsetPx`).
+   *
+   * @param newOffsetCallback The function to call on element finished dragging.
+   */
+  fun setNewOffsetCallback(newOffsetCallback: (Int) -> Unit) {
+    this.newOffsetCallback = newOffsetCallback
+  }
 }
 
 fun getOffsetForValue(valueOffset: Int, positionProxy: PositionProxy) =

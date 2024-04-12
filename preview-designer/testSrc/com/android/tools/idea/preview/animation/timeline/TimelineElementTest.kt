@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.preview.animation.timeline
 
-import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -45,7 +42,7 @@ class TimelineElementTest {
       }
     slider.sliderUI.apply {
       val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
-      assertEquals(0, line.offsetPx.value)
+      assertEquals(0, line.offsetPx)
       assertEquals(TimelineElementStatus.Inactive, line.status)
     }
   }
@@ -61,48 +58,14 @@ class TimelineElementTest {
       }
     slider.sliderUI.apply {
       val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
-      assertEquals(0, line.offsetPx.value)
+      assertEquals(0, line.offsetPx)
       assertEquals(TimelineElementStatus.Inactive, line.status)
     }
   }
 
-  @Test
-  fun `move to the right and copy line`(): Unit =
-    runBlocking(uiThread) {
-      val slider =
-        TestUtils.createTestSlider().apply {
-          maximum = 600
-          // Call layoutAndDispatchEvents() so positionProxy returns correct values
-          FakeUi(this.parent).apply { layoutAndDispatchEvents() }
-        }
-      slider.sliderUI.apply {
-        val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
-        line.move(100)
-        delayUntilCondition(200) { line.offsetPx.value == 100 }
-        assertEquals(100, line.offsetPx.value)
-      }
-    }
-
-  @Test
-  fun `move to the left`(): Unit =
-    runBlocking(uiThread) {
-      val slider =
-        TestUtils.createTestSlider().apply {
-          maximum = 600
-          // Call layoutAndDispatchEvents() so positionProxy returns correct values
-          FakeUi(this.parent).apply { layoutAndDispatchEvents() }
-        }
-      slider.sliderUI.apply {
-        val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
-        line.move(-100)
-        delayUntilCondition(200) { line.offsetPx.value == -100 }
-        assertEquals(-100, line.offsetPx.value)
-      }
-    }
-
   @RunsInEdt
   @Test
-  fun `move and reset line`() {
+  fun `setNewOffsetCallback invoked`() {
     val slider =
       TestUtils.createTestSlider().apply {
         maximum = 600
@@ -110,9 +73,11 @@ class TimelineElementTest {
         FakeUi(this.parent).apply { layoutAndDispatchEvents() }
       }
     slider.sliderUI.apply {
+      var newOffset = 0
       val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
-      line.move(-100)
-      assertEquals(-100, line.offsetPx.value)
+      line.setNewOffsetCallback { newOffset = it }
+      line.setNewOffset(-100)
+      assertEquals(-100, newOffset)
     }
   }
 
@@ -127,12 +92,12 @@ class TimelineElementTest {
       }
     slider.sliderUI.apply {
       val parent =
-        ParentTimelineElement(0, null, emptyList(), positionProxy).apply {
+        ParentTimelineElement(0, null, emptyList()).apply {
           Disposer.register(projectRule.testRootDisposable, this)
         }
       assertEquals(0, parent.minX)
       assertEquals(0, parent.maxX)
-      assertEquals(0, parent.offsetPx.value)
+      assertEquals(0, parent.offsetPx)
       assertEquals(0, parent.height)
       assertEquals(0, parent.heightScaled())
     }

@@ -56,15 +56,14 @@ class ComponentCurveTest {
         positionProxy = slider.sliderUI.positionProxy,
         colorIndex = 0,
       )
+
     slider.sliderUI.elements = listOf(componentCurve)
     val curveBaseLine = componentCurve.curveBaseY - 1 // Minus 1 so point is inside the curve.
 
-    fun moveAndRecreate(deltaPx: Int) {
-      componentCurve.move(deltaPx)
-
+    val moveCallback: (Int) -> Unit = { deltaPx ->
       componentCurve =
         ComponentCurve.create(
-          offsetPx = componentCurve.offsetPx.value,
+          offsetPx = componentCurve.offsetPx + deltaPx,
           null,
           property = property,
           componentId = 0,
@@ -72,7 +71,6 @@ class ComponentCurveTest {
           positionProxy = slider.sliderUI.positionProxy,
           colorIndex = 0,
         )
-
       slider.sliderUI.elements = listOf(componentCurve)
     }
 
@@ -102,8 +100,8 @@ class ComponentCurveTest {
     val shift50ms =
       slider.sliderUI.positionProxy.xPositionForValue(50) -
         slider.sliderUI.positionProxy.xPositionForValue(0)
-
-    moveAndRecreate(shift50ms)
+    componentCurve.setNewOffsetCallback(moveCallback)
+    componentCurve.setNewOffset(shift50ms)
 
     // Point in the middle of curve baseline
     assertTrue(
@@ -128,8 +126,8 @@ class ComponentCurveTest {
     )
     // Uncomment to preview ui.
     // ui.render() // Curve is shifted to the right and starts in 50ms
-
-    moveAndRecreate(-2 * shift50ms)
+    componentCurve.setNewOffsetCallback(moveCallback)
+    componentCurve.setNewOffset(-2 * shift50ms)
 
     // Point in the middle of curve baseline
     assertTrue(

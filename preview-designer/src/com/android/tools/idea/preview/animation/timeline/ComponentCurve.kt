@@ -39,7 +39,7 @@ class ComponentCurve(
   private val curve: Path2D,
   private val colorIndex: Int,
   positionProxy: PositionProxy,
-) : TimelineElement(offsetPx, frozenValue, minX, maxX, positionProxy) {
+) : TimelineElement(offsetPx, frozenValue, minX, maxX) {
 
   companion object {
     /**
@@ -169,19 +169,19 @@ class ComponentCurve(
     //
     g.color = GRAPH_COLORS[colorIndex % GRAPH_COLORS.size]
     g.stroke = InspectorLayout.simpleStroke
-    g.drawLine(minX + offsetPx.value, curveBaseY, maxX + offsetPx.value, curveBaseY)
+    g.drawLine(minX + offsetPx, curveBaseY, maxX + offsetPx, curveBaseY)
     if (component.linkToNext) {
       g.stroke = InspectorLayout.dashedStroke
       g.drawLine(
-        minX + offsetPx.value,
+        minX + offsetPx,
         curveBaseY,
-        minX + offsetPx.value,
+        minX + offsetPx,
         curveBaseY + heightScaled() - Diamond.diamondSize(),
       )
       g.drawLine(
-        maxX + offsetPx.value,
+        maxX + offsetPx,
         curveBaseY,
-        maxX + offsetPx.value,
+        maxX + offsetPx,
         curveBaseY + heightScaled() - Diamond.diamondSize(),
       )
       g.stroke = InspectorLayout.simpleStroke
@@ -204,22 +204,22 @@ class ComponentCurve(
       status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered,
     )
 
-    if (offsetPx.value != 0) {
+    if (offsetPx != 0) {
       g.stroke = InspectorLayout.dashedStroke
       g.color = GRAPH_COLORS_WITH_ALPHA[colorIndex % GRAPH_COLORS.size]
-      if (offsetPx.value > 0) {
+      if (offsetPx > 0) {
         g.drawLine(
           minX + Diamond.diamondSize() + 1,
           curveBaseY,
-          minX + offsetPx.value - Diamond.diamondSize() - 1,
+          minX + offsetPx - Diamond.diamondSize() - 1,
           curveBaseY,
         )
         startDiamondNoOffset.paintOutline(g)
-      } else if (offsetPx.value < 0) {
+      } else if (offsetPx < 0) {
         g.drawLine(
           maxX - Diamond.diamondSize() - 1,
           curveBaseY,
-          maxX + offsetPx.value + Diamond.diamondSize() + 1,
+          maxX + offsetPx + Diamond.diamondSize() + 1,
           curveBaseY,
         )
         endDiamondNoOffset.paintOutline(g)

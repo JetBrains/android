@@ -27,8 +27,7 @@ private constructor(
   offsetPx: Int,
   frozenValue: Int?,
   private val propertyCurves: List<PropertyCurve>,
-  positionProxy: PositionProxy,
-) : ParentTimelineElement(offsetPx, frozenValue, propertyCurves, positionProxy) {
+) : ParentTimelineElement(offsetPx, frozenValue, propertyCurves) {
 
   companion object {
     fun create(
@@ -56,7 +55,7 @@ private constructor(
           currentMinY += curve.heightScaled()
           curve
         }
-      return TransitionCurve(offsetPx, frozenValue, curves, positionProxy).also {
+      return TransitionCurve(offsetPx, frozenValue, curves).also {
         curves.forEach { curve -> Disposer.register(it, curve) }
       }
     }
