@@ -858,7 +858,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       Map<Long, SessionItem> sessionIdToSessionItems = mySessionsManager.getSessionIdToSessionItems();
       boolean isStartupTask = mySessionsManager.isCurrentTaskStartup();
       ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, isStartupTask, getTaskHandlers(), getSession(), sessionIdToSessionItems,
-                                              myCreateTaskTab);
+                                              myCreateTaskTab, myIdeServices);
     }
   }
 

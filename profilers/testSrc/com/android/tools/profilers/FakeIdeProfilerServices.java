@@ -307,6 +307,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
+  public void openErrorDialog(@NotNull String message, @NotNull String title) { }
+
+  @Override
   @Nullable
   public <T> T openListBoxChooserDialog(@NotNull String title,
                                         @Nullable String message,

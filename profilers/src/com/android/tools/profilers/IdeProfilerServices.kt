@@ -132,6 +132,14 @@ interface IdeProfilerServices {
   fun openYesNoDialog(message: String, title: String, yesCallback: Runnable, noCallback: Runnable)
 
   /**
+   * Displays a dialog describing an error that just occurred to the user.
+   *
+   * @param message the message content
+   * @param title the title
+   */
+  fun openErrorDialog(message: String, title: String)
+
+  /**
    * Opens a dialog asking the user to select items from the listbox.
    *
    * @param title                      tile to be provided to the dialog box.
