@@ -198,9 +198,6 @@ interface InspectorClient : Disposable {
    */
   val process: ProcessDescriptor
 
-  /** Weather the process was auto connected or was manually selected. */
-  val isInstantlyAutoConnected: Boolean
-
   val treeLoader: TreeLoader
 
   /** True, if the current connection is currently receiving live updates. */
@@ -267,7 +264,6 @@ object DisconnectedClient : InspectorClient {
       override val streamId: Long = 0
     }
   override val stats: SessionStatistics = DisconnectedSessionStatistics
-  override val isInstantlyAutoConnected = false
   override val treeLoader =
     object : TreeLoader {
       override fun loadComponentTree(

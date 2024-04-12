@@ -42,7 +42,6 @@ abstract class AbstractInspectorClient(
   val project: Project,
   val notificationModel: NotificationModel,
   final override val process: ProcessDescriptor,
-  final override val isInstantlyAutoConnected: Boolean,
   final override val stats: SessionStatistics,
   @VisibleForTesting val coroutineScope: CoroutineScope,
   parentDisposable: Disposable,

@@ -777,7 +777,6 @@ private open class FakeInspectorClient(
     project,
     NotificationModel(project),
     process,
-    isInstantlyAutoConnected = false,
     DisconnectedClient.stats,
     AndroidCoroutineScope(parentDisposable),
     parentDisposable,

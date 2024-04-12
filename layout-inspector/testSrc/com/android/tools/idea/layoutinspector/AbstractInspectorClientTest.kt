@@ -98,7 +98,6 @@ private class MyClient(
     project,
     notificationModel,
     process,
-    true,
     DisconnectedClient.stats,
     AndroidCoroutineScope(disposable),
     disposable,

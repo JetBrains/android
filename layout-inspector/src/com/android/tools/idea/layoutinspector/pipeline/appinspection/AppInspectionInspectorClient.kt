@@ -77,7 +77,6 @@ const val SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY = "system.image.live.unsupported"
  */
 class AppInspectionInspectorClient(
   process: ProcessDescriptor,
-  isInstantlyAutoConnected: Boolean,
   private val model: InspectorModel,
   notificationModel: NotificationModel,
   private val metrics: LayoutInspectorSessionMetrics,
@@ -97,7 +96,6 @@ class AppInspectionInspectorClient(
     model.project,
     notificationModel,
     process,
-    isInstantlyAutoConnected,
     SessionStatisticsImpl(APP_INSPECTION_CLIENT),
     coroutineScope,
     parentDisposable,
@@ -187,11 +185,8 @@ class AppInspectionInspectorClient(
 
         when (val setFlagResult = debugViewAttributes.set(process.device)) {
           is SetFlagResult.Set -> {
-            if (!setFlagResult.previouslySet && !isInstantlyAutoConnected) {
-              // Show the banner only if debugViewAttributes has changed and if the process was not
-              // started from a fresh app deployment (in this case the Activity is restarted as soon
-              // as
-              // it starts, so there is no need to notify the user).
+            if (!setFlagResult.previouslySet) {
+              // Show the banner only if debugViewAttributes has changed.
               showActivityRestartedInBanner(notificationModel)
             }
           }

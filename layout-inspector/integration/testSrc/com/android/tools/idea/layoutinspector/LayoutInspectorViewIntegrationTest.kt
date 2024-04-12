@@ -38,9 +38,7 @@ class LayoutInspectorViewIntegrationTest {
       join(
         listOf(
           "-Didea.log.debug.categories=#com.android.tools.idea.layoutinspector.LayoutInspector",
-          // Disable foreground detection: b/262770420
-          "-Dlayout.inspector.dynamic.layout.inspector.enable.auto.connect.foreground=false",
-          // Disable running devices: b/287696923
+          "-Dlayout.inspector.dynamic.layout.inspector.enable.auto.connect.foreground=true",
           "-Dlayout.inspector.dynamic.layout.inspector.enable.running.devices=false",
         ),
         "\n",

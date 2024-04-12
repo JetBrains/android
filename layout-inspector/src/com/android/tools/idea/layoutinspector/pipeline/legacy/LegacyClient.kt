@@ -38,7 +38,6 @@ import kotlinx.coroutines.CoroutineScope
  */
 class LegacyClient(
   process: ProcessDescriptor,
-  isInstantlyAutoConnected: Boolean,
   val model: InspectorModel,
   notificationModel: NotificationModel,
   private val metrics: LayoutInspectorSessionMetrics,
@@ -51,7 +50,6 @@ class LegacyClient(
     model.project,
     notificationModel,
     process,
-    isInstantlyAutoConnected,
     SessionStatisticsImpl(LEGACY_CLIENT),
     coroutineScope,
     parentDisposable,

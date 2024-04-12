@@ -15,12 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.tools.idea.appinspection.ide.ui.RecentProcess
-import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
-import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
-import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.DisposableRule
@@ -43,13 +38,10 @@ class LayoutInspectorProjectServiceTest {
     val processDiscovery = TestProcessDiscovery()
     val model =
       createProcessesModel(
-        projectRule.project,
         disposableRule.disposable,
         processDiscovery,
         MoreExecutors.directExecutor(),
-      ) {
-        null
-      }
+      )
 
     // Verify that devices older than M will be included in the processes model:
     processDiscovery.fireConnected(olderLegacyProcess)
@@ -60,99 +52,5 @@ class LayoutInspectorProjectServiceTest {
     // And newer devices as well:
     processDiscovery.fireConnected(modernProcess)
     assertThat(model.processes).hasSize(3)
-  }
-
-  @Test
-  fun testIsPreferredProcess() =
-    withEmbeddedLayoutInspector(false) {
-      val recentProcess = RecentProcess("serial", "process_name")
-      RecentProcess.set(projectRule.project, recentProcess)
-
-      val deviceDescriptor = createDeviceDescriptor("serial")
-      val processDescriptor = createProcessDescriptor("process_name", deviceDescriptor)
-
-      val isPreferredProcess = isPreferredProcess(projectRule.project, processDescriptor) { null }
-      assertThat(isPreferredProcess).isTrue()
-    }
-
-  @Test
-  fun testIsNotPreferredProcessWhenDifferentFromForcedProcess() =
-    withEmbeddedLayoutInspector(false) {
-      val recentProcess = RecentProcess("serial", "process_name")
-      RecentProcess.set(projectRule.project, recentProcess)
-
-      val deviceDescriptor = createDeviceDescriptor("serial")
-      val processDescriptor = createProcessDescriptor("process_name", deviceDescriptor)
-
-      var deviceModel: DeviceModel? = null
-
-      val processDiscovery = TestProcessDiscovery()
-      val processModel =
-        createProcessesModel(
-          projectRule.project,
-          disposableRule.disposable,
-          processDiscovery,
-          MoreExecutors.directExecutor(),
-        ) {
-          deviceModel
-        }
-      deviceModel = DeviceModel(disposableRule.disposable, processModel)
-
-      val isPreferredProcess1 =
-        isPreferredProcess(projectRule.project, processDescriptor) { deviceModel }
-      assertThat(isPreferredProcess1).isTrue()
-
-      deviceModel.forcedDeviceSerialNumber = "different_serial"
-
-      val isPreferredProcess2 =
-        isPreferredProcess(projectRule.project, processDescriptor) { deviceModel }
-      assertThat(isPreferredProcess2).isTrue()
-
-      enableEmbeddedLayoutInspector = true
-
-      // If embedded LI is on, we want to connect only to the forced device.
-      val isPreferredProcess3 =
-        isPreferredProcess(projectRule.project, processDescriptor) { deviceModel }
-      assertThat(isPreferredProcess3).isFalse()
-
-      deviceModel.forcedDeviceSerialNumber = null
-
-      val isPreferredProcess4 =
-        isPreferredProcess(projectRule.project, processDescriptor) { deviceModel }
-      assertThat(isPreferredProcess4).isFalse()
-
-      deviceModel.forcedDeviceSerialNumber = "serial"
-
-      val isPreferredProcess5 =
-        isPreferredProcess(projectRule.project, processDescriptor) { deviceModel }
-      assertThat(isPreferredProcess5).isTrue()
-    }
-}
-
-private fun createProcessDescriptor(
-  processName: String,
-  deviceDescriptor: DeviceDescriptor,
-  packageName: String = processName,
-): ProcessDescriptor {
-  return object : ProcessDescriptor {
-    override val device = deviceDescriptor
-    override val abiCpuArch = "arch"
-    override val name = processName
-    override val packageName = packageName
-    override val isRunning = true
-    override val pid = 123
-    override val streamId = 123L
-  }
-}
-
-private fun createDeviceDescriptor(serialNumber: String): DeviceDescriptor {
-  return object : DeviceDescriptor {
-    override val manufacturer = "manufacturer"
-    override val model = "model"
-    override val serial = serialNumber
-    override val isEmulator = true
-    override val apiLevel = 30
-    override val version = "version"
-    override val codename = null
   }
 }

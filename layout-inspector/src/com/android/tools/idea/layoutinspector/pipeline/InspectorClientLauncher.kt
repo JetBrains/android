@@ -87,7 +87,6 @@ class InspectorClientLauncher(
           // Only Q+ devices support image updates which is used by the app inspection agent
           AppInspectionInspectorClient(
             params.process,
-            params.isInstantlyAutoConnected,
             model,
             notificationModel,
             metrics,
@@ -104,7 +103,6 @@ class InspectorClientLauncher(
       val legacyClientFactory = ClientFactory { params ->
         LegacyClient(
           params.process,
-          params.isInstantlyAutoConnected,
           model,
           notificationModel,
           metrics,
@@ -135,7 +133,6 @@ class InspectorClientLauncher(
 
   interface Params {
     val process: ProcessDescriptor
-    val isInstantlyAutoConnected: Boolean
     val disposable: Disposable
   }
 
@@ -164,7 +161,7 @@ class InspectorClientLauncher(
         }
 
     processes.addSelectedProcessListeners(realExecutor) {
-      handleProcessInWorkerThread(executor, processes.selectedProcess, processes.isAutoConnected)
+      handleProcessInWorkerThread(executor, processes.selectedProcess)
     }
 
     Disposer.register(parentDisposable) {
@@ -177,15 +174,11 @@ class InspectorClientLauncher(
     }
   }
 
-  private fun handleProcessInWorkerThread(
-    executor: Executor?,
-    process: ProcessDescriptor?,
-    isAutoConnected: Boolean,
-  ) {
+  private fun handleProcessInWorkerThread(executor: Executor?, process: ProcessDescriptor?) {
     if (!project.isDisposed) {
       val processHandler = {
         try {
-          handleProcess(process, isAutoConnected)
+          handleProcess(process)
         } catch (ignore: CancellationException) {}
       }
       // If we're already executing a recursive call in the most recent request, execute directly in
@@ -212,13 +205,12 @@ class InspectorClientLauncher(
     }
   }
 
-  private fun handleProcess(process: ProcessDescriptor?, isInstantlyAutoConnected: Boolean) {
+  private fun handleProcess(process: ProcessDescriptor?) {
     var validClientConnected = false
     if (process != null && process.isRunning && enabled) {
       val params =
         object : Params {
           override val process: ProcessDescriptor = process
-          override val isInstantlyAutoConnected: Boolean = isInstantlyAutoConnected
           override val disposable: Disposable = parentDisposable
         }
       metrics?.setProcess(process)

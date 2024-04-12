@@ -229,14 +229,15 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(scheduler.isShutdown).isTrue()
     assertThat(renderModel.isRotated).isTrue()
     UIUtil.dispatchAllInvocationEvents()
-    val notification1 = notificationModel.notifications.single()
+    assertThat(notificationModel.notifications).hasSize(2)
+    val notification1 = notificationModel.notifications[1]
     assertThat(notification1.message)
       .isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D))
 
     // Turn 3D mode off:
     toggle.click()
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(notificationModel.notifications).isEmpty()
+    assertThat(notificationModel.notifications).hasSize(1)
 
     // Hide VIEW2:
     val view2 = inspectorRule.inspectorModel[VIEW2]!!
@@ -248,7 +249,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
     // Show all:
     inspectorRule.inspectorModel.showAll()
-    waitForCondition(10.seconds) { notificationModel.notifications.isEmpty() }
+    waitForCondition(10.seconds) { notificationModel.notifications.size == 1 }
   }
 
   private fun delegateDataProvider(panel: DeviceViewPanel) {
@@ -414,7 +415,7 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testGotoDeclarationOfViewWithoutAnId() {
     gotoDeclaration(VIEW3)
     fileOpenCaptureRule.checkNoNavigation()
-    val notification1 = inspectorRule.notificationModel.notifications.single()
+    val notification1 = inspectorRule.notificationModel.notifications[1]
     assertThat(notification1.message)
       .isEqualTo("Cannot navigate to source because v3 in the layout demo.xml doesn't have an id.")
   }

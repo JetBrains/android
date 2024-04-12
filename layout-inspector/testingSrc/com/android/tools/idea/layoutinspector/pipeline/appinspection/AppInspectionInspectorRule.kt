@@ -185,7 +185,6 @@ class AppInspectionInspectorRule(
 
     AppInspectionInspectorClient(
         process = params.process,
-        isInstantlyAutoConnected = params.isInstantlyAutoConnected,
         model = inspector.inspectorModel,
         notificationModel = inspector.notificationModel,
         metrics = LayoutInspectorSessionMetrics(inspector.inspectorModel.project, params.process),

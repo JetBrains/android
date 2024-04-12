@@ -594,7 +594,7 @@ class AppInspectionInspectorClientTest {
     }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(error.await()).isEqualTo(startFetchError)
-    val notification1 = inspectorRule.notificationModel.notifications.single()
+    val notification1 = inspectorRule.notificationModel.notifications[1]
     assertThat(notification1.message).isEqualTo("Failed to start fetching or whatever")
   }
 
@@ -607,7 +607,7 @@ class AppInspectionInspectorClientTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
-    val notification1 = inspectorRule.notificationModel.notifications.single()
+    val notification1 = inspectorRule.notificationModel.notifications.first()
     assertThat(notification1.message)
       .isEqualTo(
         LayoutInspectorBundle.message(
@@ -626,7 +626,7 @@ class AppInspectionInspectorClientTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
-    val notification1 = inspectorRule.notificationModel.notifications.single()
+    val notification1 = inspectorRule.notificationModel.notifications.first()
     assertThat(notification1.message)
       .isEqualTo(LayoutInspectorBundle.message(PROGUARDED_LIBRARY_MESSAGE_KEY))
   }
@@ -640,7 +640,7 @@ class AppInspectionInspectorClientTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
-    val notification1 = inspectorRule.notificationModel.notifications.single()
+    val notification1 = inspectorRule.notificationModel.notifications.first()
     assertThat(notification1.message)
       .isEqualTo(LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY))
 
@@ -893,7 +893,7 @@ class AppInspectionInspectorClientTest {
     }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    val notification1 = inspectorRule.notificationModel.notifications.single()
+    val notification1 = inspectorRule.notificationModel.notifications[1]
     assertThat(notification1.message).isEqualTo("here's my error")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
   }
@@ -912,7 +912,7 @@ class AppInspectionInspectorClientTest {
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    val notification1 = inspectorRule.notificationModel.notifications.single()
+    val notification1 = inspectorRule.notificationModel.notifications[1]
     assertThat(notification1.message).isEqualTo("here's my error")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
   }
@@ -1101,7 +1101,6 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         val client =
           AppInspectionInspectorClient(
             process = processDescriptor2,
-            isInstantlyAutoConnected = false,
             model = model(inspectorRule.disposable, inspectorRule.project) {},
             notificationModel = inspectorRule.notificationModel,
             metrics = mock(),
@@ -1142,7 +1141,6 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         val client =
           AppInspectionInspectorClient(
             process = processDescriptor,
-            isInstantlyAutoConnected = false,
             model = model(projectRule.testRootDisposable, inspectorRule.project) {},
             notificationModel = inspectorRule.notificationModel,
             metrics = mock(),
@@ -1347,8 +1345,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     val notifications = inspectorRule.notificationModel.notifications
-    assertThat(notifications).hasSize(1)
-    assertThat(notifications[0].message).isEqualTo("expected")
+    assertThat(notifications[1].message).isEqualTo("expected")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
     val usages =
       usageTrackerRule.testTracker.usages.filter {

@@ -125,7 +125,6 @@ fun LegacyClientProvider(
 ) = InspectorClientProvider { params, inspector ->
   LegacyClient(
     params.process,
-    params.isInstantlyAutoConnected,
     inspector.inspectorModel,
     inspector.notificationModel,
     LayoutInspectorSessionMetrics(inspector.inspectorModel.project, params.process),

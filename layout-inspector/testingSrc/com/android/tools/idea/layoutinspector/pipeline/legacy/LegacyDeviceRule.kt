@@ -160,7 +160,6 @@ class LegacyDeviceRule(
     val client =
       LegacyClient(
           process,
-          isInstantlyAutoConnected = false,
           model,
           notificationModel,
           LayoutInspectorSessionMetrics(model.project, process),

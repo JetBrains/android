@@ -38,9 +38,7 @@ class EmbeddedLayoutInspectorIntegrationTest {
         listOf(
           // Enable debug logging
           "-Didea.log.debug.categories=#com.android.tools.idea.layoutinspector.LayoutInspector,com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState",
-          // Disable foreground detection: b/262770420
-          "-Dlayout.inspector.dynamic.layout.inspector.enable.auto.connect.foreground=false",
-          // Disable running devices: b/287696923
+          "-Dlayout.inspector.dynamic.layout.inspector.enable.auto.connect.foreground=true",
           "-Dlayout.inspector.dynamic.layout.inspector.enable.running.devices=true",
         ),
         "\n",
