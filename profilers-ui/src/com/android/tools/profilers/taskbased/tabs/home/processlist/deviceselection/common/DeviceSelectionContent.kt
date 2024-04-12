@@ -30,8 +30,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons.getDeviceIconPainter
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.common.icons.DeviceIconUtils
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import icons.StudioIcons
 import org.jetbrains.jewel.ui.component.Icon
@@ -64,8 +64,7 @@ fun DeviceText(text: String) {
 
 @Composable
 private fun DeviceIcon(icon: Icon?, description: String) {
-  val iconPainter = getDeviceIconPainter(icon)?.getPainter()?.value
-  iconPainter?.let {
+  DeviceIconUtils.getDeviceIconPainter(icon)?.let {
     Icon(painter = it, contentDescription = description)
   }
 }

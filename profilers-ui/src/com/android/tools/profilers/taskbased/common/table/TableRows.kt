@@ -25,10 +25,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
@@ -39,18 +39,17 @@ fun EllipsesText(text: String) {
 }
 
 @Composable
-fun leftAlignedColumnText(text: String, icon: TaskBasedUxIcons.TaskBasedUxIcon? = null, rowScope: RowScope) {
+fun leftAlignedColumnText(text: String, iconPainter: Painter? = null, rowScope: RowScope) {
   with(rowScope) {
     Box(
       modifier = Modifier.weight(1f).fillMaxHeight().padding(horizontal = 5.dp),
       contentAlignment = Alignment.CenterStart
     ) {
       Row (horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-        icon?.let {
+        iconPainter?.let {
           Icon(
-            resource = it.path,
+            painter = it,
             contentDescription = TaskBasedUxStrings.PREFERRED_PROCESS_DESC,
-            iconClass = it.iconClass,
           )
         }
         EllipsesText(text = text)

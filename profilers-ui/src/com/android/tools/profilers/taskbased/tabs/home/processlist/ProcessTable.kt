@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,10 +40,10 @@ import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TABLE_ROW_HEIGHT_DP
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.table.leftAlignedColumnText
 import com.android.tools.profilers.taskbased.common.table.rightAlignedColumnText
+import icons.StudioIconsCompose
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
 import org.jetbrains.jewel.foundation.lazy.items
@@ -79,9 +80,10 @@ private fun ProcessListRow(selectedProcess: Common.Process, process: Common.Proc
       if (isRunning)
         (if (process.isProfileable()) TaskBasedUxStrings.PROFILEABLE_PROCESS_TITLE else TaskBasedUxStrings.DEBUGGABLE_PROCESS_TITLE)
       else TaskBasedUxStrings.DEAD_PROCESS_TITLE
-
+    // The android head icon to indicate the preferred process
     if (isPreferredProcess) {
-      leftAlignedColumnText(processName, TaskBasedUxIcons.ANDROID_HEAD_ICON, rowScope = this)
+      val androidHeadIconPainter by StudioIconsCompose.Common.AndroidHead().getPainter()
+      leftAlignedColumnText(processName, androidHeadIconPainter, rowScope = this)
     }
     else {
       leftAlignedColumnText(processName, rowScope = this)

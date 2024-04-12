@@ -34,7 +34,7 @@ import com.android.tools.profilers.Notification
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
+import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ToolbarDeviceSelection
 import com.android.tools.profilers.tasks.ProfilerTaskTabs
 import com.android.tools.profilers.tasks.ProfilerTaskType
@@ -227,7 +227,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   fun createTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs) {
     val taskTab = findTaskTab()
     val taskName = taskHandlers[taskType]?.getTaskName() ?: "Task Not Supported Yet"
-    val taskIcon = TaskBasedUxIcons.getTaskIcon(taskType)
+    val taskIcon = TaskIconUtils.getTaskIcon(taskType)
     if (taskTab != null) {
       taskTab.displayName = taskName
       window.getContentManager().setSelectedContent(taskTab)

@@ -30,9 +30,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel
+import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
@@ -48,9 +48,8 @@ fun RecordingScreen(recordingScreenModel: RecordingScreenModel<*>) {
       Row(modifier = Modifier.padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(5.dp),
           verticalAlignment = Alignment.CenterVertically) {
         Icon(
-          resource = TaskBasedUxIcons.RECORDING_IN_PROGRESS_ICON.path,
+          painter = StudioIconsCompose.Profiler.Toolbar.StopRecording().getPainter().value,
           contentDescription = TaskBasedUxStrings.RECORDING_IN_PROGRESS,
-          iconClass = TaskBasedUxIcons.RECORDING_IN_PROGRESS_ICON.iconClass,
           modifier = Modifier.size(20.dp)
         )
         val ongoingTaskName = recordingScreenModel.taskName.lowercase()

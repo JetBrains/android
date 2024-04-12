@@ -40,7 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_HOVER_BACKGROUND_COLOR
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
+import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import org.jetbrains.jewel.foundation.modifier.onHover
@@ -83,7 +83,6 @@ fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolea
 
 @Composable
 fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
-  val taskIcon = TaskBasedUxIcons.getLargeTaskIcon(task)
   val taskTitle = TaskBasedUxStrings.getTaskTitle(task)
   val taskSubtitle = TaskBasedUxStrings.getTaskSubtitle(task)
   with(boxScope) {
@@ -91,8 +90,7 @@ fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
       modifier = Modifier.align(Alignment.Center).fillMaxWidth().padding(vertical = 20.dp, horizontal = 10.dp).testTag(task.description)
     ) {
       Icon(
-        resource = taskIcon.path,
-        iconClass = taskIcon.iconClass,
+        painter = TaskIconUtils.getLargeTaskIconPainter(task),
         contentDescription = task.description,
         modifier = Modifier.align(Alignment.CenterHorizontally)
       )
