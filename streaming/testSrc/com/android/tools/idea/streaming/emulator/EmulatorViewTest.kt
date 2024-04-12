@@ -306,24 +306,12 @@ class EmulatorViewTest {
       assertThat(shortDebugString(call.request)).isEqualTo("""text: "$expectedText"""")
     }
 
-    val controlCharacterCases = mapOf(
+    val trivialKeyStrokeCases = mapOf(
       VK_ENTER to "Enter",
       VK_TAB to "Tab",
       VK_ESCAPE to "Escape",
       VK_BACK_SPACE to "Backspace",
       VK_DELETE to if (SystemInfo.isMac) "Backspace" else "Delete",
-    )
-    for ((hostKeyStroke, emulatorKeyName) in controlCharacterCases) {
-      fakeUi.keyboard.pressAndRelease(hostKeyStroke)
-      val pressCall = fakeEmulator.getNextGrpcCall(2.seconds)
-      assertThat(pressCall.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(pressCall.request)).isEqualTo("""key: "$emulatorKeyName"""")
-      val releaseCall = fakeEmulator.getNextGrpcCall(2.seconds)
-      assertThat(releaseCall.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(releaseCall.request)).isEqualTo("""eventType: keyup key: "$emulatorKeyName"""")
-    }
-
-    val trivialKeyStrokeCases = mapOf(
       VK_LEFT to "ArrowLeft",
       VK_KP_LEFT to "ArrowLeft",
       VK_RIGHT to "ArrowRight",
