@@ -49,7 +49,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT
 import com.android.tools.idea.flags.StudioFlags.PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME
 import com.android.tools.idea.log.LoggerWithFixedInfo
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.DefaultRenderQualityPolicy
@@ -768,7 +767,7 @@ class ComposePreviewRepresentation(
       fpsLimitFlow.collect {
         interactiveManager.fpsLimit = it
         // When getting out of Essentials Mode, request a refresh
-        if (!EssentialsMode.isEnabled()) requestRefresh()
+        if (!PreviewEssentialsModeManager.isEssentialsModeEnabled) requestRefresh()
       }
     }
   }
@@ -882,7 +881,7 @@ class ComposePreviewRepresentation(
   // endregion
 
   override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
-    if (EssentialsMode.isEnabled()) return
+    if (PreviewEssentialsModeManager.isEssentialsModeEnabled) return
     if (isModificationTriggered) return // We do not move the preview while the user is typing
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
     if (mode.value is PreviewMode.Interactive) return
