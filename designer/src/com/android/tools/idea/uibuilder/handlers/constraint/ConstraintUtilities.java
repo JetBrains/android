@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.Te
 import com.android.tools.property.panel.api.HelpSupport;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
+import com.intellij.util.SlowOperations;
 import java.util.function.Supplier;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
@@ -132,7 +133,7 @@ public class ConstraintUtilities {
   public static int getDpValue(@NotNull NlComponent component, String value) {
     if (value != null) {
       Configuration configuration = component.getModel().getConfiguration();
-      ResourceResolver resourceResolver = configuration.getResourceResolver();
+      ResourceResolver resourceResolver = SlowOperations.allowSlowOperations(configuration::getResourceResolver);
       if (resourceResolver != null) {
         Integer px = ViewEditor.resolveDimensionPixelSize(resourceResolver, value, configuration);
         return px == null ? 0 : Coordinates.pxToDp(component.getModel(), px);
@@ -144,7 +145,7 @@ public class ConstraintUtilities {
   @NotNull
   static String resolveStringResource(@NotNull NlComponent component, @NotNull String text) {
     Configuration configuration = component.getModel().getConfiguration();
-    ResourceResolver resourceResolver = configuration.getResourceResolver();
+    ResourceResolver resourceResolver = SlowOperations.allowSlowOperations(configuration::getResourceResolver);
     if (resourceResolver != null) {
       return resolveStringValue(resourceResolver, text);
     }
