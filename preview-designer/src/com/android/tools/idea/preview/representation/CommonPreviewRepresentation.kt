@@ -189,35 +189,41 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   @VisibleForTesting
   val previewView = invokeAndWaitIfNeeded {
     viewConstructor(
-      project,
-      NlDesignSurface.builder(project, this)
-        .setSceneManagerProvider { surface, model ->
-          NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
-            setUseCustomInflater(useCustomInflater)
-            setShrinkRendering(true)
-            setRenderingTopic(renderingTopic)
-            setListenResourceChange(false) // don't re-render on resource changes
-            setUpdateAndRenderWhenActivated(false) // don't re-render on activation
+        project,
+        NlDesignSurface.builder(project, this)
+          .setSceneManagerProvider { surface, model ->
+            NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+              setUseCustomInflater(useCustomInflater)
+              setShrinkRendering(true)
+              setRenderingTopic(renderingTopic)
+              setListenResourceChange(false) // don't re-render on resource changes
+              setUpdateAndRenderWhenActivated(false) // don't re-render on activation
+            }
           }
-        }
-        .setInteractionHandlerProvider {
-          delegateInteractionHandler.apply {
-            delegate = NavigatingInteractionHandler(it, navigationHandler)
+          .setInteractionHandlerProvider {
+            delegateInteractionHandler.apply {
+              delegate = NavigatingInteractionHandler(it, navigationHandler)
+            }
           }
-        }
-        .setDelegateDataProvider {
-          when (it) {
-            PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
-            PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
-            PreviewGroupManager.KEY.name,
-            PreviewFlowManager.KEY.name -> previewFlowManager
-            FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
-            else -> null
+          .setDelegateDataProvider {
+            when (it) {
+              PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
+              PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
+              PreviewGroupManager.KEY.name,
+              PreviewFlowManager.KEY.name -> previewFlowManager
+              FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
+              else -> null
+            }
           }
-        }
-        .apply { configureDesignSurface() },
-      this,
-    )
+          .apply { configureDesignSurface() },
+        this,
+      )
+      .also {
+        it.mainSurface.analyticsManager.setEditorFileTypeWithoutTracking(
+          psiFilePointer.virtualFile,
+          project,
+        )
+      }
   }
 
   private val surface: NlDesignSurface

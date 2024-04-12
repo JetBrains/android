@@ -670,6 +670,12 @@ class ComposePreviewRepresentation(
         }
       )
       .apply { mainSurface.background = Colors.DEFAULT_BACKGROUND_COLOR }
+      .also {
+        it.mainSurface.analyticsManager.setEditorFileTypeWithoutTracking(
+          psiFilePointer.virtualFile,
+          project,
+        )
+      }
 
   @VisibleForTesting
   val staticPreviewInteractionHandler =

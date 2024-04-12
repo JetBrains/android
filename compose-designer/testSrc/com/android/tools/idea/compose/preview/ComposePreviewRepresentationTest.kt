@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.flags.junit.FlagRule
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.retryUntilPassing
 import com.android.testutils.waitForCondition
@@ -57,6 +59,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider
@@ -693,6 +696,7 @@ class ComposePreviewRepresentationTest {
         )
       }
       val surfaceMock = Mockito.mock(NlDesignSurface::class.java)
+      whenever(surfaceMock.analyticsManager).thenReturn(mock<NlAnalyticsManager>())
       val composeView = TestComposePreviewView(surfaceMock)
       val previewRepresentation =
         ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->

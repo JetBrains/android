@@ -27,6 +27,7 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.rendering.RenderResult;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.EditorFileType;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.google.wireless.android.sdk.stats.LayoutEditorState;
@@ -112,6 +113,14 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
       .build();
   }
 
+  /** Retrieves the {@link EditorFileType} associated with the given {@link DesignSurface} */
+  static EditorFileType getEditorFileType(@Nullable DesignSurface<?> surface) {
+    if (surface == null) {
+      return EditorFileType.UNKNOWN;
+    }
+    return surface.getAnalyticsManager().getEditorFileType();
+  }
+
   /**
    * Returns whether an event should be logged given a percentage of times we want to log it.
    */
@@ -127,7 +136,8 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
       myExecutor.execute(() -> {
         LayoutEditorEvent.Builder builder = LayoutEditorEvent.newBuilder()
           .setType(eventType)
-          .setState(getState(myDesignSurfaceRef.get()));
+          .setState(getState(myDesignSurfaceRef.get()))
+          .setEditorFileType(getEditorFileType(myDesignSurfaceRef.get()));
         if (consumer != null) {
           consumer.accept(builder);
         }
