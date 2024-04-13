@@ -70,13 +70,13 @@ class IncompatibleChangeCompileTest {
     // First edit - diff with APK
     val firstError = Assert.assertThrows(LiveEditUpdateException::class.java) { compile(file, compiler) }
     assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_FIELD_ADDED, firstError.error)
-    assertEquals("in Test, added field(s): y", firstError.message)
+    assertEquals("added field(s): y", firstError.message)
 
     // Second+ edit - diff with cache
     cache.update(apk.values.toList())
     val secondError = Assert.assertThrows(LiveEditUpdateException::class.java) { compile(file, compiler) }
     assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_FIELD_ADDED, secondError.error)
-    assertEquals("in Test, added field(s): y", secondError.message)
+    assertEquals("added field(s): y", secondError.message)
   }
 
   @Test
@@ -101,13 +101,13 @@ class IncompatibleChangeCompileTest {
     // First edit - diff with APK
     val firstError = Assert.assertThrows(LiveEditUpdateException::class.java) { compile(file, compiler) }
     assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_FIELD_REMOVED, firstError.error)
-    assertEquals("in Test, removed field(s): x", firstError.message)
+    assertEquals("removed field(s): x", firstError.message)
 
     // Second+ edit - diff with cache
     cache.update(apk.values.toList())
     val secondError = Assert.assertThrows(LiveEditUpdateException::class.java) { compile(file, compiler) }
     assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_FIELD_REMOVED, secondError.error)
-    assertEquals("in Test, removed field(s): x", secondError.message)
+    assertEquals("removed field(s): x", secondError.message)
   }
 
   private fun provider(apk: Map<String, IrClass>): ApkClassProvider = object: ApkClassProvider {

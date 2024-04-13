@@ -16,12 +16,8 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalErrorNoBindContext
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugar
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarRequest
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse
@@ -34,20 +30,10 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
-import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.codegen.state.GenerationState
-import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
-import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
-import org.jetbrains.kotlin.descriptors.containingPackage
-import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.util.module
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtFunction
-import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.resolve.BindingContext
+
 import java.util.Optional
 
 class LiveEditCompiler(val project: Project,

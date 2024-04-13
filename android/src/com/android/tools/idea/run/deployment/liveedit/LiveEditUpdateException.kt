@@ -19,7 +19,7 @@ import com.google.wireless.android.sdk.stats.LiveEditEvent.Status
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 
-class LiveEditUpdateException private constructor(val error: Error, val details: String = "", val source: PsiFile?, cause : Throwable?) : RuntimeException(details, cause) {
+class LiveEditUpdateException private constructor(val error: Error, val details: String = "", val sourceFilename: String?, cause : Throwable?) : RuntimeException(details, cause) {
 
   /**
    * @param message Short description
@@ -64,73 +64,67 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
 
     INTERNAL_ERROR("Internal Error", "%", false, Status.INTERNAL_ERROR),
     INTERNAL_ERROR_NO_BINDING_CONTEXT("Internal Error", "%", false, Status.INTERNAL_ERROR_NO_BINDING_CONTEXT),
-
-    KNOWN_ISSUE("Known Issue", "%", true, Status.KNOWN_ISSUE),
   }
 
   companion object {
     // Sorted lexicographically for readability and consistency
 
     fun analysisError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
-      LiveEditUpdateException(Error.ANALYSIS_ERROR, details, source, cause)
+      LiveEditUpdateException(Error.ANALYSIS_ERROR, details, source?.name, cause)
 
     @JvmStatic
     fun compilationError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
-      LiveEditUpdateException(Error.COMPILATION_ERROR, details, source, cause)
+      LiveEditUpdateException(Error.COMPILATION_ERROR, details, source?.name, cause)
 
     fun internalError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
-      LiveEditUpdateException(Error.INTERNAL_ERROR, details, source, cause)
+      LiveEditUpdateException(Error.INTERNAL_ERROR, details, source?.name, cause)
 
     fun internalError(details: String, cause: Throwable? = null) =
       LiveEditUpdateException(Error.INTERNAL_ERROR, details, null, cause)
 
-    fun internalErrorNoBindContext(details: String) =
-      LiveEditUpdateException(Error.INTERNAL_ERROR_NO_BINDING_CONTEXT, details, null, null)
+    fun kotlinEap() = LiveEditUpdateException(Error.KOTLIN_EAP,"Live Edit does not support running with this Kotlin Plugin version"+
+                                                               " and will only work with the bundled Kotlin Plugin", null, null)
 
-    fun kotlinEap() = LiveEditUpdateException(Error.KOTLIN_EAP, "Live Edit does not support running with this Kotlin Plugin version" +
-                                                                " and will only work with the bundled Kotlin Plugin.", null, null)
-
-    fun nonKotlin(file: PsiFile) =
-      LiveEditUpdateException(Error.NON_KOTLIN, source = file, cause = null)
+    fun nonKotlin(file: PsiFile) = LiveEditUpdateException(Error.NON_KOTLIN, "", file.name, cause = null)
 
     fun unsupportedSourceModificationAddedMethod(location: String, msg: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_METHOD_ADDED, "in $location, $msg", null, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_METHOD_ADDED, msg, location, null)
 
     fun unsupportedSourceModificationRemovedMethod(location: String, msg: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_METHOD_REMOVED, "in $location, $msg", null, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_METHOD_REMOVED, msg, location, null)
 
     fun unsupportedSourceModificationAddedAccess(location: String, msg: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_ACCESS_ADDED, "in $location, $msg", null, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_ACCESS_ADDED, msg, location, null)
 
     fun unsupportedSourceModificationRemovedAccess(location: String, msg: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_ACCESS_REMOVED, "in $location, $msg", null, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_ACCESS_REMOVED, msg, location, null)
 
     fun unsupportedSourceModificationAddedField(location: String, msg: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_FIELD_ADDED, "in $location, $msg", null, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_FIELD_ADDED, msg, location, null)
 
     fun unsupportedSourceModificationRemovedField(location: String, msg: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_FIELD_REMOVED, "in $location, $msg", null, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_FIELD_REMOVED, msg, location, null)
 
     fun unsupportedSourceModificationModifiedField(location: String, msg: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_FIELD_MODIFIED, "in $location, $msg", null, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_FIELD_MODIFIED, msg, location, null)
 
     fun unsupportedSourceModificationSignature(location: String, msg: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_SIGNATURE, "in $location, $msg", null, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_SIGNATURE, msg, location, null)
 
     fun unsupportedSourceModificationSuperClass(location: String, msg: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_SUPER_CLASS, "in $location, $msg", null, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_SUPER_CLASS, msg, location, null)
 
     fun unsupportedSourceModificationInterface(location: String, msg: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_INTERFACE, "in $location, $msg", null, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_INTERFACE, msg, location, null)
 
     fun unsupportedSourceModificationEnclosingMethod(location: String, msg: String) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_ENCLOSING_METHOD, "in $location, $msg", null, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_ENCLOSING_METHOD, msg, location, null)
 
     fun unsupportedSourceModificationAddedUserClass(msg: String, file: PsiFile) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_USER_CLASS_ADDED, msg, file, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_USER_CLASS_ADDED, msg, file?.name, null)
 
     fun unsupportedSourceModificationWhenEnumPath(msg: String, file: PsiFile) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_WHEN_ENUM_PATH, msg, file, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_WHEN_ENUM_PATH, msg, file?.name, null)
 
     fun unsupportedSourceModificationConstructor(msg: String) =
       LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_CONSTRUCTOR, msg, null, null)
@@ -139,7 +133,7 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
       LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_CLINIT, msg, null, null)
 
     fun unsupportedSourceModificationInit(msg: String, file: PsiFile) =
-      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_INIT, msg, file, null)
+      LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_INIT, msg, file?.name, null)
 
     fun unsupportedBuildSrcChange(name: String) =
       LiveEditUpdateException(Error.UNSUPPORTED_BUILD_SRC_CHANGE, name, null, null)
@@ -152,14 +146,14 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
      * This is unlikely to happen unless the Compose compiler changes how the offset-to-ID mapping works.
      */
     fun noInvalidateGroup(details: String, source: PsiFile? = null, cause: Throwable? = null) =
-      LiveEditUpdateException(Error.UNABLE_TO_LOCATE_COMPOSE_GROUP, details, source, cause)
+      LiveEditUpdateException(Error.UNABLE_TO_LOCATE_COMPOSE_GROUP, details, source?.name, cause)
 
     fun inlineFailure(details: String, source: PsiFile? = null, cause: Throwable? = null) =
-      LiveEditUpdateException(Error.UNABLE_TO_INLINE, "$details", source, cause)
+      LiveEditUpdateException(Error.UNABLE_TO_INLINE, "$details", source?.name, cause)
 
     fun nonPrivateInlineFunctionFailure(source: PsiFile? = null) =
       LiveEditUpdateException(Error.NON_PRIVATE_INLINE_FUNCTION, "Inline functions visible outside of the file cannot be live edited. " +
-                                                                 "Application needs to be rebuild.", source, null)
+                                                                 "Application needs to be rebuild.", source?.name, null)
 
     fun desugarFailure(details: String, cause: Throwable? = null) {
       throw LiveEditUpdateException(Error.UNABLE_TO_DESUGAR, details, null, cause)
@@ -174,13 +168,13 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     }
 
     fun virtualFileNotExist(virtualFile: VirtualFile, file: PsiFile) =
-      LiveEditUpdateException(Error.VIRTUAL_FILE_NOT_EXIST, details = "deleted Kotlin file ${virtualFile.path}", source = file, cause = null)
+      LiveEditUpdateException(Error.VIRTUAL_FILE_NOT_EXIST, details = "deleted Kotlin file ${virtualFile.path}", sourceFilename = file?.name, cause = null)
   }
 
   fun isCompilationError() : Boolean {
     return when (error) {
-      LiveEditUpdateException.Error.ANALYSIS_ERROR -> message?.startsWith("Analyze Error.") ?: false
-      LiveEditUpdateException.Error.COMPILATION_ERROR -> true
+      Error.ANALYSIS_ERROR -> message?.startsWith("Analyze Error.") ?: false
+      Error.COMPILATION_ERROR -> true
       else -> false
     }
   }

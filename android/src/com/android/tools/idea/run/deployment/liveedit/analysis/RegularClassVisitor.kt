@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis
 
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedAccess
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedField
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedMethod
