@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.streaming.emulator;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Provides a mechanism for tests to override the default runtime configuration used by the Emulator tool window code.
