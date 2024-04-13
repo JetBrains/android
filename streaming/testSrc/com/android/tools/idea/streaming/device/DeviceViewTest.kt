@@ -404,20 +404,12 @@ internal class DeviceViewTest {
       assertThat(agent.getNextControlMessage(2.seconds)).isEqualTo(TextInputMessage(c.toString()))
     }
 
-    val controlCharacterCases = mapOf(
+    val trivialKeyStrokeCases = mapOf(
       VK_ENTER to AKEYCODE_ENTER,
       VK_TAB to AKEYCODE_TAB,
       VK_ESCAPE to AKEYCODE_ESCAPE,
       VK_BACK_SPACE to AKEYCODE_DEL,
       VK_DELETE to if (SystemInfo.isMac) AKEYCODE_DEL else AKEYCODE_FORWARD_DEL,
-    )
-    for ((hostKeyStroke, androidKeyCode) in controlCharacterCases) {
-      fakeUi.keyboard.pressAndRelease(hostKeyStroke)
-      assertThat(agent.getNextControlMessage(2.seconds)).isEqualTo(KeyEventMessage(ACTION_DOWN, androidKeyCode, 0))
-      assertThat(agent.getNextControlMessage(2.seconds)).isEqualTo(KeyEventMessage(ACTION_UP, androidKeyCode, 0))
-    }
-
-    val trivialKeyStrokeCases = mapOf(
       VK_LEFT to AKEYCODE_DPAD_LEFT,
       VK_KP_LEFT to AKEYCODE_DPAD_LEFT,
       VK_RIGHT to AKEYCODE_DPAD_RIGHT,

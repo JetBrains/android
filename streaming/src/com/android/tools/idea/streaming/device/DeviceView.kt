@@ -38,6 +38,10 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_BACKSPACE
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_ENTER
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_ESCAPE
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_LEFT
@@ -58,6 +62,7 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_NEXT_WORD
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_NEXT_WORD_WITH_SELECTION
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_PREVIOUS_WORD
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_PREVIOUS_WORD_WITH_SELECTION
+import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TAB
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_END_WITH_SELECTION
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TEXT_START
@@ -70,7 +75,6 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
@@ -99,18 +103,13 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.awt.event.KeyEvent.KEY_RELEASED
-import java.awt.event.KeyEvent.VK_BACK_SPACE
-import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
-import java.awt.event.KeyEvent.VK_ENTER
-import java.awt.event.KeyEvent.VK_ESCAPE
 import java.awt.event.KeyEvent.VK_KP_DOWN
 import java.awt.event.KeyEvent.VK_KP_LEFT
 import java.awt.event.KeyEvent.VK_KP_RIGHT
 import java.awt.event.KeyEvent.VK_KP_UP
 import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_RIGHT
-import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -646,22 +645,12 @@ internal class DeviceView(
         return
       }
 
-      val keyCode = event.keyCode
-      val modifiers = event.modifiersEx
-      val androidKeyStroke = hostKeyStrokeToAndroidKeyStroke(keyCode, modifiers)
-      if (androidKeyStroke == null) {
-        if (modifiers == 0) {
-          val androidKeyCode = hostKeyCodeToDeviceKeyCode(keyCode)
-          if (androidKeyCode != AKEYCODE_UNKNOWN) {
-            val action = if (event.id == KEY_PRESSED) ACTION_DOWN else ACTION_UP
-            deviceController?.sendControlMessage(KeyEventMessage(action, androidKeyCode, modifiersToMetaState(modifiers)))
-            event.consume()
-          }
+      if (event.id == KEY_PRESSED) {
+        val androidKeyStroke = hostKeyStrokeToAndroidKeyStroke(event.keyCode, event.modifiersEx)
+        if (androidKeyStroke != null) {
+          deviceController?.sendKeyStroke(androidKeyStroke)
+          event.consume()
         }
-      }
-      else if (event.id == KEY_PRESSED) {
-        deviceController?.sendKeyStroke(androidKeyStroke)
-        event.consume()
       }
     }
 
@@ -677,23 +666,16 @@ internal class DeviceView(
       return keyStrokeMap[KeyStroke.getKeyStroke(canonicalKeyCode, modifiers)]
     }
 
-    private fun hostKeyCodeToDeviceKeyCode(hostKeyCode: Int): Int {
-      return when (hostKeyCode) {
-        VK_BACK_SPACE -> AKEYCODE_DEL
-        VK_DELETE -> if (SystemInfo.isMac) AKEYCODE_DEL else AKEYCODE_FORWARD_DEL
-        VK_ENTER -> AKEYCODE_ENTER
-        VK_ESCAPE -> AKEYCODE_ESCAPE
-        VK_TAB -> AKEYCODE_TAB
-        else -> AKEYCODE_UNKNOWN
-      }
-    }
-
     private fun buildKeyStrokeMap(): Map<KeyStroke, AndroidKeyStroke> {
       return mutableMapOf<KeyStroke, AndroidKeyStroke>().apply {
-        addKeyStrokesForAction(ACTION_CUT, AndroidKeyStroke(AKEYCODE_CUT))
         addKeyStrokesForAction(ACTION_COPY, AndroidKeyStroke(AKEYCODE_COPY))
+        addKeyStrokesForAction(ACTION_CUT, AndroidKeyStroke(AKEYCODE_CUT))
+        addKeyStrokesForAction(ACTION_DELETE, AndroidKeyStroke(AKEYCODE_FORWARD_DEL))
         addKeyStrokesForAction(ACTION_PASTE, AndroidKeyStroke(AKEYCODE_PASTE))
         addKeyStrokesForAction(ACTION_SELECT_ALL, AndroidKeyStroke(AKEYCODE_A, AMETA_CTRL_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_ENTER, AndroidKeyStroke(AKEYCODE_ENTER))
+        addKeyStrokesForAction(ACTION_EDITOR_ESCAPE, AndroidKeyStroke(AKEYCODE_ESCAPE))
+        addKeyStrokesForAction(ACTION_EDITOR_BACKSPACE, AndroidKeyStroke(AKEYCODE_DEL))
         addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT, AndroidKeyStroke(AKEYCODE_DPAD_LEFT))
         addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_RIGHT, AndroidKeyStroke(AKEYCODE_DPAD_RIGHT))
         addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_DPAD_LEFT, AMETA_SHIFT_ON))
@@ -714,6 +696,7 @@ internal class DeviceView(
         addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN, AndroidKeyStroke(AKEYCODE_PAGE_DOWN))
         addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_UP_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_PAGE_UP, AMETA_SHIFT_ON))
         addKeyStrokesForAction(ACTION_EDITOR_MOVE_CARET_PAGE_DOWN_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_PAGE_DOWN, AMETA_SHIFT_ON))
+        addKeyStrokesForAction(ACTION_EDITOR_TAB, AndroidKeyStroke(AKEYCODE_TAB))
         addKeyStrokesForAction(ACTION_EDITOR_TEXT_START, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_CTRL_ON))
         addKeyStrokesForAction(ACTION_EDITOR_TEXT_END, AndroidKeyStroke(AKEYCODE_MOVE_END, AMETA_CTRL_ON))
         addKeyStrokesForAction(ACTION_EDITOR_TEXT_START_WITH_SELECTION, AndroidKeyStroke(AKEYCODE_MOVE_HOME, AMETA_CTRL_SHIFT_ON))
