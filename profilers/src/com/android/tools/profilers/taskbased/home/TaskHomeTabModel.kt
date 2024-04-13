@@ -115,10 +115,12 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
     _taskRecordingType.value = recordingType
   }
 
-  fun onStartupTaskStart() = resetSelectionState()
-
-  private fun resetSelectionState() {
+  fun resetSelectionStateOnTaskEnter() {
     selectionStateOnTaskEnter = null
+    // The call to disable startup tasks might already be done by the `AndroidProfilerTaskLaunchContributor` after consuming the config to
+    // start the task capture, but in other cases (such as when the user cancels a debuggable build via the dialog), it is not.
+    // Nonetheless, it is harmless to call this method multiple times.
+    profilers.ideServices.disableStartupTasks()
   }
 
   private fun setSelectionState() {

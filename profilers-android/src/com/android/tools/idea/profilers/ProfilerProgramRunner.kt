@@ -154,6 +154,12 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
       // Profileable is unsupported but user agrees to fall back to debuggable.
       return doExecuteInternal(state, environment)
     }
+    // Reset user's selection stored on task enter (e.g. startup tasks being enabled) as the task execution has been canceled and thus the
+    // state is invalid.
+    if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+      val taskHomeTabModel = AndroidProfilerToolWindowFactory.getProfilerToolWindow(environment.project)?.profilers?.taskHomeTabModel
+      taskHomeTabModel?.resetSelectionStateOnTaskEnter()
+    }
     // Cancel the profiling session.
     return resolvedPromise()
   }

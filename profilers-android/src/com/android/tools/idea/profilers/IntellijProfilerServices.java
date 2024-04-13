@@ -337,6 +337,20 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
+  public void disableStartupTasks() {
+    RunManager runManager = RunManager.getInstance(myProject);
+    if (runManager != null) {
+      RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();
+      if (configurationSettings != null &&
+          configurationSettings.getConfiguration() instanceof AndroidRunConfigurationBase androidConfiguration) {
+        ProfilerState profilerState = androidConfiguration.getProfilerState();
+        // Disable/reset all startup profiling configurations before setting one.
+        profilerState.disableStartupProfiling();
+      }
+    }
+  }
+
+  @Override
   public boolean isTaskSupportedOnStartup(@NotNull ProfilerTaskType taskType) {
     // The CpuProfilerConfig technologies are the only profiling configurations allowed to be performed on startup.
     return Arrays.stream(CpuProfilerConfig.Technology.values()).anyMatch(value -> fromTechnologyToTaskType(value) == taskType);

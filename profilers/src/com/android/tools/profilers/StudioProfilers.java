@@ -339,7 +339,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
         if (isTaskBasedUXEnabled) {
           if (startupProfilingStarted()) {
-            getTaskHomeTabModel().onStartupTaskStart();
+            getTaskHomeTabModel().resetSelectionStateOnTaskEnter();
           }
         }
         else {

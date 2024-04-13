@@ -180,6 +180,11 @@ interface IdeProfilerServices {
   fun enableStartupTask(taskType: ProfilerTaskType, recordingType: TaskHomeTabModel.TaskRecordingType)
 
   /**
+   * Disables startup profiling.
+   */
+  fun disableStartupTasks()
+
+  /**
    * Whether a native CPU profiling configuration is preferred over a Java one.
    * Native configurations can be preferred for native projects, for instance.
    */
