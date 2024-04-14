@@ -32,6 +32,7 @@ import com.intellij.openapi.project.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
+import org.jetbrains.kotlin.idea.gradleJava.configuration.kotlinGradleProjectDataOrNull
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -309,8 +310,15 @@ private data class ModuleAndMode(
   val expand: Boolean = true
 ) {
   val androidModel: GradleAndroidModel? = GradleAndroidModel.get(module)
-  val isKmpModule: Boolean = module.isMultiPlatformModule
+  val isKmpModule: Boolean = module.isMultiPlatformModule()
   val isGradleJavaModule: Boolean = if (androidModel == null) module.isGradleJavaModule() else false
+}
+
+@Suppress("UnstableApiUsage")
+private fun Module.isMultiPlatformModule(): Boolean {
+  if (isMultiPlatformModule) return true
+  // Check to see if the KMP plugin is applied to this project.
+  return CachedModuleDataFinder.findMainModuleData(this)?.kotlinGradleProjectDataOrNull?.isHmpp ?: false
 }
 
 @Suppress("UnstableApiUsage")
