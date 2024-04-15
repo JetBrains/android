@@ -78,11 +78,11 @@ open class InspectorTests {
     ComposeAnimationInspectorManager.closeCurrentInspector()
   }
 
-  fun createAndOpenInspector(): ComposeAnimationPreview {
+  fun createAndOpenInspector(disposable: Disposable = parentDisposable): ComposeAnimationPreview {
     Assert.assertFalse(ComposeAnimationInspectorManager.isInspectorOpen())
     ComposeAnimationInspectorManager.createAnimationInspectorPanel(
       surface,
-      parentDisposable,
+      disposable,
       psiFilePointer,
     ) {}
     Assert.assertTrue(ComposeAnimationInspectorManager.isInspectorOpen())

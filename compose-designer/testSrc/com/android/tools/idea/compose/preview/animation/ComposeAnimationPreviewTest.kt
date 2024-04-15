@@ -40,6 +40,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -697,6 +698,15 @@ class ComposeAnimationPreviewTest(private val clockType: ClockType) : InspectorT
         "Expected to fail, as `getAnimatedVisibilityState-xga21d` should not be found when looking for the mangled name."
       )
     } catch (ignored: NullPointerException) {}
+  }
+
+  @Test
+  fun inspectorShouldBeClosedWhenParentIsDisposed() {
+    val disposable = Disposer.newDisposable()
+    createAndOpenInspector(disposable)
+    assertTrue(ComposeAnimationInspectorManager.isInspectorOpen())
+    Disposer.dispose(disposable)
+    assertFalse(ComposeAnimationInspectorManager.isInspectorOpen())
   }
 
   private fun ComposeAnimationPreview.tabCount(): Int = runBlocking(uiThread) { animations.size }

@@ -56,7 +56,7 @@ object ComposeAnimationInspectorManager {
         psiFilePointer,
       )
     animationInspectorPanel.tracker.openAnimationInspector()
-    Disposer.register(parent, animationInspectorPanel)
+    Disposer.register(parent) { closeCurrentInspector() }
     currentInspector = animationInspectorPanel
     ComposeAnimationSubscriber.setHandler(animationInspectorPanel)
     return animationInspectorPanel
