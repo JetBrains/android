@@ -26,11 +26,7 @@ public abstract class DeviceAndSnapshotComboBoxTargetProvider extends DeployTarg
   //    getInstance() in com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
   //    overridden method is static,final"
   public static DeviceAndSnapshotComboBoxTargetProvider getInstance() {
-      if (StudioFlags.DEPLOYMENT_TARGET_DEVICE_PROVISIONER_MIGRATION.get()) {
-        return com.android.tools.idea.run.deployment.selector.DeviceAndSnapshotComboBoxTargetProvider.getInstance();
-      } else {
-        return com.android.tools.idea.run.deployment.legacyselector.DeviceAndSnapshotComboBoxTargetProvider.getInstance();
-      }
+    return com.android.tools.idea.run.deployment.selector.DeviceAndSnapshotComboBoxTargetProvider.getInstance();
   }
 
   public abstract int getNumberOfSelectedDevices(Project project);

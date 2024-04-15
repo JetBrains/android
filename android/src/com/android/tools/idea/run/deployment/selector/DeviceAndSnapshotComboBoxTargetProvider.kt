@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.LaunchCompatibility
 import com.android.tools.idea.run.TargetSelectionMode
 import com.android.tools.idea.run.editor.DeployTarget
@@ -37,10 +36,6 @@ internal constructor(
     DeviceAndSnapshotComboBoxTarget()
   },
 ) : com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider() {
-
-  override fun isEnabled(): Boolean {
-    return StudioFlags.DEPLOYMENT_TARGET_DEVICE_PROVISIONER_MIGRATION.get()
-  }
 
   override fun getId(): String {
     return TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX.name
