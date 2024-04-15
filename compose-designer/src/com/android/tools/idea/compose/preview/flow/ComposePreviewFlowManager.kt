@@ -40,7 +40,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -143,7 +142,7 @@ internal class ComposePreviewFlowManager : PreviewFlowManager<PsiComposePreviewE
     (filteredPreviewElementsFlow.value as? FlowableCollection.Present<*>)?.collection?.size ?: 0
 
   /** Initializes the flows that will listen to different events and will call [requestRefresh]. */
-  @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+  @OptIn(ExperimentalCoroutinesApi::class)
   fun CoroutineScope.initializeFlows(
     disposable: Disposable,
     previewModeManager: PreviewModeManager,
