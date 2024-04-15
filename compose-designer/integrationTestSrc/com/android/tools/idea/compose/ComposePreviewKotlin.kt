@@ -69,6 +69,8 @@ class ComposePreviewKotlin {
       studio.executeAction("MakeGradleProject")
       studio.waitForBuild()
       studio.waitForComponentWithExactText("DefaultPreview")
+      // Check the parameterized previews also render
+      studio.waitForComponentWithExactText("MyOrdersPreview (state 0)")
 
       system.installation.ideaLog.waitForMatchingLine(".*Render completed(.*)", 2, TimeUnit.MINUTES)
     }
