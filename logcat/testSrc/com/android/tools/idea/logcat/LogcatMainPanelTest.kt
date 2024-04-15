@@ -1230,9 +1230,11 @@ class LogcatMainPanelTest {
     val logcatMainPanel = runInEdtAndGet {
       logcatMainPanel().also { waitForCondition { it.getConnectedDevice() == device1 } }
     }
+    val deviceComboBox = logcatMainPanel.headerPanel.deviceComboBox
     logcatMainPanel.pauseLogcat()
 
-    logcatMainPanel.headerPanel.deviceComboBox.selectedIndex = 1
+    waitForCondition { deviceComboBox.model.size > 0 }
+    deviceComboBox.selectedIndex = 1
     waitForCondition { logcatMainPanel.getSelectedDevice() == device2 }
 
     val findBanner = logcatMainPanel.findBanner("Logcat is paused")
