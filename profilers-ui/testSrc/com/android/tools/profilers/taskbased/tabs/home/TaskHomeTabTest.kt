@@ -84,7 +84,7 @@ class TaskHomeTabTest {
       myTimer
     )
     myManager = myProfilers.sessionsManager
-    taskHomeTabModel = TaskHomeTabModel(myProfilers)
+    taskHomeTabModel = myProfilers.taskHomeTabModel
     ideProfilerServices.enableTaskBasedUx(true)
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
     taskHandlers.forEach { myProfilers.addTaskHandler(it.key, it.value) }

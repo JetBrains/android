@@ -15,6 +15,7 @@ import com.android.tools.profilers.taskbased.task.OpenProfilerTaskTabListener
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
+import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.EdtRule
@@ -174,10 +175,12 @@ class AndroidProfilerToolWindowFactoryTest {
     }
 
     // At this point, there is a home tab implicitly opened by the call to `createToolWindowContent`.
-
     val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]
     assertThat(profilerToolWindow).isNotNull()
 
+    // Select a device to the cpu task can retrieve and set a non-null configuration.
+    profilerToolWindow!!.profilers.taskHomeTabModel.processListModel.onDeviceSelection(
+      TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "13", 33))
     profilerToolWindow!!.createTaskTab(ProfilerTaskType.SYSTEM_TRACE, CpuTaskArgs(false,
       CpuCaptureSessionArtifact(profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
                                 Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
@@ -240,6 +243,9 @@ class AndroidProfilerToolWindowFactoryTest {
     val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]
     assertThat(profilerToolWindow).isNotNull()
 
+    // Select a device to the cpu task can retrieve and set a non-null configuration.
+    profilerToolWindow!!.profilers.taskHomeTabModel.processListModel.onDeviceSelection(
+      TaskModelTestUtils.createDevice("FakeDevice", Common.Device.State.ONLINE, "13", 33))
     // Create a task tab.
     profilerToolWindow!!.createTaskTab(ProfilerTaskType.SYSTEM_TRACE, CpuTaskArgs(false,
       CpuCaptureSessionArtifact(profilerToolWindow.profilers, Common.Session.getDefaultInstance(),

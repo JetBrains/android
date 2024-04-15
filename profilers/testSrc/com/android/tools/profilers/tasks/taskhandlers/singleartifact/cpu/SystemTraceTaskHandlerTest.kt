@@ -86,15 +86,6 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
   }
 
   @Test
-  fun testGetCpuRecordingConfigDeviceNotSetInProfilers() {
-    // If device is not set in profilers, getCpuRecordingConfig will return AtraceConfiguration
-    val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(null, false)
-    mySystemTraceTaskHandlerMock.setupStage()
-    val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
-    assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (AtraceConfiguration::class)}
-  }
-
-  @Test
   fun testGetCpuRecordingConfigAtraceLessThanP() {
     // (withTraceBoxDisabled) If device is set and device level is less than 28, return AtraceConfiguration
     val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
@@ -112,15 +103,6 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     mySystemTraceTaskHandlerMock.setupStage()
     val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
     assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (PerfettoSystemTraceConfiguration::class)}
-  }
-
-  @Test
-  fun testGetCpuRecordingConfigAtraceLessThanM() {
-    // (withTraceBoxEnabled) If the device is set and device level is less than 23, return AtraceConfiguration
-    val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(createFakeDevice(20), true)
-    mySystemTraceTaskHandlerMock.setupStage()
-    val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
-    assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (AtraceConfiguration::class)}
   }
 
   @Test
@@ -157,6 +139,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
                                                                                                     Common.Session.getDefaultInstance(), 1L,
                                                                                                     100L,
                                                                                                     createDefaultPerfettoTraceConfiguration())
+    selectDevice(createFakeDevice(29))
     val cpuTaskArgs = CpuTaskArgs(false, systemTraceSessionArtifact)
     mySystemTraceTaskHandler.enter(cpuTaskArgs)
     // The session is alive, so startTask and thus startCapture should be called.
@@ -166,6 +149,8 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
   @Test
   fun testStartTaskWithSetStage() {
     TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.SYSTEM_TRACE)
+    // Explicitly set the device to be used to simulate reading device selection from main toolbar.
+    selectDevice(createFakeDevice(29))
     // To start the task and thus the capture, the stage must be set up before. This will be taken care of via the setupStage() method call,
     // on enter of the task handler, but this test is testing the explicit invocation of startTask.
     mySystemTraceTaskHandler.setupStage()
@@ -193,6 +178,8 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
       .startStatus = Trace.TraceStartStatus.newBuilder()
       .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
       .build()
+    // Explicitly set the device to be used to simulate reading device selection from main toolbar.
+    selectDevice(createFakeDevice(29))
     mySystemTraceTaskHandler.setupStage()
     mySystemTraceTaskHandler.startTask(CpuTaskArgs(false, null))
     assertThat(mySystemTraceTaskHandler.stage!!.recordingModel.isRecording).isTrue()
@@ -212,12 +199,15 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
 
   @Test
   fun testStopTaskSuccessfullyTerminatesTaskSession() {
+    selectDevice(createFakeDevice(29))
     TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.SYSTEM_TRACE)
     // First start the task successfully.
     (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE) as StartTrace)
       .startStatus = Trace.TraceStartStatus.newBuilder()
       .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
       .build()
+    // Explicitly set the device to be used to simulate reading device selection from main toolbar.
+    selectDevice(createFakeDevice(29))
     mySystemTraceTaskHandler.setupStage()
     mySystemTraceTaskHandler.startTask(CpuTaskArgs(false, null))
     assertThat(myManager.isSessionAlive).isTrue()
@@ -238,6 +228,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
 
   @Test
   fun testLoadTaskInvokedOnEnterWithDeadSession() {
+    selectDevice(createFakeDevice(29))
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
 
@@ -365,6 +356,44 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
   }
 
   @Test
+  fun testConfigDoesNotSupportApi2425VirtualArmDevicesWithTraceboxDisabled() {
+    // With Tracebox disabled, the min api for Perfetto's system trace config is api 28.
+    // Therefore, for devices with api < 28, ATrace will be used (note: Atrace min api is 24/N).
+    val process = createProcess(myExposureLevel == ExposureLevel.PROFILEABLE)
+    // Api 24 and 25 for virtual ARM devices should not support ATrace with Tracebox disabled.
+    val nDevice = createDevice(24, "arm", isVirtual = true)
+    // Explicitly set the device to be used to simulate reading device selection from main toolbar.
+    selectDevice(nDevice)
+    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(nDevice, process)).isFalse()
+    val oDevice = createDevice(25, "arm", isVirtual = true)
+    selectDevice(oDevice)
+    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(oDevice, process)).isFalse()
+  }
+
+  @Test
+  fun testConfigDoesSupportApi2425PhysicalArmDevicesWithTraceboxDisabled() {
+    // With Tracebox disabled, the min api for Perfetto's system trace config is api 28.
+    // Therefore, for devices with api < 28, ATrace will be used (note: Atrace min api is 24/N).
+    val process = createProcess(myExposureLevel == ExposureLevel.PROFILEABLE)
+    // Api 24 and 25 for physical ARM devices should support ATrace with Tracebox disabled.
+    val nDevice = createDevice(24, "arm", isVirtual = false)
+    // Explicitly set the device to be used to simulate reading device selection from main toolbar.
+    selectDevice(nDevice)
+    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(nDevice, process)).isTrue()
+    val oDevice = createDevice(25, "arm", isVirtual = false)
+    selectDevice(oDevice)
+    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(oDevice, process)).isTrue()
+  }
+
+  @Test
+  fun testConfigDoesNotSupportApi23AndBelow() {
+    val process = createProcess(myExposureLevel == ExposureLevel.PROFILEABLE)
+    // Api 23 devices should not be supported by either ATrace or Perfetto.
+    val mDevice = createDevice(23, "arm")
+    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(mDevice, process)).isFalse()
+  }
+
+  @Test
   fun testGetTaskName() {
     assertThat(mySystemTraceTaskHandler.getTaskName()).isEqualTo("System Trace")
   }
@@ -386,13 +415,17 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
   private fun createDefaultPerfettoTraceConfiguration() = Trace.TraceConfiguration.newBuilder().setPerfettoOptions(
     PerfettoConfig.TraceConfig.getDefaultInstance()).build()
 
-  private fun createFakeDevice(level: Int): Common.Device? {
+  private fun createFakeDevice(level: Int): Common.Device {
     val deviceName = "FakeUnitTestDevice";
     return Common.Device.newBuilder().setDeviceId(deviceName.hashCode().toLong())
       .setSerial(deviceName)
       .setState(Common.Device.State.ONLINE)
       .setFeatureLevel(level) // 28 is needed for perfetto
       .build()
+  }
+
+  private fun selectDevice(device: Common.Device) {
+    myProfilers.taskHomeTabModel.processListModel.onDeviceSelection(device)
   }
 
   companion object {

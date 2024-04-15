@@ -29,9 +29,16 @@ abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : Si
   override fun setupStage() {
     val studioProfilers = sessionsManager.studioProfilers
     val stage = CpuProfilerStage(studioProfilers, this::stopTask)
-    stage.profilerConfigModel.profilingConfiguration = getCpuRecordingConfig()
-    studioProfilers.stage = stage
-    super.stage = stage
+    val cpuRecordingConfig = getCpuRecordingConfig()
+    if (cpuRecordingConfig != null) {
+      stage.profilerConfigModel.profilingConfiguration = cpuRecordingConfig
+      studioProfilers.stage = stage
+      super.stage = stage
+    }
+    else {
+      // The UI to start a task is only enabled if the task configuration is non-null, making this an illegal state to be in.
+      throw IllegalStateException("The task configuration cannot be null.")
+    }
   }
 
   override fun startCapture(stage: CpuProfilerStage) {
@@ -64,8 +71,8 @@ abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : Si
   override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
     this.isDeviceSupported(device, getCpuRecordingConfig())
 
-  protected fun isDeviceSupported(device: Common.Device?, config: ProfilingConfiguration) =
-     device?.run { featureLevel >= config.requiredDeviceLevel } ?: false
+  protected open fun isDeviceSupported(device: Common.Device?, config: ProfilingConfiguration?) =
+    device != null && config != null && device.featureLevel >= config.requiredDeviceLevel
 
-  protected abstract fun getCpuRecordingConfig(): ProfilingConfiguration
+  protected abstract fun getCpuRecordingConfig(): ProfilingConfiguration?
 }
