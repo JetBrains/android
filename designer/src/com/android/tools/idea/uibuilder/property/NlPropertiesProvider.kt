@@ -104,11 +104,10 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
     if (systemAttrDefs == null) {
       return PropertiesTable.emptyTable()
     }
-    val generator = PropertiesGenerator(facet, model, components, localAttrDefs, systemAttrDefs)
 
-    return DumbService.getInstance(project).runReadActionInSmartMode<
-      PropertiesTable<NlPropertyItem>
-    > {
+    val dumbService = DumbService.getInstance(project)
+    return dumbService.runReadActionInSmartMode<PropertiesTable<NlPropertyItem>> {
+      val generator = PropertiesGenerator(facet, model, components, localAttrDefs, systemAttrDefs)
       PropertiesTable.create(generator.generate())
     }
   }
