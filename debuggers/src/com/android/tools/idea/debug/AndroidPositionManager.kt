@@ -43,6 +43,7 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
@@ -232,9 +233,9 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   ): List<ReferenceType> {
     // Find all interface classes that may have a companion class.
     val candidatesForDesugaringCompanion = types.filter { type ->
-      ReadAction.compute<Boolean, RuntimeException> {
+      DumbService.getInstance(debugProcess.project).runReadActionInSmartMode(Computable {
         debugProcess.project.findClassInAllScope(type)?.canBeTransformedForDesugaring() == true
-      }
+      })
     }
 
 
