@@ -20,7 +20,6 @@ import com.android.utils.FileUtils.toSystemIndependentPath
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.objectweb.asm.Type
@@ -32,12 +31,18 @@ fun loadClassBytes(c: Class<*>): ByteArray {
   c.classLoader.getResourceAsStream(className)!!.use { return it.readBytes() }
 }
 
-private class TestClass
-private val testClassName = TestClass::class.java.canonicalName
+class TestClass
+val testClassName: String = TestClass::class.java.canonicalName
 
 internal class ModuleClassLoaderOverlaysTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
+
+  private val projectOverlayModificationCount: Long
+    get() = ModuleClassLoaderOverlays.NotificationManager.getInstance(projectRule.project).modificationFlow.value
+
+  private val moduleOverlayModificationCount: Long
+    get() = ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationTracker.modificationCount
 
   @Test
   fun `empty overlay does not return classes`() {
@@ -55,9 +60,11 @@ internal class ModuleClassLoaderOverlaysTest {
     Files.write(classFilePath, loadClassBytes(TestClass::class.java))
     assertNotNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
 
-    val modificationCount = ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationTracker.modificationCount
+    assertEquals(1, projectOverlayModificationCount)
+    assertEquals(1, moduleOverlayModificationCount)
     ModuleClassLoaderOverlays.getInstance(projectRule.module).invalidateOverlayPaths()
-    assertTrue(modificationCount != ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationTracker.modificationCount)
+    assertEquals(2, projectOverlayModificationCount)
+    assertEquals(2, moduleOverlayModificationCount)
   }
 
   @Test
