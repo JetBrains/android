@@ -39,6 +39,7 @@ sealed class SqliteDatabaseId {
       path: String,
       connectionId: Int,
       isForced: Boolean = false,
+      isReadOnly: Boolean = false,
     ): SqliteDatabaseId {
       val name = path.substringAfterLast("/")
 
@@ -53,7 +54,7 @@ sealed class SqliteDatabaseId {
       val systemUserPath =
         path.replace("/user/0", "/data").replace("/storage/emulated/0", "/sdcard")
 
-      return LiveSqliteDatabaseId(systemUserPath, name, connectionId, isForced)
+      return LiveSqliteDatabaseId(systemUserPath, name, connectionId, isForced, isReadOnly)
     }
   }
 
@@ -62,6 +63,7 @@ sealed class SqliteDatabaseId {
     override val name: String,
     val connectionId: Int,
     val isForced: Boolean = false,
+    val isReadOnly: Boolean = false,
   ) : SqliteDatabaseId() {
     override fun key() = Key(path, connectionId)
   }

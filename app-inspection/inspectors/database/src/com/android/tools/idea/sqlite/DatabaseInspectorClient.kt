@@ -78,6 +78,7 @@ class DatabaseInspectorClient(
               openedDatabase.path,
               openedDatabase.databaseId,
               openedDatabase.isForcedConnection,
+              openedDatabase.isReadOnly,
             )
           val databaseConnection =
             LiveDatabaseConnection(

@@ -58,6 +58,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.util.Locale
+import javax.swing.Icon
 import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
@@ -489,18 +490,12 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
           is ViewDatabase -> {
             val databaseId = userObject.databaseId
             append(databaseId.name)
-            if (userObject.isOpen) {
-              when {
-                databaseId !is LiveSqliteDatabaseId -> icon = FILE_DB_ICON
-                databaseId.isForced -> {
-                  icon = LIVE_DB_FORCED_ICON
-                  append(" (non-native)", colorTextAttributes)
-                }
-                else -> icon = LIVE_DB_ICON
-              }
-            } else {
-              append(" (closed)", colorTextAttributes)
-              icon = LIVE_DB_CLOSED_ICON
+            when {
+              !userObject.isOpen -> configure(LIVE_DB_CLOSED_ICON, "closed")
+              databaseId !is LiveSqliteDatabaseId -> configure(FILE_DB_ICON)
+              databaseId.isForced -> configure(LIVE_DB_FORCED_ICON, "non-native")
+              databaseId.isReadOnly -> configure(LIVE_DB_ICON, "may be read-only")
+              else -> configure(LIVE_DB_ICON)
             }
             toolTipText = databaseId.path
           }
@@ -534,6 +529,13 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
       if (hasFocus && !NewUI.isEnabled() && icon != null) {
         icon = ColoredIconGenerator.generateWhiteIcon(icon)
+      }
+    }
+
+    private fun ColoredTreeCellRenderer.configure(icon: Icon, tag: String? = null) {
+      this.icon = icon
+      if (tag != null) {
+        append(" ($tag)", colorTextAttributes)
       }
     }
   }
