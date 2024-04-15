@@ -22,7 +22,7 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
 /**
  * A specialized version of JavaCodeInsightFixtureTestCase that uses a custom
- * java SDJ. Use this class instead if your test needs a java SDK setup.
+ * java SDK. Use this class instead if your test needs a java SDK setup.
  */
 public abstract class JavaCodeInsightFixtureAdtTestCase extends JavaCodeInsightFixtureTestCase {
   protected AdtTestProjectDescriptor getProjectDescriptor() {
