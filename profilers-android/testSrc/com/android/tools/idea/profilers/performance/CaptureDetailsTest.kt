@@ -44,6 +44,7 @@ import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.SwingUtilities
 
 class CaptureDetailsTest {
   @get:Rule
@@ -115,8 +116,8 @@ class CaptureDetailsTest {
       val profilersView = fakeProfilersView()
 
       val treeView = benchmarkInit("synthetic") {
-        initTree(profilersView, initModel(ClockType.GLOBAL, range, captureNodes, cpuCapture,
-                                          ApplicationManager.getApplication()::executeOnPooledThread) as T)
+        SwingUtilities.invokeAndWait { initTree(profilersView, initModel(ClockType.GLOBAL, range, captureNodes, cpuCapture,
+                                                                         ApplicationManager.getApplication()::executeOnPooledThread) as T) }
       }
 
       benchmarkRangeUpdate("synthetic") {
@@ -180,19 +181,27 @@ class CaptureDetailsTest {
     val numIds = 512
     var nextId = 0
 
-    fun captureTree(branching: Int, depth: Int, lo: Long, hi: Long): CaptureNode =
-      CaptureNode(model("${nextId++ % numIds}")).apply {
-        startGlobal = lo
-        endGlobal = hi
-        startThread = lo
-        endThread = hi
-        if (depth > 0) {
-          val l = (hi - lo) / branching
-          (0 until branching).forEach { i ->
-            addChild(captureTree(branching, depth - 1, lo + i * l, lo + (i + 1) * l))
+    fun captureTree(branching: Int, depth: Int, lo: Long, hi: Long): CaptureNode {
+      val rootNode = CaptureNode(model("${nextId++ % numIds}")).apply {
+        SwingUtilities.invokeAndWait {
+          startGlobal = lo
+          endGlobal = hi
+          startThread = lo
+          endThread = hi
+        }
+      }
+      if (depth > 0) {
+        val l = (hi - lo) / branching
+        (0 until branching).forEach { i ->
+          val childNode = captureTree(branching, depth - 1, lo + i * l, lo + (i + 1) * l)
+          SwingUtilities.invokeAndWait {
+            rootNode.addChild(childNode)
           }
         }
       }
+
+      return rootNode
+    }
 
     val l = (hi - lo) / 4
     return listOf(captureTree(4, 8, lo, lo + l),
