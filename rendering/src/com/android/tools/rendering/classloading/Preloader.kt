@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview
+package com.android.tools.rendering.classloading
 
-import com.android.tools.rendering.classloading.ClassTransform
-import com.android.tools.rendering.classloading.ModuleClassLoader
-import com.android.tools.rendering.classloading.preload
 import java.lang.ref.SoftReference
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
@@ -30,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 open class Preloader<T : ModuleClassLoader>(
   moduleClassLoader: T,
   executor: Executor,
-  classesToPreload: Collection<String> = emptyList()
+  classesToPreload: Collection<String> = emptyList(),
 ) {
   private val classLoader = SoftReference(moduleClassLoader)
   private var isActive = AtomicBoolean(true)
@@ -41,7 +38,7 @@ open class Preloader<T : ModuleClassLoader>(
         moduleClassLoader,
         { isActive.get() && !(classLoader.get()?.isDisposed ?: true) },
         classesToPreload,
-        executor
+        executor,
       )
     }
   }
@@ -67,17 +64,19 @@ open class Preloader<T : ModuleClassLoader>(
    * Checks if this [Preloader] loads classes for [cl] [ModuleClassLoader]. This allows for safe
    * check without the need for share the actual [classLoader] and prevent its use.
    */
-  fun isLoadingFor(cl: StudioModuleClassLoader) = classLoader.get() == cl
+  fun isLoadingFor(cl: ModuleClassLoader) = classLoader.get() == cl
 
   fun isForCompatible(
     parent: ClassLoader?,
     projectTransformations: ClassTransform,
-    nonProjectTransformations: ClassTransform
-  ) = classLoader.get()?.isCompatible(parent, projectTransformations, nonProjectTransformations) ?: false
+    nonProjectTransformations: ClassTransform,
+  ) =
+    classLoader.get()?.isCompatible(parent, projectTransformations, nonProjectTransformations)
+      ?: false
 
   /**
-   * Returns the number of currently loaded classes for the underlying [StudioModuleClassLoader].
-   * Intended to be used for debugging and diagnostics.
+   * Returns the number of currently loaded classes for the underlying [ModuleClassLoader]. Intended
+   * to be used for debugging and diagnostics.
    */
   fun getLoadedCount(): Int =
     classLoader.get()?.let { it.nonProjectLoadedClasses.size + it.projectLoadedClasses.size } ?: 0
