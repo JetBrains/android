@@ -67,8 +67,7 @@ import org.junit.runners.Parameterized
 import org.mockito.Mockito
 
 @RunWith(Parameterized::class)
-class ComposePreviewComposeAnimationManagerTest(private val clockType: ClockType) :
-  InspectorTests() {
+class ComposeAnimationPreviewTest(private val clockType: ClockType) : InspectorTests() {
 
   private fun getClock() = clockType.getClock()
 
