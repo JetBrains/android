@@ -604,21 +604,6 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-# Disabled for now: b/329646345
-# java_test(
-#     name = "BasicLayoutInspectorUITest",
-#     size = "large",
-#     data = COMMON_DATA + ["//prebuilts/studio/layoutlib/data:framework_res.jar"] + glob(["testData/LayoutTest/**"]),
-#     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.BasicLayoutInspectorUITest"],
-#     tags = COMMON_TAGS + ["manual"],
-#     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-#     runtime_deps = [
-#         ":intellij.android.guiTests_testlib",
-#         "//tools/adt/idea/android-uitests/native/testing:liblayout_inspector_test_support.so",
-#         "//tools/base/dynamic-layout-inspector/skia:skia-grpc-server",
-#     ],
-# )
-
 java_test(
     name = "ResolveXmlReferencesTest",
     size = "large",
