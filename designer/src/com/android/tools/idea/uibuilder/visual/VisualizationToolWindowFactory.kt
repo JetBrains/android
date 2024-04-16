@@ -80,7 +80,7 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
     }
   }
 
-  override fun isApplicable(project: Project): Boolean {
+  override suspend fun isApplicableAsync(project: Project): Boolean {
     return true
   }
 
