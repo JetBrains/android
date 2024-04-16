@@ -114,30 +114,16 @@ public class SomethingParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // block_head OP_LBRACE block_entry* OP_RBRACE
+  // block_head block_group
   public static boolean block(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "block")) return false;
     if (!nextTokenIs(b, TOKEN)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, BLOCK, null);
+    boolean r;
+    Marker m = enter_section_(b);
     r = block_head(b, l + 1);
-    r = r && consumeToken(b, OP_LBRACE);
-    p = r; // pin = 2
-    r = r && report_error_(b, block_2(b, l + 1));
-    r = p && consumeToken(b, OP_RBRACE) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
-  }
-
-  // block_entry*
-  private static boolean block_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "block_2")) return false;
-    while (true) {
-      int c = current_position_(b);
-      if (!block_entry(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "block_2", c)) break;
-    }
-    return true;
+    r = r && block_group(b, l + 1);
+    exit_section_(b, m, BLOCK, r);
+    return r;
   }
 
   /* ********************************************************** */
@@ -160,6 +146,32 @@ public class SomethingParser implements PsiParser, LightPsiParser {
     r = !consumeToken(b, OP_RBRACE);
     exit_section_(b, l, m, r, false, null);
     return r;
+  }
+
+  /* ********************************************************** */
+  // OP_LBRACE block_entry* OP_RBRACE
+  public static boolean block_group(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "block_group")) return false;
+    if (!nextTokenIs(b, OP_LBRACE)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, BLOCK_GROUP, null);
+    r = consumeToken(b, OP_LBRACE);
+    p = r; // pin = 1
+    r = r && report_error_(b, block_group_1(b, l + 1));
+    r = p && consumeToken(b, OP_RBRACE) && r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  // block_entry*
+  private static boolean block_group_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "block_group_1")) return false;
+    while (true) {
+      int c = current_position_(b);
+      if (!block_entry(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "block_group_1", c)) break;
+    }
+    return true;
   }
 
   /* ********************************************************** */

@@ -43,6 +43,10 @@ public class SomethingVisitor extends PsiElementVisitor {
     // visitIdentifierOwner(o);
   }
 
+  public void visitBlockGroup(@NotNull SomethingBlockGroup o) {
+    visitElement(o);
+  }
+
   public void visitFactory(@NotNull SomethingFactory o) {
     visitEntry(o);
     // visitIdentifierOwner(o);

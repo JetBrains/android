@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.something.SomethingLanguage
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.ARGUMENTS_LIST
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.ASSIGNMENT
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.BLOCK
+import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.BLOCK_GROUP
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.FACTORY
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.LITERAL
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.OP_COMMA
@@ -51,11 +52,11 @@ data class SomethingFormatContext(
         // =
         .around(OP_EQ).spacing(1, 1, 0, false, 0)
         // block
-        .before(OP_LBRACE).spacing(1, 1, 0, false, 0)
+        .before(BLOCK_GROUP).spacing(1, 1, 0, false, 0)
         .after(OP_LBRACE).lineBreakInCode()
         .after(BLOCK).lineBreakInCode()
-        .aroundInside(elements, BLOCK).lineBreakInCode()
-        .betweenInside(elements, elements, BLOCK).lineBreakInCode()
+        .aroundInside(elements, BLOCK_GROUP).lineBreakInCode()
+        .betweenInside(elements, elements, BLOCK_GROUP).lineBreakInCode()
         // .
         .aroundInside(OP_DOT, TokenSet.create(PROPERTY)).spaceIf(false)
 

@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.something.psi.SomethingArgumentsList
 import com.android.tools.idea.gradle.something.psi.SomethingAssignment
 import com.android.tools.idea.gradle.something.psi.SomethingBare
 import com.android.tools.idea.gradle.something.psi.SomethingBlock
+import com.android.tools.idea.gradle.something.psi.SomethingBlockGroup
+import com.android.tools.idea.gradle.something.psi.SomethingEntry
 import com.android.tools.idea.gradle.something.psi.SomethingFactory
 import com.android.tools.idea.gradle.something.psi.SomethingIdentifier
 import com.android.tools.idea.gradle.something.psi.SomethingLiteral
@@ -73,6 +75,17 @@ class PsiImplUtil {
     @JvmStatic
     fun getBlockEntriesStart(block: SomethingBlock): PsiElement? {
       return block.childLeafs().find { it.text == "{" }
+    }
+
+    @JvmStatic
+    fun getEntries(block: SomethingBlock): List<SomethingEntry> {
+      return block.blockGroup.entries
+    }
+
+
+    @JvmStatic
+    fun getBlockEntriesStart(blockGroup: SomethingBlockGroup): PsiElement? {
+      return blockGroup.childLeafs().find { it.text == "{" }
     }
 
     @JvmStatic

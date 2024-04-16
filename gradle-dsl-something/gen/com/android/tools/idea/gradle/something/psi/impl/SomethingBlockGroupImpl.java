@@ -24,48 +24,24 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
+import com.android.tools.idea.gradle.something.psi.SomethingBlockMixin;
 import com.android.tools.idea.gradle.something.psi.*;
 import com.android.tools.idea.gradle.something.parser.PsiImplUtil;
 
-public class SomethingBlockImpl extends ASTWrapperPsiElement implements SomethingBlock {
+public class SomethingBlockGroupImpl extends SomethingBlockMixin implements SomethingBlockGroup {
 
-  public SomethingBlockImpl(@NotNull ASTNode node) {
+  public SomethingBlockGroupImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull SomethingVisitor visitor) {
-    visitor.visitBlock(this);
+    visitor.visitBlockGroup(this);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof SomethingVisitor) accept((SomethingVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @NotNull
-  public SomethingBlockGroup getBlockGroup() {
-    return findNotNullChildByClass(SomethingBlockGroup.class);
-  }
-
-  @Override
-  @Nullable
-  public SomethingIdentifier getIdentifier() {
-    return findChildByClass(SomethingIdentifier.class);
-  }
-
-  @Override
-  @NotNull
-  public List<SomethingEntry> getEntries() {
-    return PsiImplUtil.getEntries(this);
-  }
-
-  @Override
-  @Nullable
-  public SomethingFactory getFactory() {
-    return PsiImplUtil.getFactory(this);
   }
 
   @Override

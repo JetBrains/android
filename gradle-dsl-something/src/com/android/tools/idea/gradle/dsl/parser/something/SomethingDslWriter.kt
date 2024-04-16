@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder
 import com.android.tools.idea.gradle.something.psi.SomethingArgumentsList
 import com.android.tools.idea.gradle.something.psi.SomethingAssignment
 import com.android.tools.idea.gradle.something.psi.SomethingBlock
+import com.android.tools.idea.gradle.something.psi.SomethingBlockGroup
 import com.android.tools.idea.gradle.something.psi.SomethingFactory
 import com.android.tools.idea.gradle.something.psi.SomethingFile
 import com.android.tools.idea.gradle.something.psi.SomethingPsiFactory
@@ -51,7 +52,11 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
       return null // Avoid creation of an empty block statement.
     }
 
-    val parentPsiElement = element.parent?.create() ?: return null
+    val psiElementOfParent = element.parent?.create() ?: return null
+    val parentPsiElement = when (psiElementOfParent) {
+      is SomethingBlock -> psiElementOfParent.blockGroup
+      else -> psiElementOfParent
+    }
 
     val project = parentPsiElement.project
     val factory = SomethingPsiFactory(project)
@@ -85,7 +90,7 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
     // after processing
     val comma = factory.createComma()
     when (parentPsiElement) {
-      is SomethingBlock -> addedElement.addAfter(factory.createNewline(), null)
+      is SomethingBlockGroup -> addedElement.addAfter(factory.createNewline(), null)
       is SomethingArgumentsList ->
         if (parentPsiElement.arguments.size > 1)
           parentPsiElement.addBefore(comma, addedElement)
@@ -120,7 +125,7 @@ class SomethingDslWriter(private val context: BuildModelContext) : GradleDslWrit
 
   private fun getAnchor(parent: PsiElement, anchorDsl: GradleDslElement?): PsiElement? {
     var anchor = anchorDsl?.let { findLastPsiElementIn(it) }
-    if (anchor == null && parent is SomethingBlock) return parent.blockEntriesStart
+    if (anchor == null && parent is SomethingBlockGroup) return parent.blockEntriesStart
     if (anchor == null && parent is SomethingArgumentsList) return parent.firstChild
     while (anchor != null && anchor.parent != parent) {
       anchor = anchor.parent

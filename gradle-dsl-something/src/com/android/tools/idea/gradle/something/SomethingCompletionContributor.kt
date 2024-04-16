@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.something
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.something.psi.SomethingBlock
+import com.android.tools.idea.gradle.something.psi.SomethingBlockGroup
 import com.android.tools.idea.gradle.something.psi.SomethingFile
 import com.intellij.codeInsight.completion.CompletionConfidence
 import com.intellij.codeInsight.completion.CompletionContributor
@@ -43,7 +44,7 @@ private val declarativeFlag = object : PatternCondition<PsiElement>(null) {
 private val SOMETHING_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<PsiElement> = psiElement()
   .with(declarativeFlag)
   .andOr(
-    psiElement().withParent(SomethingBlock::class.java),
+    psiElement().withParent(SomethingBlockGroup::class.java),
     psiElement().withParent(SomethingFile::class.java),
   )
 
@@ -86,12 +87,12 @@ class SomethingCompletionContributor : CompletionContributor() {
   private fun getPath(parent: PsiElement): List<String> {
     if (parent is SomethingFile) return listOf()
     val result = mutableListOf<String>()
-    var current = parent
+    var current = parent.parent
     // TODO need to make this iteration Identifier oriented
     // to go bubble up through all elements with name
-    while (current.parent != null && current is SomethingBlock) {
+    while (current != null && current.parent != null && current is SomethingBlock) {
       current.identifier?.name?.let { result.add(it) }
-      current = current.parent
+      current = current.parent.parent
     }
     return result.reversed()
   }

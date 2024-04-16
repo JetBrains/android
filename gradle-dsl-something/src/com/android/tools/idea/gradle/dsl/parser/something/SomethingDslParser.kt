@@ -81,7 +81,7 @@ class SomethingDslParser(
           val description = context.getChildPropertiesElementDescription(this@SomethingDslParser, name) ?: return
           val block: GradlePropertiesDslElement = context.ensurePropertyElement(description)
           block.psiElement = psi
-          psi.entries.forEach { entry -> entry.accept(getVisitor(block, GradleNameElement.empty())) }
+          psi.blockGroup.entries.forEach { entry -> entry.accept(getVisitor(block, GradleNameElement.empty())) }
         }
 
         override fun visitAssignment(psi: SomethingAssignment) {

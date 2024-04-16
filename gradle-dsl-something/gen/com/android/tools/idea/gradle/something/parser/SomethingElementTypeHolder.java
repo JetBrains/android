@@ -29,6 +29,7 @@ public interface SomethingElementTypeHolder {
   IElementType ASSIGNMENT = new SomethingElementType("ASSIGNMENT");
   IElementType BARE = new SomethingElementType("BARE");
   IElementType BLOCK = new SomethingElementType("BLOCK");
+  IElementType BLOCK_GROUP = new SomethingElementType("BLOCK_GROUP");
   IElementType FACTORY = new SomethingElementType("FACTORY");
   IElementType IDENTIFIER = new SomethingElementType("IDENTIFIER");
   IElementType LITERAL = new SomethingElementType("LITERAL");
@@ -66,6 +67,9 @@ public interface SomethingElementTypeHolder {
       }
       else if (type == BLOCK) {
         return new SomethingBlockImpl(node);
+      }
+      else if (type == BLOCK_GROUP) {
+        return new SomethingBlockGroupImpl(node);
       }
       else if (type == FACTORY) {
         return new SomethingFactoryImpl(node);

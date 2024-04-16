@@ -52,8 +52,9 @@ class SomethingParserTest : ParsingTestCase("no_data_path_needed", "something", 
             SomethingBlockImpl(BLOCK)
               SomethingIdentifierImpl(IDENTIFIER)
                 PsiElement(SomethingTokenType.token)('dependencies')
-              PsiElement(SomethingTokenType.{)('{')
-              PsiElement(SomethingTokenType.})('}')
+              SomethingBlockGroupImpl(BLOCK_GROUP)
+                PsiElement(SomethingTokenType.{)('{')
+                PsiElement(SomethingTokenType.})('}')
         """.trimIndent()
       )
   }
@@ -98,8 +99,9 @@ class SomethingParserTest : ParsingTestCase("no_data_path_needed", "something", 
                   SomethingLiteralImpl(LITERAL)
                     PsiElement(SomethingTokenType.string)('"foo"')
                 PsiElement(SomethingTokenType.))(')')
-              PsiElement(SomethingTokenType.{)('{')
-              PsiElement(SomethingTokenType.})('}')
+              SomethingBlockGroupImpl(BLOCK_GROUP)
+                PsiElement(SomethingTokenType.{)('{')
+                PsiElement(SomethingTokenType.})('}')
         """.trimIndent()
       )
   }

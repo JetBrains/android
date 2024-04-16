@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.something.formatting
 
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.ASSIGNMENT
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.BLOCK
+import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.BLOCK_GROUP
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.FACTORY
 import com.android.tools.idea.gradle.something.parser.SomethingElementTypeHolder.LINE_COMMENT
 import com.intellij.formatting.ASTBlock
@@ -63,7 +64,7 @@ class SomethingFormatBlock(
     ctx.spacingBuilder.getSpacing(this, child1, child2)
 
   override fun getChildAttributes(newChildIndex: Int): ChildAttributes {
-    return if (TokenSet.create(BLOCK).contains(node.getElementType())) {
+    return if (TokenSet.create(BLOCK_GROUP).contains(node.getElementType())) {
       ChildAttributes(Indent.getNormalIndent(), null)
     }
     else ChildAttributes(Indent.getNoneIndent(), null)
@@ -79,7 +80,7 @@ class SomethingFormatBlock(
   private fun computeIndent(child: ASTNode): Indent {
     return when (node.elementType) {
       is IFileElementType -> Indent.getNoneIndent()
-      BLOCK -> when (child.elementType) {
+      BLOCK_GROUP -> when (child.elementType) {
         ASSIGNMENT, FACTORY, BLOCK, LINE_COMMENT -> Indent.getNormalIndent()
         else -> Indent.getNoneIndent()
       }
