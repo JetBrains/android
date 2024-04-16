@@ -18,9 +18,11 @@ package com.android.tools.adtui.swing.popup
 import com.android.testutils.waitForCondition
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.openapi.actionSystem.impl.Utils.createAsyncDataContext
 import com.intellij.openapi.editor.Editor
@@ -139,20 +141,21 @@ class FakeJBPopupFactory : JBPopupFactory() {
     actionPlace: String?)
     : ListPopup {
     val component: Component? = PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext)
+    val presentationFactory = PresentationFactory()
     val step = ActionPopupStep.createActionsStep(
-        actionGroup,
-        dataContext,
-        /* showNumbers= */ aid == ActionSelectionAid.ALPHA_NUMBERING || aid == ActionSelectionAid.NUMBERING,
-        /* useAlphaAsNumbers= */ aid == ActionSelectionAid.ALPHA_NUMBERING,
-        showDisabledActions,
-        title,
-        /* honorActionMnemonics= */ aid == ActionSelectionAid.MNEMONICS,
-        /* autoSelectionEnabled= */ false,
-        getComponentContextSupplier(dataContext, component),
-        actionPlace,
-        preselectActionCondition,
-        /* defaultOptionIndex= */ -1,
-        /* presentationFactory= */ null)
+      actionGroup,
+      dataContext,
+      /* showNumbers= */ aid == ActionSelectionAid.ALPHA_NUMBERING || aid == ActionSelectionAid.NUMBERING,
+      /* useAlphaAsNumbers= */ aid == ActionSelectionAid.ALPHA_NUMBERING,
+      showDisabledActions,
+      title,
+      /* honorActionMnemonics= */ aid == ActionSelectionAid.MNEMONICS,
+      /* autoSelectionEnabled= */ false,
+      getComponentContextSupplier(dataContext, component),
+      actionPlace ?: ActionPlaces.POPUP,
+      preselectActionCondition,
+      /* defaultOptionIndex= */ -1,
+      presentationFactory)
     val popup = FakeListPopup(step)
     popups.add(popup)
     return popup
