@@ -515,6 +515,12 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     }
 
   private fun createRefreshJob(request: CommonPreviewRefreshRequest): Job {
+    if (project.isDisposed) {
+      return CompletableDeferred<Unit>().also {
+        it.completeExceptionally(IllegalStateException("Already disposed"))
+      }
+    }
+
     val startTime = System.nanoTime()
     val refreshProgressIndicator =
       BackgroundableProcessIndicator(
