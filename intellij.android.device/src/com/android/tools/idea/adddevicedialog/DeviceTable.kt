@@ -15,18 +15,28 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.intellij.icons.AllIcons
 import icons.StudioIcons
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 
@@ -37,6 +47,8 @@ internal fun DeviceTable(
   tableSelectionState: TableSelectionState<DeviceProfile> = remember { TableSelectionState() },
   filterState: DeviceFilterState = remember { DeviceFilterState(devices) },
 ) {
+  var showDetails by remember { mutableStateOf(false) }
+
   val columns: List<TableColumn<DeviceProfile>> = remember {
     listOf(
       TableColumn("", 0.5f) {
@@ -58,33 +70,59 @@ internal fun DeviceTable(
     )
   }
   Column(modifier) {
-    TextField(
-      filterState.textFilter.searchText,
-      onValueChange = { filterState.textFilter.searchText = it },
-      leadingIcon = { Icon("studio/icons/common/search.svg", "Search", StudioIcons::class.java) },
-      placeholder = {
-        Text(
-          "Search for a device by name, model, or OEM",
-          fontWeight = FontWeight.Light,
-          modifier = Modifier.padding(start = 4.dp),
-        )
-      },
-      modifier = Modifier.fillMaxWidth().padding(4.dp),
-    )
+    Row {
+      TextField(
+        filterState.textFilter.searchText,
+        onValueChange = { filterState.textFilter.searchText = it },
+        leadingIcon = { Icon("studio/icons/common/search.svg", "Search", StudioIcons::class.java) },
+        placeholder = {
+          Text(
+            "Search for a device by name, model, or OEM",
+            fontWeight = FontWeight.Light,
+            modifier = Modifier.padding(start = 4.dp),
+          )
+        },
+        modifier = Modifier.weight(1f).padding(2.dp),
+      )
+      IconButton(
+        onClick = { showDetails = !showDetails },
+        Modifier.align(Alignment.CenterVertically).padding(2.dp),
+      ) {
+        Icon("actions/previewDetails.svg", "Details", AllIcons::class.java, Modifier.size(20.dp))
+      }
+    }
     HorizontalSplitLayout(
       first = { DeviceFilters(filterState, modifier = it) },
       second = {
-        Table(
-          columns,
-          devices.filter(filterState::apply),
-          { it },
-          tableSelectionState = tableSelectionState,
-          modifier = it,
-        )
+        Row(modifier = it) {
+          Table(
+            columns,
+            devices.filter(filterState::apply),
+            { it },
+            modifier = Modifier.weight(1f),
+            tableSelectionState = tableSelectionState,
+          )
+          if (showDetails) {
+            when (val selection = tableSelectionState.selection) {
+              null -> EmptyStatePanel("Select a device", Modifier.width(200.dp).fillMaxHeight())
+              else ->
+                DeviceDetails(
+                  selection,
+                  filterState.apiLevelFilter.apiLevel.apiLevel,
+                  modifier = Modifier.width(200.dp).fillMaxHeight(),
+                )
+            }
+          }
+        }
       },
       modifier = Modifier.fillMaxSize(),
       minRatio = 0.1f,
       maxRatio = 0.5f,
     )
   }
+}
+
+@Composable
+private fun EmptyStatePanel(text: String, modifier: Modifier = Modifier) {
+  Box(modifier) { Text(text, Modifier.align(Alignment.Center)) }
 }
