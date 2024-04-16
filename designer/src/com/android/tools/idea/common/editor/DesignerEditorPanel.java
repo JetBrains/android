@@ -232,7 +232,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
     if (currentState != State.DEACTIVATED && !myIsModelInitializated.getAndSet(true)) {
       // We might have delayed some initialization until the surface was not in the DEACTIVATED state. Run it now.
-      ClearResourceCacheAfterFirstBuild.getInstance(myProject).runWhenResourceCacheClean(this::initNeleModel, this::buildError);
+      ClearResourceCacheAfterFirstBuild.getInstance(myProject).runWhenResourceCacheClean(this::initNeleModel, this::buildError, this);
     }
   }
 
@@ -392,7 +392,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       };
       mySceneManagerToRenderListeners.put(manager, listener);
       manager.addRenderListener(listener);
-      myModelLintIssueAnnotator.annotateRenderInformationToLint(model);
     });
 
     if (myAccessoryPanel != null) {

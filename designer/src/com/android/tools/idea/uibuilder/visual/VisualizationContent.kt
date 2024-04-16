@@ -117,7 +117,8 @@ private object AsyncContentInitializer : VisualizationForm.ContentInitializer {
       initPreviewFormAfterInitialBuild(project, form, onComplete)
     }
     val onError = Runnable { form.showErrorMessage() }
-    ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(task, onError)
+    ClearResourceCacheAfterFirstBuild.getInstance(project)
+      .runWhenResourceCacheClean(task, onError, form)
   }
 
   private fun initPreviewFormAfterInitialBuild(
