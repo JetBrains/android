@@ -20,6 +20,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -49,7 +50,7 @@ public class VisualizationFixture extends ToolWindowFixture {
   }
 
   public VisualizationFixture waitForRenderToFinish() {
-    myDesignSurfaceFixture.waitForRenderToFinish();
+    myDesignSurfaceFixture.waitForRenderToFinish(Wait.seconds(60));
     return this;
   }
 
