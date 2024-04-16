@@ -1189,6 +1189,7 @@ fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantCoreImpl> {
                                              defaultConfig.productFlavor.applicationIdSuffix.orEmpty() +
                                              buildType.applicationIdSuffix.orEmpty(),
           desugaredMethodsFiles = listOf(),
+          experimentalProperties = mapOf()
         )
       }
   }

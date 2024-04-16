@@ -594,7 +594,8 @@ class KotlinModelConverter {
       runTestInSeparateProcess = false,
       deprecatedPreMergedApplicationId = null,
       deprecatedPreMergedTestApplicationId = null,
-      desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate()
+      desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate(),
+      experimentalProperties = emptyMap()
     )
 
     return GradleAndroidModelDataImpl(
