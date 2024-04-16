@@ -137,7 +137,7 @@ class FakeJBPopupFactory : JBPopupFactory() {
     showDisabledActions: Boolean,
     disposeCallback: Runnable?,
     maxRowCount: Int,
-    preselectActionCondition: Condition<in AnAction>?,
+    preselectCondition: Condition<in AnAction>?,
     actionPlace: String?)
     : ListPopup {
     val component: Component? = PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext)
@@ -153,7 +153,7 @@ class FakeJBPopupFactory : JBPopupFactory() {
       /* autoSelectionEnabled= */ false,
       getComponentContextSupplier(dataContext, component),
       actionPlace ?: ActionPlaces.POPUP,
-      preselectActionCondition,
+      preselectCondition,
       /* defaultOptionIndex= */ -1,
       presentationFactory)
     val popup = FakeListPopup(step)
@@ -169,17 +169,17 @@ class FakeJBPopupFactory : JBPopupFactory() {
                                       honorActionMnemonics: Boolean,
                                       disposeCallback: Runnable?,
                                       maxRowCount: Int,
-                                      preselectActionCondition: Condition<in AnAction>?): ListPopup =
+                                      preselectCondition: Condition<in AnAction>?): ListPopup =
     createActionGroupPopup(
-        title,
-        actionGroup,
-        dataContext,
-        /* aid= */ null,
-        showDisabledActions,
-        disposeCallback,
-        maxRowCount,
-        preselectActionCondition,
-        /* actionPlace= */ null)
+      title,
+      actionGroup,
+      dataContext,
+      /* aid= */ null,
+      showDisabledActions,
+      disposeCallback,
+      maxRowCount,
+      preselectCondition,
+      /* actionPlace= */ null)
 
   override fun createListPopup(step: ListPopupStep<*>): ListPopup {
     val popup = FakeListPopup(step)

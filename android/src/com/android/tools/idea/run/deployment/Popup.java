@@ -19,8 +19,11 @@ import com.android.tools.adtui.util.HelpTooltipForList;
 import com.intellij.ide.HelpTooltip;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.impl.PresentationFactory;
+import com.intellij.ui.popup.ActionPopupOptions;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionItem;
 import java.awt.Dimension;
@@ -38,7 +41,8 @@ import org.jetbrains.annotations.Nullable;
 final class Popup extends ActionGroupPopup {
 
   Popup(@NotNull ActionGroup group, @NotNull DataContext context, @NotNull Runnable runnable) {
-    super(null, group, context, false, true, true, false, runnable, 30, null, null, true);
+    super(null, null, group, context, ActionPlaces.POPUP, new PresentationFactory(),
+          ActionPopupOptions.create(false, true, true, false, 30, true, null), runnable);
     setMinimumSize(new Dimension(1, 1));
 
     @SuppressWarnings("unchecked")
