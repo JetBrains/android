@@ -73,6 +73,7 @@ class ComposePreviewKotlin {
       studio.waitForComponentWithExactText("MyOrdersPreview (state 0)")
 
       system.installation.ideaLog.waitForMatchingLine(".*Render completed(.*)", 2, TimeUnit.MINUTES)
+      studio.executeAction("CloseAllEditors")
     }
   }
 }
