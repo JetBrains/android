@@ -41,6 +41,7 @@ import com.intellij.openapi.ui.popup.TreePopup
 import com.intellij.openapi.ui.popup.TreePopupStep
 import com.intellij.openapi.util.Condition
 import com.intellij.ui.awt.RelativePoint
+import com.intellij.ui.popup.ActionPopupOptions
 import com.intellij.ui.popup.ActionPopupStep
 import com.intellij.util.ui.Html
 import java.awt.Color
@@ -143,19 +144,10 @@ class FakeJBPopupFactory : JBPopupFactory() {
     val component: Component? = PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext)
     val presentationFactory = PresentationFactory()
     val step = ActionPopupStep.createActionsStep(
-      actionGroup,
-      dataContext,
-      /* showNumbers= */ aid == ActionSelectionAid.ALPHA_NUMBERING || aid == ActionSelectionAid.NUMBERING,
-      /* useAlphaAsNumbers= */ aid == ActionSelectionAid.ALPHA_NUMBERING,
-      showDisabledActions,
-      title,
-      /* honorActionMnemonics= */ aid == ActionSelectionAid.MNEMONICS,
-      /* autoSelectionEnabled= */ false,
+      title, actionGroup, dataContext,
+      actionPlace ?: ActionPlaces.POPUP, presentationFactory,
       getComponentContextSupplier(dataContext, component),
-      actionPlace ?: ActionPlaces.POPUP,
-      preselectCondition,
-      /* defaultOptionIndex= */ -1,
-      presentationFactory)
+      ActionPopupOptions.forAid(aid, showDisabledActions, maxRowCount, preselectCondition))
     val popup = FakeListPopup(step)
     popups.add(popup)
     return popup
