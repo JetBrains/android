@@ -19,9 +19,11 @@ import com.android.testutils.waitForCondition
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
@@ -39,6 +41,7 @@ import com.intellij.openapi.ui.popup.TreePopup
 import com.intellij.openapi.ui.popup.TreePopupStep
 import com.intellij.openapi.util.Condition
 import com.intellij.ui.awt.RelativePoint
+import com.intellij.ui.popup.ActionPopupOptions
 import com.intellij.ui.popup.ActionPopupStep
 import com.intellij.util.ui.Html
 import java.awt.Color
@@ -153,24 +156,16 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
     showDisabledActions: Boolean,
     disposeCallback: Runnable?,
     maxRowCount: Int,
-    preselectActionCondition: Condition<in AnAction>?,
+    preselectCondition: Condition<in AnAction>?,
     actionPlace: String?)
     : ListPopup {
     val component: Component? = PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext)
+    val presentationFactory = PresentationFactory()
     val step = ActionPopupStep.createActionsStep(
-        actionGroup,
-        dataContext,
-        /* showNumbers= */ aid == ActionSelectionAid.ALPHA_NUMBERING || aid == ActionSelectionAid.NUMBERING,
-        /* useAlphaAsNumbers= */ aid == ActionSelectionAid.ALPHA_NUMBERING,
-        showDisabledActions,
-        title,
-        /* honorActionMnemonics= */ aid == ActionSelectionAid.MNEMONICS,
-        /* autoSelectionEnabled= */ false,
-        getComponentContextSupplier(dataContext, component),
-        actionPlace,
-        preselectActionCondition,
-        /* defaultOptionIndex= */ -1,
-        /* presentationFactory= */ null)
+      title, actionGroup, dataContext,
+      actionPlace ?: ActionPlaces.POPUP, presentationFactory,
+      getComponentContextSupplier(dataContext, component),
+      ActionPopupOptions.forAid(aid, showDisabledActions, maxRowCount, preselectCondition))
     val popup = FakeListPopup(step)
     popups.add(popup)
     return popup
@@ -184,17 +179,17 @@ class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
                                       honorActionMnemonics: Boolean,
                                       disposeCallback: Runnable?,
                                       maxRowCount: Int,
-                                      preselectActionCondition: Condition<in AnAction>?): ListPopup =
+                                      preselectCondition: Condition<in AnAction>?): ListPopup =
     createActionGroupPopup(
-        title,
-        actionGroup,
-        dataContext,
-        /* aid= */ null,
-        showDisabledActions,
-        disposeCallback,
-        maxRowCount,
-        preselectActionCondition,
-        /* actionPlace= */ null)
+      title,
+      actionGroup,
+      dataContext,
+      /* aid= */ null,
+      showDisabledActions,
+      disposeCallback,
+      maxRowCount,
+      preselectCondition,
+      /* actionPlace= */ null)
 
   override fun createListPopup(step: ListPopupStep<*>): ListPopup {
     val popup = FakeListPopup(step)
