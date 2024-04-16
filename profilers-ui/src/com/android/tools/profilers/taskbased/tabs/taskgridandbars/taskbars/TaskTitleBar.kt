@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +39,7 @@ import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.Tooltip
 
 /**
  * The bar hosted above the task grid containing the title of the task grid ("Tasks"). Optionally includes a task config icon button,
@@ -57,25 +59,25 @@ private fun TopBarContainer(taskConfigIconButton: @Composable () -> Unit) {
   }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TopBar(profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) {
   TopBarContainer {
-    IconButton(
-      onClick = {
-        val ideServices = profilers.ideServices
-        val model = CpuProfilerConfigModel(profilers, CpuProfilerStage(profilers))
-        ideProfilerComponents.openTaskConfigurationsDialog(model, ideServices)
-      }) {
-      Icon(
-        painter = StudioIconsCompose.Common.Settings().getPainter().value,
-        contentDescription = TaskBasedUxStrings.TASK_CONFIG_DIALOG_DESC,
-        modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP)
-      )
+    Tooltip(
+      { Text(TaskBasedUxStrings.TASK_CONFIG_DIALOG_DESC) },
+    ) {
+      IconButton(
+        onClick = {
+          val ideServices = profilers.ideServices
+          val model = CpuProfilerConfigModel(profilers, CpuProfilerStage(profilers))
+          ideProfilerComponents.openTaskConfigurationsDialog(model, ideServices)
+        }) {
+        Icon(
+          painter = StudioIconsCompose.Common.Settings().getPainter().value,
+          contentDescription = TaskBasedUxStrings.TASK_CONFIG_DIALOG_DESC,
+          modifier = Modifier.padding(TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP)
+        )
+      }
     }
   }
-}
-
-@Composable
-fun TopBar() {
-  TopBarContainer {}
 }

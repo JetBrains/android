@@ -29,6 +29,9 @@ object TaskBasedUxDimensions {
   val TASK_GRID_HORIZONTAL_PADDING_DP = 50.dp
   const val MAX_NUM_TASKS_IN_ROW = 5
 
+  // Task tooltip width
+  val TASK_TOOLTIP_WIDTH_DP = 200.dp
+
   // Common table dimensions
   val TABLE_ROW_HEIGHT_DP = 24.dp
   val TABLE_ROW_HORIZONTAL_PADDING_DP = 5.dp

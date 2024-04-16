@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.taskbased.common.table
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -32,12 +33,14 @@ import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.Tooltip
 
 @Composable
 fun EllipsesText(text: String) {
   Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun leftAlignedColumnText(text: String, iconPainter: Painter? = null, rowScope: RowScope) {
   with(rowScope) {
@@ -47,10 +50,11 @@ fun leftAlignedColumnText(text: String, iconPainter: Painter? = null, rowScope: 
     ) {
       Row (horizontalArrangement = Arrangement.spacedBy(5.dp)) {
         iconPainter?.let {
-          Icon(
-            painter = it,
-            contentDescription = TaskBasedUxStrings.PREFERRED_PROCESS_DESC,
-          )
+          Tooltip(
+            { Text(TaskBasedUxStrings.PREFERRED_PROCESS_TOOLTIP) }
+          ) {
+            Icon(painter = it, contentDescription = TaskBasedUxStrings.PREFERRED_PROCESS_DESC)
+          }
         }
         EllipsesText(text = text)
       }

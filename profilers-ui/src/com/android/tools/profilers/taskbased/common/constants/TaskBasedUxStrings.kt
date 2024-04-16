@@ -44,9 +44,12 @@ object TaskBasedUxStrings {
   const val MULTIPLE_DEVICES_SELECTED_MESSAGE = "Multiple device selected. Profilers does not support multiple device selection. Please " +
                                                 "select a single device via the Devices dropdown at the main window toolbar."
   const val PREFERRED_PROCESS_DESC = "Preferred process"
+  const val PREFERRED_PROCESS_TOOLTIP = "The process for the selected Run/Debug Configuration"
+
   const val DEBUGGABLE_PROCESS_TITLE = "Debuggable"
   const val PROFILEABLE_PROCESS_TITLE = "Profileable"
   const val DEAD_PROCESS_TITLE = "Not running"
+  const val DEVICE_SELECTION_TOOLTIP = "The selected device can be changed via the main toolbar"
 
   // Task starting point dropdown strings
   const val STARTING_POINT_DROPDOWN_TITLE = "Start profiler task from"
@@ -61,11 +64,20 @@ object TaskBasedUxStrings {
   // Export and import strings
   const val IMPORT_RECORDING_DESC = "Import recording"
   const val EXPORT_RECORDING_DESC = "Export recording"
-  const val EXPORT_RECORDING_DISABLED_TOOLTIP = "Recording is not exportable"
 
   // Delete recording strings
   const val DELETE_RECORDING_DESC = "Delete recording"
-  const val DELETE_RECORDING_DISABLED_TOOLTIP = "Recording is not deletable"
+
+  fun getTaskTooltip(taskType: ProfilerTaskType) = when(taskType) {
+    ProfilerTaskType.SYSTEM_TRACE -> "Captures a trace that can help you understand how your app interacts with system resources"
+    ProfilerTaskType.HEAP_DUMP -> "Dumps the heap showing which objects in your app are using memory at the time of capture"
+    ProfilerTaskType.CALLSTACK_SAMPLE -> "Uses sampling to capture the call stacks of an app's native and Java/Kotlin code"
+    ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS ->  "Records Java and Kotlin memory allocations"
+    ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Captures the call stacks during your app’s Java/Kotlin code execution"
+    ProfilerTaskType.NATIVE_ALLOCATIONS -> "Captures native memory allocations"
+    ProfilerTaskType.LIVE_VIEW -> "Displays and records a streaming timeline of CPU usage and memory footprint"
+    else -> ""
+  }
 
   fun getTaskTitle(taskType: ProfilerTaskType) =
     when (taskType)  {
