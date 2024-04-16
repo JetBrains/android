@@ -17,11 +17,16 @@ package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,7 +37,7 @@ import org.jetbrains.jewel.ui.component.Text
 @Composable
 fun DeviceDetails(device: DeviceProfile, apiLevel: Int?, modifier: Modifier = Modifier) {
   Column(
-    verticalArrangement = Arrangement.spacedBy(2.dp),
+    verticalArrangement = Arrangement.spacedBy(4.dp),
     modifier = modifier.padding(4.dp).verticalScroll(rememberScrollState()),
   ) {
     Text(
@@ -43,12 +48,49 @@ fun DeviceDetails(device: DeviceProfile, apiLevel: Int?, modifier: Modifier = Mo
     DeviceScreenDiagram(
       device.resolution.width,
       device.resolution.height,
-      Modifier.widthIn(max = 200.dp),
+      Modifier.widthIn(max = 200.dp).heightIn(max = 200.dp).align(Alignment.CenterHorizontally),
     )
+
+    Header("Device")
+    LabeledValue("OEM", device.manufacturer)
+    LabeledValue("Density", "${device.displayDensity} dpi")
+
+    Header("System Image")
+    if (device.apiRange.lowerEndpoint() != device.apiRange.upperEndpoint()) {
+      LabeledValue("Selected API", (apiLevel ?: device.apiRange.upperEndpoint()).toString())
+      LabeledValue(
+        "Supported APIs",
+        "${device.apiRange.lowerEndpoint()} - ${device.apiRange.upperEndpoint()}",
+      )
+    } else {
+      LabeledValue("API", device.apiRange.upperEndpoint().toString())
+    }
+    LabeledValue("Primary ABI", device.abis.firstOrNull()?.toString() ?: "Unknown")
+    if (device.abis.size > 1) {
+      LabeledValue("Additional ABIs", device.abis.drop(1).joinToString(","))
+    }
+
+    Header("Screen")
+    LabeledValue("Resolution", device.resolution.toString())
+    LabeledValue("Density", "${device.displayDensity} dpi")
   }
 }
 
 @Composable
 private fun Header(text: String) {
-  Text(text, fontWeight = FontWeight.SemiBold, fontSize = LocalTextStyle.current.fontSize * 1.1)
+  Text(
+    text,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = LocalTextStyle.current.fontSize * 1.1,
+    modifier = Modifier.padding(top = 4.dp),
+  )
+}
+
+@Composable
+private fun LabeledValue(label: String, value: String) {
+  Row {
+    Column(Modifier.weight(0.5f)) { Text(label, fontWeight = FontWeight.Light) }
+    Spacer(Modifier.size(4.dp))
+    Column(Modifier.weight(0.5f)) { Text(value) }
+  }
 }

@@ -50,14 +50,14 @@ internal object TestDevices {
 
   val pixelFold =
     TestDevice(
-      apiRange = Range.closed(33, 33),
+      apiRange = Range.closed(33, 34),
       manufacturer = "Google",
       name = "Pixel Fold",
       resolution = Resolution(2208, 1840),
       displayDensity = 420,
       isVirtual = true,
       isRemote = false,
-      abis = listOf(Abi.ARM64_V8A),
+      abis = listOf(Abi.ARM64_V8A, Abi.RISCV64),
       isAlreadyPresent = false,
     )
 
