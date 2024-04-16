@@ -1888,6 +1888,12 @@ public final class StudioFlags {
                     "When enabled, a dependency suggestion dialog will appear when inserting/pasting code snippets that might require missing dependencies.",
                     ChannelDefault.enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_HALLUCINATION_DETECTOR_ENABLED =
+    new BooleanFlag(STUDIOBOT, "hallucination.detector.enabled",
+                    "Run hallucination analysis on generated code.",
+                    "When enabled, a hallucination detection utility will run on generated code snippets, and emit metrics when hallucinations are detected.",
+                    ChannelDefault.enabledUpTo(CANARY));
+
   public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
                     "Use ML model to suggest commit messages",
