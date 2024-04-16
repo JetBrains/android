@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.google.wireless.android.sdk.stats.LiveEditEvent.Status
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 
@@ -62,8 +63,11 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     VIRTUAL_FILE_NOT_EXIST("Modifying virtual file that does not exist", "%", false, Status.VIRTUAL_FILE_NOT_EXIST),
     BAD_MIN_API("Live Edit min-api detection failure", "%", false, Status.BAD_MIN_API),
 
-    INTERNAL_ERROR("Internal Error", "%", false, Status.INTERNAL_ERROR),
-    INTERNAL_ERROR_NO_BINDING_CONTEXT("Internal Error", "%", false, Status.INTERNAL_ERROR_NO_BINDING_CONTEXT),
+    INTERNAL_ERROR_NO_COMPILER_OUTPUT("Internal Error", "%", false, Status.INTERNAL_ERROR), // TODO: Add Metrics
+    INTERNAL_ERROR_FILE_OUTSIDE_MODULE("Internal Error", "%", false, Status.INTERNAL_ERROR), // TODO: Add Metrics
+    INTERNAL_ERROR_FILE_CODE_GEN("Internal Error", "%", false, Status.INTERNAL_ERROR), // TODO: Add Metrics
+    INTERNAL_ERROR_FILE_COMPILE_COMMAND_EXCEPTION("Internal Error", "%", false, Status.INTERNAL_ERROR), // TODO: Add Metrics
+    INTERNAL_ERROR_FILE_MULTI_MODULE("Internal Error", "%", false, Status.INTERNAL_ERROR), // TODO: Add Metrics
   }
 
   companion object {
@@ -76,11 +80,21 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     fun compilationError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
       LiveEditUpdateException(Error.COMPILATION_ERROR, details, source?.name, cause)
 
-    fun internalError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
-      LiveEditUpdateException(Error.INTERNAL_ERROR, details, source?.name, cause)
+    fun internalErrorCodeGenException(file: PsiFile, cause: Throwable) =
+      LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_CODE_GEN, "Internal Error During Code Gen", file.name, cause)
 
-    fun internalError(details: String, cause: Throwable? = null) =
-      LiveEditUpdateException(Error.INTERNAL_ERROR, details, null, cause)
+    fun internalErrorCompileCommandException(file: PsiFile, cause: Throwable) =
+      LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_COMPILE_COMMAND_EXCEPTION, "Unexpected error during compilation command", file.name, cause)
+
+    fun internalErrorMultiModule(modules: Set<Module?>) =
+      LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_MULTI_MODULE,
+                              "Multiple modules request [${modules.joinToString(",")}]", null, null)
+
+    fun internalErrorNoCompilerOutput(file: PsiFile) =
+      LiveEditUpdateException(Error.INTERNAL_ERROR_NO_COMPILER_OUTPUT, "No compiler output", file.name, null)
+
+    fun internalErrorFileOutsideModule(file: PsiFile) =
+      LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_OUTSIDE_MODULE, "KtFile outside targeted module found in code generation", file.name, null)
 
     fun kotlinEap() = LiveEditUpdateException(Error.KOTLIN_EAP,"Live Edit does not support running with this Kotlin Plugin version"+
                                                                " and will only work with the bundled Kotlin Plugin", null, null)
@@ -155,17 +169,13 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
       LiveEditUpdateException(Error.NON_PRIVATE_INLINE_FUNCTION, "Inline functions visible outside of the file cannot be live edited. " +
                                                                  "Application needs to be rebuild.", source?.name, null)
 
-    fun desugarFailure(details: String, cause: Throwable? = null) {
-      throw LiveEditUpdateException(Error.UNABLE_TO_DESUGAR, details, null, cause)
-    }
+    fun desugarFailure(details: String, file: String? = null, cause: Throwable? = null) =
+      LiveEditUpdateException(Error.UNABLE_TO_DESUGAR, details, file, cause)
 
-    fun buildLibraryDesugarFailure(details: String, cause: Throwable? = null) {
-      throw LiveEditUpdateException(Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR, details, null, cause)
-    }
+    fun buildLibraryDesugarFailure(details: String, cause: Throwable? = null) =
+      LiveEditUpdateException(Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR, details, null, cause)
 
-    fun badMinAPIError(details: String, cause: Throwable? = null) {
-      throw LiveEditUpdateException(Error.BAD_MIN_API, details, null, cause)
-    }
+    fun badMinAPIError(details: String, cause: Throwable? = null) = LiveEditUpdateException(Error.BAD_MIN_API, details, null, cause)
 
     fun virtualFileNotExist(virtualFile: VirtualFile, file: PsiFile) =
       LiveEditUpdateException(Error.VIRTUAL_FILE_NOT_EXIST, details = "deleted Kotlin file ${virtualFile.path}", sourceFilename = file?.name, cause = null)

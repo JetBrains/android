@@ -50,7 +50,7 @@ class LiveEditApp(private val apks: Set<Path>,
     }
 
     if (minApis.size > 1 && !COMPOSE_DEPLOY_LIVE_EDIT_ALLOW_MULTIPLE_MIN_API_DEX_MARKERS_IN_APK.get()) {
-      badMinAPIError("Too many minAPI. Details:\n ${journal.joinToString("\n")}")
+      throw badMinAPIError("Too many minAPI. Details:\n ${journal.joinToString("\n")}")
     }
 
     if (minApis.isEmpty()) {

@@ -105,7 +105,7 @@ internal class LiveEditDesugar : AutoCloseable{
 
   private fun getClassPathResourceProvider(module: Module?) : List<ClassFileResourceProvider> {
     if (module == null) {
-      desugarFailure("Cannot retrieve classpath (no module)")
+      throw desugarFailure("Cannot retrieve classpath (no module)")
     }
     val classPath = module!!.project.getProjectSystem().getClassJarProvider().getModuleExternalLibraries(module).mapNotNull { it.toPath() }
 
@@ -127,7 +127,7 @@ internal class LiveEditDesugar : AutoCloseable{
     val modulesSet = mutableMapOf<String, MutableList<LiveEditCompiledClass>>()
     classes.forEach{
       if (it.module == null) {
-        desugarFailure("Cannot process class '${it.name}' without module")
+        throw desugarFailure("Cannot process class '${it.name}' without module")
         return@forEach
       }
       val moduleName = it.module.name
@@ -146,7 +146,7 @@ internal class LiveEditDesugar : AutoCloseable{
       logger.log("Batch for module: $moduleName")
       val module = it.value[0].module
       if (module == null) {
-        desugarFailure("Unable to desugar, no Module associated with $moduleName")
+        throw desugarFailure("Unable to desugar, no Module associated with $moduleName")
       }
 
       allDesugaredClasses.putAll(desugarClassesForModule(compiledClasses, module!!, version))
@@ -212,7 +212,7 @@ internal class LiveEditDesugar : AutoCloseable{
      val moduleSys = module.getModuleSystem()
      if (!moduleSys.desugarLibraryConfigFilesKnown) {
        // If AGP does not support config retrieval, we cannot proceed
-       buildLibraryDesugarFailure("${moduleSys.desugarLibraryConfigFilesNotKnownUserMessage}")
+       throw buildLibraryDesugarFailure("${moduleSys.desugarLibraryConfigFilesNotKnownUserMessage}")
      }
 
      // Enable desugared library if it was used.
@@ -229,7 +229,7 @@ internal class LiveEditDesugar : AutoCloseable{
        ProgressManager.checkCanceled()
 
        // We were not cancelled. This is an actual compilation error.
-       desugarFailure("R8 compilation error",  e)
+       throw desugarFailure("R8 compilation error", cause = e)
      }
      return memClassFileConsumer.classes
   }

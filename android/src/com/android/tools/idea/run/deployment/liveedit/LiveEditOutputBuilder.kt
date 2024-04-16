@@ -51,7 +51,7 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
     val outputFiles = compiledFiles.filter { it.relativePath.endsWith(".class") }
 
     if (outputFiles.isEmpty()) {
-      throw LiveEditUpdateException.internalError("No compiler output.")
+      throw LiveEditUpdateException.internalErrorNoCompilerOutput(sourceFile)
     }
 
     val keyMetaFiles = outputFiles.filter(::isKeyMeta)

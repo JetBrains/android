@@ -65,7 +65,7 @@ internal class LiveEditCompilerForK2(
 fun backendCodeGenForK2(file: KtFile, module: Module?): KtCompilationResult.Success {
   module?.let {
     if (file.module != it) {
-      throw LiveEditUpdateException.internalError("KtFile outside targeted module found in code generation", file)
+      throw LiveEditUpdateException.internalErrorFileOutsideModule(file)
     }
   }
 

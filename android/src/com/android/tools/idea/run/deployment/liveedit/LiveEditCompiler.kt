@@ -17,7 +17,8 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalErrorCodeGenException
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalErrorCompileCommandException
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugar
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarRequest
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse
@@ -105,7 +106,7 @@ class LiveEditCompiler(val project: Project,
           // Unlike the other exception where it is temporary errors or setup failures. These type of internal error should be
           // rare and probably worth logging for bug reports.
           LOGGER.warning("Internal error during compilation command: %s\n%s", e.message, e.stackTraceToString().prependIndent("\t"))
-          throw internalError("Unexpected error during compilation command", file, e)
+          throw internalErrorCompileCommandException(file, e)
         }
       }
     }
@@ -190,7 +191,7 @@ class LiveEditCompiler(val project: Project,
       } catch (p : ProcessCanceledException) {
         throw p
       } catch (t : Throwable) {
-        throw internalError("Internal Error During Code Gen", t)
+        throw internalErrorCodeGenException(file, t)
       }
 
       // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This

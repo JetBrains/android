@@ -33,7 +33,7 @@ object R8Utils {
   assert(name!!.endsWith(CLASS_EXTENSION)) { "Name $name must have $CLASS_EXTENSION suffix" }
   val descriptor = name.substring(0, name.length - CLASS_EXTENSION.length)
   if (descriptor.indexOf(JAVA_PACKAGE_SEPARATOR) != -1) {
-    desugarFailure("Unexpected class file name: $name")
+    throw desugarFailure("Unexpected class file name: $name")
   }
   return "L$descriptor;"
 }

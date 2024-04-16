@@ -17,6 +17,8 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.analysisError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.desugarFailure
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalErrorCompileCommandException
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalErrorNoCompilerOutput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.kotlinEap
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlin
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationAddedMethod
@@ -49,9 +51,6 @@ class ErrorReporterTest {
   fun `Global Error`() {
     eq(kotlinEap(),
       "Compilation Error.\nLive Edit does not support running with this Kotlin Plugin version and will only work with the bundled Kotlin Plugin.")
-
-    val fakeException = RuntimeException("This exception is fake")
-    // eq(desugarFailure("Desugaring did not work.", fakeException), "")
   }
 
   @Test
@@ -76,6 +75,27 @@ class ErrorReporterTest {
        "Unsupported change in a.class.\nCurrently not support adding methods.")
     eq(unsupportedSourceModificationRemovedMethod("a.class", "Currently not support removing methods"),
        "Unsupported change in a.class.\nCurrently not support removing methods.")
+  }
+
+  @Test
+  fun `Desugaring Errors`() {
+    eq(desugarFailure("Failed to Desugar"), "Live Edit post-processing failure.\n" +
+                                            "Failed to Desugar.")
+    eq(desugarFailure("Failed to Desugar", "output.jar"), "Live Edit post-processing failure in output.jar.\n" +
+                                                          "Failed to Desugar.")
+    val fakeException = RuntimeException("This exception is fake")
+    eq(desugarFailure("Failed to Desugar", "output.jar", fakeException),
+       "Live Edit post-processing failure in output.jar.\nFailed to Desugar.\n${fakeException.stackTraceToString()}")
+  }
+
+  @Test
+  fun `Internal Errors`() {
+    val fakeException = RuntimeException("This exception is fake")
+    eq(internalErrorNoCompilerOutput(file2), "Internal Error in fileTwo.java.\nNo compiler output.")
+    eq(internalErrorCompileCommandException(file2, fakeException), "Internal Error in fileTwo.java.\n" +
+                                                                   "Unexpected error during compilation command.\n" +
+                                                                   "${fakeException.stackTraceToString()}")
+
   }
 
   private fun eq(exception: LiveEditUpdateException, expected: String) {

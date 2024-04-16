@@ -180,7 +180,7 @@ private object CompileScopeImpl : CompileScope {
                               inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState {
 
     input.firstOrNull { it.module != module }?.let {
-      throw LiveEditUpdateException.internalError("KtFile outside targeted module found in code generation", it) }
+      throw LiveEditUpdateException.internalErrorFileOutsideModule(it) }
 
     // The Kotlin compiler is built on top of the PSI parse tree which is used in the IDE.
     // In order to support things like auto-complete when the user is still typing code, the IDE needs to be able to perform

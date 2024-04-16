@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.util.descendantsOfType
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
@@ -28,12 +26,8 @@ import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.util.module
-import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtFunction
-import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
@@ -46,21 +40,6 @@ internal fun validatePsiDiff(inputs: Collection<LiveEditCompilerInput>, file: Kt
   if (errors.isNotEmpty()) {
     throw errors[0]
   }
-}
-
-// The PSI returns the class name in the same format it would be used in an import statement: com.package.Class.InnerClass; however,
-// java's internal name format requires the same class name to be formatted as com/package/Class$InnerClass. This method takes a package
-// and class name in "import" format and returns the same class name in "internal" format.
-internal fun getInternalClassName(packageName : FqName?, className : String, file: PsiFile) : String {
-  var packagePrefix = ""
-  if (packageName != null && !packageName.isRoot) {
-    packagePrefix = "$packageName."
-  }
-  if (!className.contains(packagePrefix)) {
-    throw LiveEditUpdateException.internalError("Expected package prefix '$packagePrefix' not found in class name '$className'")
-  }
-  val classSuffix = className.substringAfter(packagePrefix)
-  return packagePrefix.replace(".", "/") + classSuffix.replace(".", "$")
 }
 
 internal fun getCompiledClasses(internalClassName: String, input: KtFile, compilerOutput: List<OutputFile>,
@@ -183,21 +162,4 @@ internal fun CompilerConfiguration.setOptions(languageVersionSettings: LanguageV
   //
   // See b/256957527 for details.
   put(JVMConfigurationKeys.LINK_VIA_SIGNATURES, true)
-}
-
-internal fun KtFunction.getNamedFunctionParent(): KtNamedFunction {
-  // TODO: Double-check whether we can replace this with `getNonStrictParentOfType<KtNamedFunction>()` or not.
-  var elem: PsiElement = this
-  while (elem.getKotlinFqName() == null || elem !is KtNamedFunction) {
-    if (elem.parent == null) {
-      // Suppose you are editing:
-      // val direct = @Composable{Text(text = "hi")}
-      //
-      // We would not be able to find a named function with the current implementation. What we need to do is figure out the name
-      // of the function in the .class that is changed. This can only be done with something like a class differ.
-      throw LiveEditUpdateException.internalError("Unsupported edit of unnamed function", elem.containingFile);
-    }
-    elem = elem.parent
-  }
-  return elem
 }

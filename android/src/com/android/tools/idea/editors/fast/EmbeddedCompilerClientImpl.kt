@@ -106,7 +106,7 @@ class EmbeddedCompilerClientImpl private constructor(
 
     val moduleForAllInputs = readAction {
       val modules = inputs.map { it.module }.toSet()
-      modules.singleOrNull() ?: throw LiveEditUpdateException.internalError("Multiple modules requested")
+      modules.singleOrNull() ?: throw LiveEditUpdateException.internalErrorMultiModule(modules)
     }
 
     if (KotlinPluginModeProvider.isK2Mode()) {
