@@ -38,7 +38,6 @@ import com.android.tools.idea.util.TestToolWindowManager
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.tools.preview.PreviewElement
 import com.google.common.truth.Truth.assertThat
-import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteActionAndWait
@@ -46,7 +45,6 @@ import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
@@ -91,8 +89,6 @@ class WearTilePreviewRepresentationTest {
       TestToolWindowManager(project),
       fixture.testRootDisposable,
     )
-    ToolWindowManager.getInstance(project)
-      .registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
   }
 
   @After
