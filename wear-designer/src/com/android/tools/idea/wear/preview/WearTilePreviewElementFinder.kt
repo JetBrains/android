@@ -18,10 +18,10 @@ package com.android.tools.idea.wear.preview
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.annotations.NodeInfo
 import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
 import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
-import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
@@ -106,11 +106,7 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
       annotation.findAttributeValue("fontScale")?.evaluate() as? Float
         ?: defaultValues["fontScale"]?.toFloatOrNull()
 
-    PreviewConfiguration.cleanAndGet(
-      device = device,
-      locale = locale,
-      fontScale = fontScale,
-    )
+    PreviewConfiguration.cleanAndGet(device = device, locale = locale, fontScale = fontScale)
   }
 
   return PsiWearTilePreviewElement(

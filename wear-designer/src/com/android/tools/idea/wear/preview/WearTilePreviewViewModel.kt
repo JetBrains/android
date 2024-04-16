@@ -36,7 +36,7 @@ internal class WearTilePreviewViewModel(
   previewRefreshManager: PreviewRefreshManager,
   project: Project,
   psiFilePointer: SmartPsiElementPointer<PsiFile>,
-  hasRenderErrors: () -> Boolean
+  hasRenderErrors: () -> Boolean,
 ) :
   CommonPreviewViewModel(
     previewView,
@@ -50,7 +50,7 @@ internal class WearTilePreviewViewModel(
         PREVIEW_NOTIFICATION_GROUP_ID,
         message("event.log.refresh.title"),
         message("event.log.refresh.total.elapsed.time", durationString),
-        NotificationType.INFORMATION
+        NotificationType.INFORMATION,
       )
-    }
+    },
   )

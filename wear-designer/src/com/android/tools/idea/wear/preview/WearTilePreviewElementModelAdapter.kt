@@ -16,7 +16,6 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.SdkConstants
-import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.model.DataContextHolder
 import com.android.tools.idea.preview.ConfigurablePreviewElementModelAdapter
 import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
@@ -34,14 +33,16 @@ internal const val DEFAULT_WEAR_TILE_BACKGROUND = "#ff000000"
 
 internal class WearTilePreviewElementModelAdapter<M : DataContextHolder> :
   ConfigurablePreviewElementModelAdapter<PsiWearTilePreviewElement, M>,
-  MethodPreviewElementModelAdapter<PsiWearTilePreviewElement, M>(PSI_WEAR_TILE_PREVIEW_ELEMENT_INSTANCE) {
-    override fun toXml(previewElement: PsiWearTilePreviewElement) =
+  MethodPreviewElementModelAdapter<PsiWearTilePreviewElement, M>(
+    PSI_WEAR_TILE_PREVIEW_ELEMENT_INSTANCE
+  ) {
+  override fun toXml(previewElement: PsiWearTilePreviewElement) =
     PreviewXmlBuilder(TILE_SERVICE_VIEW_ADAPTER)
       .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_MATCH_PARENT)
       .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_MATCH_PARENT)
       .androidAttribute(
         SdkConstants.ATTR_BACKGROUND,
-        previewElement.displaySettings.backgroundColor ?: DEFAULT_WEAR_TILE_BACKGROUND
+        previewElement.displaySettings.backgroundColor ?: DEFAULT_WEAR_TILE_BACKGROUND,
       )
       .toolsAttribute("tilePreviewMethodFqn", previewElement.methodFqn)
       .buildString()
@@ -49,7 +50,7 @@ internal class WearTilePreviewElementModelAdapter<M : DataContextHolder> :
   override fun createLightVirtualFile(
     content: String,
     backedFile: VirtualFile,
-    id: Long
+    id: Long,
   ): LightVirtualFile =
     WearTileAdapterLightVirtualFile("model-weartile-$id.xml", content) { backedFile }
 }
