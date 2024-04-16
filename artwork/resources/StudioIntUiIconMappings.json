@@ -793,7 +793,8 @@
         }
       },
       "studio-bot": {
-        "ask.svg": "studio/icons/studio-bot/ask.svg"
+        "ask.svg": "studio/icons/studio-bot/ask.svg",
+        "logo.svg": "studio/icons/studio-bot/logo.svg"
       },
       "test": {
         "record-espresso-test.svg": "studio/icons/test/record-espresso-test.svg",

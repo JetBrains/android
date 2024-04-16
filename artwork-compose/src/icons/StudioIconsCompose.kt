@@ -939,6 +939,7 @@ object StudioIconsCompose {
 
   object StudioBot {
     @Composable fun Ask() = artworkPainterProvider("/studio/icons/studio-bot/ask.svg") // 16x16
+    @Composable fun Logo() = artworkPainterProvider("/studio/icons/studio-bot/logo.svg") // 16x16
   }
 
   object Test {
