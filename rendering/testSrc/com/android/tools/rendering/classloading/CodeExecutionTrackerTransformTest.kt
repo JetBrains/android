@@ -45,13 +45,13 @@ class CodeExecutionTrackerTransformTest {
     intBMethod.isAccessible = true
     assertEquals(1, intBMethod.invoke(null))
 
-    assertEquals(1, ClassesTracker.getClasses("")!!.size)
-    assertEquals("com/example/B", ClassesTracker.getClasses("")!!.first())
+    assertEquals(1, ClassesTracker.getClasses("").size)
+    assertEquals("com/example/B", ClassesTracker.getClasses("").first())
 
     val delegateToAMethod = classB.getMethod("delegateToA")
     assertEquals(0, delegateToAMethod.invoke(null))
 
-    assertEquals(2, ClassesTracker.getClasses("")!!.size)
+    assertEquals(2, ClassesTracker.getClasses("").size)
     assertEquals(setOf("com/example/A", "com/example/B"), ClassesTracker.getClasses(""))
 
     val instanceA = classA.constructors.first().newInstance()
@@ -85,14 +85,14 @@ class CodeExecutionTrackerTransformTest {
     val instanceC = classC.constructors.first().newInstance()
     val callCMethod = classB.declaredMethods.first { it.name == "callC" }
 
-    assertEquals(1, ClassesTracker.getClasses("")!!.size)
-    assertEquals("com/example/C", ClassesTracker.getClasses("")!!.first())
+    assertEquals(1, ClassesTracker.getClasses("").size)
+    assertEquals("com/example/C", ClassesTracker.getClasses("").first())
 
     ClassesTracker.clear("")
     assertEquals(emptySet<String>(), ClassesTracker.getClasses(""))
 
     callCMethod.invoke(null, instanceC)
-    assertEquals(2, ClassesTracker.getClasses("")!!.size)
+    assertEquals(2, ClassesTracker.getClasses("").size)
     assertEquals(setOf("com/example/B", "com/example/C"), ClassesTracker.getClasses(""))
   }
 }

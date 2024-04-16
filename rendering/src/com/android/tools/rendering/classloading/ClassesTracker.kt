@@ -31,7 +31,7 @@ object ClassesTracker {
     refToClasses.put(ref, className)
   }
 
-  @JvmStatic fun getClasses(ref: String): Set<String>? = refToClasses[ref]
+  @JvmStatic fun getClasses(ref: String): Set<String> = refToClasses[ref] ?: emptySet()
 
   @JvmStatic
   fun clear(ref: String) {
