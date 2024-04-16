@@ -24,18 +24,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ClipOp
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.center
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.toOffset
+import org.jetbrains.jewel.foundation.theme.LocalContentColor
+import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 
 /**
  * Displays a diagram representing a device screen of the given dimensions.
@@ -56,11 +55,23 @@ fun DeviceScreenDiagram(
   check(!round || height == width) { "Round screens have equal width and height" }
 
   val textMeasurer = rememberTextMeasurer()
-  val widthTextMeasurement = remember(width) { textMeasurer.measure("$width px", maxLines = 1) }
-  val heightTextMeasurement = remember(height) { textMeasurer.measure("$height px", maxLines = 1) }
+  val textStyle = LocalTextStyle.current
+  val contentColor = LocalContentColor.current
+  val widthTextMeasurement =
+    remember(width, textStyle) {
+      textMeasurer.measure("$width px", maxLines = 1, style = textStyle)
+    }
+  val heightTextMeasurement =
+    remember(height, textStyle) {
+      textMeasurer.measure("$height px", maxLines = 1, style = textStyle)
+    }
   val areaTextMeasurement =
-    remember(area) {
-      textMeasurer.measure(area, style = TextStyle(fontSize = 1.5.em), maxLines = 1)
+    remember(area, textStyle) {
+      textMeasurer.measure(
+        area,
+        style = textStyle.copy(fontSize = textStyle.fontSize * 1.2),
+        maxLines = 1,
+      )
     }
   val aspectRatio = width.toFloat() / height
 
@@ -74,6 +85,7 @@ fun DeviceScreenDiagram(
       drawText(
         widthTextMeasurement,
         topLeft = Offset((size.width - widthTextMeasurement.size.width) / 2, 0f),
+        color = contentColor,
       )
     }
     inset(top = widthTextMeasurement.size.height.toFloat(), left = 0f, bottom = 0f, right = 0f) {
@@ -81,6 +93,7 @@ fun DeviceScreenDiagram(
         drawText(
           heightTextMeasurement,
           topLeft = Offset(-(size.height + heightTextMeasurement.size.width) / 2, 0f),
+          color = contentColor,
         )
       }
     }
@@ -95,7 +108,7 @@ fun DeviceScreenDiagram(
           val radius = if (round) (size.width / 2) else 12.dp.toPx()
           val lineOffset = (radius * (1 - 1 / Math.sqrt(2.0))).toFloat() + 4.dp.toPx()
           val textTopLeft = center - areaTextMeasurement.size.center.toOffset()
-          drawText(areaTextMeasurement, topLeft = textTopLeft)
+          drawText(areaTextMeasurement, topLeft = textTopLeft, color = contentColor)
           clipRect(
             left = textTopLeft.x,
             top = textTopLeft.y,
@@ -104,7 +117,7 @@ fun DeviceScreenDiagram(
             clipOp = ClipOp.Difference,
           ) {
             drawLine(
-              color = Color.LightGray,
+              color = contentColor,
               start = Offset(lineOffset, size.height - lineOffset),
               end = Offset(size.width - lineOffset, lineOffset),
               strokeWidth = 2.dp.toPx(),
@@ -112,10 +125,10 @@ fun DeviceScreenDiagram(
           }
         }
         if (round) {
-          drawCircle(Color.Black, style = Stroke(width = 4.dp.toPx()))
+          drawCircle(contentColor, style = Stroke(width = 4.dp.toPx()))
         } else {
           drawRoundRect(
-            Color.Black,
+            contentColor,
             cornerRadius = CornerRadius(12.dp.toPx()),
             style = Stroke(width = 4.dp.toPx()),
           )
