@@ -116,11 +116,9 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
     RenderAsyncActionExecutor.RenderingTopic.CLEAN
   ) {
     finalDisposeMethod.ifPresent { m: Method? ->
-      this@dispose.execute(
-        Runnable {
-          this@dispose.rootViews.forEach(Consumer { v: ViewInfo? -> disposeIfCompose(v!!, m!!) })
-        }
-      )
+      this@dispose.execute {
+        this@dispose.rootViews.forEach(Consumer { v: ViewInfo? -> disposeIfCompose(v!!, m!!) })
+      }
     }
     applyObserversRef?.get()?.clear()
     globalWriteObserversRef?.get()?.clear()
