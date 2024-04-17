@@ -19,6 +19,7 @@ import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_DE
 import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_TABLET_ID;
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.android.tools.rendering.ProblemSeverity.WARNING;
+import static com.android.tools.rendering.RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
@@ -891,7 +892,7 @@ public class RenderTask {
   /**
    * Executes the passed {@link Callable} as an async render action and keeps track of it. If {@link #dispose()} is called, the call will
    * wait until all the async actions have finished running. This will wait the default timeout
-   * (see {@link RenderAsyncActionExecutor#DEFAULT_RENDER_THREAD_TIMEOUT_MS}) for the invoked action to complete.
+   * (see {@link DEFAULT_RENDER_THREAD_TIMEOUT_MS}) for the invoked action to complete.
    * See {@link RenderService#getRenderAsyncActionExecutor()}.
    */
   @VisibleForTesting
@@ -927,7 +928,7 @@ public class RenderTask {
       }
 
       return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB_PRE);
-    }), RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS * 10, TimeUnit.MILLISECONDS)
+    }), DEFAULT_RENDER_THREAD_TIMEOUT_MS * 10, TimeUnit.MILLISECONDS)
       .whenComplete((result, ex) -> myTestEventListener.onAfterInflate())
       .handle((result, ex) -> {
         if (ex != null) {
@@ -1410,7 +1411,7 @@ public class RenderTask {
    *
    * @param block the {@link Callable} to be executed in the Render thread.
    * @param timeout  maximum time to wait for the action to execute. If <= 0, the default timeout
-   *                (see {@link RenderAsyncActionExecutor#DEFAULT_RENDER_THREAD_TIMEOUT_MS}) will be used.
+   *                (see {@link DEFAULT_RENDER_THREAD_TIMEOUT_MS}) will be used.
    * @param unit    the {@link TimeUnit} for the timeout.
    *
    * @return A {@link CompletableFuture} that completes when the block finalizes.

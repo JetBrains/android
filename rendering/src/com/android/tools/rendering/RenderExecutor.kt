@@ -109,7 +109,8 @@ private constructor(
     action: () -> Unit,
   ): ScheduledFuture<*> = scheduledExecutorService.schedule(action, timeout, unit)
 
-  override fun getExecutedRenderActionCount(): Long = executedRenderActions.toLong()
+  override val executedRenderActionCount
+    get() = executedRenderActions.toLong()
 
   override fun <T : Any?> runAsyncActionWithTimeout(
     queueingTimeout: Long,

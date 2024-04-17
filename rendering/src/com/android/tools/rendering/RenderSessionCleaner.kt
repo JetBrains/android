@@ -63,7 +63,7 @@ private const val COMBINED_CONTEXT_FQN = "${INTERNAL_PACKAGE}kotlin.coroutines.C
  *
  * Returns a [CompletableFuture] that completes when the custom disposal process finishes.
  */
-fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Void> {
+fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Void?> {
   var disposeMethod = Optional.empty<Method>()
   var applyObserversRef: WeakReference<MutableCollection<*>?>? = null
   var globalWriteObserversRef: WeakReference<MutableCollection<*>?>? = null
