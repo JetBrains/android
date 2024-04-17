@@ -132,6 +132,7 @@
                            id="EnableAutoPopupInLiteralForTomlVersionRefDependencyCompletion"
                            implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInLiteralForTomlVersionRefDependencyCompletion" />
     <annotator language="TOML" implementationClass="com.android.tools.idea.gradle.catalog.VersionsTomlAnnotator"/>
+    <annotator language="kotlin" implementationClass="com.android.tools.idea.gradle.catalog.KtsCatalogAnnotator"/>
     <indexedRootsProvider implementation="com.android.tools.idea.gradle.index.VersionCatalogFileIndexContributor"/>
     <useScopeEnlarger implementation="com.android.tools.idea.gradle.navigation.GradleTomlUseScopeEnlarger"/>
     <vetoRenameCondition implementation="com.android.tools.idea.gradle.refactoring.GradleCatalogTomlVetoCondition"/>
