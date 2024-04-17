@@ -64,12 +64,17 @@ class ResourceClassRegistry @TestOnly constructor(private val packageTimeout: Du
     namespace: ResourceNamespace,
   ) {
     if (packageName.isNullOrEmpty()) return
-
-    val info = repoMap.getOrPut(repo) { ResourceRepositoryInfo(repo, idManager, namespace) }
+    var info = repoMap[repo]
+    if (info == null) {
+      info = ResourceRepositoryInfo(repo, idManager, namespace)
+      repoMap[repo] = info
+      // Explicit cleanup for Disposable instead of waiting for GC.
+      if (repo is Disposable && !Disposer.tryRegister(repo) { removeRepository(repo) }) {
+        removeRepository(repo)
+        return
+      }
+    }
     info.packages.add(packageName)
-    // Explicit cleanup for Disposable instead of waiting for GC.
-    if (repo is Disposable && !Disposer.tryRegister(repo) { removeRepository(repo) })
-      removeRepository(repo)
     packages = createPackageCache() // Invalidate cache.
   }
 
