@@ -93,9 +93,14 @@ class LiveEditTest {
             waitForLog(".*Before editing.*", 600, TimeUnit.SECONDS);
           }
 
-          val newContents = "Log.i(\"MainActivity\", \"After editing\")\n" +
-                            "Text(text = \"Hello, Live Edit and \$name!\")";
-          studio.editFile(path.toString(), "(?s)// EASILY SEARCHABLE LINE.*?// END SEARCH", newContents)
+          val newContents00 = "import androidx.compose.material.Button"
+          studio.editFile(path.toString(), "(?s)// EASILY SEARCHABLE LINE 00.*?// END SEARCH 00", newContents00)
+
+          val newContents01 = "Button(onClick = {}) {\n" +
+                              "  Log.i(\"MainActivity\", \"After editing\")\n" +
+                              "  Text(text = \"Hello, Live Edit and \$name!\")" +
+                              "}\n"
+          studio.editFile(path.toString(), "(?s)// EASILY SEARCHABLE LINE 01.*?// END SEARCH 01", newContents01)
 
           adb.runCommand("logcat", emulator = emulator) {
             waitForLog(".*After editing.*", 600, TimeUnit.SECONDS);
