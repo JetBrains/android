@@ -147,6 +147,14 @@ class ProcessesModel(
     processDiscovery.removeProcessListener(processListener)
   }
 
+  fun addProcessListener(processListener: ProcessListener) {
+    processDiscovery.addProcessListener(executor, processListener)
+  }
+
+  fun removeProcessListener(processListener: ProcessListener) {
+    processDiscovery.removeProcessListener(processListener)
+  }
+
   fun isProcessPreferred(
     processDescriptor: ProcessDescriptor?,
     includeDead: Boolean = false,

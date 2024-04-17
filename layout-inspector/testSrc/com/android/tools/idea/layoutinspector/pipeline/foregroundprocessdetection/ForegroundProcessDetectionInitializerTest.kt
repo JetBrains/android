@@ -71,6 +71,9 @@ class ForegroundProcessDetectionInitializerTest {
   private lateinit var fakeProcess1: ProcessDescriptor
   private lateinit var fakeProcess2: ProcessDescriptor
   private lateinit var fakeProcess3: ProcessDescriptor
+  private lateinit var fakeProcess4: ProcessDescriptor
+
+  private lateinit var testProcessDiscovery: TestProcessDiscovery
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
@@ -79,7 +82,7 @@ class ForegroundProcessDetectionInitializerTest {
     ApplicationManager.getApplication()
       .replaceService(TransportService::class.java, mock(), projectRule.testRootDisposable)
 
-    val testProcessDiscovery = TestProcessDiscovery()
+    testProcessDiscovery = TestProcessDiscovery()
     processModel = ProcessesModel(testProcessDiscovery)
     deviceModel = DeviceModel(projectRule.testRootDisposable, processModel)
 
@@ -88,6 +91,7 @@ class ForegroundProcessDetectionInitializerTest {
     fakeProcess1 = fakeStream1.createFakeProcess("process1", 1)
     fakeProcess2 = fakeStream2.createFakeProcess("process2", 2)
     fakeProcess3 = fakeStream2.createFakeProcess("process3", 3)
+    fakeProcess4 = fakeStream1.createFakeProcess("process4", 4)
 
     testProcessDiscovery.addDevice(fakeStream1.device.toDeviceDescriptor())
     testProcessDiscovery.addDevice(fakeStream2.device.toDeviceDescriptor())
@@ -100,6 +104,7 @@ class ForegroundProcessDetectionInitializerTest {
   fun testNewForegroundProcessSetsSelectedProcess() {
     val foregroundProcessListener =
       ForegroundProcessDetectionInitializer.getDefaultForegroundProcessListener(
+        projectRule.testRootDisposable,
         deviceModel,
         processModel,
       )
@@ -131,6 +136,37 @@ class ForegroundProcessDetectionInitializerTest {
     // ignored.
     foregroundProcessListener.onNewProcess(device1, ForegroundProcess(2, "process2"), true)
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess1)
+  }
+
+  @Test
+  fun testForegroundProcessDetectedBeforeAppInspectionProcessIsAvailable() {
+    val foregroundProcessListener =
+      ForegroundProcessDetectionInitializer.getDefaultForegroundProcessListener(
+        projectRule.testRootDisposable,
+        deviceModel,
+        processModel,
+      )
+    ForegroundProcessDetectionInitializer.initialize(
+      parentDisposable = projectRule.testRootDisposable,
+      project = projectRule.project,
+      processModel = processModel,
+      deviceModel = deviceModel,
+      coroutineScope = CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      streamManager = streamManagerRule.streamManager,
+      foregroundProcessListener = foregroundProcessListener,
+      metrics = ForegroundProcessDetectionMetrics,
+    )
+
+    deviceModel.setSelectedDevice(device1)
+
+    foregroundProcessListener.onNewProcess(device1, ForegroundProcess(4, "process4"), false)
+    // process4 is not available in app inspection yet, so the selected process should be null.
+    assertThat(processModel.selectedProcess).isNull()
+
+    // process4 becomes available in app inspection.
+    testProcessDiscovery.fireConnected(fakeProcess4)
+    // it should be automatically become the selected process.
+    assertThat(processModel.selectedProcess).isEqualTo(fakeProcess4)
   }
 
   @org.junit.Ignore("b/250404336")
