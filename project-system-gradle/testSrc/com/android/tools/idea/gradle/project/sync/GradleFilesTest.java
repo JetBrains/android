@@ -368,15 +368,25 @@ public class GradleFilesTest extends AndroidGradleTestCase {
 
   public void testIsGradleFileWithDeclarativeGradleFile() {
     StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
-    PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
-    assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
+    try {
+      PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
+      assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
+    }
+    finally {
+      StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride();
+    }
   }
 
   public void testIsGradleFileWithDeclarativeSettingsFile() {
     StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
-    PsiFile psiFile = PsiFileFactory.getInstance(getProject())
-      .createFileFromText(FN_SETTINGS_GRADLE_DECLARATIVE, FileTypeManager.getInstance().getStdFileType(""), "", 0L, false);
-    assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
+    try {
+      PsiFile psiFile = PsiFileFactory.getInstance(getProject())
+        .createFileFromText(FN_SETTINGS_GRADLE_DECLARATIVE, FileTypeManager.getInstance().getStdFileType(""), "", 0L, false);
+      assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
+    }
+    finally {
+      StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride();
+    }
   }
 
   public void testIsGradleFileWithVersionsToml() {
@@ -461,20 +471,30 @@ public class GradleFilesTest extends AndroidGradleTestCase {
 
   public void testModifiedWhenAddingTextChildInDeclarativeSettingsFile() throws Exception {
     StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
-    loadSimpleApplication();
+    try {
+      loadSimpleApplication();
 
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_DECLARATIVE);
-    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
-                            virtualFile);
+      VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_SETTINGS_GRADLE_DECLARATIVE);
+      runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
+                              virtualFile);
+    }
+    finally {
+      StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride();
+    }
   }
 
   public void testModifiedWhenAddingTextChildInDeclarativeBuildFile() throws Exception {
     StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
-    loadSimpleApplication();
+    try {
+      loadSimpleApplication();
 
-    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
-    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!")), true,
-                            virtualFile);
+      VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
+      runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!")), true,
+                              virtualFile);
+    }
+    finally {
+      StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride();
+    }
   }
 
   public void testModifiedWhenAddingTextChildInKotlinBuildFile() throws Exception {
