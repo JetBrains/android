@@ -27,7 +27,7 @@ object RenderingBundle {
   @NonNls private const val BUNDLE_NAME = "messages.RenderingBundle"
   private var ourBundle: Reference<ResourceBundle?>? = null
   private val bundle: ResourceBundle?
-    private get() {
+    get() {
       var bundle = ourBundle?.get()
       if (bundle == null) {
         bundle = ResourceBundle.getBundle(BUNDLE_NAME)
