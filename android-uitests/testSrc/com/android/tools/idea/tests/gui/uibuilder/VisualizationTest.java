@@ -52,10 +52,10 @@ public class VisualizationTest {
     final String file3 = "app/src/main/java/google/simpleapplication/MyActivity.java";
 
     editor.open(file1);
-    assertThat(editor.getVisualizationTool().getCurrentFileName()).isEqualTo("frames.xml");
+    assertThat(editor.getVisualizationTool().waitForRenderToFinish().getCurrentFileName()).isEqualTo("frames.xml");
 
     editor.open(file2);
-    assertThat(editor.getVisualizationTool().getCurrentFileName()).isEqualTo("activity_my.xml");
+    assertThat(editor.getVisualizationTool().waitForRenderToFinish().getCurrentFileName()).isEqualTo("activity_my.xml");
 
     editor.open(file3).waitForVisualizationToolToHide();
 
