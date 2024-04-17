@@ -103,27 +103,30 @@ class LightBindingClass(psiManager: PsiManager, private val config: LightBinding
       }
 
   private val psiSupers: Array<PsiClass> by
-    lazy(LazyThreadSafetyMode.NONE) { superClass?.let { arrayOf(it) } ?: PsiClass.EMPTY_ARRAY }
+    lazy(LazyThreadSafetyMode.PUBLICATION) {
+      superClass?.let { arrayOf(it) } ?: PsiClass.EMPTY_ARRAY
+    }
 
   private val psiConstructors: Array<PsiMethod> by
-    lazy(LazyThreadSafetyMode.NONE) { arrayOf(createConstructor()) }
+    lazy(LazyThreadSafetyMode.PUBLICATION) { arrayOf(createConstructor()) }
 
   private val psiAllMethods: Array<PsiMethod> by
-    lazy(LazyThreadSafetyMode.NONE) { (superClass?.allMethods ?: arrayOf()) + methods }
+    lazy(LazyThreadSafetyMode.PUBLICATION) { (superClass?.allMethods ?: arrayOf()) + methods }
 
-  private val psiMethods: Array<PsiMethod> by lazy(LazyThreadSafetyMode.NONE, ::computeMethods)
+  private val psiMethods: Array<PsiMethod> by
+    lazy(LazyThreadSafetyMode.PUBLICATION, ::computeMethods)
 
-  private val psiFields: Array<PsiField> by lazy(LazyThreadSafetyMode.NONE, ::computeFields)
+  private val psiFields: Array<PsiField> by lazy(LazyThreadSafetyMode.PUBLICATION, ::computeFields)
 
   private val psiExtendsList: PsiReferenceList by
-    lazy(LazyThreadSafetyMode.NONE) {
+    lazy(LazyThreadSafetyMode.PUBLICATION) {
       val factory = PsiElementFactory.getInstance(project)
       val referenceElementByType = factory.createReferenceElementByType(extendsListTypes[0])
       factory.createReferenceList(arrayOf(referenceElementByType))
     }
 
   private val psiExtendsListTypes: Array<PsiClassType> by
-    lazy(LazyThreadSafetyMode.NONE) {
+    lazy(LazyThreadSafetyMode.PUBLICATION) {
       arrayOf(PsiType.getTypeByName(config.superName, project, moduleScope))
     }
 
