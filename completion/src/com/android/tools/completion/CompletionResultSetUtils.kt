@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.compose.completion
+package com.android.tools.completion
 
-import com.android.tools.compose.completion.inserthandler.FormatWithCaretInsertHandler
-import com.android.tools.compose.completion.inserthandler.FormatWithLiveTemplateInsertHandler
-import com.android.tools.compose.completion.inserthandler.FormatWithNewLineInsertHandler
-import com.android.tools.compose.completion.inserthandler.InsertionFormat
-import com.android.tools.compose.completion.inserthandler.LiteralNewLineFormat
-import com.android.tools.compose.completion.inserthandler.LiteralWithCaretFormat
-import com.android.tools.compose.completion.inserthandler.LiveTemplateFormat
+import com.android.tools.completion.inserthandler.FormatWithCaretInsertHandler
+import com.android.tools.completion.inserthandler.FormatWithLiveTemplateInsertHandler
+import com.android.tools.completion.inserthandler.FormatWithNewLineInsertHandler
+import com.android.tools.completion.inserthandler.InsertionFormat
+import com.android.tools.completion.inserthandler.LiteralNewLineFormat
+import com.android.tools.completion.inserthandler.LiteralWithCaretFormat
+import com.android.tools.completion.inserthandler.LiveTemplateFormat
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 

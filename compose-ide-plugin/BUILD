@@ -25,6 +25,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/android-material:intellij.android.android-material[module]",
+        "//tools/adt/idea/completion:intellij.android.completion[module]",
     ],
 )
 

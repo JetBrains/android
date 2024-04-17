@@ -137,6 +137,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:libadb-server-proto",
         "//tools/adt/idea/safemode:intellij.android.safemode[module]",
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module]",
+        "//tools/adt/idea/completion:intellij.android.completion[module]",
     ],
 )
 

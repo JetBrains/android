@@ -45,6 +45,7 @@ iml_module(
         "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
         "//tools/adt/idea/ml-api:intellij.android.ml-api[module]",
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile[module]",
+        "//tools/adt/idea/completion:intellij.android.completion[module]",
     ],
 )
 

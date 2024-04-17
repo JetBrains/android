@@ -15,6 +15,8 @@
  */
 package com.android.tools.compose.code.completion.constraintlayout.provider
 
+import com.android.tools.completion.addLookupElement
+import com.android.tools.completion.inserthandler.InsertionFormat
 import com.android.tools.compose.code.completion.constraintlayout.ClearAllTemplate
 import com.android.tools.compose.code.completion.constraintlayout.ClearOption
 import com.android.tools.compose.code.completion.constraintlayout.ConstrainAnchorTemplate
@@ -40,8 +42,6 @@ import com.android.tools.compose.code.completion.constraintlayout.getJsonPropert
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetModel
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.ConstraintSetsPropertyModel
 import com.android.tools.compose.code.completion.constraintlayout.provider.model.JsonPropertyModel
-import com.android.tools.compose.completion.addLookupElement
-import com.android.tools.compose.completion.inserthandler.InsertionFormat
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet

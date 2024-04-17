@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.compose.completion.inserthandler
+package com.android.tools.completion.inserthandler
 
 /**
  * Describes a string that may be automatically inserted when selecting an autocomplete option.

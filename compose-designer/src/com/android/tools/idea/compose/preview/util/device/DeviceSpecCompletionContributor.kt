@@ -16,9 +16,9 @@
 package com.android.tools.idea.compose.preview.util.device
 
 import com.android.ide.common.util.enumValueOfOrNull
-import com.android.tools.compose.completion.addLookupElement
-import com.android.tools.compose.completion.inserthandler.InsertionFormat
-import com.android.tools.compose.completion.inserthandler.LiveTemplateFormat
+import com.android.tools.completion.addLookupElement
+import com.android.tools.completion.inserthandler.InsertionFormat
+import com.android.tools.completion.inserthandler.LiveTemplateFormat
 import com.android.tools.idea.compose.pickers.preview.utils.getSdkDevices
 import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParam
 import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecPsiFile

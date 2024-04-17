@@ -15,9 +15,9 @@
  */
 package com.android.tools.compose.code.completion.constraintlayout
 
-import com.android.tools.compose.completion.inserthandler.LiteralNewLineFormat
-import com.android.tools.compose.completion.inserthandler.LiteralWithCaretFormat
-import com.android.tools.compose.completion.inserthandler.LiveTemplateFormat
+import com.android.tools.completion.inserthandler.LiteralNewLineFormat
+import com.android.tools.completion.inserthandler.LiteralWithCaretFormat
+import com.android.tools.completion.inserthandler.LiveTemplateFormat
 
 internal val JsonStringValueTemplate = LiteralWithCaretFormat(": '|',")
 
