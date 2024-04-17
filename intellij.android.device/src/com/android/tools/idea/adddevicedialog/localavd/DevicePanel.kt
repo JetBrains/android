@@ -15,18 +15,24 @@
  */
 package com.android.tools.idea.adddevicedialog.localavd
 
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import kotlinx.collections.immutable.ImmutableCollection
+import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
+import org.jetbrains.jewel.ui.component.separator
 
 @Composable
 internal fun DevicePanel(
   device: VirtualDevice,
+  selectedService: Service?,
   images: ImmutableCollection<SystemImage>,
   onDeviceChange: (VirtualDevice) -> Unit,
+  onSelectedServiceChange: (Service?) -> Unit,
 ) {
   Text("Name", Modifier.padding(bottom = Padding.SMALL))
 
@@ -42,4 +48,29 @@ internal fun DevicePanel(
     "Available system images are displayed based on the service and ABI configuration",
     Modifier.padding(bottom = Padding.SMALL_MEDIUM),
   )
+
+  Text("Service", Modifier.padding(bottom = Padding.SMALL))
+
+  Row {
+    Dropdown(
+      Modifier.padding(end = Padding.MEDIUM),
+      menuContent = {
+        Service.values().forEach {
+          selectableItem(selectedService == it, onClick = { onSelectedServiceChange(it) }) {
+            Text(it.toString())
+          }
+        }
+
+        separator()
+
+        selectableItem(selectedService == null, onClick = { onSelectedServiceChange(null) }) {
+          Text("Show All")
+        }
+      },
+    ) {
+      Text(selectedService.toString())
+    }
+
+    InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+  }
 }

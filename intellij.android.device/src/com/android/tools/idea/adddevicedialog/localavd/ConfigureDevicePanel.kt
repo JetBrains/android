@@ -63,10 +63,20 @@ private fun Tabs(
     }
   )
 
+  // TODO: http://b/335494340
+  var service by remember { mutableStateOf<Service?>(Service.GOOGLE_PLAY_STORE) }
+
   val state = remember { AdditionalSettingsPanelState(device) }
 
   when (selectedTab) {
-    Tab.DEVICE -> DevicePanel(device, images, onDeviceChange)
+    Tab.DEVICE ->
+      DevicePanel(
+        device,
+        service,
+        images,
+        onDeviceChange,
+        onSelectedServiceChange = { service = it },
+      )
     Tab.ADDITIONAL_SETTINGS ->
       AdditionalSettingsPanel(device, skins, state, onDeviceChange, onImportButtonClick)
   }
