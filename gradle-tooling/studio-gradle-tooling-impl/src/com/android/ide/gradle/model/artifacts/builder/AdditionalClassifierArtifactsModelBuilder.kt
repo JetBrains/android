@@ -83,8 +83,21 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
         }
         getArtifacts(project, DocsType.JAVADOC, parameter.artifactIdentifiers) { id, file -> artifactsCollector.setJavadoc(id, file) }
         getArtifacts(project, DocsType.SOURCES, parameter.artifactIdentifiers) { id, file -> artifactsCollector.addSources(id, file) }
+        // Find the libraries which has pom file but is missing source or javadoc. This could happen when Gradle metadata doesn't include
+        // source/javadoc. In this case, use pom to obtain source/javadoc.
+        val missingJavadoc = mutableListOf<DefaultModuleComponentIdentifier>()
+        val missingSources = mutableListOf<DefaultModuleComponentIdentifier>()
+        componentsIds.map { componentId ->
+          val artifactId = ArtifactIdentifierImpl(componentId.group, componentId.module, componentId.version)
+          artifactsCollector.getAdditionalPaths(artifactId)?.let {
+            if (it.javaDoc == null) { missingJavadoc.add(componentId) }
+            if (it.sources.isEmpty()) { missingSources.add(componentId) }
+          }
+        }
+        getArtifactsWithArtifactResolutionQuery(missingJavadoc, project, artifactsCollector, withJavadoc = true, withSources =  false)
+        getArtifactsWithArtifactResolutionQuery(missingSources, project, artifactsCollector, withJavadoc = false, withSources =  true)
       } else {
-        getJavadocAndSourcesWithArtifactResolutionQuery(componentsIds, project, artifactsCollector)
+       getArtifactsWithArtifactResolutionQuery(componentsIds, project, artifactsCollector, withJavadoc = true, withSources = true)
       }
 
       val artifacts = parameter.artifactIdentifiers.map {
@@ -158,19 +171,27 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
   /**
    * Use this with older Gradle versions, when [useArtifactViews] is false.
    */
-  private fun getJavadocAndSourcesWithArtifactResolutionQuery(componentsIds: List<DefaultModuleComponentIdentifier>,
-                                                              project: Project,
-                                                              collector: ArtifactsCollector) {
+  private fun getArtifactsWithArtifactResolutionQuery(
+    componentsIds: List<DefaultModuleComponentIdentifier>,
+    project: Project,
+    collector: ArtifactsCollector,
+    withJavadoc: Boolean,
+    withSources: Boolean,
+  ) {
+    val artifactTypes: MutableList<Class<out Artifact>> = mutableListOf()
+    if (withJavadoc) artifactTypes.add(JavadocArtifact::class.java)
+    if (withSources) artifactTypes.add(SourcesArtifact::class.java)
+
     val docQuery = project.dependencies.createArtifactResolutionQuery()
       .forComponents(componentsIds)
-      .withArtifacts(JvmLibrary::class.java, SourcesArtifact::class.java, JavadocArtifact::class.java)
+      .withArtifacts(JvmLibrary::class.java, artifactTypes)
 
     docQuery.execute().resolvedComponents.filter { it.id is ModuleComponentIdentifier }.forEach {
       val id = it.id as ModuleComponentIdentifier
       val artifactId = ArtifactIdentifierImpl(id.group, id.module, id.version)
 
-      getFile(it, JavadocArtifact::class.java)?.let { collector.setJavadoc(artifactId, it) }
-      getFile(it, SourcesArtifact::class.java)?.let { collector.addSources(artifactId, it) }
+      if (withJavadoc) { getFile(it, JavadocArtifact::class.java)?.let { collector.setJavadoc(artifactId, it) } }
+      if (withSources) { getFile(it, SourcesArtifact::class.java)?.let { collector.addSources(artifactId, it) } }
     }
   }
 
