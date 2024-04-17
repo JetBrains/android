@@ -197,6 +197,7 @@ internal class DeviceView(
   private var lastTouchCoordinates: Point? = null
   /** Whether the last observed mouse event was in display. */
   private var wasInsideDisplay = false
+  private var mouseHovering = false // Last mouse event was move without pressed buttons.
   private val repaintAlarm: Alarm = Alarm(this)
   private var highQualityRenderingRequested = false
 
@@ -475,7 +476,7 @@ internal class DeviceView(
     }
   }
 
-  private fun sendMotionEvent(p: Point, action: Int, modifiers: Int, button: Int=0, axisValues: Int2FloatOpenHashMap? = null) {
+  private fun sendMotionEvent(p: Point, action: Int, modifiers: Int, button: Int = 0, axisValues: Int2FloatOpenHashMap? = null) {
     val displayCoordinates = toDeviceDisplayCoordinates(p) ?: return
 
     if (displayCoordinates in deviceDisplaySize) {
@@ -717,6 +718,7 @@ internal class DeviceView(
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
       if (!isInsideDisplay(event)) return
+      terminateHovering(event)
       if (event.button != MouseEvent.BUTTON1 && !isHardwareInputEnabled()) return
       lastTouchCoordinates = event.location
       updateMultiTouchMode(event)
@@ -754,6 +756,7 @@ internal class DeviceView(
       updateMultiTouchMode(event)
       if (!multiTouchMode) {
         sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_MOVE, event.modifiersEx)
+        mouseHovering = true
       }
     }
 
@@ -761,6 +764,7 @@ internal class DeviceView(
       if (!isInsideDisplay(event)) {
         return
       }
+      terminateHovering(event)
       // AWT fakes shift being held down for horizontal scrolling.
       val axis = if (event.isShiftDown) MotionEventMessage.AXIS_HSCROLL else MotionEventMessage.AXIS_VSCROLL
       // Android vertical scroll direction is reversed.
@@ -778,6 +782,16 @@ internal class DeviceView(
         axisValues.put(axis, scrollAmount.toFloat())
         sendMotionEvent(event.location, MotionEventMessage.ACTION_SCROLL, event.modifiersEx, axisValues = axisValues)
         remainingRotation -= 1
+      }
+    }
+
+    private fun terminateHovering(event: MouseEvent) {
+      if (mouseHovering) {
+        val savedMultiTouchMode = multiTouchMode
+        multiTouchMode = false
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_EXIT, 0)
+        multiTouchMode = savedMultiTouchMode
+        mouseHovering = false
       }
     }
 

@@ -140,6 +140,10 @@ internal data class MotionEventMessage(
     const val ACTION_POINTER_UP = 6
     const val ACTION_HOVER_MOVE = 7
     const val ACTION_SCROLL = 8
+    const val ACTION_HOVER_ENTER = 9
+    const val ACTION_HOVER_EXIT = 10
+    const val ACTION_BUTTON_PRESS = 11
+    const val ACTION_BUTTON_RELEASE = 12
 
     // - Axes
     const val AXIS_VSCROLL = 9
