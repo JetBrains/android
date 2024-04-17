@@ -40,7 +40,6 @@ import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.intellij.icons.AllIcons
-import com.intellij.icons.ExpUiIcons
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
@@ -505,9 +504,4 @@ internal constructor(internal val value: String, internal val valid: Boolean) {
         ExistingImageFieldState("", false)
       }
   }
-}
-
-@Composable
-private fun InfoOutlineIcon(modifier: Modifier = Modifier) {
-  Icon("expui/status/infoOutline.svg", null, ExpUiIcons::class.java, modifier)
 }
