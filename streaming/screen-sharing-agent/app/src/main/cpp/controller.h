@@ -131,16 +131,16 @@ private:
   Base128InputStream input_stream_;
   Base128OutputStream output_stream_;
   volatile bool stopped = false;
-  PointerHelper* pointer_helper_;  // Owned.
+  PointerHelper* pointer_helper_ = nullptr;  // Owned.
   JObjectArray pointer_properties_;  // MotionEvent.PointerProperties[]
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]
-  int64_t motion_event_start_time_;
-  KeyCharacterMap* key_character_map_;  // Owned.
+  int64_t motion_event_start_time_ = 0;
+  KeyCharacterMap* key_character_map_ = nullptr;  // Owned.
 
   ClipboardListener clipboard_listener_;
-  int max_synced_clipboard_length_;
+  int max_synced_clipboard_length_ = 0;
   std::string last_clipboard_text_;
-  std::atomic_bool clipboard_changed_;
+  std::atomic_bool clipboard_changed_ = false;
 
   DeviceStateListener device_state_listener_;
   bool device_supports_multiple_states_ = false;

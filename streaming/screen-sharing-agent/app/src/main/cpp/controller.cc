@@ -113,14 +113,8 @@ Controller::Controller(int socket_fd)
     : socket_fd_(socket_fd),
       input_stream_(socket_fd, BUFFER_SIZE),
       output_stream_(SocketWriter(socket_fd, "control"), BUFFER_SIZE),
-      pointer_helper_(),
-      motion_event_start_time_(0),
-      key_character_map_(),
       clipboard_listener_(this),
-      max_synced_clipboard_length_(0),
-      clipboard_changed_(),
-      device_state_listener_(this),
-      ui_settings_() {
+      device_state_listener_(this) {
   assert(socket_fd > 0);
   try {
     output_stream_.WriteByte('C');
