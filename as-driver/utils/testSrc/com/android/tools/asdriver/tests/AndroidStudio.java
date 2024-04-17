@@ -176,6 +176,15 @@ public class AndroidStudio implements AutoCloseable {
     process.onExit().get();
   }
 
+  public void waitForEmulatorStart(LogFile log, Emulator emulator, String appRegex, long timeout, TimeUnit timeUnit)
+      throws IOException, InterruptedException {
+    log.waitForMatchingLine(
+      String.format(".*AndroidProcessHandler - Adding .*emulator-%s.* to monitor for launched app: %s", emulator.getPortString(), appRegex),
+      timeout,
+      timeUnit
+    );
+  }
+
   @Override
   public void close() throws Exception {
     createVideos();

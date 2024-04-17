@@ -21,8 +21,6 @@ import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.perflogger.Benchmark
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -68,9 +66,7 @@ class BuildAndRunKMPTest {
           println("Running the app")
           studio.executeAction("Run")
 
-          system.installation.ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emu0 \\[emulator-${emulator.portString}\\] to monitor for launched app: com\\.google\\.samples\\.apps\\.kmp",
-            60, TimeUnit.SECONDS)
+          studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.google\\.samples\\.apps\\.kmp", 60, TimeUnit.SECONDS)
           emulator.logCat.waitForMatchingLine(".*Hello World!.*", 30, TimeUnit.SECONDS)
           benchmark.log("test_end", System.currentTimeMillis())
         }

@@ -20,7 +20,6 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.IOException
@@ -89,9 +88,7 @@ class LiveEditTest {
           studio.waitForBuild()
           studio.executeAction("Run")
 
-          system.installation.ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emu0 \\[emulator-${emulator.portString}\\] to monitor for launched app: com\\.example\\.liveedittest",
-            60, TimeUnit.SECONDS)
+          studio.waitForEmulatorStart(system.installation.ideaLog, emulator, "com\\.example\\.liveedittest", 60, TimeUnit.SECONDS)
           adb.runCommand("logcat", emulator = emulator) {
             waitForLog(".*Before editing.*", 600, TimeUnit.SECONDS);
           }

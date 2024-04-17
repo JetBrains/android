@@ -65,9 +65,10 @@ class EmbeddedLayoutInspectorIntegrationTest {
 
           studio.executeAction("Run")
           val ideaLog = system.installation.ideaLog
-          ideaLog.waitForMatchingLine(
-            ".*AndroidProcessHandler - Adding device emu0 \\[emulator-${emulator.portString}\\] to monitor for " +
-              "launched app: com\\.example\\.emptyapplication",
+          studio.waitForEmulatorStart(
+            ideaLog,
+            emulator,
+            "com\\.example\\.emptyapplication",
             300,
             TimeUnit.SECONDS,
           )
