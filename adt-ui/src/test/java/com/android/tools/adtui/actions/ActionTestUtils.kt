@@ -52,7 +52,7 @@ private fun prettyPrintActions(
   (action as? DefaultActionGroup)?.let { group ->
     if (!group.isPopup) {
       // If it is not a popup, the actions in the group would be flatted.
-      for (child in group.getChildren(null)) {
+      for (child in group.getChildren(ActionManager.getInstance())) {
         appendActionText(sb, child, presentationFactory, depth, dataContext)
       }
     }

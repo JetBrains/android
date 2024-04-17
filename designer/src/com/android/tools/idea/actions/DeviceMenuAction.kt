@@ -103,7 +103,7 @@ class DeviceMenuAction(
     JBPopupMenu.showBelow(button, popupMenu)
     // The items in toolbar.component are filled after JBPopupMenu.showBelow() is called.
     // So we install the tooltips after showing.
-    getChildren(null).forEachIndexed { index, action ->
+    getChildren(e.actionManager).forEachIndexed { index, action ->
       val deviceId = (action as? SetDeviceAction)?.device?.id ?: return@forEachIndexed
       DEVICE_ID_TO_TOOLTIPS[deviceId]?.let {
         (popupMenu.components[index] as? ActionMenuItem)?.let { menuItem ->

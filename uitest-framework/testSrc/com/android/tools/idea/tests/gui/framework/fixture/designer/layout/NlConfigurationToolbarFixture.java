@@ -27,6 +27,7 @@ import com.android.tools.idea.actions.ThemeMenuAction;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
@@ -166,8 +167,10 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     ThemeMenuAction themeMenuAction =
       (ThemeMenuAction)myToolBar.getActions().stream().filter(action -> action instanceof ThemeMenuAction).findAny().get();
     DropDownActionTestUtil.updateActions(themeMenuAction);
-    AnAction moreThemeAction =
-      Arrays.stream(themeMenuAction.getChildren(null)).filter(action -> action instanceof ThemeMenuAction.MoreThemesAction).findAny().get();
+    AnAction moreThemeAction = Arrays.stream(themeMenuAction.getChildren(ActionManager.getInstance()))
+      .filter(action -> action instanceof ThemeMenuAction.MoreThemesAction)
+      .findAny()
+      .get();
     ApplicationManager.getApplication().invokeLater(() -> moreThemeAction.actionPerformed(TestActionEvent.createTestEvent()));
     return ThemeSelectionDialogFixture.find(myRobot);
   }
