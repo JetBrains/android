@@ -25,6 +25,7 @@ import com.android.tools.idea.configurations.SetDeviceAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.ApplicationRule
 import org.intellij.lang.annotations.Language
@@ -106,8 +107,9 @@ private fun getSetDeviceActions(config: Configuration): List<SetDeviceAction> {
       )
       .apply { updateActions(DataContext.EMPTY_CONTEXT) }
 
+  val actionManager = ActionManager.getInstance()
   return menuAction
-    .getChildren(null)
+    .getChildren(actionManager)
     .map { if (it is ActionGroup) it.getChildren(null) else arrayOf(it) }
     .flatMap { it.toList() }
     .filterIsInstance<SetDeviceAction>()

@@ -37,6 +37,7 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -390,8 +391,9 @@ class AndroidTestSuiteViewTest {
     view.onTestCaseFinished(device2, testsuiteOnDevice2, testcase2OnDevice2)
     view.onTestSuiteFinished(device2, testsuiteOnDevice2)
 
+    val actionManager = ActionManager.getInstance()
     // Select "API 29" in the API level filter ComboBox.
-    view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().getChildren(null)
+    view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().getChildren(actionManager)
     val selectApi29Action = view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().flattenedActions().find {
       it.templateText == "API 29"
     }

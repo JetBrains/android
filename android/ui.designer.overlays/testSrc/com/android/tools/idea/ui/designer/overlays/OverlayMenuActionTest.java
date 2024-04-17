@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -76,7 +77,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
 
     OverlayMenuAction action = new OverlayMenuAction(myOverlayConfiguration, repaint);
     action.updateActions(DataContext.EMPTY_CONTEXT);
-    AnAction[] actions = action.getChildren(null);
+    AnAction[] actions = action.getChildren(ActionManager.getInstance());
     checkAction(actions[0], ActionGroup.class, "Overlays");
     checkAction(actions[1], OverlayMenuAction.AddOverlayAction.class, "Add null Overlay...");
     checkAction(actions[2], OverlayMenuAction.DeleteOverlayAction.class, "Delete Overlay...");

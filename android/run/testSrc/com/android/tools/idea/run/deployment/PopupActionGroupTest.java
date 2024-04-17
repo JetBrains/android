@@ -21,7 +21,6 @@ import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Separator;
@@ -83,7 +82,7 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Collections.emptyList();
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
+    PopupActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
@@ -93,7 +92,7 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};
 
-    assertArrayEquals(children, group.getChildren(null));
+    assertArrayEquals(children, group.getChildren(ActionManager.getInstance()));
   }
 
   @Test
@@ -110,7 +109,7 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Collections.singletonList(device);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
+    PopupActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
@@ -123,7 +122,7 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};
 
-    assertArrayEquals(children, group.getChildren(null));
+    assertArrayEquals(children, group.getChildren(ActionManager.getInstance()));
   }
 
   @Test
@@ -147,7 +146,7 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Arrays.asList(runningDevice, availableDevice);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
+    PopupActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
@@ -163,7 +162,7 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};
 
-    assertArrayEquals(children, group.getChildren(null));
+    assertArrayEquals(children, group.getChildren(ActionManager.getInstance()));
   }
 
   @Test
@@ -180,7 +179,7 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Collections.singletonList(device);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
+    PopupActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
@@ -193,7 +192,7 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};
 
-    assertArrayEquals(children, group.getChildren(null));
+    assertArrayEquals(children, group.getChildren(ActionManager.getInstance()));
   }
 
   @Test
@@ -209,7 +208,7 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Collections.singletonList(device);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
+    PopupActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
@@ -222,7 +221,7 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};
 
-    assertArrayEquals(children, group.getChildren(null));
+    assertArrayEquals(children, group.getChildren(ActionManager.getInstance()));
   }
 
   @Test
@@ -239,7 +238,7 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Collections.singletonList(device);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
+    PopupActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
@@ -252,7 +251,7 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};
 
-    assertArrayEquals(children, group.getChildren(null));
+    assertArrayEquals(children, group.getChildren(ActionManager.getInstance()));
   }
 
   @Test
@@ -276,7 +275,7 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Arrays.asList(runningDevice, availableDevice);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
+    PopupActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
 
     // Assert
     Object[] children = {
@@ -292,6 +291,6 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};
 
-    assertArrayEquals(children, group.getChildren(null));
+    assertArrayEquals(children, group.getChildren(ActionManager.getInstance()));
   }
 }
