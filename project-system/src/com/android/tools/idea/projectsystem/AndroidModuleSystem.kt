@@ -462,31 +462,19 @@ fun Module.getMainModule() : Module = getUserData(CommonAndroidUtil.LINKED_ANDRO
 
 fun Module.isMainModule() : Boolean = getMainModule() == this
 
-fun Module.getUnitTestModule() : Module?  {
-  val linkedGroup = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) ?: return this
-  return linkedGroup.unitTest
-}
+fun Module.getUnitTestModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.unitTest
 
 fun Module.isUnitTestModule() : Boolean = getUnitTestModule() == this
 
-fun Module.getScreenshotTestModule() : Module?  {
-  val linkedGroup = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) ?: return this
-  return linkedGroup.screenshotTest
-}
+fun Module.getScreenshotTestModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.screenshotTest
 
 fun Module.isScreenshotTestModule() : Boolean = getScreenshotTestModule() == this
 
-fun Module.getAndroidTestModule() : Module? {
-  val linkedGroup = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) ?: return this
-  return linkedGroup.androidTest
-}
+fun Module.getAndroidTestModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.androidTest
 
 fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
 
-fun Module.getTestFixturesModule() : Module? {
-  val linkedGroup = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) ?: return null
-  return linkedGroup.testFixtures
-}
+fun Module.getTestFixturesModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.testFixtures
 
 fun Module.isTestFixturesModule() : Boolean = getTestFixturesModule() == this
 

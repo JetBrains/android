@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
@@ -51,11 +50,11 @@ class ComposeSuppressorTest {
     fixture.enableInspections(TestFunctionNameInspection::class.java)
     fixture.stubComposableAnnotation()
 
-    val androidTestModule = projectRule.project.modules.single { it.isAndroidTestModule() }
+    val module = projectRule.project.modules.single()
     val androidTestSourceRoot = fixture.tempDirFixture.findOrCreateDir("src/androidTest")
     runInEdt {
       ApplicationManager.getApplication().runWriteAction<SourceFolder> {
-        PsiTestUtil.addSourceRoot(androidTestModule, androidTestSourceRoot, true)
+        PsiTestUtil.addSourceRoot(module, androidTestSourceRoot, true)
       }
     }
   }
