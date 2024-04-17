@@ -1552,7 +1552,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    *
    * @param block the {@link Callable} to be executed in the Render thread.
    * @param timeout maximum time to wait for the action to execute. If <= 0, the default timeout
-   *                 (see {@link RenderAsyncActionExecutor#DEFAULT_RENDER_THREAD_TIMEOUT_MS}) will be used.
+   *                will be used (see {@link RenderAsyncActionExecutor).
    * @param timeUnit   the {@link TimeUnit} for the timeout.
    *
    * @return A {@link CompletableFuture} that completes when the block finalizes.
