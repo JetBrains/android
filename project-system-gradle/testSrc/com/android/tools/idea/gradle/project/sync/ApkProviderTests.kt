@@ -177,7 +177,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         AGP_CURRENT to """
               ApplicationId: one.name.defaultConfig.debug
               Files:
-                base -> project/app/build/intermediates/extracted_apks/debug/extractApksFromBundleForDebug/base-master.apk
+                base -> project/app/build/intermediates/extracted_apks/debug/extractApksFromBundleForDebug/base-master_2.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/extractApksFromBundleForDebug/base-mdpi.apk
               RequiredInstallationOptions: []
             """,
@@ -462,7 +462,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         AGP_CURRENT to """
               ApplicationId: google.simpleapplication
               Files:
-                base -> project/app/build/intermediates/extracted_apks/debug/extractApksFromBundleForDebug/base-master.apk
+                base -> project/app/build/intermediates/extracted_apks/debug/extractApksFromBundleForDebug/base-master_2.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/extractApksFromBundleForDebug/base-mdpi.apk
               RequiredInstallationOptions: []
 
