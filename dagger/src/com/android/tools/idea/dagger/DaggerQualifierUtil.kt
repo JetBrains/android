@@ -41,6 +41,7 @@ import org.jetbrains.kotlin.analysis.api.calls.singleCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
+import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
@@ -50,6 +51,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.constants.AnnotationValue
@@ -168,9 +170,7 @@ private fun serializeKtAnnotationValue(value: KtAnnotationValue): String? {
       }
     }
     is KtEnumEntryAnnotationValue -> value.callableId?.asSingleFqName()?.asString()
-    is KtKClassAnnotationValue.KtLocalKClassAnnotationValue -> value.ktClass.fqName?.asString()
-    is KtKClassAnnotationValue.KtNonLocalKClassAnnotationValue ->
-      value.classId.normalizeToJVM().asSingleFqName().asString()
+    is KtKClassAnnotationValue -> (value.type as? KtNonErrorClassType)?.classId?.normalizeToJVM()?.asSingleFqName()?.asString()
     else -> null
   }
 }
@@ -257,8 +257,8 @@ private fun KtAnnotated.getQualifierInfoFromKtAnnotatedK2(): QualifierInfo? {
 
       val qualifierFqName = qualifier.classId?.asFqNameString() ?: return null
       val qualifierAttributes =
-        qualifier.arguments.associate { (attr, arg) ->
-          attr.asString() to (serializeKtAnnotationValue(arg) ?: return null)
+        qualifier.arguments.associate { arg ->
+          arg.name.asString() to (serializeKtAnnotationValue(arg.expression) ?: return null)
         }
 
       return QualifierInfo(qualifierFqName, qualifierAttributes)
