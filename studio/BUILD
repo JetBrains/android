@@ -658,7 +658,7 @@ studio_plugin(
 )
 
 studio_plugin(
-    name = "com.google.tools.intellij.aiplugin",
+    name = "com.google.tools.ij.aiplugin",
     directory = "gemini",
     libs = [
         "//tools/vendor/google/ml/aiplugin/core:aida_grpc",
@@ -716,7 +716,7 @@ android_studio(
         ":androidx.compose.plugins.idea",
         ":com.google.services.git4insights",
         ":com.google.services.firebase",
-        ":com.google.tools.intellij.aiplugin",
+        ":com.google.tools.ij.aiplugin",
         ":com.google.gct.directaccess",
         ":com.google.gct.testing",
         ":com.google.gct",
