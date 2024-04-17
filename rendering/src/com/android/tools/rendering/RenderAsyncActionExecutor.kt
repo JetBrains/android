@@ -81,31 +81,6 @@ interface RenderAsyncActionExecutor {
   /**
    * Runs an action that requires the rendering lock. Layoutlib is not thread safe so any rendering
    * actions should be called using this method. This method will run the passed action
-   * asynchronously and return a [CompletableFuture]
-   *
-   * @param actionTimeout maximum timeout for this action to executed once it has started running.
-   * @param actionTimeoutUnit [TimeUnit] for actionTimeout.
-   * @param callable [Callable] to be executed with the render action.
-   * @param <T> return type of the given callable.
-   */
-  fun <T> runAsyncActionWithTimeout(
-    actionTimeout: Long,
-    actionTimeoutUnit: TimeUnit,
-    callable: Callable<T>,
-  ): CompletableFuture<T> {
-    return runAsyncActionWithTimeout(
-      DEFAULT_RENDER_THREAD_QUEUE_TIMEOUT_MS,
-      TimeUnit.MILLISECONDS,
-      actionTimeout,
-      actionTimeoutUnit,
-      RenderingTopic.NOT_SPECIFIED,
-      callable,
-    )
-  }
-
-  /**
-   * Runs an action that requires the rendering lock. Layoutlib is not thread safe so any rendering
-   * actions should be called using this method. This method will run the passed action
    * asynchronously and return a [CompletableFuture].
    */
   fun <T> runAsyncAction(callable: Callable<T>): CompletableFuture<T> {

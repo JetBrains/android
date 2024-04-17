@@ -329,27 +329,6 @@ class RenderExecutorTest {
       }
 
       run {
-        // Check interruption via timeout
-        val actionIsRunningLatch = CountDownLatch(1)
-        val completeActionLatch = CountDownLatch(1)
-
-        // Run action timing out after 1 second
-        executor.runAsyncActionWithTimeout(1, TimeUnit.SECONDS) {
-          actionIsRunningLatch.countDown()
-          try {
-            while (!forceShutdown) {
-              Thread.sleep(250)
-            }
-          } finally {
-            completeActionLatch.countDown()
-          }
-        }
-
-        assertTrue(actionIsRunningLatch.await(5, TimeUnit.SECONDS))
-        assertTrue(completeActionLatch.await(5, TimeUnit.SECONDS))
-      }
-
-      run {
         val actionIsRunningLatch = CountDownLatch(1)
         val completeActionLatch = CountDownLatch(1)
         // Check the thread is still alive and working
