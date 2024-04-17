@@ -67,7 +67,7 @@ class FtlDeviceCatalogTest {
 
   @Test
   fun testEmptyAndroidDeviceCatalog() {
-    assertTrue(FtlDeviceCatalog().isEmpty())
+    assertTrue(FtlDeviceCatalog().isEmptyCatalog)
   }
 
   @Test
@@ -78,8 +78,8 @@ class FtlDeviceCatalogTest {
       testAndroidDeviceCatalog,
       "FtlDeviceCatalog fails to handle null fields in AndroidModel in AndroidDeviceCatalog",
     ) {
-      val testFtlDeviceCatalog = FtlDeviceCatalog().syncDeviceCatalog()
-      assertFalse(testFtlDeviceCatalog.isEmpty())
+      val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
+      assertFalse(testFtlDeviceCatalog.isEmptyCatalog)
       assertTrue(testFtlDeviceCatalog.devices.isNotEmpty())
     }
   }
@@ -91,8 +91,8 @@ class FtlDeviceCatalogTest {
       testAndroidDeviceCatalog,
       "FtlDeviceCatalog fails to handle null AndroidModel in AndroidDeviceCatalog",
     ) {
-      val testFtlDeviceCatalog = FtlDeviceCatalog().syncDeviceCatalog()
-      assertTrue(testFtlDeviceCatalog.isEmpty())
+      val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
+      assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
     }
   }
 
@@ -104,9 +104,9 @@ class FtlDeviceCatalogTest {
       emptyModelIdDeviceCatalog,
       "FtlDeviceCatalog fails to handle null model id AndroidModel",
     ) {
-      val testFtlDeviceCatalog = FtlDeviceCatalog().syncDeviceCatalog()
+      val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(testFtlDeviceCatalog.devices.isEmpty())
-      assertTrue(testFtlDeviceCatalog.isEmpty())
+      assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
     }
   }
 
@@ -118,9 +118,9 @@ class FtlDeviceCatalogTest {
       emptyVersionIdDeviceCatalog,
       "FtlDeviceCatalog fails to handle null supported version id in AndroidModel",
     ) {
-      val testFtlDeviceCatalog = FtlDeviceCatalog().syncDeviceCatalog()
+      val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(testFtlDeviceCatalog.devices.isEmpty())
-      assertTrue(testFtlDeviceCatalog.isEmpty())
+      assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
     }
   }
 
@@ -132,9 +132,9 @@ class FtlDeviceCatalogTest {
       testAndroidDeviceCatalog,
       "FtlDeviceCatalog fails to handle empty AndroidVersion",
     ) {
-      val testFtlDeviceCatalog = FtlDeviceCatalog().syncDeviceCatalog()
+      val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(testFtlDeviceCatalog.apiLevels.isEmpty())
-      assertTrue(testFtlDeviceCatalog.isEmpty())
+      assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
     }
   }
 
@@ -147,10 +147,10 @@ class FtlDeviceCatalogTest {
       testAndroidDeviceCatalog,
       "FtlDeviceCatalog fails to handle empty AndroidRuntimeConfiguration",
     ) {
-      val testFtlDeviceCatalog = FtlDeviceCatalog().syncDeviceCatalog()
+      val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(testFtlDeviceCatalog.orientation.isEmpty())
       assertTrue(testFtlDeviceCatalog.locale.isEmpty())
-      assertTrue(testFtlDeviceCatalog.isEmpty())
+      assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
     }
   }
 
@@ -163,9 +163,9 @@ class FtlDeviceCatalogTest {
       testAndroidDeviceCatalog,
       "FtlDeviceCatalog fails to handle empty Orientation in AndroidRuntimeConfiguration",
     ) {
-      val testFtlDeviceCatalog = FtlDeviceCatalog().syncDeviceCatalog()
+      val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(testFtlDeviceCatalog.orientation.isEmpty())
-      assertTrue(testFtlDeviceCatalog.isEmpty())
+      assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
     }
   }
 
@@ -178,9 +178,9 @@ class FtlDeviceCatalogTest {
       testAndroidDeviceCatalog,
       "FtlDeviceCatalog fails to handle empty Locale in AndroidRuntimeConfiguration",
     ) {
-      val testFtlDeviceCatalog = FtlDeviceCatalog().syncDeviceCatalog()
+      val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(testFtlDeviceCatalog.locale.isEmpty())
-      assertTrue(testFtlDeviceCatalog.isEmpty())
+      assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
     }
   }
 
@@ -190,9 +190,9 @@ class FtlDeviceCatalogTest {
       fullAndroidDeviceCatalog,
       "FtlDeviceCatalog fails to obtain all required information from a full AndroidDeviceCatalog",
     ) {
-      val testFtlDeviceCatalog = FtlDeviceCatalog().syncDeviceCatalog()
+      val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
       assertTrue(matchFtlDeviceCatalog(testFtlDeviceCatalog, fullAndroidDeviceCatalog))
-      assertFalse(testFtlDeviceCatalog.isEmpty())
+      assertFalse(testFtlDeviceCatalog.isEmptyCatalog)
     }
   }
 
@@ -202,8 +202,8 @@ class FtlDeviceCatalogTest {
       null,
       "FtlDeviceCatalog fails to handle null AndroidDeviceCatalog from CloudAuthenticator",
     ) {
-      val testFtlDeviceCatalog = FtlDeviceCatalog().syncDeviceCatalog()
-      assertTrue(testFtlDeviceCatalog.isEmpty())
+      val testFtlDeviceCatalog = FtlDeviceCatalogService.syncDeviceCatalog()
+      assertTrue(testFtlDeviceCatalog.isEmptyCatalog)
     }
   }
 }

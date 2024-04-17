@@ -31,7 +31,7 @@ class ManagedVirtualDeviceCatalogStateTest {
   @Test
   fun testManagedVirtualDeviceCatalogStateOutdated() {
     assertFalse(ManagedVirtualDeviceCatalogState(Calendar.getInstance().time,
-                                                 ManagedVirtualDeviceCatalog().syncDeviceCatalog()).isCacheFresh())
+                                                 ManagedVirtualDeviceCatalogService.syncDeviceCatalog()).isCacheFresh())
   }
 
   @Test
@@ -50,11 +50,11 @@ class ManagedVirtualDeviceCatalogStateTest {
   fun testManagedVirtualDeviceCatalogConverter() {
     val converter = ManagedVirtualDeviceCatalogState.ManagedVirtualDeviceCatalogConverter()
     try {
-      val testManagedVirtualDeviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
+      val testManagedVirtualDeviceCatalog = ManagedVirtualDeviceCatalogService.syncDeviceCatalog()
       val serializedString = converter.toString(testManagedVirtualDeviceCatalog)
       val deserializedDeviceCatalog = converter.fromString(serializedString)
       // If there are serialization issues it will throw error before reaching assertTrue
-      assertTrue(deserializedDeviceCatalog.isEmpty() == testManagedVirtualDeviceCatalog.isEmpty())
+      assertTrue(deserializedDeviceCatalog.isEmptyCatalog == testManagedVirtualDeviceCatalog.isEmptyCatalog)
       assertTrue(deserializedDeviceCatalog.devices == testManagedVirtualDeviceCatalog.devices)
       assertTrue(deserializedDeviceCatalog.apiLevels == testManagedVirtualDeviceCatalog.apiLevels)
     }

@@ -73,7 +73,7 @@ val fullFtlDeviceCatalog: () -> FtlDeviceCatalog = {
   deviceCatalog.orientation.addAll(testFtlDeviceOrientation)
   deviceCatalog.locale.putAll(testFtlDeviceLocale)
   deviceCatalog.apiLevels.addAll(testFtlDeviceApiLevels)
-  deviceCatalog.checkEmptyFields()
+  deviceCatalog.isEmptyCatalog = false
   deviceCatalog
 }
 
@@ -81,7 +81,7 @@ val fullManagedVirtualDeviceCatalog: () -> ManagedVirtualDeviceCatalog = {
   val deviceCatalog = ManagedVirtualDeviceCatalog()
   deviceCatalog.apiLevels.add(ManagedVirtualDeviceCatalog.ApiVersionInfo())
   deviceCatalog.devices["testDevice"] = AndroidDeviceInfo()
-  deviceCatalog.checkEmptyFields()
+  deviceCatalog.isEmptyCatalog = false
   deviceCatalog
 }
 

@@ -39,10 +39,5 @@ abstract class GmdDeviceCatalog {
     }
   }
 
-  protected var isEmptyCatalog: Boolean = true
-  fun isEmpty(): Boolean = this.isEmptyCatalog
-
-  // Make sure every GMD device catalog check if all its fields are empty
-  abstract fun checkEmptyFields(): GmdDeviceCatalog
-  abstract fun syncDeviceCatalog(): GmdDeviceCatalog
+  var isEmptyCatalog: Boolean = true
 }
