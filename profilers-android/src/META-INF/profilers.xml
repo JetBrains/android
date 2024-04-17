@@ -67,6 +67,8 @@
     </action>
     <action id="Android.SelectNativeAllocationsTask" class="com.android.tools.idea.profilers.actions.SelectNativeAllocationsTaskAction">
     </action>
+    <action id="Android.SelectLiveViewTask" class="com.android.tools.idea.profilers.actions.SelectLiveViewTaskAction">
+    </action>
     <action id="Android.Profile" class="com.android.tools.idea.profilers.actions.ProfileAction">
     </action>
   </actions>

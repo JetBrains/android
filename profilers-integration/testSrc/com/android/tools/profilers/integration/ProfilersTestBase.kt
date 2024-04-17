@@ -255,6 +255,10 @@ open class ProfilersTestBase {
     studio.executeAction("Android.SelectNativeAllocationsTask")
   }
 
+  protected fun selectLiveViewTask(studio: AndroidStudio) {
+    studio.executeAction("Android.SelectLiveViewTask")
+  }
+
   protected fun selectDevice(studio: AndroidStudio) {
     studio.executeAction("Android.ProfilerSelectDevice")
   }
