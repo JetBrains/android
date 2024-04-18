@@ -82,10 +82,7 @@ class ComposePreviewKotlin {
     }
   }
 
-  /**
-   * Waits for 30s for a given [condition] to be true. Delays for 500ms per iteration and dispatches
-   * all events in the event queue in each iteration.
-   */
+  /** Waits for 2 minutes for a given [condition] to be true. Delays for 500ms per iteration. */
   private fun waitForCondition(condition: () -> Boolean) {
     val timeoutMs = System.currentTimeMillis() + 120_000 // 2 minutes from now
     val delayMs = 500L
