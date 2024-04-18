@@ -22,5 +22,6 @@ internal object Padding {
   internal val SMALL_MEDIUM = 8.dp
   internal val MEDIUM = 12.dp
   internal val MEDIUM_LARGE = 14.dp
-  internal val LARGE = 20.dp
+  internal val LARGE = 16.dp
+  internal val EXTRA_LARGE = 20.dp
 }

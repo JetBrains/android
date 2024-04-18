@@ -68,7 +68,7 @@ internal fun AdditionalSettingsPanel(
   onDeviceChange: (VirtualDevice) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
-  Column(verticalArrangement = Arrangement.spacedBy(Padding.LARGE)) {
+  Column(verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
     Row {
       Text("Device skin", Modifier.padding(end = Padding.SMALL))
 
