@@ -44,7 +44,7 @@ fun main() {
         DeviceScreenDiagram(
           800,
           if (round) 800 else 1200,
-          area = "6.2\"",
+          diagonalLength = "6.2\"",
           round = round,
           modifier = Modifier.clickable { round = !round },
         )

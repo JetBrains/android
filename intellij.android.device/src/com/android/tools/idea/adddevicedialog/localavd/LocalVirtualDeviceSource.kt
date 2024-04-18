@@ -111,6 +111,7 @@ internal class LocalVirtualDeviceSource(
       resolution =
         Resolution(this.defaultHardware.screen.xDimension, this.defaultHardware.screen.yDimension),
       displayDensity = this.defaultHardware.screen.pixelDensity.dpiValue,
+      displayDiagonalLength = this.defaultHardware.screen.diagonalLength,
       abis = this.defaultHardware.supportedAbis + this.defaultHardware.translatedAbis,
       // TODO: Choose an appropriate skin
       skin = DefaultSkin(Path.of(sdk, "skins", "pixel_6")),

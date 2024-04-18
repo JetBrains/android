@@ -31,6 +31,10 @@ interface DeviceProfile {
   val name: String
   val resolution: Resolution
   val displayDensity: Int
+  /** The diagonal length of the screen, in inches, or 0 if unknown. */
+  val displayDiagonalLength: Double
+    get() = 0.0
+
   val isVirtual: Boolean
   val isRemote: Boolean
   val abis: List<Abi>
@@ -49,6 +53,7 @@ interface DeviceProfile {
     lateinit var name: String
     lateinit var resolution: Resolution
     var displayDensity: Int = 0
+    var displayDiagonalLength: Double = 0.0
     var isVirtual: Boolean = false
     var isRemote: Boolean = false
     lateinit var abis: List<Abi>
@@ -66,6 +71,7 @@ interface DeviceProfile {
       name = profile.name
       resolution = profile.resolution
       displayDensity = profile.displayDensity
+      displayDiagonalLength = profile.displayDiagonalLength
       isVirtual = profile.isVirtual
       isRemote = profile.isRemote
       abis = profile.abis

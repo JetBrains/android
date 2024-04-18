@@ -41,7 +41,7 @@ import org.jetbrains.jewel.foundation.theme.LocalTextStyle
  *
  * @param width the width of the screen in pixels
  * @param height the height of the screen in pixels
- * @param area the area of the screen as a String, e.g. 6.2"
+ * @param diagonalLength the diagonal length of the screen as a String, e.g. 6.2"
  * @param round if the screen is circular; if true, height must be equal to width
  */
 @Composable
@@ -49,7 +49,7 @@ fun DeviceScreenDiagram(
   width: Int,
   height: Int,
   modifier: Modifier = Modifier,
-  area: String = "",
+  diagonalLength: String = "",
   round: Boolean = false,
 ) {
   check(!round || height == width) { "Round screens have equal width and height" }
@@ -65,10 +65,10 @@ fun DeviceScreenDiagram(
     remember(height, textStyle) {
       textMeasurer.measure("$height px", maxLines = 1, style = textStyle)
     }
-  val areaTextMeasurement =
-    remember(area, textStyle) {
+  val diagonalTextMeasurement =
+    remember(diagonalLength, textStyle) {
       textMeasurer.measure(
-        area,
+        diagonalLength,
         style = textStyle.copy(fontSize = textStyle.fontSize * 1.2),
         maxLines = 1,
       )
@@ -104,16 +104,16 @@ fun DeviceScreenDiagram(
       bottom = 0f,
     ) {
       inset(4.dp.toPx()) {
-        if (area.isNotEmpty()) {
+        if (diagonalLength.isNotEmpty()) {
           val radius = if (round) (size.width / 2) else 12.dp.toPx()
           val lineOffset = (radius * (1 - 1 / Math.sqrt(2.0))).toFloat() + 4.dp.toPx()
-          val textTopLeft = center - areaTextMeasurement.size.center.toOffset()
-          drawText(areaTextMeasurement, topLeft = textTopLeft, color = contentColor)
+          val textTopLeft = center - diagonalTextMeasurement.size.center.toOffset()
+          drawText(diagonalTextMeasurement, topLeft = textTopLeft, color = contentColor)
           clipRect(
             left = textTopLeft.x,
             top = textTopLeft.y,
-            right = textTopLeft.x + areaTextMeasurement.size.width,
-            bottom = textTopLeft.y + areaTextMeasurement.size.height,
+            right = textTopLeft.x + diagonalTextMeasurement.size.width,
+            bottom = textTopLeft.y + diagonalTextMeasurement.size.height,
             clipOp = ClipOp.Difference,
           ) {
             drawLine(

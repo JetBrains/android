@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.DeviceScreenDiagram
+import java.text.DecimalFormat
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.Text
 
@@ -45,10 +46,13 @@ fun DeviceDetails(device: DeviceProfile, apiLevel: Int?, modifier: Modifier = Mo
       fontWeight = FontWeight.Bold,
       fontSize = LocalTextStyle.current.fontSize * 1.2,
     )
+
     DeviceScreenDiagram(
       device.resolution.width,
       device.resolution.height,
-      Modifier.widthIn(max = 200.dp).heightIn(max = 200.dp).align(Alignment.CenterHorizontally),
+      diagonalLength = device.diagonalLengthString(),
+      modifier =
+        Modifier.widthIn(max = 200.dp).heightIn(max = 200.dp).align(Alignment.CenterHorizontally),
     )
 
     Header("Device")
@@ -94,3 +98,9 @@ private fun LabeledValue(label: String, value: String) {
     Column(Modifier.weight(0.5f)) { Text(value) }
   }
 }
+
+private val diagonalLengthFormat = DecimalFormat(".##")
+
+private fun DeviceProfile.diagonalLengthString() =
+  if (displayDiagonalLength > 0) diagonalLengthFormat.format(displayDiagonalLength) + '\u2033'
+  else ""
