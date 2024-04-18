@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.ui.AttachProgressProvider
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorLoadingObserver
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
@@ -64,12 +65,15 @@ class RootPanel(
     removeListeners()
   }
 
+  private val attachProgressProvider = AttachProgressProvider { loadingPanel.setLoadingText(it) }
+
   var layoutInspector: LayoutInspector? = null
     set(value) {
       // Clean up before removing old instance of Layout Inspector.
       removeListeners()
       // Reset UI.
       updateUiState(UiState.WAITING_TO_CONNECT)
+      layoutInspector?.inspectorModel?.removeAttachStageListener(attachProgressProvider)
 
       field = value
 
@@ -85,6 +89,8 @@ class RootPanel(
         // Outside of Layout Inspector the "app not debuggable" indicator is in the main panel.
         value.foregroundProcessDetection?.addForegroundProcessListener(foregroundProcessListener)
       }
+
+      value.inspectorModel.addAttachStageListener(attachProgressProvider)
     }
 
   private val foregroundProcessListener = ForegroundProcessListener { _, _, isDebuggable ->

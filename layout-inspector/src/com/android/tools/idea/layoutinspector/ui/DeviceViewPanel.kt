@@ -32,7 +32,6 @@ import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_S
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.android.tools.idea.layoutinspector.ui.toolbar.createStandaloneLayoutInspectorToolbar
 import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataKey
@@ -272,55 +271,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
     val model = layoutInspector.inspectorModel
     val notificationModel = layoutInspector.notificationModel
 
-    model.addAttachStageListener() { state ->
-      val text =
-        when (state) {
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE ->
-            "Unknown state"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.NOT_STARTED -> "Starting"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING -> "Adb ping success"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS -> "Attach success"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT ->
-            "Start request sent"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.START_RECEIVED ->
-            "Start request received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.STARTED -> "Started"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_SENT -> "Roots sent"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_RECEIVED -> "Roots received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_INVALIDATION_CALLBACK ->
-            "Capture started"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.SCREENSHOT_CAPTURED ->
-            "Screenshot captured"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_HIERARCHY_CAPTURED ->
-            "Hierarchy captured"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.RESPONSE_SENT -> "Response sent"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LAYOUT_EVENT_RECEIVED ->
-            "View information received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_REQUEST_SENT ->
-            "Compose information request"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_RESPONSE_RECEIVED ->
-            "Compose information received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_REQUESTED ->
-            "Legacy window list requested"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_RECEIVED ->
-            "Legacy window list received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_REQUESTED ->
-            "Legacy hierarchy requested"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_RECEIVED ->
-            "Legacy hierarchy received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_REQUESTED ->
-            "Legacy screenshot requested"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_RECEIVED ->
-            "Legacy screenshot received"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.PARSED_COMPONENT_TREE ->
-            "Compose tree parsed"
-          DynamicLayoutInspectorErrorInfo.AttachErrorState.MODEL_UPDATED -> "Update complete"
-        }
-
-      if (text.isNotEmpty()) {
-        loadingPane.setLoadingText(text)
-      }
-    }
+    model.addAttachStageListener(AttachProgressProvider { loadingPane.setLoadingText(it) })
 
     contentPanel.renderModel.modificationListeners.add {
       ApplicationManager.getApplication().invokeLater {
