@@ -510,6 +510,39 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
+  fun `background indicator is not created if project is disposed`() {
+    var backgroundIndicatorsCreated = 0
+    composePreviewRepresentation.updateRefreshIndicatorCallbackForTests {
+      backgroundIndicatorsCreated++
+    }
+    var refreshDeferred = runBlocking {
+      val completableDeferred = CompletableDeferred<Unit>()
+      composePreviewRepresentation.requestRefreshForTest(
+        ComposePreviewRefreshType.QUICK,
+        completableDeferred = completableDeferred,
+      )
+      completableDeferred
+    }
+    assertNotNull(refreshDeferred)
+    runInEdtAndWait { Disposer.dispose(composePreviewRepresentation, false) }
+    assertEquals(1, backgroundIndicatorsCreated)
+
+    refreshDeferred = runBlocking {
+      val completableDeferred = CompletableDeferred<Unit>()
+      composePreviewRepresentation.requestRefreshForTest(
+        ComposePreviewRefreshType.QUICK,
+        completableDeferred = completableDeferred,
+      )
+      completableDeferred
+    }
+    // Verify that it is completed exceptionally
+    assertTrue(refreshDeferred.isCompleted)
+    assertNotNull(refreshDeferred.getCompletionExceptionOrNull())
+    // Verify that no additional background indicator is created
+    assertEquals(1, backgroundIndicatorsCreated)
+  }
+
+  @Test
   fun testPreviewRenderQuality_zoom() =
     projectRule.runWithRenderQualityEnabled {
       var firstPreview: SceneViewPeerPanel? = null

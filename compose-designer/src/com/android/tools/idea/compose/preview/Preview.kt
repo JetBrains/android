@@ -746,6 +746,8 @@ class ComposePreviewRepresentation(
 
   private val hasPreviewsCachedValue = AtomicBoolean(false)
 
+  private var _refreshIndicatorCallback = {}
+
   init {
     launch {
       // Keep track of the last mode that was set to ensure it is correctly disposed
@@ -1117,7 +1119,7 @@ class ComposePreviewRepresentation(
     completableDeferred: CompletableDeferred<Unit>? = null,
   ) {
     if (isDisposed.get()) {
-      completableDeferred?.completeExceptionally(IllegalStateException("Already disposed"))
+      completableDeferred?.completeAlreadyDisposed()
       return
     }
     // Make sure not to allow quality change refreshes when the flag is disabled
@@ -1161,11 +1163,26 @@ class ComposePreviewRepresentation(
   }
 
   /**
+   * Completes the [CompletableDeferred] exceptionally with an [IllegalStateException] that says
+   * this [ComposePreviewRepresentation] is already disposed.
+   */
+  private fun CompletableDeferred<Unit>.completeAlreadyDisposed() {
+    this.completeExceptionally(IllegalStateException("Already disposed"))
+  }
+
+  @TestOnly
+  fun updateRefreshIndicatorCallbackForTests(refreshIndicatorCallback: () -> Unit) {
+    _refreshIndicatorCallback = refreshIndicatorCallback
+  }
+
+  /**
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and
    * render those elements. The refresh will only happen if the Preview elements have changed from
    * the last render.
    */
   private fun refresh(refreshRequest: ComposePreviewRefreshRequest): Job {
+    if (isDisposed.get()) return CompletableDeferred<Unit>().also { it.completeAlreadyDisposed() }
+
     val requestLogger = LoggerWithFixedInfo(log, mapOf("requestId" to refreshRequest.requestId))
     requestLogger.debug(
       "Refresh triggered editor=${psiFilePointer.containingFile?.name}. Refresh type: ${refreshRequest.refreshType}"
@@ -1186,11 +1203,10 @@ class ComposePreviewRepresentation(
         "",
         true,
       )
+    _refreshIndicatorCallback()
     if (!Disposer.tryRegister(this, refreshProgressIndicator)) {
       refreshProgressIndicator.processFinish()
-      return CompletableDeferred<Unit>().also {
-        it.completeExceptionally(IllegalStateException("Already disposed"))
-      }
+      return CompletableDeferred<Unit>().also { it.completeAlreadyDisposed() }
     }
 
     // Make sure not to start refreshes when deactivated, unless it is the first quality refresh
