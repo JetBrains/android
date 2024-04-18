@@ -55,6 +55,8 @@
     <option name="previous" path="ActionManager" hit="Change to previous device in the device menu" />
     <option name="the" path="ActionManager" hit="Change to previous device in the device menu" />
     <option name="to" path="ActionManager" hit="Change to previous device in the device menu" />
+    <option name="compose" path="ActionManager" hit="Compose Preview" />
+    <option name="preview" path="ActionManager" hit="Compose Preview" />
     <option name="constraint" path="ActionManager" hit="Constraint Layout Help Panel" />
     <option name="help" path="ActionManager" hit="Constraint Layout Help Panel" />
     <option name="layout" path="ActionManager" hit="Constraint Layout Help Panel" />
@@ -92,6 +94,9 @@
     <option name="force" path="ActionManager" hit="Force Refresh Layout" />
     <option name="layout" path="ActionManager" hit="Force Refresh Layout" />
     <option name="refresh" path="ActionManager" hit="Force Refresh Layout" />
+    <option name="compose" path="ActionManager" hit="Generate Compose Preview" />
+    <option name="generate" path="ActionManager" hit="Generate Compose Preview" />
+    <option name="preview" path="ActionManager" hit="Generate Compose Preview" />
     <option name="help" path="ActionManager" hit="Motion Layout Help Panel" />
     <option name="layout" path="ActionManager" hit="Motion Layout Help Panel" />
     <option name="motion" path="ActionManager" hit="Motion Layout Help Panel" />

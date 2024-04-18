@@ -1385,6 +1385,11 @@ public final class StudioFlags {
     "Enable a Gemini context-menu action that generates sample data for a given Composable function",
     false);
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_PREVIEW = new BooleanFlag(
+    COMPOSE, "preview.generate.preview.action", "Enable editor action for generating Compose Previews",
+    "Enable a context-menu action that can generate a Compose Previews corresponding to the selected @Composable",
+    false);
+
   public static final Flag<Boolean> COMPOSE_UI_CHECK_MODE = new BooleanFlag(
     COMPOSE, "ui.check.mode", "Enable UI Check mode for Compose preview",
     "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting",
