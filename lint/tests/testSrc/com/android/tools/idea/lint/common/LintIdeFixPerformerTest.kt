@@ -122,7 +122,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
     // noinspection UnnecessaryVariable
     val endElement = startElement
     val context = EditorContext.getInstance(myFixture.editor, file)
-    val fix = fixes[0]
+    val fix = fixes[0] as DefaultLintQuickFix
     assertTrue(fix.isApplicable(startElement, endElement, BatchContext.TYPE))
     assertTrue(fix.isApplicable(startElement, endElement, EditorContext.TYPE))
     WriteCommandAction.runWriteCommandAction(startElement.project) {
@@ -195,7 +195,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
     // noinspection UnnecessaryVariable
     val endElement = startElement
     val context = EditorContext.getInstance(myFixture.editor, file)
-    val fix = fixes[0]
+    val fix = fixes[0] as DefaultLintQuickFix
     assertTrue(fix.isApplicable(startElement, endElement, BatchContext.TYPE))
     assertTrue(fix.isApplicable(startElement, endElement, EditorContext.TYPE))
     WriteCommandAction.runWriteCommandAction(startElement.project) {
@@ -276,7 +276,7 @@ class LintIdeFixPerformerTest : JavaCodeInsightFixtureAdtTestCase() {
     // noinspection UnnecessaryVariable
     val endElement = startElement
     val context = EditorContext.getInstance(myFixture.editor, file)
-    val fix = fixes[0]
+    val fix = fixes[0] as DefaultLintQuickFix
     assertTrue(fix.isApplicable(startElement, endElement, BatchContext.TYPE))
     assertTrue(fix.isApplicable(startElement, endElement, EditorContext.TYPE))
     WriteCommandAction.runWriteCommandAction(startElement.project) {

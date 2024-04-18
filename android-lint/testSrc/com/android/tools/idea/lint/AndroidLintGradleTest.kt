@@ -271,6 +271,7 @@ fun JavaCodeInsightTestFixture.checkLint(
   val fileText = psiFile.text
   val sb = StringBuilder()
   val target = psiFile.findCaretOffset(caret)
+  editor.caretModel.moveToOffset(target)
   val highlights =
     doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
   for (highlight in highlights) {

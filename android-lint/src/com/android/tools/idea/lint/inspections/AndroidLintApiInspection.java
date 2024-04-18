@@ -24,6 +24,7 @@ import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.ModCommandLintQuickFix;
 import com.android.tools.idea.lint.quickFixes.AddTargetApiQuickFix;
 import com.android.tools.idea.lint.quickFixes.AddTargetVersionCheckQuickFix;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -95,21 +96,21 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
         // to be the recommended one. We don't currently have an annotation mechanism to
         // declare "you must have *all* of these APIs".
         if (requiresExtensionAvailable(project)) {
-          list.add(new AddTargetApiQuickFix(Collections.singletonList(first), true, startElement, requireClass));
+          list.add(new ModCommandLintQuickFix(new AddTargetApiQuickFix(Collections.singletonList(first), true, startElement, requireClass)));
         }
       } else {
         int sdkId = first.getSdkId();
         if (sdkId == ANDROID_SDK_ID) {
           if (!isXml && requiresApiAvailable(project)) {
-            list.add(new AddTargetApiQuickFix(constraints, true, startElement, requireClass));
+            list.add(new ModCommandLintQuickFix(new AddTargetApiQuickFix(constraints, true, startElement, requireClass)));
           }
           else {
             // Discourage use of @TargetApi if @RequiresApi is available; see for example
             // https://android-review.googlesource.com/c/platform/frameworks/support/+/843915/
-            list.add(new AddTargetApiQuickFix(constraints, false, startElement, requireClass));
+            list.add(new ModCommandLintQuickFix(new AddTargetApiQuickFix(constraints, false, startElement, requireClass)));
           }
         } else if (!isXml && requiresExtensionAvailable(project)) {
-          list.add(new AddTargetApiQuickFix(constraints, true, startElement, requireClass));
+          list.add(new ModCommandLintQuickFix(new AddTargetApiQuickFix(constraints, true, startElement, requireClass)));
         }
       }
 

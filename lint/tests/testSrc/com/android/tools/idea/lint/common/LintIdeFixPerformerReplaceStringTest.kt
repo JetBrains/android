@@ -57,7 +57,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val fix = lintFix.toIdeFix(file)
+    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
     val context = BatchContext.getInstance()
     val element = (file as PsiJavaFile).classes[0].methods[0].nameIdentifier!!
 
@@ -175,7 +175,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
         .trimIndent(),
     )
 
-    val fix = lintFix.toIdeFix(file)
+    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
     val context = BatchContext.getInstance()
     assertTrue(fix.isApplicable(file, file, context.type))
     WriteCommandAction.writeCommandAction(myFixture.project)
@@ -256,7 +256,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val fix = lintFix.toIdeFix(file)
+    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
     val context = BatchContext.getInstance()
     val element = file.findElementAt(file.text.indexOf("println()"))?.parent?.parent!!
     assertEquals("println()", element.text)
@@ -314,7 +314,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val fix = lintFix.toIdeFix(file)
+    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
     val context = BatchContext.getInstance()
     val element = file.findElementAt(file.text.indexOf("new String"))?.parent!!
     assertEquals("new String()", element.text)
@@ -371,7 +371,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val fix = lintFix.toIdeFix(file)
+    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
     val context = BatchContext.getInstance()
     val element = file.findElementAt(file.text.indexOf("String"))?.parent!!
     assertEquals("String", element.text)
@@ -442,7 +442,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
         .trimIndent(),
     )
 
-    val fix = lintFix.toIdeFix(file)
+    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
     val context = BatchContext.getInstance()
     val element = file.findElementAt(file.text.indexOf("ReplaceMe"))?.parent!!.parent!!
     assertEquals("ReplaceMe()", element.text)
@@ -512,7 +512,7 @@ class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase()
         .trimIndent(),
     )
 
-    val fix = lintFix.toIdeFix(file)
+    val fix = lintFix.toIdeFix(file) as DefaultLintQuickFix
     val context = BatchContext.getInstance()
     val element = file.findElementAt(file.text.indexOf("ReplaceMe"))?.parent!!.parent!!
     assertEquals("ReplaceMe()", element.text)

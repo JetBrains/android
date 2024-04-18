@@ -71,7 +71,7 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
         .select("// ()your code here")
         .build()
 
-    val fix = lintFix.toIdeFix(currentFile)
+    val fix = lintFix.toIdeFix(currentFile) as DefaultLintQuickFix
     assertTrue(fix.isApplicable(currentFile, currentFile, context.type))
     WriteCommandAction.writeCommandAction(myFixture.project)
       .run(ThrowableRunnable { fix.apply(currentFile, currentFile, context) })
@@ -107,7 +107,7 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
         .select("// (your code here)")
         .build()
 
-    val fix = lintFix.toIdeFix(currentFile)
+    val fix = lintFix.toIdeFix(currentFile) as DefaultLintQuickFix
     assertTrue(fix.isApplicable(currentFile, currentFile, context.type))
     WriteCommandAction.writeCommandAction(myFixture.project)
       .run(ThrowableRunnable { fix.apply(currentFile, currentFile, context) })
@@ -137,7 +137,7 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
     val binary = byteArrayOf(0, 1, 2, 3, 4)
     val lintFix = LintFix.create().name("Create ${newFile.name}").newFile(newFile, binary).build()
 
-    val fix = lintFix.toIdeFix(currentFile)
+    val fix = lintFix.toIdeFix(currentFile) as DefaultLintQuickFix
     assertTrue(fix.isApplicable(currentFile, currentFile, context.type))
     WriteCommandAction.writeCommandAction(myFixture.project)
       .run(ThrowableRunnable { fix.apply(currentFile, currentFile, context) })
@@ -172,7 +172,7 @@ class LintIdeFixPerformerCreateFileTest : JavaCodeInsightFixtureTestCase() {
     val lintFix =
       LintFix.create().name("Delete ${deleteVirtualFile.name}").deleteFile(deleteFile).build()
 
-    val fix = lintFix.toIdeFix(currentFile)
+    val fix = lintFix.toIdeFix(currentFile) as DefaultLintQuickFix
     assertTrue(fix.isApplicable(currentFile, currentFile, context.type))
     WriteCommandAction.writeCommandAction(myFixture.project)
       .run(ThrowableRunnable { fix.apply(currentFile, currentFile, context) })

@@ -344,14 +344,25 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
             issue,
           )
         for (fix in fixes) {
-          if (
-            fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)
-          ) {
-            val smartRange =
-              fix.range
-                ?: SmartPointerManager.getInstance(project)
-                  .createSmartPsiFileRangePointer(file, range)
-            builder = builder.withFix(MyFixingIntention(fix, smartRange, issue))
+          when (fix) {
+            is DefaultLintQuickFix -> {
+              if (
+                fix.isApplicable(
+                  startElement,
+                  endElement,
+                  AndroidQuickfixContexts.EditorContext.TYPE,
+                )
+              ) {
+                val smartRange =
+                  fix.range
+                    ?: SmartPointerManager.getInstance(project)
+                      .createSmartPsiFileRangePointer(file, range)
+                builder = builder.withFix(MyFixingIntention(fix, smartRange, issue))
+              }
+            }
+            is ModCommandLintQuickFix -> {
+              builder = builder.withFix(fix.asIntention(issue, project))
+            }
           }
         }
       } catch (ex: Exception) {
@@ -425,13 +436,13 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
   }
 
   class MyFixingIntention(
-    @SafeFieldForPreview private val myQuickFix: LintIdeQuickFix,
+    @SafeFieldForPreview private val myQuickFix: DefaultLintQuickFix,
     /** If non-null, the fix is targeted for a different file than the current one in the editor. */
     @SafeFieldForPreview private val myRange: SmartPsiFileRange,
     @SafeFieldForPreview private val issue: Issue? = null,
   ) : IntentionAction, HighPriorityAction {
     constructor(
-      quickFix: LintIdeQuickFix,
+      quickFix: DefaultLintQuickFix,
       project: Project,
       file: PsiFile,
       range: TextRange,

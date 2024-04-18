@@ -214,8 +214,12 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
     List<LocalQuickFix> result = new ArrayList<>(fixes.length);
     for (LintIdeQuickFix fix : fixes) {
-      if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.BatchContext.TYPE)) {
-        result.add(new MyLocalQuickFix(fix));
+      if (fix instanceof DefaultLintQuickFix) {
+        if (((DefaultLintQuickFix)fix).isApplicable(startElement, endElement, AndroidQuickfixContexts.BatchContext.TYPE)) {
+          result.add(new MyLocalQuickFix((DefaultLintQuickFix)fix));
+        }
+      } else if (fix instanceof ModCommandLintQuickFix) {
+        result.add(((ModCommandLintQuickFix)fix).asLocalQuickFix(issue, startElement.getProject()));
       }
     }
 
@@ -665,9 +669,9 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   static class MyLocalQuickFix extends InspectionGadgetsFix {
-    private final LintIdeQuickFix myLintQuickFix;
+    private final DefaultLintQuickFix myLintQuickFix;
 
-    MyLocalQuickFix(@NotNull LintIdeQuickFix lintQuickFix) {
+    MyLocalQuickFix(@NotNull DefaultLintQuickFix lintQuickFix) {
       myLintQuickFix = lintQuickFix;
     }
 

@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.android.tools.idea.testing.moveCaret
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.detector.api.DefaultPosition
 import com.android.tools.lint.detector.api.Incident
 import com.android.tools.lint.detector.api.LintFix
 import com.android.tools.lint.detector.api.Location
 import com.android.tools.tests.AdtTestProjectDescriptors
+import com.intellij.codeInspection.util.IntentionFamilyName
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModCommand
+import com.intellij.modcommand.ModCommandAction
+import com.intellij.modcommand.Presentation
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiDocumentManager
@@ -378,35 +384,32 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
       }
 
       class CompositeLintFix(
-        displayName: String?,
-        familyName: String?,
-        private val myFixes: Array<LintIdeQuickFix>,
-      ) : DefaultLintQuickFix(displayName ?: "Fix", familyName) {
-        override fun apply(
-          startElement: PsiElement,
-          endElement: PsiElement,
-          context: AndroidQuickfixContexts.Context,
-        ) {
-          for (fix in myFixes) {
-            fix.apply(startElement, endElement, context)
-          }
-        }
+        private val displayName: String,
+        private val familyName: String,
+        private val myFixes: Array<AnnotateQuickFix>,
+      ) : ModCommandAction {
 
-        override fun isApplicable(
-          startElement: PsiElement,
-          endElement: PsiElement,
-          contextType: AndroidQuickfixContexts.ContextType,
-        ): Boolean {
-          for (fix in myFixes) {
-            if (!fix.isApplicable(startElement, endElement, contextType)) {
-              return false
-            }
+        override fun getPresentation(context: ActionContext): Presentation? =
+          if (myFixes.any { it.getPresentation(context) == null }) null
+          else Presentation.of(displayName)
+
+        @Suppress("UnstableApiUsage")
+        override fun perform(context: ActionContext) =
+          // This illustrates composition for our quick fixes. Because they depend on the order in which they are applied (e.g. one
+          // quick fix could add an annotation, and another would add or replace that annotation depending on context), we cannot directly
+          // compose the corresponding ModCommands via ModCompositeCommand or .andThen() chaining.
+          // We first collect all the elements to be updated (important because some of the quick fixes are non-local, they edit different
+          // files), pass them through getWritable() to make copies, and then apply each quick fix in sequence, within a single
+          // ModCommand.psiUpdate() call.
+          ModCommand.psiUpdate(context) { updater ->
+            val targets = myFixes.map { updater.getWritable(it.findPsiTarget(context)) }
+            myFixes.zip(targets).map { (fix, target) -> fix.applyFixFun(target!!) }
           }
-          return true
-        }
+
+        override fun getFamilyName(): @IntentionFamilyName String = familyName
       }
 
-      return arrayOf(CompositeLintFix(name, null, fixes.toTypedArray()))
+      return arrayOf(ModCommandLintQuickFix(CompositeLintFix(name, "Fix", fixes.toTypedArray())))
     }
   }
 
@@ -496,12 +499,18 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
 
     val element = myFixture.findElementByText(selected, PsiElement::class.java)
     val fixes = createMultipleAnnotationFixes(element, annotations, rangeFactory, useLintFix)
+
     val context =
       AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
+    myFixture.moveCaret("|$selected")
 
     for (fix in fixes) {
-      assertTrue(fix.isApplicable(element, element, context.type))
-      WriteCommandAction.runWriteCommandAction(project) { fix.apply(element, element, context) }
+      if (fix is ModCommandLintQuickFix) {
+        myFixture.launchAction(fix.rawIntention())
+      } else if (fix is DefaultLintQuickFix) {
+        assertTrue(fix.isApplicable(element, element, context.type))
+        WriteCommandAction.runWriteCommandAction(project) { fix.apply(element, element, context) }
+      }
     }
 
     assertEquals(expected.trimIndent(), file.text.removePrefix("/*prefix*/"))

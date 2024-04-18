@@ -149,13 +149,15 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
             // annotations are not combined with other fixes, so it will be using the
             // `AnnotateQuickFix` path.**
             return arrayOf(
-              AnnotateQuickFix(
-                project,
-                fix.getDisplayName(),
-                fix.getFamilyName(),
-                fix.annotation,
-                fix.replace,
-                fix.range,
+              ModCommandLintQuickFix(
+                AnnotateQuickFix(
+                  project,
+                  fix.getDisplayName(),
+                  fix.getFamilyName(),
+                  fix.annotation,
+                  fix.replace,
+                  fix.range,
+                )
               )
             )
           }

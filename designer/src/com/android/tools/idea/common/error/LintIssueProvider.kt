@@ -17,7 +17,9 @@ package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.lint.LintAnnotationsModel
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
+import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.ModCommandLintQuickFix
 import com.android.tools.idea.rendering.HtmlBuilderHelper
 import com.android.tools.lint.detector.api.Option
 import com.android.tools.lint.detector.api.TextFormat
@@ -26,6 +28,7 @@ import com.google.common.collect.ImmutableCollection
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModCommandExecutor
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.psi.util.PsiEditorUtil
@@ -34,6 +37,8 @@ import java.util.Objects
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
 import kotlin.properties.Delegates
+import kotlinx.coroutines.Runnable
+import org.jetbrains.kotlin.idea.util.application.executeCommand
 
 class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProvider() {
 
@@ -125,27 +130,29 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         val project = issue.component.model.project
         val suppress =
           Suppress("Suppress", suppressLint.name) {
-            CommandProcessor.getInstance()
-              .executeCommand(
-                project,
-                {
-                  WriteAction.run<Throwable> {
-                    val startElement = issue.startElementPointer.element ?: return@run
-                    suppressLint.applyFix(
-                      startElement,
-                      ActionContext.from(null, startElement.containingFile),
-                    )
-                  }
-                },
-                EXECUTE_SUPPRESSION + suppressLint.name,
-                null,
+            project.executeCommand(EXECUTE_SUPPRESSION + suppressLint.name, null) {
+              val startElement = issue.startElementPointer.element ?: return@executeCommand
+              val actionContext = ActionContext.from(null, startElement.containingFile)
+
+              ModCommandExecutor.getInstance().executeInteractively(
+                actionContext,
+                suppressLint.applyFix(startElement, actionContext),
+                null
               )
+            }
           }
         return Stream.of(suppress)
       }
 
     private fun createQuickFixPair(fix: LintIdeQuickFix) =
-      Fix("Fix", fix.name, createQuickFixRunnable(fix))
+      Fix(
+        "Fix",
+        fix.name,
+        when (fix) {
+          is ModCommandLintQuickFix -> createQuickFixRunnable(fix.asIntention(issue.issue, issue.component.model.project))
+          else -> createQuickFixRunnable(fix as DefaultLintQuickFix)
+        },
+      )
 
     private fun createQuickFixPair(fix: IntentionAction) =
       Fix("Fix", fix.text, createQuickFixRunnable(fix))
@@ -165,7 +172,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
       return res
     }
 
-    private fun createQuickFixRunnable(fix: LintIdeQuickFix): Runnable {
+    private fun createQuickFixRunnable(fix: DefaultLintQuickFix): Runnable {
       return Runnable {
         val model = issue.component.model
         val file = issue.startElementPointer.containingFile ?: return@Runnable
