@@ -33,16 +33,17 @@ import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
+import com.android.tools.idea.insights.ui.CURRENT_ISSUE_KEY
 import com.android.tools.idea.insights.ui.DETAIL_PANEL_HORIZONTAL_SPACING
 import com.android.tools.idea.insights.ui.DetailsPanelHeader
 import com.android.tools.idea.insights.ui.DetailsPanelHeaderModel
 import com.android.tools.idea.insights.ui.DetailsTabbedPane
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
-import com.android.tools.idea.insights.ui.InsightButtonComponentAdapter
+import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
 import com.android.tools.idea.insights.ui.StackTraceConsole
 import com.android.tools.idea.insights.ui.TabbedPaneDefinition
-import com.android.tools.idea.insights.ui.actions.InsightAction
+import com.android.tools.idea.insights.ui.createInsightToolBar
 import com.android.tools.idea.insights.ui.dateFormatter
 import com.android.tools.idea.insights.ui.prettyRangeString
 import com.android.tools.idea.insights.ui.shortenEventId
@@ -51,8 +52,7 @@ import com.android.tools.idea.insights.ui.vcs.VcsCommitLabel
 import com.android.tools.idea.studiobot.StudioBot.RequestSource.PLAY_VITALS
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -153,7 +153,7 @@ class VitalsIssueDetailsPanel(
   val headerHeightUpdatedCallback: (Int) -> Unit,
   parentDisposable: Disposable,
   private val tracker: AppInsightsTracker,
-) : JPanel(BorderLayout()) {
+) : JPanel(BorderLayout()), DataProvider {
   private val scope = AndroidCoroutineScope(parentDisposable)
   private val detailsState =
     controller.state
@@ -334,21 +334,11 @@ class VitalsIssueDetailsPanel(
           add(affectedVersionsLabel)
           add(Box.createHorizontalGlue())
           if (StudioFlags.PLAY_VITALS_SHOW_INSIGHT.get()) {
-            val insightAction =
-              InsightAction(PLAY_VITALS, { project }) { detailsState.value.selectedIssue }
             // Work around for Gemini's onboarding flow not exposed.
             // Action system will take care of calling update on InsightAction.
-            // InsightAction will correctly update the text and tooltip.
-            ActionManager.getInstance()
-              .createActionToolbar("play vitals", DefaultActionGroup(insightAction), true)
-              .also { tb ->
-                tb.targetComponent = this
-                tb.component.border = JBUI.Borders.empty()
-                add(tb.component)
-                tb.component.addComponentListener(
-                  InsightButtonComponentAdapter(tb.component) { insightAction.component.size }
-                )
-              }
+            // InsightAction (added when creating toolbar) updates the text depending on Gemini's
+            // onboarding status
+            createInsightToolBar("play vitals", this).also { add(it.component) }
           }
         }
       )
@@ -421,6 +411,13 @@ class VitalsIssueDetailsPanel(
     @Suppress("UNNECESSARY_SAFE_CALL") emptyText?.setFont(StartupUiUtil.labelFont)
     @Suppress("UNNECESSARY_SAFE_CALL") stackTraceConsole?.updateUI()
   }
+
+  override fun getData(dataId: String): Any? =
+    when {
+      REQUEST_SOURCE_KEY.`is`(dataId) -> PLAY_VITALS
+      CURRENT_ISSUE_KEY.`is`(dataId) -> detailsState.value.selectedIssue
+      else -> null
+    }
 }
 
 private fun <T> MultiSelection<WithCount<T>>.getSelectedValueOrEmpty() =

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.insights.ui.actions
 
-import com.android.testutils.waitForCondition
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.Event
@@ -28,6 +30,8 @@ import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
+import com.android.tools.idea.insights.ui.CURRENT_ISSUE_KEY
+import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
 import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.ModelType
@@ -35,25 +39,34 @@ import com.android.tools.idea.studiobot.StubModel
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.plugins.IdeaPluginDescriptor
+import com.intellij.ide.plugins.PluginManagerConfigurable
+import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import java.util.concurrent.CountDownLatch
 import javax.swing.JButton
 import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentMatchers.anyList
+import org.mockito.MockedStatic
+import org.mockito.Mockito.doAnswer
 
 class InsightActionTest {
 
+  @get:Rule val projectRule = ProjectRule()
   private val event =
     Event(
       name = "event",
@@ -83,8 +96,11 @@ class InsightActionTest {
     )
 
   private val scope = CoroutineScope(EmptyCoroutineContext)
-  private val fakeOnboardingFlow = MutableStateFlow(false)
+  private var isOnboardingComplete = false
   private var isGeminiToolWindowOpen = false
+  private var isGeminiDisabled = false
+  private val mockGeminiPlugin = mock<IdeaPluginDescriptor>()
+  private lateinit var mockPluginManagerCore: MockedStatic<PluginManagerCore>
 
   private val fakeChatService =
     object : ChatService {
@@ -106,7 +122,7 @@ class InsightActionTest {
     object : StudioBot {
       override val MAX_QUERY_CHARS = 1000
 
-      override fun isAvailable() = fakeOnboardingFlow.value
+      override fun isAvailable() = isOnboardingComplete
 
       override fun aiExcludeService() = AiExcludeService.FakeAiExcludeService()
 
@@ -115,10 +131,17 @@ class InsightActionTest {
       override fun model(project: Project, modelType: ModelType) = StubModel()
     }
 
-  @get:Rule val projectRule = ProjectRule()
-
   @Before
   fun setup() {
+    mockPluginManagerCore = mockStatic(projectRule.disposable)
+    doAnswer { "Gemini" }.whenever(mockGeminiPlugin).name
+    doAnswer { PluginId.getId("") }.whenever(mockGeminiPlugin).pluginId
+    mockPluginManagerCore
+      .whenever<Any> { PluginManagerCore.isDisabled(any()) }
+      .thenAnswer { isGeminiDisabled }
+    mockPluginManagerCore
+      .whenever<Any> { PluginManagerCore.plugins }
+      .thenAnswer { arrayOf(mockGeminiPlugin) }
     application.replaceService(StudioBot::class.java, fakeStudioBot, projectRule.disposable)
   }
 
@@ -129,45 +152,42 @@ class InsightActionTest {
 
   @Test
   fun `insight action opens Gemini toolwindow if not open`() {
-    val insightAction = createInsightButton()
-    assertThat(insightAction.text).isEqualTo("Enable insights")
-    assertThat(insightAction.toolTipText).isEqualTo("Complete Gemini onboarding to enable insights")
-    insightAction.doClick()
+    val insightButton = createInsightButton()
+    assertThat(insightButton.text).isEqualTo("Enable insights")
+    assertThat(insightButton.toolTipText).isEqualTo("Complete Gemini onboarding to enable insights")
+    InsightAction.actionPerformed(createTestEvent())
     assertThat(isGeminiToolWindowOpen).isTrue()
   }
 
   @Test
   fun `insight action changes text when onboarding state changes`() {
-    val insightAction = createInsightButton()
-    assertThat(insightAction.text).isEqualTo("Enable insights")
-    assertThat(insightAction.toolTipText).isEqualTo("Complete Gemini onboarding to enable insights")
+    val insightButton = createInsightButton()
+    assertThat(insightButton.text).isEqualTo("Enable insights")
+    assertThat(insightButton.toolTipText).isEqualTo("Complete Gemini onboarding to enable insights")
 
-    fakeOnboardingFlow.update { true }
-    insightAction.update()
-    waitForCondition(2.seconds) { insightAction.text != "Enable insights" }
+    isOnboardingComplete = true
+    InsightAction.update(insightButton)
 
-    assertThat(insightAction.text).isEqualTo("Show insights")
-    assertThat(insightAction.toolTipText).isEqualTo("Show insights for this issue")
+    assertThat(insightButton.text).isEqualTo("Show insights")
+    assertThat(insightButton.toolTipText).isEqualTo("Show insights for this issue")
 
-    fakeOnboardingFlow.update { false }
-    insightAction.update()
-    waitForCondition(2.seconds) { insightAction.text != "Show insights" }
+    isOnboardingComplete = false
+    InsightAction.update(insightButton)
 
-    assertThat(insightAction.text).isEqualTo("Enable insights")
-    assertThat(insightAction.toolTipText).isEqualTo("Complete Gemini onboarding to enable insights")
+    assertThat(insightButton.text).isEqualTo("Enable insights")
+    assertThat(insightButton.toolTipText).isEqualTo("Complete Gemini onboarding to enable insights")
   }
 
   @Test
   fun `insight action stages prompt when studio bot available`() {
-    val insightAction = createInsightButton()
-    fakeOnboardingFlow.update { true }
-    insightAction.update()
-    waitForCondition(2.seconds) { insightAction.text != "Enable insights" }
+    val insightButton = createInsightButton()
+    isOnboardingComplete = true
+    InsightAction.update(insightButton)
 
-    assertThat(insightAction.text).isEqualTo("Show insights")
-    assertThat(insightAction.toolTipText).isEqualTo("Show insights for this issue")
+    assertThat(insightButton.text).isEqualTo("Show insights")
+    assertThat(insightButton.toolTipText).isEqualTo("Show insights for this issue")
 
-    insightAction.doClick()
+    InsightAction.actionPerformed(createTestEvent())
 
     val expectedPrompt =
       "Explain this exception from my app running on manufacturer model with Android version 14:\n" +
@@ -189,8 +209,29 @@ class InsightActionTest {
     assertThat(fakeChatService.stagedPrompt).isEqualTo(expectedPrompt)
   }
 
+  @Test
+  fun `insight action opens plugin window when gemini plugin not enabled`() {
+    isGeminiDisabled = true
+    val countDownLatch = CountDownLatch(1)
+
+    val mockPluginManagerConfigurable =
+      mockStatic<PluginManagerConfigurable>(projectRule.disposable)
+    mockPluginManagerConfigurable
+      .whenever<Any> { PluginManagerConfigurable.showPluginConfigurable(any(), anyList()) }
+      .thenAnswer { countDownLatch.countDown() }
+    val insightAction = createInsightButton()
+
+    assertThat(insightAction.text).isEqualTo("Enable insights")
+    assertThat(insightAction.toolTipText).isEqualTo("Complete Gemini onboarding to enable insights")
+
+    InsightAction.actionPerformed(createTestEvent())
+    assertThat(countDownLatch.count).isEqualTo(0)
+  }
+
   private fun createInsightButton() =
-    InsightAction(StudioBot.RequestSource.CRASHLYTICS, projectRule::project) { issue }
+    (InsightAction.createCustomComponent(InsightAction.templatePresentation, "") as JButton).also {
+      InsightAction.update(it)
+    }
 
   private fun createStackTraceGroup() = StacktraceGroup(List(5) { createRandomException(it) })
 
@@ -204,13 +245,16 @@ class InsightActionTest {
 
   private fun createStackTrace() = Stacktrace(frames = List(5) { Frame(rawSymbol = "frame-$it") })
 
-  private val InsightAction.text: String
-    get() = (component as JButton).text
+  private fun InsightAction.update(button: JButton) =
+    updateCustomComponent(button, templatePresentation)
 
-  private val InsightAction.toolTipText: String
-    get() = (component as JButton).toolTipText
-
-  private fun InsightAction.doClick() = (component as JButton).doClick()
-
-  private fun InsightAction.update() = updateCustomComponent(component, templatePresentation)
+  private fun createTestEvent() =
+    AnActionEvent.createFromAnAction(InsightAction, null, "") { dataId ->
+      when {
+        REQUEST_SOURCE_KEY.`is`(dataId) -> StudioBot.RequestSource.CRASHLYTICS
+        CURRENT_ISSUE_KEY.`is`(dataId) -> issue
+        CommonDataKeys.PROJECT.`is`(dataId) -> projectRule.project
+        else -> null
+      }
+    }
 }

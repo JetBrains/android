@@ -16,13 +16,16 @@
 package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.idea.insights.AppInsightsIssue
+import com.android.tools.idea.insights.ui.CURRENT_ISSUE_KEY
+import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
 import com.android.tools.idea.studiobot.StudioBot
-import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.ide.plugins.PluginManagerConfigurable
+import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.ex.CustomComponentAction
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.extensions.PluginId
+import com.intellij.util.ui.JButtonAction
 import icons.StudioIcons
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -44,47 +47,52 @@ private val CRASHLYTICS_GEMINI_PROMPT_FORMAT =
  * * If Gemini is available, creates a sample prompt and stages it in Gemini toolwindow.
  * * If Gemini is not available, opens the Gemini toolwindow for user to finish onboarding.
  */
-class InsightAction(
-  private val studioBotRequestSource: StudioBot.RequestSource,
-  private val projectFetcher: () -> Project? = { null },
-  private val currentIssueFetcher: () -> AppInsightsIssue? = { null },
-) : AnAction(), CustomComponentAction {
+object InsightAction :
+  JButtonAction(
+    "Enable insights",
+    "Complete Gemini onboarding to enable insights",
+    StudioIcons.StudioBot.LOGO,
+  ) {
+
+  private val geminiPluginId: PluginId?
+    get() = PluginManagerCore.plugins.firstOrNull { it.name == "Gemini" }?.pluginId
 
   private fun JButton.setTooltipAndText() =
     if (StudioBot.getInstance().isAvailable()) {
       text = "Show insights"
       toolTipText = "Show insights for this issue"
-      isEnabled = true
     } else {
       text = "Enable insights"
       toolTipText = "Complete Gemini onboarding to enable insights"
     }
 
-  private val button =
-    JButton().apply {
-      icon = StudioIcons.StudioBot.LOGO
-      setTooltipAndText()
-      addActionListener {
-        val project = projectFetcher() ?: return@addActionListener
-        val issue = currentIssueFetcher() ?: return@addActionListener
-        StudioBot.getInstance()
-          .chat(project)
-          .stageChatQuery(createPrompt(issue), studioBotRequestSource)
-      }
+  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
+    return super.createCustomComponent(presentation, place).apply {
+      // Reset the property set by JButtonAction. It makes the button appear squished.
+      putClientProperty("ActionToolbar.smallVariant", false)
     }
+  }
 
-  val component: JComponent
-    get() = button
+  override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
+    super.updateCustomComponent(component, presentation)
+    if (component is JButton) {
+      component.setTooltipAndText()
+    }
+  }
 
-  override fun createCustomComponent(presentation: Presentation, place: String) = button
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
+    val source = e.getData(REQUEST_SOURCE_KEY) ?: return
+    val issue = e.getData(CURRENT_ISSUE_KEY) ?: return
+    val pluginId = geminiPluginId ?: return
 
-  override fun updateCustomComponent(component: JComponent, presentation: Presentation) =
-    button.setTooltipAndText()
-
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  // ActionListener on the JButton handles the click
-  override fun actionPerformed(e: AnActionEvent) = Unit
+    // TODO(b/338142913): Remove once Gemini opens plugin window
+    if (PluginManagerCore.isDisabled(pluginId)) {
+      PluginManagerConfigurable.showPluginConfigurable(project, listOf(pluginId))
+    } else {
+      StudioBot.getInstance().chat(project).stageChatQuery(createPrompt(issue), source)
+    }
+  }
 
   private fun createPrompt(issue: AppInsightsIssue) =
     String.format(
