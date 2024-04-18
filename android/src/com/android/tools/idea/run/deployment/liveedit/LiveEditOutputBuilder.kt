@@ -219,7 +219,7 @@ private fun isWhenMapping(clazz: IrClass) : Boolean {
 private fun checkForInit(irClass: IrClass, irMethod: IrMethod, throwOnFail: Boolean) {
   if (irMethod.name == "<init>") {
     if (throwOnFail) {
-      throw unsupportedSourceModificationConstructor("in ${irClass.name.replace('/', '.')}, modified constructor ${irMethod.desc}")
+      throw unsupportedSourceModificationConstructor("in ${irClass.name.replace('/', '.')}, modified constructor ${irMethod.getReadableDesc()}")
     } else {
       logger.warning("Live Edit detected modified constructor ${irClass.name}${irMethod.desc} in ${irClass.sourceFile}")
     }

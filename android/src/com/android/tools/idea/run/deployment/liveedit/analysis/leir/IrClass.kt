@@ -30,7 +30,7 @@ class IrClass(node: ClassNode) {
   val enclosingMethod = getEnclosingMethod(node.outerClass, node.outerMethod, node.outerMethodDesc)
   val sourceFile: String = node.sourceFile
 
-  val methods = node.methods.map(::IrMethod)
+  val methods = node.methods.map { IrMethod(it, node) }
   val fields = node.fields.map(::IrField)
   val annotations = toAnnotationList(node.visibleAnnotations, node.invisibleAnnotations)
 
