@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model
 
 import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogView
 import junit.framework.Assert
@@ -90,6 +91,18 @@ class GradleVersionCatalogViewTest: GradleFileModelTestCase() {
     assertSize(2, catalogToFile.entries)
     Assert.assertNotNull(catalogToFile["foo"])
     Assert.assertNotNull(catalogToFile["foo"]!!.path.endsWith("gradle/foo.versions.toml"))
+  }
+
+  @Test
+  @Throws(IOException::class)
+  fun testDefaultVersionCatalogWithNoSettingsFile() {
+    removeSettingsFile()
+    createCatalogFile("libs.versions.toml")
+    val view = GradleModelProvider.getInstance().getVersionCatalogView(project)
+    Assert.assertTrue(view.getCatalogToFileMap().size == 1)
+    val defaultLib = view.getCatalogToFileMap()["libs"]
+    Assert.assertNotNull(defaultLib)
+    Assert.assertTrue(defaultLib!!.path.endsWith("gradle/libs.versions.toml"))
   }
 
   private fun getVersionCatalogView(settingsModel: GradleSettingsModel): GradleVersionCatalogView =

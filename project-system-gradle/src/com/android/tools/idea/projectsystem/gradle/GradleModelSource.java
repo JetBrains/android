@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.GradleVersionCatalogViewImpl;
 import com.android.tools.idea.gradle.dsl.model.ProjectBuildModelImpl;
+import com.android.tools.idea.gradle.dsl.model.SimplifiedVersionCatalogViewImpl;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
@@ -110,7 +111,12 @@ public final class GradleModelSource extends GradleModelProvider {
   @Override
   public GradleVersionCatalogView getVersionCatalogView(@NotNull Project hostProject) {
     GradleSettingsModel settings = getSettingsModel(hostProject);
-    return new GradleVersionCatalogViewImpl(settings);
+    if (settings != null) {
+      return new GradleVersionCatalogViewImpl(settings);
+    }
+    else {
+      return new SimplifiedVersionCatalogViewImpl(hostProject);
+    }
   }
 
   @NotNull

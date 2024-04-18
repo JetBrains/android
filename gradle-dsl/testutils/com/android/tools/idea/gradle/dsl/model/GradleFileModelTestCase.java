@@ -379,6 +379,13 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     });
   }
 
+  protected void removeSettingsFile() throws IOException {
+    runWriteAction(() -> {
+      mySettingsFile.delete(this);
+      return null;
+    });
+  }
+
   protected String getContents(@NotNull TestFileName fileName) throws IOException {
     final File testFile = fileName.toFile(myTestDataResolvedPath, myTestDataExtension);
     assumeTrue(testFile.exists());
