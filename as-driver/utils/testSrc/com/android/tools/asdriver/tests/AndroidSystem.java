@@ -105,6 +105,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
 
       system.install = AndroidStudioInstallation.fromZip(system.fileSystem, androidStudioFlavor);
       system.install.createFirstRunXml();
+      system.install.setNewUi();
       system.install.createGeneralPropertiesXml();
 
       return system;
@@ -126,6 +127,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
 
       system.install = AndroidStudioInstallation.fromZip(system.fileSystem, androidStudioFlavor);
       system.install.createFirstRunXml();
+      system.install.setNewUi();
       system.install.createGeneralPropertiesXml();
 
       return system;

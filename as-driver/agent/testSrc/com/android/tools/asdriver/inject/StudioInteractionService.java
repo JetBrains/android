@@ -326,7 +326,10 @@ public class StudioInteractionService {
       List<String> iconNames = getIconNamesFromIcon(icon);
       for (String iconName : iconNames) {
         if (iconsToMatchAgainst.contains(iconName)) {
-          matchingLinks.add(c);
+          // For some reason, new UI can have duplicate buttons in tool window toolbars.
+          if (c.getLocation().x < Integer.MAX_VALUE) {
+            matchingLinks.add(c);
+          }
         }
       }
     }

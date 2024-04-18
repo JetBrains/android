@@ -325,7 +325,8 @@ public class AndroidStudio implements AutoCloseable {
     System.out.println("Waiting for a breakpoint to be hit by the debugger");
 
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
-    builder.addSvgIconMatch(new ArrayList<>(List.of("actions/resume.svg")));
+    builder.addSwingClassRegexMatch(".*JBRunnerTabs")
+      .addSvgIconMatch(new ArrayList<>(List.of("actions/resume.svg")));
     waitForComponent(builder, true);
   }
 
@@ -483,10 +484,10 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
-  public void waitForProjectInit() throws InterruptedException {
+  public void waitForProjectInit() {
     // Need to wait for the device selector to be ready
     System.out.println("Wait for ActionToolBar");
-    this.waitForComponentByClass(true, "MyNavBarWrapperPanel", "ActionToolbarImpl", "DeviceAndSnapshotComboBoxAction");
+    this.waitForComponentByClass(true, "MainToolbar", "MyActionToolbarImpl", "DeviceAndSnapshotComboBoxAction");
   }
 
   public List<AnalysisResult> analyzeFile(String file) {

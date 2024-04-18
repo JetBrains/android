@@ -74,7 +74,6 @@ class LaunchInspectorsTest {
             60,
             TimeUnit.SECONDS,
           )
-          studio.waitForComponentWithExactText("Run:")
 
           // TODO(b/255808916): See TODO section in the test KDoc.
           emulator.logCat.waitForMatchingLine(".*Hello Minimal World!.*", 60, TimeUnit.SECONDS)
