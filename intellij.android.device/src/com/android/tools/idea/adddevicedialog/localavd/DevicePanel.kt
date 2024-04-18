@@ -49,7 +49,7 @@ internal fun DevicePanel(
     Modifier.padding(bottom = Padding.SMALL_MEDIUM),
   )
 
-  Text("Service", Modifier.padding(bottom = Padding.SMALL))
+  Text("Services", Modifier.padding(bottom = Padding.SMALL))
 
   Row {
     Dropdown(
