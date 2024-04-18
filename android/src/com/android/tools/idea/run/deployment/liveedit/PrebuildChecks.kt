@@ -28,7 +28,7 @@ import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
-import org.jetbrains.kotlin.idea.util.module
+import org.jetbrains.kotlin.idea.util.projectStructure.module
 import org.jetbrains.kotlin.psi.KtFile
 
 private const val kotlinPluginId = "org.jetbrains.kotlin"
@@ -98,7 +98,12 @@ fun isKotlinPluginBundled() =
 
 internal fun ReadActionPrebuildChecks(file: PsiFile) {
   ApplicationManager.getApplication().assertReadAccessAllowed()
-  if (file.module != null && TestArtifactSearchScopes.getInstance(file.module!!)?.isTestSource(file.virtualFile) == true) {
-    throw LiveEditUpdateException.unsupportedTestSrcChange(file.name)
+  file.module?.let {
+    // Module.getModuleTestSourceScope() doesn't work as intended and tracked on IJPL-482 for this reason ModuleScope(false) is used
+    val isTestSource = !it.getModuleScope(false).accept(file.virtualFile)
+    val isAndroidSpecificTestSource = TestArtifactSearchScopes.getInstance(it)?.isTestSource(file.virtualFile) == true
+    if (isAndroidSpecificTestSource || isTestSource) {
+      throw LiveEditUpdateException.unsupportedTestSrcChange(file.name)
+    }
   }
 }
