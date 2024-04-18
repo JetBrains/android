@@ -58,7 +58,7 @@ interface Model {
    */
   suspend fun generateCode(
     prompt: Prompt,
-    language: Language,
+    language: MimeType,
     config: GenerationConfig = GenerationConfig(candidateCount = 4),
   ): List<Content>
 }
@@ -137,6 +137,6 @@ open class StubModel : Model {
 
   override fun generateContent(prompt: Prompt, config: GenerationConfig) = emptyFlow<Content>()
 
-  override suspend fun generateCode(prompt: Prompt, language: Language, config: GenerationConfig) =
+  override suspend fun generateCode(prompt: Prompt, language: MimeType, config: GenerationConfig) =
     emptyList<Content>()
 }
