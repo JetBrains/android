@@ -61,6 +61,7 @@
   implements("identifier")=[
      "com.intellij.psi.PsiNamedElement"
      "com.android.tools.idea.gradle.something.psi.SomethingElement"
+     "com.intellij.psi.NavigatablePsiElement"
   ]
   implements("factory|property|literal")=[
      "com.android.tools.idea.gradle.something.psi.SomethingValue"

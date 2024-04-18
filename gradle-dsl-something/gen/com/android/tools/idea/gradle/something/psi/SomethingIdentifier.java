@@ -21,9 +21,10 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.NavigatablePsiElement;
 import com.intellij.util.IncorrectOperationException;
 
-public interface SomethingIdentifier extends PsiNamedElement, SomethingElement {
+public interface SomethingIdentifier extends PsiNamedElement, SomethingElement, NavigatablePsiElement {
 
   @NotNull
   PsiElement getToken();
