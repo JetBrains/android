@@ -28,6 +28,7 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
+import io.ktor.utils.io.CancellationException
 
 private const val PER_DEVICE_SETTING = "debug_view_attributes"
 
@@ -66,6 +67,8 @@ sealed class SetFlagResult {
   data class Set(val previouslySet: Boolean) : SetFlagResult()
 
   data class Failure(val error: String?) : SetFlagResult()
+
+  object Cancelled : SetFlagResult()
 }
 
 /**
@@ -99,9 +102,11 @@ class DebugViewAttributes(
         AdbCommandResult.Success -> SetFlagResult.Set(false)
         is AdbCommandResult.Failure -> SetFlagResult.Failure(commandResult.message)
       }
-    } catch (ex: Exception) {
-      Logger.getInstance(DebugViewAttributes::class.java).warn(ex)
-      SetFlagResult.Failure(ex.message ?: ex.javaClass.simpleName)
+    } catch (cancellation: CancellationException) {
+      SetFlagResult.Cancelled
+    } catch (t: Throwable) {
+      Logger.getInstance(DebugViewAttributes::class.java).warn(t)
+      SetFlagResult.Failure(t.message ?: t.javaClass.simpleName)
     }
   }
 

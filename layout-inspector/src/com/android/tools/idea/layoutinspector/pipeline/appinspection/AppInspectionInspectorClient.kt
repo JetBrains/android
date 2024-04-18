@@ -193,6 +193,7 @@ class AppInspectionInspectorClient(
           is SetFlagResult.Failure -> {
             showUnableToSetDebugViewAttributesBanner(notificationModel)
           }
+          is SetFlagResult.Cancelled -> {}
         }
 
         val completableDeferred = CompletableDeferred<Unit>()
