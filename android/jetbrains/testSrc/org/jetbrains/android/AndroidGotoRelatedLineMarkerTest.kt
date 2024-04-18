@@ -14,6 +14,7 @@ import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl
 import com.intellij.ide.actions.GotoRelatedSymbolAction
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.openapi.vfs.VirtualFile
@@ -254,7 +255,7 @@ class AndroidGotoRelatedLineMarkerTest {
     val e = TestActionEvent.createTestEvent(action)
     ActionUtil.performDumbAwareUpdate(action, e, false)
     assertThat(e.presentation.isEnabledAndVisible).isTrue()
-    return GotoRelatedSymbolAction.getItems(myFixture.file, myFixture.editor, null)
+    return GotoRelatedSymbolAction.getItems(myFixture.file, myFixture.editor)
   }
 
   private fun doCheckLineMarkers(expectedTargetFiles: Set<VirtualFile>,
