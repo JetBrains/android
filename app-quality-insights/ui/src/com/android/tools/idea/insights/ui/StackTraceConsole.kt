@@ -147,7 +147,10 @@ class StackTraceConsole(
     var startOfOtherThreads = 0
     synchronized(CONSOLE_LOCK) {
       currentEvent = null
-      consoleView.clear()
+      // ConsoleViewImpl.clear() clears non-deferred text asynchonously, causing a race condition
+      // when setting the new text below, so here we manually flush and then set the text to empty.
+      consoleView.flushDeferredText()
+      consoleView.editor.document.setText("")
       consoleView.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, event.appVcsInfo)
       consoleView.putClientProperty(CONNECTION_OF_SELECTED_CRASH, connection)
 

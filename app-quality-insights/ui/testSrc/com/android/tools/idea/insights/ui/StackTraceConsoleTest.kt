@@ -17,8 +17,6 @@ package com.android.tools.idea.insights.ui
 
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.testutils.ignore.IgnoreWithCondition
-import com.android.testutils.ignore.OnWindows
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.Blames
@@ -106,7 +104,6 @@ class StackTraceConsoleTest {
   }
 
   @Test
-  @IgnoreWithCondition(reason = "b/330777841", condition = OnWindows::class)
   fun `when anr is selected, thread dump is printed`() = executeWithErrorProcessor {
     runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
       val anr =
