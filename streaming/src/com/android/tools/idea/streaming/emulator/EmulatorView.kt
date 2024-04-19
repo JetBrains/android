@@ -105,6 +105,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.IdeGlassPaneUtil
 import com.intellij.openapi.wm.impl.IdeGlassPaneEx
 import com.intellij.util.Alarm
@@ -803,7 +804,7 @@ class EmulatorView(
         return
       }
 
-      if (event.isAltDown || event.isControlDown || event.isMetaDown) {
+      if (event.isControlDown || event.isMetaDown || (!SystemInfo.isMac && event.isAltDown)) {
         return
       }
 
