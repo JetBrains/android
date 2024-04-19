@@ -34,6 +34,8 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.util.StudioPathManager
+import com.android.utils.FlightRecorder
+import com.android.utils.TraceUtils.simpleId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceMirroringAbnormalAgentTermination
 import com.intellij.openapi.Disposable
@@ -160,6 +162,7 @@ internal class DeviceClient(
    */
   suspend fun establishAgentConnection(
       maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
+    FlightRecorder.log { "$deviceName DeviceClient.establishAgentConnection startVideoStream=$startVideoStream" }
     streamingSessionTracker.streamingStarted()
     val completion = CompletableDeferred<Unit>()
     val connection = connectionState.compareAndExchange(null, completion) ?: completion
@@ -250,6 +253,7 @@ internal class DeviceClient(
   }
 
   fun startVideoStream(requester: Any, displayId: Int, maxOutputSize: Dimension) {
+    FlightRecorder.log { "$deviceName DeviceClient.startVideoStream(${requester.simpleId}, $displayId, $maxOutputSize)" }
     synchronized(videoStreams) {
       val arbiter = videoStreams.computeIfAbsent(displayId, IntFunction { d -> VideoStreamArbiter(d) })
       arbiter.startVideoStream(requester, maxOutputSize)
@@ -258,9 +262,9 @@ internal class DeviceClient(
 
   fun stopVideoStream(requester: Any, displayId: Int) {
     synchronized(videoStreams) {
-      videoStreams[displayId]?.let {
-        it.stopVideoStream(requester)
-        if (it.isEmpty()) {
+      videoStreams[displayId]?.let { arbiter ->
+        arbiter.stopVideoStream(requester)
+        if (arbiter.isEmpty()) {
           videoStreams.remove(displayId)
         }
       }
@@ -658,10 +662,15 @@ internal class DeviceClient(
     }
 
     fun startVideoStream(requester: Any, maxOutputSize: Dimension) {
+      FlightRecorder.log { "$deviceName: VideoStreamArbiter.startVideoStream(${requester.simpleId}, $maxOutputSize):" +
+                           " requestedVideoResolutions.size=${requestedVideoResolutions.size} videoDecoder=${videoDecoder.simpleId}" +
+                           " deviceController=${deviceController.simpleId}" }
       if (requestedVideoResolutions.isEmpty()) {
         requestedVideoResolutions[requester] = maxOutputSize
         currentSize.size = maxOutputSize
         if (videoDecoder?.enableDecodingForDisplay(displayId) == true) {
+          FlightRecorder.log { "$deviceName: VideoStreamArbiter.startVideoStream(${requester.simpleId}, $maxOutputSize):" +
+                               " sending ${StartVideoStreamMessage(displayId, maxOutputSize)}" }
           deviceController?.sendControlMessage(StartVideoStreamMessage(displayId, maxOutputSize))
         }
       }
@@ -672,10 +681,15 @@ internal class DeviceClient(
     }
 
     fun stopVideoStream(requester: Any) {
+      FlightRecorder.log { "$deviceName: VideoStreamArbiter.stopVideoStream(${requester.simpleId}):" +
+                           " requestedVideoResolutions.size=${requestedVideoResolutions.size} videoDecoder=${videoDecoder.simpleId}" +
+                           " deviceController=${deviceController.simpleId}" }
       requestedVideoResolutions.remove(requester)
       if (requestedVideoResolutions.isEmpty()) {
         currentSize.setSize(0, 0)
         if (videoDecoder?.disableDecodingForDisplay(displayId) == true) {
+          FlightRecorder.log { "$deviceName: VideoStreamArbiter.stopVideoStream(${requester.simpleId}):" +
+                               " sending ${StopVideoStreamMessage(displayId)}" }
           deviceController?.sendControlMessage(StopVideoStreamMessage(displayId))
           if (displayId == PRIMARY_DISPLAY_ID) {
             streamingSessionTracker.streamingEnded()

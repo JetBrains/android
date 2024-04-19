@@ -34,6 +34,7 @@ import com.android.tools.idea.streaming.core.scaled
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
+import com.android.utils.FlightRecorder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
@@ -200,6 +201,7 @@ internal class DeviceView(
   private var wasInsideDisplay = false
   private var mouseHovering = false // Last mouse event was move without pressed buttons.
   private val repaintAlarm: Alarm = Alarm(this)
+  private val connectionAlarm: Alarm = Alarm(this)
   private var highQualityRenderingRequested = false
 
   init {
@@ -241,13 +243,21 @@ internal class DeviceView(
   private fun connectToAgentAsync(initialDisplayOrientation: Int) {
     frameNumber = 0u
     connectionState = ConnectionState.CONNECTING
+    FlightRecorder.initialize(1000)
+    connectionAlarm.addRequest(::reportFirstFrameDelay, 5_000)
     maxVideoSize = physicalSize
     AndroidCoroutineScope(this@DeviceView).launch {
       connectToAgent(maxVideoSize, initialDisplayOrientation)
     }
   }
 
+  private fun reportFirstFrameDelay() {
+    val trace = FlightRecorder.getAndClear().joinToString("\n")
+    thisLogger().warn("--- No frames received from ${deviceClient.deviceName}. Trace: ---\n$trace\n----------------------------------")
+  }
+
   private suspend fun connectToAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
+    FlightRecorder.log { "${deviceClient.deviceName} DeviceView.connectToAgent" }
     try {
       deviceClient.addAgentTerminationListener(agentTerminationListener)
       if (displayId == PRIMARY_DISPLAY_ID) {
@@ -294,6 +304,7 @@ internal class DeviceView(
       hideLongRunningOperationIndicatorInstantly()
       hideDisconnectedStateMessage()
       connectionState = ConnectionState.CONNECTED
+      connectionAlarm.cancelAllRequests()
       if (displayId == PRIMARY_DISPLAY_ID) {
         if (DeviceMirroringSettings.getInstance().synchronizeClipboard) {
           startClipboardSynchronization()
@@ -330,6 +341,7 @@ internal class DeviceView(
       }
 
       connectionState = ConnectionState.DISCONNECTED
+      connectionAlarm.cancelAllRequests()
       showDisconnectedStateMessage(message, createShowLogHyperlinkListener(), reconnector)
     }
   }
