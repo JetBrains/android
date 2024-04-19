@@ -84,6 +84,9 @@ class ExplainSyncOrBuildOutputIntegrationTest {
                 If you are already using the latest version of the Android Gradle plugin,
                 you may need to wait until a newer version with support for compileSdk = 341123 is available.
                 
+                For more information refer to the compatibility table:
+                https://d.android.com/r/tools/api-level-support
+                
                 To suppress this warning, add/update
                     android.suppressUnsupportedCompileSdk=341123
                 to this project's gradle.properties.
