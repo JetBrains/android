@@ -21,6 +21,11 @@
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="Wear Tile Preview Notification" displayType="NONE"/>
 
-    <deadCode implementation="com.android.tools.idea.wear.preview.WearTilePreviewEntryPoint" />
+    <deadCode implementation="com.android.tools.idea.wear.preview.WearTilePreviewEntryPoint"/>
+
+    <languageInjectionContributor language="kotlin"
+                                  implementationClass="com.android.tools.idea.wear.preview.util.device.WearTileDeviceSpecInjectionContributor"/>
+    <languageInjectionContributor language="JAVA"
+                                  implementationClass="com.android.tools.idea.wear.preview.util.device.WearTileDeviceSpecInjectionContributor"/>
   </extensions>
 </idea-plugin>
