@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
+import static org.jetbrains.kotlin.idea.core.script.ScriptUtilsKt.getAllDefinitions;
 
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.extensions.ExtensionPoint;
@@ -26,7 +27,6 @@ import com.intellij.openapi.project.Project;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.core.script.ScriptDefinitionsManager;
 import org.jetbrains.kotlin.idea.core.script.settings.KotlinScriptingSettings;
 
 public final class AndroidStudioPreferences {
@@ -51,7 +51,7 @@ public final class AndroidStudioPreferences {
     ExternalSystemProjectTrackerSettings.getInstance(project).setAutoReloadType(ExternalSystemProjectTrackerSettings.AutoReloadType.NONE);
 
     // Disable KotlinScriptingSettings.autoReloadConfigurations flag, avoiding unexpected re-sync project with kotlin scripts
-    ScriptDefinitionsManager.Companion.getInstance(project).getAllDefinitions().forEach(scriptDefinition -> {
+    getAllDefinitions(project).forEach(scriptDefinition -> {
       KotlinScriptingSettings settings = KotlinScriptingSettings.Companion.getInstance(project);
       if (settings.isScriptDefinitionEnabled(scriptDefinition) && settings.autoReloadConfigurations(scriptDefinition)) {
         settings.setAutoReloadConfigurations(scriptDefinition, false);
