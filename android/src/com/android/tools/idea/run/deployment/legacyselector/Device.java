@@ -26,7 +26,7 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-interface Device {
+public interface Device {
   abstract class Builder {
     @Nullable
     Key myKey;
