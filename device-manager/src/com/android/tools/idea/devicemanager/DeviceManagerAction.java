@@ -33,7 +33,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class DeviceManagerAction extends DumbAwareAction {
+public class DeviceManagerAction extends DumbAwareAction {
   @NotNull
   @Override
   public ActionUpdateThread getActionUpdateThread() {
