@@ -42,6 +42,12 @@ interface PositionableContent {
   @get:SwingCoordinate val y: Int
 
   /**
+   * This value is true if this [PositionableContent] has got the focus in the surface (eg: is
+   * selected), false otherwise.
+   */
+  val isFocusedContent: Boolean
+
+  /**
    * Returns the current size of the view content, excluding margins. This doesn't account the
    * current [scale].
    */

@@ -23,7 +23,7 @@ import java.awt.Rectangle
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class TopBoundCenterScrollerTest {
+class TopBoundLeftScrollerTest {
 
   @Test
   fun testKeepTopEdgeAfterZoomIn1() {
@@ -36,15 +36,9 @@ class TopBoundCenterScrollerTest {
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
     val scroller =
-      TopBoundCenterScroller(
-        oldViewSize,
-        viewRect.location,
-        viewport.extentSize,
-        oldScale = 1.0,
-        newScale = 2.0,
-      )
+      TopBoundLeftScroller(oldViewSize, viewRect.location, oldScale = 1.0, newScale = 2.0)
     scroller.scroll(viewport)
-    assertEquals(Point(250, 0), viewport.viewPosition)
+    assertEquals(Point(0, 0), viewport.viewPosition)
   }
 
   @Test
@@ -58,15 +52,9 @@ class TopBoundCenterScrollerTest {
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
     val scroller =
-      TopBoundCenterScroller(
-        oldViewSize,
-        viewRect.location,
-        viewport.extentSize,
-        oldScale = 1.0,
-        newScale = 2.0,
-      )
+      TopBoundLeftScroller(oldViewSize, viewRect.location, oldScale = 1.0, newScale = 2.0)
     scroller.scroll(viewport)
-    assertEquals(Point(750, 500), viewport.viewPosition)
+    assertEquals(Point(0, 500), viewport.viewPosition)
   }
 
   @Test
@@ -80,13 +68,7 @@ class TopBoundCenterScrollerTest {
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
     val scroller =
-      TopBoundCenterScroller(
-        oldViewSize,
-        viewRect.location,
-        viewport.extentSize,
-        oldScale = 2.0,
-        newScale = 1.0,
-      )
+      TopBoundLeftScroller(oldViewSize, viewRect.location, oldScale = 2.0, newScale = 1.0)
     scroller.scroll(viewport)
     assertEquals(Point(0, 300), viewport.viewPosition)
   }
@@ -102,15 +84,9 @@ class TopBoundCenterScrollerTest {
     val viewport = TestDesignSurfaceViewport(oldViewSize, viewRect, viewComponent = viewComponent)
 
     val scroller =
-      TopBoundCenterScroller(
-        oldViewSize,
-        viewRect.location,
-        viewport.extentSize,
-        oldScale = 2.0,
-        newScale = 1.0,
-      )
+      TopBoundLeftScroller(oldViewSize, viewRect.location, oldScale = 2.0, newScale = 1.0)
     scroller.scroll(viewport)
-    assertEquals(Point(250, 500), viewport.viewPosition)
+    assertEquals(Point(0, 500), viewport.viewPosition)
   }
 
   @Test
@@ -128,13 +104,7 @@ class TopBoundCenterScrollerTest {
 
       val currentPosition = Point(viewport.viewPosition)
       val scroller =
-        TopBoundCenterScroller(
-          widthZeroSize,
-          viewRect.location,
-          viewport.extentSize,
-          oldScale = 0.0,
-          newScale = 1.0,
-        )
+        TopBoundLeftScroller(widthZeroSize, viewRect.location, oldScale = 0.0, newScale = 1.0)
       scroller.scroll(viewport)
       assertEquals(currentPosition, viewport.viewPosition)
     }
@@ -146,13 +116,7 @@ class TopBoundCenterScrollerTest {
 
       val currentPosition = Point(viewport.viewPosition)
       val scroller =
-        TopBoundCenterScroller(
-          heightZeroSize,
-          viewRect.location,
-          viewport.extentSize,
-          oldScale = 0.0,
-          newScale = 1.0,
-        )
+        TopBoundLeftScroller(heightZeroSize, viewRect.location, oldScale = 0.0, newScale = 1.0)
       scroller.scroll(viewport)
       assertEquals(currentPosition, viewport.viewPosition)
     }

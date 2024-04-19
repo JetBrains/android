@@ -20,20 +20,19 @@ import java.awt.Dimension
 import java.awt.Point
 
 /**
- * When the view size is changed, use the center of top bound as the anchor to keep the scrolling
+ * When the view size is changed, use the left of top bound as the anchor to keep the scrolling
  * position after zooming.
  */
-class TopBoundCenterScroller(
+class TopBoundLeftScroller(
   @SwingCoordinate oldViewSize: Dimension,
   @SwingCoordinate scrollPosition: Point,
-  @SwingCoordinate portSize: Dimension,
   oldScale: Double,
   newScale: Double,
 ) :
   ReferencePointScroller(
     oldViewSize,
     scrollPosition,
-    Point(scrollPosition.x + portSize.width / 2, scrollPosition.y),
+    Point(0, scrollPosition.y),
     oldScale,
     newScale,
   )

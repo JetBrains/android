@@ -29,6 +29,7 @@ class SurfaceLayoutOptionTest {
     override val scale = 0.0
     override val x = 0
     override val y = 0
+    override val isFocusedContent = false
 
     override fun getContentSize(dimension: Dimension?) = Dimension(0, 0)
 

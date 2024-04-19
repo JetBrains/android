@@ -57,7 +57,7 @@ import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewportScroller;
 import com.android.tools.idea.common.surface.layout.ReferencePointScroller;
-import com.android.tools.idea.common.surface.layout.TopBoundCenterScroller;
+import com.android.tools.idea.common.surface.layout.TopBoundLeftScroller;
 import com.android.tools.idea.common.surface.layout.TopLeftCornerScroller;
 import com.android.tools.idea.common.surface.layout.ZoomCenterScroller;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
@@ -934,12 +934,15 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     boolean isGroupedGridLayout = layoutManager instanceof GroupedGridSurfaceLayoutManager || layoutManager instanceof GridLayoutManager;
 
     if (isGroupedListLayout) { // new list mode
+      SceneView focusedSceneView = getFocusedSceneView();
+      if (focusedSceneView != null) {
+        focusPoint = new Point(focusedSceneView.getX(), focusedSceneView.getY());
+      }
       if (focusPoint.x < 0 || focusPoint.y < 0) {
-        // zoom with top-center of the visible area as anchor
-        myViewportScroller = new TopBoundCenterScroller(
+        // zoom with top-left of the visible area as anchor
+        myViewportScroller = new TopBoundLeftScroller(
           new Dimension(port.getViewSize()),
-          new Point(scrollPosition),
-          port.getExtentSize(),
+          new Point(scrollPosition.x, Math.max(0, focusPoint.y)),
           update.getPreviousScale(),
           update.getNewScale()
         );

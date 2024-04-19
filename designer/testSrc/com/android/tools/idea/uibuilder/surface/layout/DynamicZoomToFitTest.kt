@@ -65,18 +65,18 @@ class DynamicZoomToFitTest {
 
     run {
       val scale = manager.getFitIntoScale(contents.take(6), 100, 500)
-      assertEquals(0.83, scale, tolerance)
+      assertEquals(1.0, scale, tolerance)
     }
 
     // Scale stop changing after some number of previews
     run {
       val scale = manager.getFitIntoScale(contents.take(7), 100, 500)
-      assertEquals(0.71, scale, tolerance)
+      assertEquals(1.0, scale, tolerance)
     }
 
     run {
       val scale = manager.getFitIntoScale(contents.take(15), 100, 500)
-      assertEquals(0.71, scale, tolerance)
+      assertEquals(1.0, scale, tolerance)
     }
   }
 

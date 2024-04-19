@@ -73,6 +73,9 @@ class SceneViewHeader(
       override val y
         get() = this@SceneViewHeader.y
 
+      override val isFocusedContent: Boolean
+        get() = isFocusOwner
+
       override fun getContentSize(dimension: Dimension?) = requiredSize
 
       override fun getMargin(scale: Double) = JBUI.emptyInsets()

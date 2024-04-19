@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.surface.layout
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
-import com.android.tools.idea.flags.StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
@@ -50,43 +49,37 @@ class GroupedListSurfaceLayoutManager(
       // No content. Use 100% as zoom level
       return 1.0
     }
-    val contentToFit =
-      if (PREVIEW_DYNAMIC_ZOOM_TO_FIT.get()) {
-        // Take into consideration only height.
-        content.take(max(1, availableHeight / minumumPreviewHeightPx))
-      } else content
 
-    // Use binary search to find the proper zoom-to-fit value.
-    // Find the scale to put all the previews into the screen without any margin and padding.
-    val totalRawHeight = contentToFit.sumOf { it.contentSize.height }
-    val maxRawWidth = contentToFit.maxOf { it.contentSize.width }
-    // The zoom-to-fit scale can not be larger than this scale, since it may need some margins
-    // and/or paddings.
-    val upperBound =
-      minOf(availableHeight.toDouble() / totalRawHeight, availableWidth.toDouble() / maxRawWidth)
+    // We calculate the width of the focused content and remove its left margin and padding.
+    val contentToFit = content.findFocusedPositionableContent()
+    val width = availableWidth - contentToFit.x.toDouble()
 
+    // The zoom-to-fit scale can not be larger than this scale since it may need some margins and/or
+    // paddings.
+    val upperBound = width / contentToFit.contentSize.width
     if (upperBound <= MINIMUM_SCALE) {
       return MINIMUM_SCALE
     }
+
     // binary search between MINIMUM_SCALE to upper bound.
-    return getMaxZoomToFitScale(
-      contentToFit,
-      MINIMUM_SCALE,
-      upperBound,
-      availableWidth,
-      availableHeight,
-      Dimension(),
-    )
+    return getMaxZoomToFitScale(contentToFit, MINIMUM_SCALE, upperBound, width.toInt(), Dimension())
   }
 
-  /** Binary search to find the largest scale for [width] x [height] space. */
+  /**
+   * @return The focused [PositionableContent], if none of them has the focus returns the first one.
+   */
+  private fun Collection<PositionableContent>.findFocusedPositionableContent() =
+    firstOrNull { it.isFocusedContent } ?: first()
+
+  /**
+   * Binary search to find the largest scale for the [width] space of a given [PositionableContent].
+   */
   @SurfaceScale
   private fun getMaxZoomToFitScale(
-    content: Collection<PositionableContent>,
+    content: PositionableContent,
     @SurfaceScale min: Double,
     @SurfaceScale max: Double,
     @SwingCoordinate width: Int,
-    @SwingCoordinate height: Int,
     cache: Dimension,
     depth: Int = 0,
   ): Double {
@@ -95,16 +88,24 @@ class GroupedListSurfaceLayoutManager(
     }
     if (max - min <= SCALE_UNIT) {
       // Last attempt.
-      val dim = getSize(content, { contentSize.scaleBy(max) }, { max }, 0, cache)
-      return if (dim.width <= width && dim.height <= height) max else min
+      val dim = getSingleItemSize(content, max, cache)
+      return if (dim.width <= width) max else min
     }
     val scale = (min + max) / 2
-    val dim = getSize(content, { contentSize.scaleBy(scale) }, { scale }, 0, cache)
-    return if (dim.width <= width && dim.height <= height) {
-      getMaxZoomToFitScale(content, scale, max, width, height, cache, depth + 1)
+    val dim = getSingleItemSize(content, scale, cache)
+    return if (dim.width <= width) {
+      getMaxZoomToFitScale(content, scale, max, width, cache, depth + 1)
     } else {
-      getMaxZoomToFitScale(content, min, scale, width, height, cache, depth + 1)
+      getMaxZoomToFitScale(content, min, scale, width, cache, depth + 1)
     }
+  }
+
+  private fun getSingleItemSize(
+    content: PositionableContent,
+    scale: Double,
+    cache: Dimension,
+  ): Dimension {
+    return getSize(listOf(content), { contentSize.scaleBy(scale) }, { scale }, 0, cache)
   }
 
   override fun getSize(
