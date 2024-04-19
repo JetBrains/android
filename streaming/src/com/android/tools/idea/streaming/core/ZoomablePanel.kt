@@ -20,12 +20,12 @@ import com.android.tools.adtui.actions.ZoomType
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
 import kotlin.math.floor
+import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
-private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
-
-private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
+private val ZOOM_LEVELS = doubleArrayOf(0.0625, 0.125, 0.25, 0.5, 1.0, 2.0, 4.0)
+private val SQRT2 = sqrt(2.0)
 
 /**
  * A [BorderLayoutPanel] with zoom support.
@@ -101,28 +101,26 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
   private fun computeZoomedSize(zoomType: ZoomType): Dimension? {
     val newScale = when (zoomType) {
       ZoomType.IN -> {
-        var nextScale = (ZoomType.zoomIn((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0)
+        val nextScale = nearestZoomLevel(scale * (2 * SQRT2))
         val fitScale = computeScaleToFitInParent()
         if (nextScale >= fitScale) {
-          if (fitScale >= MAX_SCALE) {
+          if (fitScale >= ZOOM_LEVELS.last()) {
             return null
-          }
-          if (nextScale > MAX_SCALE) {
-            nextScale = MAX_SCALE
           }
         }
         nextScale
       }
 
       ZoomType.OUT -> {
-        var nextScale = ZoomType.zoomOut((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0
+        val scale = scale
+        var nextScale = nearestZoomLevel(scale / SQRT2)
         val fitScale = computeScaleToFitInParent()
         if (fitScale > 1) {
           if (nextScale < 1) {
             nextScale = 1.0
           }
         }
-        else if (nextScale <= fitScale) {
+        else if (nextScale <= fitScale || nextScale >= scale) {
           return null
         }
         nextScale
@@ -139,6 +137,27 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
     }
     val newScaledSize = computeActualSize().scaled(newScale)
     return newScaledSize.scaled(1 / screenScale)
+  }
+
+  /** Returns the highest zoom level not exceeding [scale]. */
+  private fun nearestZoomLevel(scale: Double): Double {
+    // Binary search.
+    var low = 0
+    var high = ZOOM_LEVELS.size
+
+    while (low < high) {
+      val mid = low + high ushr 1
+      val level = ZOOM_LEVELS[mid]
+      val cmp = level - scale
+      if (cmp < 0) {
+        low = mid + 1
+      } else if (cmp > 0) {
+        high = mid
+      } else {
+        return level // Found.
+      }
+    }
+    return ZOOM_LEVELS[max(low - 1, 0)]
   }
 
   private fun computeScaleToFitInParent() =

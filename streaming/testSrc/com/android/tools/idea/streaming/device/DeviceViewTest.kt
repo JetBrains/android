@@ -554,8 +554,8 @@ internal class DeviceViewTest {
       fakeUi.layoutAndDispatchEvents()
       val expected = when {
         view.displayOrientationQuadrants % 2 == 0 -> SetMaxVideoResolutionMessage(view.displayId, Dimension(270, 586))
-        SystemInfo.isMac && !isRunningInBazelTest() -> SetMaxVideoResolutionMessage(view.displayId, Dimension(234, 372))
-        else -> SetMaxVideoResolutionMessage(view.displayId, Dimension(234, 400))
+        SystemInfo.isMac && !isRunningInBazelTest() -> SetMaxVideoResolutionMessage(view.displayId, Dimension(294, 372))
+        else -> SetMaxVideoResolutionMessage(view.displayId, Dimension(294, 400))
       }
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(expected)
       executeStreamingAction("android.device.rotate.right", view, project)

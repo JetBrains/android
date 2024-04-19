@@ -622,7 +622,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     ui.render() // Trigger displayRectangle update.
     assertThat(emulatorView.displayRectangle!!.width).isEqualTo(640)
-    assertThat(emulatorView.canZoomIn()).isFalse()
+    assertThat(emulatorView.canZoomIn()).isTrue()
     assertThat(emulatorView.canZoomOut()).isTrue()
     assertThat(emulatorView.canZoomToActual()).isTrue()
     assertThat(emulatorView.canZoomToFit()).isTrue()
@@ -633,7 +633,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     ui.render() // Trigger displayRectangle update.
     assertThat(emulatorView.displayRectangle!!.width).isEqualTo(640)
-    assertThat(emulatorView.canZoomIn()).isFalse()
+    assertThat(emulatorView.canZoomIn()).isTrue()
     assertThat(emulatorView.canZoomOut()).isTrue()
     assertThat(emulatorView.canZoomToActual()).isTrue()
     assertThat(emulatorView.canZoomToFit()).isFalse()
@@ -644,7 +644,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
     ui.render() // Trigger displayRectangle update.
     assertThat(emulatorView.displayRectangle!!.width).isEqualTo(960)
-    assertThat(emulatorView.canZoomIn()).isFalse()
+    assertThat(emulatorView.canZoomIn()).isTrue()
     assertThat(emulatorView.canZoomOut()).isTrue()
     assertThat(emulatorView.canZoomToActual()).isTrue()
     assertThat(emulatorView.canZoomToFit()).isFalse()
