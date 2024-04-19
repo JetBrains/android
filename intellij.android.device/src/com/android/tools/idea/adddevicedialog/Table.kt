@@ -21,8 +21,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -32,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
 import com.intellij.ui.JBColor
@@ -44,13 +47,28 @@ import org.jetbrains.jewel.ui.util.thenIf
 
 internal data class TableColumn<T>(
   val name: String,
-  val weight: Float,
+  val width: TableColumnWidth,
   val comparator: Comparator<T>? = null,
   val rowContent: @Composable (T) -> Unit,
 )
 
-internal fun <T> TableTextColumn(name: String, weight: Float = 1f, attribute: (T) -> String) =
-  TableColumn<T>(name, weight, compareBy(attribute)) { Text(attribute(it)) }
+sealed interface TableColumnWidth {
+  fun RowScope.widthModifier(): Modifier
+
+  class Fixed(val width: Dp) : TableColumnWidth {
+    override fun RowScope.widthModifier(): Modifier = Modifier.width(width)
+  }
+
+  class Weighted(val weight: Float) : TableColumnWidth {
+    override fun RowScope.widthModifier(): Modifier = Modifier.weight(weight, fill = true)
+  }
+}
+
+internal fun <T> TableTextColumn(
+  name: String,
+  width: TableColumnWidth = TableColumnWidth.Weighted(1f),
+  attribute: (T) -> String,
+) = TableColumn<T>(name, width, compareBy(attribute)) { Text(attribute(it)) }
 
 internal enum class SortOrder {
   ASCENDING,
@@ -105,7 +123,8 @@ internal fun <T> TableHeader(
     horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
   ) {
     columns.forEach {
-      Row(Modifier.weight(it.weight, fill = true).clickable { onClick(it) }) {
+      val widthModifier = with(it.width) { widthModifier() }
+      Row(widthModifier.clickable { onClick(it) }) {
         Text(it.name, fontWeight = FontWeight.Bold)
         if (it == sortColumn) {
           sortOrder.icon()
@@ -129,7 +148,7 @@ internal fun <T> TableRow(
       .padding(ROW_PADDING),
     horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
   ) {
-    columns.forEach { Box(Modifier.weight(it.weight, fill = true)) { it.rowContent(value) } }
+    columns.forEach { Box(with(it.width) { widthModifier() }) { it.rowContent(value) } }
   }
 }
 

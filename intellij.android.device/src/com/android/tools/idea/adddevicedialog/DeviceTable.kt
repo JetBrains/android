@@ -51,9 +51,9 @@ internal fun DeviceTable(
 
   val columns: List<TableColumn<DeviceProfile>> = remember {
     listOf(
-      TableColumn("", 0.5f) { it.Icon(Modifier.size(16.dp)) },
+      TableColumn("", TableColumnWidth.Fixed(16.dp)) { it.Icon(Modifier.size(16.dp)) },
       TableTextColumn("OEM") { it.manufacturer },
-      TableTextColumn("Name", 2f) { it.name },
+      TableTextColumn("Name", TableColumnWidth.Weighted(2f)) { it.name },
       TableTextColumn("API") {
         // This case is a bit strange, because we adjust the display based on the API filter.
         // TODO: We will need a way to pass the API level on to the next stage.
