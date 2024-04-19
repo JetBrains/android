@@ -15,14 +15,26 @@
  */
 package com.android.tools.idea.editors.manifest
 
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.TAG_ACTION
+import com.android.SdkConstants.TAG_ACTIVITY
+import com.android.SdkConstants.TAG_APPLICATION
+import com.android.SdkConstants.TAG_CATEGORY
+import com.android.SdkConstants.TAG_INTENT_FILTER
+import com.android.SdkConstants.TAG_META_DATA
 import com.android.ide.common.blame.SourceFilePosition
 import com.android.manifmerger.Actions
+import com.android.manifmerger.ManifestModel
+import com.android.manifmerger.XmlNode
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.MergedManifestSnapshot
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_INCLUDE_FROM_LIB
 import com.android.tools.idea.util.toIoFile
+import com.android.utils.subtag
+import com.android.utils.visitElements
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.guessProjectDir
@@ -32,6 +44,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.w3c.dom.Element
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -72,7 +85,20 @@ class ManifestActionLocationTest {
 
   @Test
   fun getActionLocation_navigationFile() {
-    val browsableRecord = mergedManifest.getOnlyNodeRecord("category#android.intent.category.BROWSABLE")
+    var categoryElement: Element? = null
+
+    mergedManifest.document?.documentElement?.visitElements { element ->
+      if (element.tagName == TAG_CATEGORY && element.getAttributeNS(ANDROID_URI, ATTR_NAME) == "android.intent.category.BROWSABLE") {
+        categoryElement = element
+        true
+      } else {
+        false
+      }
+    }
+
+    assertThat(categoryElement).isNotNull()
+    val nodeKey = getElementNodeKeyString(categoryElement!!)
+    val browsableRecord = mergedManifest.getOnlyNodeRecord(nodeKey)
     val browsablePosition = getActionLocation(browsableRecord)
 
     assertThat(browsablePosition.file.sourceFile).isNotNull()
@@ -85,22 +111,26 @@ class ManifestActionLocationTest {
 
   @Test
   fun getActionLocation_libraryManifest() {
-    val metaDataRecord = mergedManifest.getOnlyNodeRecord("meta-data#libMetaData")
+    val metadataElement = mergedManifest.document?.documentElement?.subtag(TAG_APPLICATION)?.subtag(TAG_META_DATA)
+    assertThat(metadataElement).isNotNull()
+    val nodeKey = getElementNodeKeyString(metadataElement!!)
+    val metaDataRecord = mergedManifest.getOnlyNodeRecord(nodeKey)
     val metaDataPosition = getActionLocation(metaDataRecord)
 
     assertThat(metaDataPosition.file.sourceFile).isNotNull()
     assertThat(metaDataPosition.file.sourceFile)
       .isEqualTo(findProjectRelativeFile("lib", "src", "main", "AndroidManifest.xml"))
 
-    // TODO(b/146513553): Currently we're only able to find the correct file for nodes from lib manifests,
-    //  but we should be able to find the correct line / column number as well.
-    //assertThat(metaDataPosition.asText())
-    //  .isEqualTo("<meta-data android:name=\"libMetaData\" android:value=\"\"/>")
+    assertThat(metaDataPosition.asText())
+      .isEqualTo("<meta-data android:name=\"libMetaData\" android:value=\"\"/>")
   }
 
   @Test
   fun getActionLocation_primaryManifest() {
-    val launcherRecord = mergedManifest.getOnlyNodeRecord("action#android.intent.action.MAIN")
+    val actionElement = mergedManifest.document?.documentElement?.subtag(TAG_APPLICATION)?.subtag(TAG_ACTIVITY)?.subtag(TAG_INTENT_FILTER)?.subtag(TAG_ACTION)
+    assertThat(actionElement).isNotNull()
+    val nodeKey = getElementNodeKeyString(actionElement!!)
+    val launcherRecord = mergedManifest.getOnlyNodeRecord(nodeKey)
     val launcherPosition = getActionLocation(launcherRecord)
 
     assertThat(launcherPosition.file.sourceFile).isNotNull()
@@ -113,4 +143,6 @@ class ManifestActionLocationTest {
   private fun getActionLocation(browsableRecord: Actions.NodeRecord): SourceFilePosition {
     return runReadAction {  ManifestUtils.getActionLocation(projectRule.gradleModule(":app").getMainModule(), browsableRecord) }
   }
+
+  private fun getElementNodeKeyString(element: Element) = XmlNode.NodeKey.fromXml(element, ManifestModel()).toString()
 }
