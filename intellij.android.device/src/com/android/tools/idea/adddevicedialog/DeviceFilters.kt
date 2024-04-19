@@ -69,10 +69,10 @@ class TextFilterState : RowFilter<DeviceProfile> {
 
 private val Manufacturer = DeviceAttribute("OEM") { it.manufacturer }
 private val IsRemote = DeviceAttribute("Type") { if (it.isRemote) "Remote" else "Local" }
-
+private val FormFactor = DeviceAttribute("Form Factor") { it.formFactor }
 // The DeviceAttributes that we use set-based filters on. Note that this determines the display
 // order.
-internal val DeviceSetAttributes = listOf<DeviceAttribute<*>>(Manufacturer, IsRemote)
+internal val DeviceSetAttributes = listOf<DeviceAttribute<*>>(IsRemote, FormFactor, Manufacturer)
 
 internal fun <V : Comparable<V>> DeviceAttribute(name: String, value: (DeviceProfile) -> V) =
   DeviceAttribute(name, Comparator.naturalOrder(), value)

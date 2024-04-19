@@ -30,6 +30,7 @@ import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.testutils.MockitoKt
 import com.android.testutils.file.createInMemoryFileSystem
+import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
@@ -106,6 +107,7 @@ class AdditionalSettingsPanelTest {
         resolution = Resolution(1200, 800),
         displayDensity = 200,
         displayDiagonalLength = 6.2,
+        formFactor = FormFactors.PHONE,
       )
 
     rule.setContent {

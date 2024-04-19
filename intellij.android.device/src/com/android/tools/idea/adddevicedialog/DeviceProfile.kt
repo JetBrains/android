@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
 import com.google.common.collect.Range
@@ -38,6 +40,7 @@ interface DeviceProfile {
   val isVirtual: Boolean
   val isRemote: Boolean
   val abis: List<Abi>
+  val formFactor: String
 
   /** Indicates that the device already exists, and we cannot create another. */
   val isAlreadyPresent: Boolean
@@ -45,6 +48,8 @@ interface DeviceProfile {
   val availabilityEstimate: Duration
 
   fun toBuilder(): Builder
+
+  @Composable fun Icon(modifier: Modifier)
 
   abstract class Builder {
     lateinit var apiRange: Range<Int>
@@ -57,6 +62,7 @@ interface DeviceProfile {
     var isVirtual: Boolean = false
     var isRemote: Boolean = false
     lateinit var abis: List<Abi>
+    lateinit var formFactor: String
 
     /** Indicates that the device already exists, and we cannot create another. */
     var isAlreadyPresent: Boolean = false
@@ -75,6 +81,7 @@ interface DeviceProfile {
       isVirtual = profile.isVirtual
       isRemote = profile.isRemote
       abis = profile.abis
+      formFactor = profile.formFactor
       isAlreadyPresent = profile.isAlreadyPresent
       availabilityEstimate = profile.availabilityEstimate
     }
@@ -83,3 +90,11 @@ interface DeviceProfile {
 
 fun DeviceProfile.update(block: DeviceProfile.Builder.() -> Unit): DeviceProfile =
   toBuilder().apply(block).build()
+
+object FormFactors {
+  const val PHONE = "Phone"
+  const val TABLET = "Tablet"
+  const val WEAR = "Wear OS"
+  const val TV = "TV"
+  const val AUTO = "Automotive"
+}

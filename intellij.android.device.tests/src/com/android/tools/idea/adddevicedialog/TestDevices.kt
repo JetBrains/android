@@ -33,6 +33,7 @@ internal object TestDevices {
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
+      formFactor = FormFactors.PHONE,
     )
 
   val remotePixel5 =
@@ -48,6 +49,7 @@ internal object TestDevices {
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
       availabilityEstimate = 5.minutes,
+      formFactor = FormFactors.PHONE,
     )
 
   val pixelFold =
@@ -62,6 +64,7 @@ internal object TestDevices {
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A, Abi.RISCV64),
       isAlreadyPresent = false,
+      formFactor = FormFactors.PHONE,
     )
 
   val pixelTablet =
@@ -76,6 +79,7 @@ internal object TestDevices {
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
+      formFactor = FormFactors.TABLET,
     )
 
   val wearLargeRound =
@@ -90,6 +94,7 @@ internal object TestDevices {
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
+      formFactor = FormFactors.WEAR,
     )
 
   val galaxyS22 =
@@ -103,6 +108,7 @@ internal object TestDevices {
       isRemote = true,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
+      formFactor = FormFactors.PHONE,
     )
 
   val automotive =
@@ -116,6 +122,7 @@ internal object TestDevices {
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
+      formFactor = FormFactors.AUTO,
     )
 
   val tv4k =
@@ -130,6 +137,7 @@ internal object TestDevices {
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),
       isAlreadyPresent = false,
+      formFactor = FormFactors.TV,
     )
 
   val allTestDevices =

@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
 import com.google.common.collect.Range
+import icons.StudioIconsCompose
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.jetbrains.jewel.ui.component.Icon
 
 class TestDeviceSource : DeviceSource {
   override val profiles = mutableListOf<DeviceProfile>()
@@ -45,6 +49,7 @@ data class TestDevice(
   override val isVirtual: Boolean = true,
   override val isRemote: Boolean = false,
   override val abis: List<Abi> = listOf(Abi.ARM64_V8A),
+  override val formFactor: String = FormFactors.PHONE,
   override val isAlreadyPresent: Boolean = false,
   override val availabilityEstimate: Duration = Duration.ZERO,
 ) : DeviceProfile {
@@ -52,6 +57,23 @@ data class TestDevice(
     get() = TestDeviceSource::class.java
 
   override fun toBuilder(): Builder = Builder().apply { copyFrom(this@TestDevice) }
+
+  @Composable
+  override fun Icon(modifier: Modifier) {
+    val painterProvider =
+      when (formFactor) {
+        FormFactors.TV -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceTv()
+        FormFactors.AUTO -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceCar()
+        FormFactors.WEAR -> StudioIconsCompose.DeviceExplorer.PhysicalDeviceWear()
+        // TODO: Add icon for tablet
+        else -> StudioIconsCompose.DeviceExplorer.VirtualDevicePhone()
+      }
+    Icon(
+      painter = painterProvider.getPainter().value,
+      contentDescription = "$formFactor Test Device",
+      modifier = modifier,
+    )
+  }
 
   class Builder : DeviceProfile.Builder() {
     override fun build(): TestDevice =
@@ -65,6 +87,7 @@ data class TestDevice(
         isVirtual = isVirtual,
         isRemote = isRemote,
         abis = abis,
+        formFactor = formFactor,
         isAlreadyPresent = isAlreadyPresent,
         availabilityEstimate = availabilityEstimate,
       )

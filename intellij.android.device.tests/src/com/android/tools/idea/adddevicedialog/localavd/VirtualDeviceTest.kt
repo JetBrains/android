@@ -22,6 +22,7 @@ import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
+import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.google.common.collect.Range
 import com.google.common.truth.Truth.assertThat
@@ -36,6 +37,7 @@ class VirtualDeviceTest {
         name = "Pixel 6 API 34",
         manufacturer = "Google",
         apiRange = Range.closed(21, 34),
+        formFactor = FormFactors.PHONE,
         sdkExtensionLevel = AndroidVersion(34, null, 7, true),
         skin = DefaultSkin(Path.of("/tmp/skin")),
         frontCamera = AvdCamera.EMULATED,

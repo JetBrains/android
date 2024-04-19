@@ -40,5 +40,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
+    <orderEntry type="module" module-name="intellij.android.artwork-compose" />
   </component>
 </module>

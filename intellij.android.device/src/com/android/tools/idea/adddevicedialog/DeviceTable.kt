@@ -51,10 +51,7 @@ internal fun DeviceTable(
 
   val columns: List<TableColumn<DeviceProfile>> = remember {
     listOf(
-      TableColumn("", 0.5f) {
-        // TODO: Represent actual device type
-        Icon("studio/icons/avd/device-mobile.svg", "", StudioIcons::class.java)
-      },
+      TableColumn("", 0.5f) { it.Icon(Modifier.size(16.dp)) },
       TableTextColumn("OEM") { it.manufacturer },
       TableTextColumn("Name", 2f) { it.name },
       TableTextColumn("API") {

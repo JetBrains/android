@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.adddevicedialog.localavd
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.Modifier
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.Resolution
@@ -26,11 +28,14 @@ import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
+import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.google.common.collect.Range
+import icons.StudioIconsCompose
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.time.Duration
+import org.jetbrains.jewel.ui.component.Icon
 
 @Immutable
 internal data class VirtualDevice
@@ -42,6 +47,7 @@ internal constructor(
   override val displayDensity: Int,
   override val displayDiagonalLength: Double,
   override val abis: List<Abi>,
+  override val formFactor: String,
   internal val sdkExtensionLevel: AndroidVersion,
   internal val skin: Skin,
   internal val frontCamera: AvdCamera,
@@ -65,6 +71,23 @@ internal constructor(
 
   override val isRemote
     get() = false
+
+  @Composable
+  override fun Icon(modifier: Modifier) {
+    val painterProvider =
+      when (formFactor) {
+        FormFactors.TV -> StudioIconsCompose.DeviceExplorer.VirtualDeviceTv()
+        FormFactors.AUTO -> StudioIconsCompose.DeviceExplorer.VirtualDeviceCar()
+        FormFactors.WEAR -> StudioIconsCompose.DeviceExplorer.VirtualDeviceWear()
+        // TODO: Add icon for tablet
+        else -> StudioIconsCompose.DeviceExplorer.VirtualDevicePhone()
+      }
+    Icon(
+      painter = painterProvider.getPainter().value,
+      contentDescription = "$formFactor AVD",
+      modifier = modifier,
+    )
+  }
 
   override val isAlreadyPresent: Boolean
     get() = false
@@ -117,6 +140,7 @@ internal constructor(
         displayDensity = displayDensity,
         displayDiagonalLength = displayDiagonalLength,
         abis = abis,
+        formFactor = formFactor,
         sdkExtensionLevel = sdkExtensionLevel,
         skin = skin,
         frontCamera = frontCamera,
