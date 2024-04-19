@@ -23,7 +23,7 @@
     <lang.parserDefinition language="DeviceSpec"
                            implementationClass="com.android.tools.idea.preview.util.device.parser.DeviceSpecParserDefinition"/>
     <languageInjectionPerformer language="kotlin"
-                                implementationClass="com.android.tools.idea.preview.util.device.DeviceSpecInjectionPerformer"/>
+                                implementationClass="com.android.tools.idea.preview.util.device.KtDeviceSpecInjectionPerformer"/>
     <completion.contributor language="DeviceSpec"
                             id="DeviceSpecContributor"
                             implementationClass="com.android.tools.idea.preview.util.device.DeviceSpecCompletionContributor"/>

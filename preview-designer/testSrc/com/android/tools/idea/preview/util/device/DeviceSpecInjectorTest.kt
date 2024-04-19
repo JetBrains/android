@@ -17,7 +17,9 @@ package com.android.tools.idea.preview.util.device
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
+import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.injection.general.LanguageInjectionContributor
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.fixtures.InjectionTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -52,13 +54,20 @@ internal class DeviceSpecInjectorTest {
     """
         .trimIndent(),
     )
-    LanguageInjectionContributor.INJECTOR_EXTENSION.addExplicitExtension(
-      KotlinLanguage.INSTANCE,
+
+    val deviceSpecInjectionContributor =
       object : DeviceSpecInjectionContributor() {
         override fun isPreviewAnnotation(annotation: UAnnotation): Boolean {
           return annotation.qualifiedName == "test.Preview"
         }
-      },
+      }
+    LanguageInjectionContributor.INJECTOR_EXTENSION.addExplicitExtension(
+      KotlinLanguage.INSTANCE,
+      deviceSpecInjectionContributor,
+    )
+    LanguageInjectionContributor.INJECTOR_EXTENSION.addExplicitExtension(
+      JavaLanguage.INSTANCE,
+      deviceSpecInjectionContributor,
     )
   }
 
@@ -80,6 +89,25 @@ internal class DeviceSpecInjectorTest {
   }
 
   @Test
+  fun injectedForDeviceParameterJava() {
+    rule.fixture.configureByText(
+      "Test.java",
+      // language=java
+      """
+        package example;
+        import test.Preview;
+
+        class Test {
+            @Preview(device = "id:device$caret name")
+            public void myFun() {}
+        }
+      """
+        .trimIndent(),
+    )
+    runReadAction { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }
+  }
+
+  @Test
   fun notInjectedForNonDeviceParameters() {
     assertFailsOnPreviewParameter("name")
     assertFailsOnPreviewParameter("group")
@@ -87,7 +115,15 @@ internal class DeviceSpecInjectorTest {
   }
 
   @Test
+  fun notInjectedForNonDeviceParametersJava() {
+    assertFailsOnPreviewParameterInJava("name")
+    assertFailsOnPreviewParameterInJava("group")
+    assertFailsOnPreviewParameterInJava("locale")
+  }
+
+  @Test
   fun injectedInConcatenatedExpressionForDeviceParameter() {
+    // Concatenated expressions are only supported on kotlin
     rule.fixture.configureByText(
       KotlinFileType.INSTANCE,
       // language=kotlin
@@ -162,6 +198,47 @@ internal class DeviceSpecInjectorTest {
   }
 
   @Test
+  fun onlyOneExpressionInjectedInConcatenatedDeviceSpecJava() {
+    rule.fixture.configureByText(
+      JavaFileType.INSTANCE,
+      // language=java
+      """
+          import test.Preview;
+
+          class Test {
+            private final static String HEIGHT_PX = "1900px";
+
+            @Preview(device = "spec$caret:width=1080px," + "height=" + HEIGHT_PX)
+            private void preview1() {}
+          }
+        """
+        .trimIndent(),
+    )
+    runReadAction { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }
+
+    rule.fixture.configureByText(
+      JavaFileType.INSTANCE,
+      // language=java
+      """
+          import test.Preview;
+
+          class Test {
+            private static final String HEIGHT_PX = "1900px";
+
+            @Preview(device = "spec:width=1080px," + "height$caret=" + HEIGHT_PX)
+            private void preview1() {}
+          }
+        """
+        .trimIndent(),
+    )
+    runReadAction {
+      assertThrows(Throwable::class.java) {
+        injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
+      }
+    }
+  }
+
+  @Test
   fun notInjectedForPreviewFromDifferentPackage() {
     rule.fixture.addFileToProject(
       "anotherpackage/Preview.kt",
@@ -172,7 +249,8 @@ internal class DeviceSpecInjectorTest {
         annotation class Preview(
           val device: String = ""
         )
-      """.trimIndent()
+      """
+        .trimIndent(),
     )
 
     rule.fixture.configureByText(
@@ -183,6 +261,41 @@ internal class DeviceSpecInjectorTest {
 
         @Preview(device = "id:device$caret name")
         fun myFun() {}
+      """
+        .trimIndent(),
+    )
+    runReadAction {
+      assertThrows(Throwable::class.java) {
+        injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
+      }
+    }
+  }
+
+  @Test
+  fun notInjectedForPreviewFromDifferentPackageJava() {
+    rule.fixture.addFileToProject(
+      "anotherpackage/Preview.kt",
+      // language=kotlin
+      """
+        package anotherpackage
+
+        annotation class Preview(
+          val device: String = ""
+        )
+      """
+        .trimIndent(),
+    )
+
+    rule.fixture.configureByText(
+      "Test.java",
+      // language=java
+      """
+        import anotherpackage.Preview;
+
+        class Test {
+          @Preview(device = "id:device$caret name")
+          public void myFun() {}
+        }
       """
         .trimIndent(),
     )
@@ -205,6 +318,29 @@ internal class DeviceSpecInjectorTest {
         @Preview($parameterName = "id:device$caret name")
         fun myFun() {}
       """
+        .trimIndent(),
+    )
+    runReadAction {
+      assertThrows(Throwable::class.java) {
+        injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
+      }
+    }
+  }
+
+  private fun assertFailsOnPreviewParameterInJava(parameterName: String) {
+    require(parameterName != "device")
+    rule.fixture.configureByText(
+      "Test.java",
+      // language=java
+      """
+          package example;
+          import test.Preview;
+
+          class Test {
+            @Preview($parameterName = "id:device$caret name")
+            public void myFun() {}
+          }
+        """
         .trimIndent(),
     )
     runReadAction {

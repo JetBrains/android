@@ -17,32 +17,41 @@ package com.android.tools.idea.preview.util.device
 
 import com.android.tools.idea.kotlin.tryEvaluateConstant
 import com.android.tools.preview.config.PARAMETER_DEVICE
+import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.injection.MultiHostRegistrar
 import com.intellij.lang.injection.general.Injection
 import com.intellij.lang.injection.general.LanguageInjectionContributor
 import com.intellij.lang.injection.general.LanguageInjectionPerformer
 import com.intellij.lang.injection.general.SimpleInjection
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiLanguageInjectionHost
+import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.UExpression
+import org.jetbrains.uast.UNamedExpression
+import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.toUElement
 
 /**
  * Denotes which [PsiElement] may be injected with the [DeviceSpecLanguage].
  *
- * For the @Preview device parameter, the first [KtStringTemplateExpression] may be injected.
- * [DeviceSpecInjectionPerformer] will handle injecting all other [KtStringTemplateExpression]
- * present in the parameter's value.
+ * For the @Preview device parameter, the first [KtStringTemplateExpression] in Kotlin, or
+ * [PsiLiteralExpression] in Java, may be injected. [KtDeviceSpecInjectionPerformer] will handle
+ * injecting all other [KtStringTemplateExpression] present in the parameter's value in Kotlin. In
+ * Java, string concatenation in the device parameter is not supported as [JavaInjectionPerformer]
+ * takes precedence over other [LanguageInjectionPerformer]s. [JavaInjectionPerformer] does not
+ * handle string concatenation with references to other variables properly.
  *
  * To identify which @Preview is a valid preview annotation, subclasses must implement
  * [isPreviewAnnotation].
@@ -74,17 +83,23 @@ abstract class DeviceSpecInjectionContributor : LanguageInjectionContributor {
     }
 
     if (
-      context.containingFile.fileType != KotlinFileType.INSTANCE ||
-        context !is KtStringTemplateExpression ||
-        !context.isInPreviewAnnotation()
+      context.containingFile.fileType != KotlinFileType.INSTANCE &&
+        context.containingFile.fileType != JavaFileType.INSTANCE
     ) {
       return null
     }
 
-    val valueArgument = context.parentOfType<KtValueArgument>() ?: return null
+    val expression = context.toUElement(UExpression::class.java) ?: return null
+    val annotation = expression.getParentOfType(UAnnotation::class.java) ?: return null
 
+    if (!isPreviewAnnotation(annotation)) {
+      return null
+    }
+
+    val namedExpression = expression.getParentOfType(UNamedExpression::class.java) ?: return null
     if (
-      !valueArgument.isForDeviceParameter() || valueArgument.getFirstStringExpression() !== context
+      !namedExpression.isForDeviceParameter() ||
+        namedExpression.getFirstStringExpression() !== context
     ) {
       return null
     }
@@ -96,12 +111,6 @@ abstract class DeviceSpecInjectionContributor : LanguageInjectionContributor {
    * to identify their preview-specific annotation.
    */
   protected abstract fun isPreviewAnnotation(annotation: UAnnotation): Boolean
-
-  private fun PsiLanguageInjectionHost.isInPreviewAnnotation(): Boolean {
-    val annotationEntry = parentOfType<KtAnnotationEntry>() ?: return false
-    val annotation = annotationEntry.toUElement() as? UAnnotation ?: return false
-    return isPreviewAnnotation(annotation)
-  }
 }
 
 /**
@@ -126,7 +135,7 @@ abstract class DeviceSpecInjectionContributor : LanguageInjectionContributor {
  *
  * So, contents of the injected file within `"spec:"` is: `"spec:width1080px,height1920px"`.
  */
-class DeviceSpecInjectionPerformer : LanguageInjectionPerformer {
+class KtDeviceSpecInjectionPerformer : LanguageInjectionPerformer {
   override fun isPrimary(): Boolean {
     return false
   }
@@ -224,14 +233,19 @@ private fun Array<PsiElement>.collectInjectionSegments(): List<InjectionSegment>
   return collectedSegments
 }
 
-private fun KtValueArgument.isForDeviceParameter(): Boolean =
-  getArgumentName()?.text == PARAMETER_DEVICE
+private fun UNamedExpression.isForDeviceParameter(): Boolean = name == PARAMETER_DEVICE
 
-private fun KtValueArgument.getFirstStringExpression(): KtStringTemplateExpression? {
-  val containingExpression = getArgumentExpression() ?: return null
-  return PsiTreeUtil.findChildOfType(
-    containingExpression,
-    KtStringTemplateExpression::class.java,
-    false,
-  )
+/**
+ * This function returns the [PsiElement] representing the first string expression in the
+ * [UNamedExpression] descendants, if there is one. In the case of kotlin, that element is of type
+ * [KtStringTemplateExpression]. In the case of java, that element is [PsiLiteralExpression].
+ */
+private fun UNamedExpression.getFirstStringExpression(): PsiElement? {
+  val psiExpressionType =
+    when (lang) {
+      is KotlinLanguage -> KtStringTemplateExpression::class.java
+      is JavaLanguage -> PsiLiteralExpression::class.java
+      else -> throw IllegalStateException("Unsupported language $lang")
+    }
+  return PsiTreeUtil.findChildOfType(expression.sourcePsi, psiExpressionType, false)
 }
