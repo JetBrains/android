@@ -17,10 +17,12 @@ package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -30,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
 import com.intellij.ui.JBColor
 import org.jetbrains.jewel.bridge.toComposeColor
@@ -97,7 +100,10 @@ internal fun <T> TableHeader(
   onClick: (TableColumn<T>) -> Unit,
   columns: List<TableColumn<T>>,
 ) {
-  Row(Modifier.fillMaxWidth()) {
+  Row(
+    Modifier.fillMaxWidth().padding(ROW_PADDING),
+    horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
+  ) {
     columns.forEach {
       Row(Modifier.weight(it.weight, fill = true).clickable { onClick(it) }) {
         Text(it.name, fontWeight = FontWeight.Bold)
@@ -120,6 +126,8 @@ internal fun <T> TableRow(
     Modifier.fillMaxWidth()
       .clickable { onClick(value) }
       .thenIf(selected) { background(JBColor.BLUE.toComposeColor()) }
+      .padding(ROW_PADDING),
+    horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
   ) {
     columns.forEach { Box(Modifier.weight(it.weight, fill = true)) { it.rowContent(value) } }
   }
@@ -140,7 +148,9 @@ internal fun <T> Table(
       tableSortState.sortOrder,
       onClick = { column ->
         if (column.comparator != null) {
-          tableSortState.sortOrder = if (tableSortState.sortColumn == column) tableSortState.sortOrder.opposite else SortOrder.ASCENDING
+          tableSortState.sortOrder =
+            if (tableSortState.sortColumn == column) tableSortState.sortOrder.opposite
+            else SortOrder.ASCENDING
           tableSortState.sortColumn = column
         }
       },
@@ -161,3 +171,6 @@ internal fun <T> Table(
     }
   }
 }
+
+private val CELL_SPACING = 4.dp
+private val ROW_PADDING = 4.dp
