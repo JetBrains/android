@@ -59,7 +59,6 @@ import javax.swing.JButton
 import javax.swing.KeyStroke
 import javax.swing.SwingUtilities
 import javax.swing.event.HyperlinkListener
-import kotlin.math.floor
 import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.round
@@ -212,7 +211,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
    */
   protected fun roundScale(value: Double): Double {
     if (value >= 1) {
-      return floor(value)
+      return roundDownIfNecessary(value)
     }
     val logScale = -log2(value).roundToInt() + 7
     val multiplier = 2 shl logScale + 7
