@@ -1,14 +1,16 @@
 package com.android.tools.idea.tests.gui.cpp
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.NewFilePopupFixture
+import com.android.tools.idea.tests.util.WizardUtils
+import com.android.tools.idea.wizard.template.Language
 import com.google.common.truth.Truth
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton.RIGHT_BUTTON
+import org.fest.swing.exception.LocationUnavailableException
 import org.fest.swing.timing.Wait
 import org.junit.Rule
 import org.junit.Test
@@ -20,26 +22,13 @@ class ShowFilesUnknownToCMakeActionTest {
   @get:Rule
   val guiTest = GuiTestRule().withTimeout(15, TimeUnit.MINUTES)
 
-  @get:Rule
-  val restoreNpwNativeModuleFlagRule = FlagRule(StudioFlags.NPW_NEW_NATIVE_MODULE)
-
   @Test
   fun actionShouldToggleVisibilityOfUnusedFiles() {
     // Set up a normal C++ project
-    guiTest.welcomeFrame()
-      .createNewProject()
-      .chooseAndroidProjectStep
-      .chooseActivity("Native C++")
-      .wizard()
-      .clickNext()
-      .configureNewAndroidProjectStep
-      .enterName("cpp-test")
-      .enterPackageName("dev.tools")
-      .wizard()
-      .clickNext()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300))
+    WizardUtils.createCppProject(guiTest, FormFactor.MOBILE, "Native C++", Language.Java)
+    GuiTests.waitForProjectIndexingToFinish(guiTest.ideFrame().project)
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
     val ideFrame = guiTest.ideFrame()
-    ideFrame.waitUntilProgressBarNotDisplayed()
     guiTest.waitForAllBackgroundTasksToBeCompleted()
     // Add an unused C file
     val unusedFile1 = guiTest.projectPath.resolve("app/src/main/cpp/unused1.c")
@@ -48,10 +37,17 @@ class ShowFilesUnknownToCMakeActionTest {
     ideFrame.requestProjectSyncAndWaitForSyncToFinish()
     guiTest.waitForAllBackgroundTasksToBeCompleted()
 
-    val projectView = ideFrame.projectView
+    val projectView = ideFrame.focus().projectView
     val androidPane = projectView.selectAndroidPane()
-    guiTest.waitForAllBackgroundTasksToBeCompleted()
-    androidPane.clickPath("app", "cpp")
+    Wait.seconds(10).expecting("Path is loaded for clicking").until {
+      try {
+        androidPane.clickPath("app", "cpp")
+        return@until true
+      }
+      catch (e: LocationUnavailableException) {
+        return@until false
+      }
+    }
 
     // Turn off show unused files
     projectView.showOptionsMenu()
@@ -59,7 +55,6 @@ class ShowFilesUnknownToCMakeActionTest {
     ideFrame.clickPopupMenuItem("Show Files Unknown to CMake")
 
     // Add a new file inside the IDE
-
     ideFrame.projectView
       .selectAndroidPane()
       .clickPath(RIGHT_BUTTON, "app", "cpp")
