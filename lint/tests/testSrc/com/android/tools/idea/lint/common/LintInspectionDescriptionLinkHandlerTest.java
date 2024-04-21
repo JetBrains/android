@@ -85,6 +85,56 @@ public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
     assertThat(description).isEqualTo(issueExplanation);
   }
 
+  public void testNewlines() {
+    Editor editor = mock(Editor.class);
+
+    assertThat(TooltipLinkHandlerEP.getDescription("_unknown_", editor)).isNull();
+
+    String issueExplanation = "<code>&lt;intent-filter></code> <code>&lt;data></code> tags should only declare a single unique " +
+                              "attribute (i.e. scheme OR host, but not both). This better matches the runtime behavior of " +
+                              "intent filters, as they combine all of the declared data attributes into a single matcher which " +
+                              "is allowed to handle any combination across attribute types.<br/>" +
+                              "<br/>" +
+                              "For example, the following two <code>&lt;intent-filter></code> declarations are the same:<pre>\n" +
+                              "&lt;intent-filter>\n" +
+                              "    &lt;data android:scheme=\"http\" android:host=\"example.com\" />\n" +
+                              "    &lt;data android:scheme=\"https\" android:host=\"example.org\" />\n" +
+                              "&lt;/intent-filter>\n" +
+                              "</pre><pre>\n" +
+                              "&lt;intent-filter>\n" +
+                              "    &lt;data android:scheme=\"http\"/>\n" +
+                              "    &lt;data android:scheme=\"https\"/>\n" +
+                              "    &lt;data android:host=\"example.com\" />\n" +
+                              "    &lt;data android:host=\"example.org\" />\n" +
+                              "&lt;/intent-filter>\n" +
+                              "</pre><br/>" +
+                              "They both handle all of the following:<br/>" +
+                              "* <a href=\"#lint/link_info<IntentFilterUniqueDataAttributes<http://example.com\">http://example.com</a><br/>" +
+                              "* <a href=\"#lint/link_info<IntentFilterUniqueDataAttributes<https://example.com\">https://example.com</a><br/>" +
+                              "* <a href=\"#lint/link_info<IntentFilterUniqueDataAttributes<http://example.org\">http://example.org</a><br/>" +
+                              "* <a href=\"#lint/link_info<IntentFilterUniqueDataAttributes<https://example.org\">https://example.org</a><br/>" +
+                              "<br/>" +
+                              "The second one better communicates the combining behavior and is clearer to an external reader that " +
+                              "one should not rely on the scheme/host being self contained. It is not obvious in the first that " +
+                              "<a href=\"#lint/link_info<IntentFilterUniqueDataAttributes<http://example.org\">http://example.org</a> " +
+                              "is also matched, which can lead to confusion (or incorrect behavior) with a more complex set of " +
+                              "schemes/hosts.<br/>" +
+                              "<br/>" +
+                              "Note that this does not apply to host + port, as those must be declared in the same " +
+                              "<code>&lt;data></code> tag and are only associated with each other.<br>" +
+                              "<br>" +
+                              "Issue id: IntentFilterUniqueDataAttributes<br>" +
+                              "<br>" +
+                              "More info:<br>" +
+                              "<a href=\"#lint/link_info<IntentFilterUniqueDataAttributes<https://developer.android.com/guide/components/intents-filters\">https://developer.android.com/guide/components/intents-filters</a><br>" +
+                              "<br>" +
+                              "Vendor: Android Open Source Project<br/>" +
+                              "Contact: <a href=\"#lint/link_info<IntentFilterUniqueDataAttributes<https://groups.google.com/g/lint-dev\">https://groups.google.com/g/lint-dev</a><br/>" +
+                              "Feedback: <a href=\"#lint/link_info<IntentFilterUniqueDataAttributes<https://issuetracker.google.com/issues/new?component=192708\">https://issuetracker.google.com/issues/new?component=192708</a><br/>";
+    String description = TooltipLinkHandlerEP.getDescription(LintInspectionDescriptionLinkHandler.LINK_PREFIX + "IntentFilterUniqueDataAttributes", editor);
+    assertThat(description).isEqualTo(issueExplanation);
+  }
+
   public void testOption() {
     Editor editor = mock(Editor.class);
 
@@ -97,12 +147,12 @@ public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
                               "annotated with <code>@Deprecated</code>.<br/><br/>Normally this lint check will flag all unannotated " +
                               "elements, but by setting this option to <code>true</code> it will skip any deprecated elements.<br/><br/>" +
                               "To configure this option, use a <code>lint.xml</code> file with an &lt;option> like this:<br/>" +
-                              "<pre>" +
-                              "&lt;lint>" +
-                              "    &lt;issue id=\"UnknownNullness\">" +
-                              "        &lt;option name=\"ignore-deprecated\" value=\"false\" />" +
-                              "    &lt;/issue>" +
-                              "&lt;/lint>" +
+                              "<pre>\n" +
+                              "&lt;lint>\n" +
+                              "    &lt;issue id=\"UnknownNullness\">\n" +
+                              "        &lt;option name=\"ignore-deprecated\" value=\"false\" />\n" +
+                              "    &lt;/issue>\n" +
+                              "&lt;/lint>\n" +
                               "</pre><br><br>" +
                               "More info:<br><a href=\"" +
                               "#lint/link_info<UnknownNullness<" +
