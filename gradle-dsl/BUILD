@@ -10,7 +10,7 @@ iml_module(
         # Language-specific implementation modules
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
         "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
-        "//tools/adt/idea/gradle-dsl-something:intellij.android.gradle.dsl.something",
+        "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative",
         # Gradle Project System tools
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
@@ -22,7 +22,7 @@ iml_module(
         # Kotlin Android Gradle Configurator
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
         # TODO(b/336267864): temporarily allowed until SomethingLanguage is
-        #  separated from gradle-dsl-something
+        #  separated from gradle-dsl-declarative
         "//tools/adt/idea/lint:intellij.lint",
         # TODO(xof): investigate
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
@@ -72,7 +72,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/.idea/libraries:mockito",
         "@intellij//:org.toml.lang",
-        "//tools/adt/idea/gradle-dsl-something:intellij.android.gradle.dsl.something[module, test]",
+        "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative[module, test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
     ],
@@ -89,7 +89,7 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
         "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
-        "//tools/adt/idea/gradle-dsl-something:intellij.android.gradle.dsl.something",
+        "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative",
         "@intellij//:org.intellij.groovy",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:org.toml.lang",

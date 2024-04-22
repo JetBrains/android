@@ -26,7 +26,7 @@
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="library" name="mockito" level="project" />
     <orderEntry type="library" name="studio-plugin-org.toml.lang" level="project" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.something" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" scope="TEST" />
     <orderEntry type="module" module-name="intellij.lint" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.lint-api" scope="TEST" />
   </component>

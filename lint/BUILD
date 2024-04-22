@@ -20,7 +20,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
-        "//tools/adt/idea/gradle-dsl-something:intellij.android.gradle.dsl.something[module]",
+        "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative[module]",
     ],
 )
 

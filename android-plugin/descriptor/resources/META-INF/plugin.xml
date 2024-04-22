@@ -62,7 +62,7 @@
   <xi:include href="/META-INF/android-debuggers.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/gradle-dsl.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/gradle-dsl-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/gradle-dsl-something.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/gradle-dsl-declarative.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/gradle-dsl-toml.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/intellij.android.device.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/logcat.xml" xpointer="xpointer(/idea-plugin/*)"/>

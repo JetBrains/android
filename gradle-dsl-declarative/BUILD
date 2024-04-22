@@ -2,13 +2,13 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.gradle.dsl.something",
+    name = "intellij.android.gradle.dsl.declarative",
     # do not sort: must match IML order
     srcs = [
         "gen",
         "src",
     ],
-    iml_files = ["intellij.android.gradle.dsl.something.iml"],
+    iml_files = ["intellij.android.gradle.dsl.declarative.iml"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

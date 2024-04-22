@@ -204,8 +204,8 @@ iml_module(
         "@intellij//:org.toml.lang",
         "@intellij//:com.intellij.properties[test]",
         "//tools/adt/idea/.idea/libraries:agp-version[test]",
-        "//tools/adt/idea/gradle-dsl-something:intellij.android.gradle.dsl.something[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
+        "//tools/adt/idea/gradle-dsl-declarative:intellij.android.gradle.dsl.declarative[module, test]",
     ],
 )
 

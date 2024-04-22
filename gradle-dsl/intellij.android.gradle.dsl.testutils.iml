@@ -31,7 +31,7 @@
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.something" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" scope="RUNTIME" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.intellij.groovy" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.kotlin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.toml.lang" level="project" />
