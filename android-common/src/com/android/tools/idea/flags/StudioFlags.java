@@ -1815,7 +1815,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "inline.code.completion.file.context.enabled",
                     "Enable sending additional file context with completion requests",
                     "When enabled, additional file context (eg, currently open files) are included in inline code completion requests.",
-                    false);
+                    ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_BUILD_SYNC_ERROR_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "build.and.sync.error.context.enabled",
