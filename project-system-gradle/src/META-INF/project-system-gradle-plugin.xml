@@ -14,6 +14,8 @@
   ~ limitations under the License.
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="/META-INF/project-system-gradle-plugin-k1.xml" xpointer="xpointer(/idea-plugin/*)" includeUnless="idea.kotlin.plugin.use.k2"/>
+  <xi:include href="/META-INF/project-system-gradle-plugin-k2.xml" xpointer="xpointer(/idea-plugin/*)" includeIf="idea.kotlin.plugin.use.k2"/>
   <depends>com.intellij.gradle</depends>
   <depends>org.jetbrains.plugins.gradle</depends>
   <depends>org.jetbrains.kotlin</depends>
@@ -133,6 +135,7 @@
                            implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInLiteralForTomlVersionRefDependencyCompletion" />
     <annotator language="TOML" implementationClass="com.android.tools.idea.gradle.catalog.VersionsTomlAnnotator"/>
     <annotator language="kotlin" implementationClass="com.android.tools.idea.gradle.catalog.KtsCatalogAnnotator"/>
+    <highlightVisitor implementation="com.android.tools.idea.gradle.catalog.KtsCatalogHighlighter"/>
     <indexedRootsProvider implementation="com.android.tools.idea.gradle.index.VersionCatalogFileIndexContributor"/>
     <useScopeEnlarger implementation="com.android.tools.idea.gradle.navigation.GradleTomlUseScopeEnlarger"/>
     <vetoRenameCondition implementation="com.android.tools.idea.gradle.refactoring.GradleCatalogTomlVetoCondition"/>
@@ -149,6 +152,8 @@
     <referencesSearch implementation="com.android.tools.idea.gradle.navigation.GradleKtsVersionCatalogReferencesSearcher"/>
     <lang.elementManipulator forClass="org.jetbrains.kotlin.psi.KtNameReferenceExpression"
                              implementationClass="com.android.tools.idea.gradle.navigation.KotlinRefManipulator"/>
+    <lang.elementManipulator forClass="org.jetbrains.kotlin.psi.KtDotQualifiedExpression"
+                             implementationClass="com.android.tools.idea.gradle.navigation.KotlinExpressionRefManipulator"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFiles$UpdateHashesStartupActivity"/>
     <!--
