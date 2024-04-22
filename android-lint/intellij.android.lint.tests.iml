@@ -34,5 +34,7 @@
     <orderEntry type="library" scope="TEST" name="studio-plugin-com.intellij.gradle" level="project" />
     <orderEntry type="module" module-name="android.sdktools.lint.testinfrastructure" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.something" scope="TEST" />
   </component>
 </module>

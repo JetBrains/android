@@ -112,6 +112,8 @@ iml_module(
         "@intellij//:com.intellij.gradle[test]",
         "//tools/base/lint/libs/lint-tests:studio.android.sdktools.lint.testinfrastructure[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
+        "//tools/adt/idea/gradle-dsl-something:intellij.android.gradle.dsl.something[module, test]",
     ],
 )
 

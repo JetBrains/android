@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.lint;
 
+import static org.junit.Assume.assumeTrue;
+
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.lint.common.AndroidLintGradleDependencyInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDeprecatedConfigurationInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspection;
@@ -37,6 +40,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.ExtensionTestUtil;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -60,7 +64,8 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   public static Collection<String[]> getParameters() {
     return Arrays.asList(new String[][] {
       {".gradle"},
-      {".gradle.kts"}
+      {".gradle.kts"},
+      {".gradle.something"}
     });
   }
 
@@ -83,6 +88,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
       .filter((x) -> !isKotlinHighlightVisitor(x)).toList();
     ExtensionTestUtil.maskExtensions(HighlightVisitor.EP_HIGHLIGHT_VISITOR, highlightVisitors, myFixture.getProjectDisposable(), false,
                                      myFixture.getProject());
+    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
   }
 
   @Override
@@ -92,6 +98,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     if (KotlinPluginModeProvider.Companion.isK2Mode()) {
       Registry.get(K2_KTS_KEY).setValue(false);
     }
+    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride();
   }
 
   private boolean isKotlinHighlightVisitor(HighlightVisitor visitor) {
@@ -331,6 +338,11 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
     createManifest();
     myFixture.enableInspections(inspection);
+    String sourceName = BASE_PATH + getTestName(false) + extension;
+    if (extension.equals(".gradle.something")) {
+      assumeTrue("Not implemented for declarative Gradle file", new File(myFixture.getTestDataPath(), sourceName).exists());
+    }
+
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + extension, "build" + extension);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);

@@ -17,6 +17,7 @@ package com.android.tools.idea.lint.common
 
 import com.android.SdkConstants
 import com.android.SdkConstants.FQCN_SUPPRESS_LINT
+import com.android.tools.idea.gradle.something.SomethingLanguage
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX
 import com.android.tools.lint.detector.api.ClassContext
 import com.google.common.base.Joiner
@@ -65,7 +66,8 @@ import org.jetbrains.plugins.groovy.GroovyLanguage
 import org.toml.lang.TomlLanguage
 
 @Suppress("UnstableApiUsage")
-class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) : ModCommandQuickFix(), SuppressQuickFix {
+class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) :
+  ModCommandQuickFix(), SuppressQuickFix {
   private val label = displayName(element, id)
 
   override fun isAvailable(project: Project, context: PsiElement): Boolean = true
@@ -96,6 +98,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       GroovyLanguage -> simplePsiUpdater(::handleGroovy)
       KotlinLanguage.INSTANCE -> simplePsiUpdater(::handleKotlin)
       TomlLanguage -> simplePsiUpdater(::handleToml)
+      SomethingLanguage.INSTANCE -> simplePsiUpdater(::handleSomething)
       else -> {
         // Suppressing lint checks tagged on things like icons, where we edit a different file.
         if (element is PsiFile) {
@@ -145,6 +148,13 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     addNoInspectionComment(project, file, offset, "#")
   }
 
+  @Throws(IncorrectOperationException::class)
+  private fun handleSomething(element: PsiElement) {
+    val file = if (element is PsiFile) element else element.containingFile ?: return
+    val project = file.project
+    val offset = element.textOffset
+    addNoInspectionComment(project, file, offset)
+  }
   /**
    * Given a file and offset of a statement, inserts a //noinspection <id> comment on the
    * **previous** line.
@@ -418,6 +428,8 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
           else LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         }
         GroovyLanguage -> LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
+        SomethingLanguage.INSTANCE ->
+          LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         else -> "Suppress $id"
       }
     }
