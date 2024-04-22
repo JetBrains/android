@@ -56,7 +56,7 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
     AndroidCoroutineScope(deviceView).launch {
       controller.populateModel()
       EventQueue.invokeLater {
-        val panel = UiSettingsPanel(model, showResetButton = true)
+        val panel = UiSettingsPanel(model, showResetButton = false)
         showUiSettingsPopup(panel, this@DeviceUiSettingsAction, event, deviceView)
       }
     }

@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.flags.StudioFlags
@@ -28,6 +29,7 @@ import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.UiSettingsRule
+import com.android.tools.idea.streaming.uisettings.ui.RESET_BUTTON_TEXT
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
@@ -54,6 +56,7 @@ import java.awt.Point
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.WindowFocusListener
+import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.seconds
@@ -116,6 +119,20 @@ class EmulatorUiSettingsActionTest {
     assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
     assertThat((balloon.target as RelativePoint).originalComponent).isInstanceOf(ActionButton::class.java)
     assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point(8, 8))
+  }
+
+  @Test
+  fun testHasResetButton() {
+    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
+    val controller = uiRule.getControllerOf(uiRule.emulator)
+    val view = createEmulatorView(controller)
+    val action = EmulatorUiSettingsAction()
+    val event = createTestMouseEvent(action, controller, view)
+    action.actionPerformed(event)
+    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
+    val balloon = popupFactory.getNextBalloon()
+    waitForCondition(10.seconds) { balloon.isShowing }
+    assertThat(balloon.component.findDescendant<JButton> { it.name == RESET_BUTTON_TEXT }).isNotNull()
   }
 
   @Test
