@@ -32,11 +32,11 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.H4
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLBAR_HEIGHT
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.client.ClientSystemInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
@@ -59,7 +59,8 @@ private const val ZOOM_IN = "Zoom in"
 private const val ZOOM_OUT = "Zoom out"
 private const val ATTACH_LIVE = "Attach to live"
 private const val DETACH_LIVE = "Detach live"
-private val SHORTCUT_MODIFIER_MASK_NUMBER = if (SystemInfo.isMac) META_DOWN_MASK else CTRL_DOWN_MASK
+private val SHORTCUT_MODIFIER_MASK_NUMBER
+  get() = if (ClientSystemInfo.isMac()) META_DOWN_MASK else CTRL_DOWN_MASK
 
 class NetworkInspectorTab(
   project: Project,

@@ -63,7 +63,8 @@ class ToggleShowResolvedValueAction(val model: NlPropertiesModel) :
   }
 
   companion object {
-    @JvmField val SHORTCUT = KeyboardShortcut(KeyStrokes.CMD_MINUS, null)
+    val SHORTCUT
+      get() = KeyboardShortcut(KeyStrokes.CMD_MINUS, null)
   }
 }
 

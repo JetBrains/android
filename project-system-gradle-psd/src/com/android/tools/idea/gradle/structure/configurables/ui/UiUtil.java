@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
-import static com.intellij.openapi.util.SystemInfo.isMac;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.BitUtil.isSet;
 import static java.awt.Event.CTRL_MASK;
@@ -26,6 +25,7 @@ import static javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.TreeBuilderSpeedSearch;
+import com.intellij.openapi.client.ClientSystemInfo;
 import com.intellij.util.ui.JBUI;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -63,11 +63,11 @@ public final class UiUtil {
   }
 
   public static boolean isMetaOrCtrlKeyPressed(@NotNull KeyEvent e) {
-    return e.getKeyCode() == (isMac ? VK_META : VK_CONTROL);
+    return e.getKeyCode() == (ClientSystemInfo.isMac() ? VK_META : VK_CONTROL);
   }
 
   public static boolean isMetaOrCtrlKeyPressed(@NotNull MouseEvent e) {
     int modifiers = e.getModifiers();
-    return isSet(modifiers, isMac ? META_MASK : CTRL_MASK);
+    return isSet(modifiers, ClientSystemInfo.isMac() ? META_MASK : CTRL_MASK);
   }
 }

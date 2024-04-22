@@ -65,11 +65,11 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_PASTE
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_REDO
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
+import com.intellij.openapi.client.ClientSystemInfo
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.UIUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlinx.coroutines.launch
@@ -648,7 +648,7 @@ internal class DeviceView(
     private fun hostKeyCodeToDeviceKeyCode(hostKeyCode: Int): Int {
       return when (hostKeyCode) {
         VK_BACK_SPACE -> AKEYCODE_DEL
-        VK_DELETE -> if (SystemInfo.isMac) AKEYCODE_DEL else AKEYCODE_FORWARD_DEL
+        VK_DELETE -> if (ClientSystemInfo.isMac()) AKEYCODE_DEL else AKEYCODE_FORWARD_DEL
         VK_ENTER -> AKEYCODE_ENTER
         VK_ESCAPE -> AKEYCODE_ESCAPE
         VK_TAB -> AKEYCODE_TAB

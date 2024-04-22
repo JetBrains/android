@@ -100,10 +100,10 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.client.ClientSystemInfo
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.IdeGlassPaneUtil
 import com.intellij.openapi.wm.impl.IdeGlassPaneEx
 import com.intellij.util.Alarm
@@ -901,7 +901,7 @@ class EmulatorView(
     private fun hostKeyCodeToEmulatorKeyName(hostKeyCode: Int): String? {
       return when (hostKeyCode) {
         VK_BACK_SPACE -> "Backspace"
-        VK_DELETE -> if (SystemInfo.isMac) "Backspace" else "Delete"
+        VK_DELETE -> if (ClientSystemInfo.isMac()) "Backspace" else "Delete"
         VK_ENTER -> "Enter"
         VK_ESCAPE -> "Escape"
         VK_TAB -> "Tab"
