@@ -23,6 +23,7 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.android.tools.rendering.RenderService
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.diagnostic.Logger
 import java.util.Collections
 import java.util.PriorityQueue
@@ -262,6 +263,10 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
             if (result == RefreshResult.FAILED) {
               log.warn("Failed refresh request ($currentRequest)", it)
             }
+            // Force actions update, so the Preview Status action UI is redrawn with the new status.
+            // This is needed because the status is changed without any user interaction. See the
+            // documentation of com.intellij.openapi.actionSystem.AnAction#update() for details.
+            ActivityTracker.getInstance().inc()
           }
           lazyWrapperJob.join()
           currentRefreshJob?.join()
