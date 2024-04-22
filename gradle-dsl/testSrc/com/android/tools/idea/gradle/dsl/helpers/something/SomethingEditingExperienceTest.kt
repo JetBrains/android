@@ -19,7 +19,7 @@ import com.intellij.testFramework.fixtures.BasePlatformTestCase
 
 class SomethingEditingExperienceTest : BasePlatformTestCase() {
   fun testQuotes() {
-    myFixture.configureByText("build.gradle.something", """
+    myFixture.configureByText("build.gradle.dcl", """
     androidApplication {
         namespace = <caret>
     }
@@ -35,7 +35,7 @@ class SomethingEditingExperienceTest : BasePlatformTestCase() {
   }
 
   fun testBlockIntentOnEnter() {
-    myFixture.configureByText("build.gradle.something", """
+    myFixture.configureByText("build.gradle.dcl", """
     androidApplication {<caret>
     }
     """.trimIndent())

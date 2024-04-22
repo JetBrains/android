@@ -401,9 +401,9 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    * maintaining a String-to-Description map, and looking up the given name.  This works for most blocks, but is not suitable for
    * NamedDomainObject containers, where the child properties can have arbitrary user-supplied names.
    *
-   * Groovy, KotlinScript have the same set of description but Declarative/"Something" format has elements named differently
-   * This is true for root DSL elements (android, dependencies etx) to avoid interference between declarative and traditional
-   * DSLs in declarative - experimental phase.
+   * Groovy, KotlinScript have the same set of description but Gradle's Declarative Configuration Language/"dcl" format has elements
+   * named differently. This is true for root DSL elements (android, dependencies etx) to avoid interference between declarative and
+   * traditional DSLs in declarative - experimental phase.
    *
    * @return a map of external names to descriptions of the corresponding properties element.
    */

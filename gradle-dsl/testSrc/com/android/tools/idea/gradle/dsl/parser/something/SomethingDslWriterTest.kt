@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.something
 
+import com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.blockOf
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
@@ -158,7 +159,7 @@ class SomethingDslWriterTest : LightPlatformTestCase() {
   fun testDoubleFunction(){
     val file = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
-      "build.gradle.something",
+      "build.gradle.dcl",
       ""
     )
     val dslFile = object : GradleDslFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}
@@ -189,7 +190,7 @@ class SomethingDslWriterTest : LightPlatformTestCase() {
   private fun doTest(contents: Map<String, Any>, expected: String) {
     val file = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
-      "build.gradle.something",
+      "build.gradle.dcl",
       ""
     )
     val dslFile = object : GradleDslFile(file, project, ":", BuildModelContext.create(project, Mockito.mock())) {}

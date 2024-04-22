@@ -115,7 +115,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
   @NotNull private static final String GROOVY_LANGUAGE = "Groovy";
   @NotNull private static final String KOTLIN_LANGUAGE = "Kotlin";
-  @NotNull private static final String GRADLE_DECLARATIVE_LANGUAGE = "Something";
+  @NotNull private static final String GRADLE_DECLARATIVE_LANGUAGE = "Declarative";
   protected String myTestDataRelativePath;
   protected String myTestDataResolvedPath;
 
@@ -144,7 +144,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     return Arrays.asList(new Object[][]{
       {".gradle", GROOVY_LANGUAGE},
       {".gradle.kts", KOTLIN_LANGUAGE},
-      {".gradle.something", GRADLE_DECLARATIVE_LANGUAGE}
+      {".gradle.dcl", GRADLE_DECLARATIVE_LANGUAGE}
     });
   }
 
@@ -211,7 +211,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
   @Before
   public void before() throws Exception {
-    // ignore Gradle declarative (Something) test cases
+    // ignore Gradle declarative test cases
     assumeFalse(isGradleDeclarative());
 
     IdeSdks.removeJdksOn(getTestRootDisposable());

@@ -170,7 +170,7 @@ class SomethingDslParserTest : LightPlatformTestCase() {
   private fun doTest(text: String, expected: Map<String, Any>) {
     val somethingFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
-      "build.gradle.something",
+      "build.gradle.dcl",
       text
     )
     val dslFile = object : GradleBuildFile(somethingFile, project, ":", BuildModelContext.create(project, mock())) {}

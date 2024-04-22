@@ -27,7 +27,7 @@ class SomethingPsiFactory(private val project: Project) {
   fun createFile(text: CharSequence): SomethingFile =
     PsiFileFactory.getInstance(project)
       .createFileFromText(
-        "placeholder.something",
+        "placeholder.dcl",
         SomethingFileType.INSTANCE,
         text,
         System.currentTimeMillis(),

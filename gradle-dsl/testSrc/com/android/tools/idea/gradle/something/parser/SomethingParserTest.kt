@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.something.SomethingParserDefinition
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ParsingTestCase
 
-class SomethingParserTest : ParsingTestCase("no_data_path_needed", "something", SomethingParserDefinition()) {
+class SomethingParserTest : ParsingTestCase("no_data_path_needed", "dcl", SomethingParserDefinition()) {
   fun testAssignment() {
     assertThat(
         """

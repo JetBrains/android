@@ -4,7 +4,7 @@
               implementationClass="com.android.tools.idea.gradle.something.SomethingFileType"
               fieldName="INSTANCE"
               language="Something"
-              extensions="something"/>
+              extensions="dcl"/>
     <lang.parserDefinition language="Something"
                            implementationClass="com.android.tools.idea.gradle.something.SomethingParserDefinition"/>
     <lang.syntaxHighlighter language="Something" implementationClass="com.android.tools.idea.gradle.something.SomethingHighlighter"/>

@@ -65,7 +65,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     return Arrays.asList(new String[][] {
       {".gradle"},
       {".gradle.kts"},
-      {".gradle.something"}
+      {".gradle.dcl"}
     });
   }
 
@@ -339,7 +339,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     createManifest();
     myFixture.enableInspections(inspection);
     String sourceName = BASE_PATH + getTestName(false) + extension;
-    if (extension.equals(".gradle.something")) {
+    if (extension.equals(".gradle.dcl")) {
       assumeTrue("Not implemented for declarative Gradle file", new File(myFixture.getTestDataPath(), sourceName).exists());
     }
 

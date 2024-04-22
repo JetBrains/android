@@ -30,7 +30,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.ParsingTestCase
 import kotlin.reflect.KClass
 
-class SomethingVisitorTest : ParsingTestCase("no_data_path_needed", "something", SomethingParserDefinition()) {
+class SomethingVisitorTest : ParsingTestCase("no_data_path_needed", "dcl", SomethingParserDefinition()) {
   fun `test visit array table`() {
     doTest<SomethingBlock>(
       """

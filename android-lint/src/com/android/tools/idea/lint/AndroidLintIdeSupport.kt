@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint
 
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
+import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.Module as ExternalModule
 import com.android.ide.common.repository.AgpVersion
@@ -123,7 +124,9 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     if (facet == null && !CommonAndroidUtil.getInstance().isAndroidProject(module.project))
       return false
 
-    if (StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get() && file.name.endsWith(".gradle.something"))
+    if (
+      StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get() && file.name.endsWith(EXT_GRADLE_DECLARATIVE)
+    )
       return true
 
     return when (file.fileType) {

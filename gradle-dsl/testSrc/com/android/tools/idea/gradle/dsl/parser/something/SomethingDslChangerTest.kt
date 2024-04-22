@@ -141,7 +141,7 @@ class SomethingDslChangerTest : LightPlatformTestCase() {
   private fun doTest(text: String, expected: String, changer: GradleDslFile.() -> Unit) {
     val somethingFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
-      "build.gradle.something",
+      "build.gradle.dcl",
       text
     )
     val dslFile = object : GradleBuildFile(somethingFile, project, ":", BuildModelContext.create(project, Mockito.mock())) {}

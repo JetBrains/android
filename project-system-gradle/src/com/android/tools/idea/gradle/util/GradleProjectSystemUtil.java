@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
-import static com.android.SdkConstants.DOT_SOMETHING;
+import static com.android.SdkConstants.DOT_DECLARATIVE;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
@@ -449,8 +449,8 @@ public class GradleProjectSystemUtil {
       else if (buildFileName.endsWith(DOT_KTS)) {
         result.add(DOT_KTS);
       }
-      else if (GRADLE_DECLARATIVE_IDE_SUPPORT.get() && buildFileName.endsWith(DOT_SOMETHING)) {
-        result.add(DOT_SOMETHING);
+      else if (GRADLE_DECLARATIVE_IDE_SUPPORT.get() && buildFileName.endsWith(DOT_DECLARATIVE)) {
+        result.add(DOT_DECLARATIVE);
       }
     }
   }

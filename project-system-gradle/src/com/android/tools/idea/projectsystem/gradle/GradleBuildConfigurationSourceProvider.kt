@@ -207,7 +207,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
   }
 
   private fun VirtualFile.isGradleDeclarativeBuildFile() =
-    GRADLE_DECLARATIVE_IDE_SUPPORT.get() && name.endsWith(SdkConstants.EXT_GRADLE_SOMETHING)
+    GRADLE_DECLARATIVE_IDE_SUPPORT.get() && name.endsWith(SdkConstants.EXT_GRADLE_DECLARATIVE)
 
   private val proguardFileType: FileType = FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")
 }

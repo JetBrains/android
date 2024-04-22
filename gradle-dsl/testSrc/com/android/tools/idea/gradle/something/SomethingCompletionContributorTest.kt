@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.something
 
+import com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
@@ -95,7 +96,7 @@ class SomethingCompletionContributorTest : SomethingSchemaTestBase() {
 
   private fun doTest(declarativeFile: String, check: (List<String>) -> Unit) {
     val buildFile = fixture.addFileToProject(
-      "build.gradle.something", declarativeFile)
+      "build.gradle.dcl", declarativeFile)
     fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
     fixture.completeBasic()
     val list: List<String> = fixture.lookupElements!!.map {

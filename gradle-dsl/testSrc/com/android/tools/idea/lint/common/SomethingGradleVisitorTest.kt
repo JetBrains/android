@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.util.toIoFile
@@ -125,7 +126,7 @@ class SomethingGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
   // Test infrastructure below
 
   private fun check(@Language("Something") gradleSource: String, expected: String) {
-    val file = myFixture.addFileToProject("build.gradle.something", gradleSource.trimIndent())
+    val file = myFixture.addFileToProject(FN_BUILD_GRADLE_DECLARATIVE, gradleSource.trimIndent())
 
     val client = LintIdeSupport.get().createClient(project)
 

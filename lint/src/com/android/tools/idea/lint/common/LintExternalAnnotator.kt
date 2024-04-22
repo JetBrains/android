@@ -18,6 +18,7 @@ package com.android.tools.idea.lint.common
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
 import com.android.SdkConstants.DOT_KTS
 import com.android.SdkConstants.DOT_XML
+import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
 import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
@@ -194,7 +195,9 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
         if (name.endsWith(DOT_KTS)) {
           scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE)
         }
-      } else if (StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get() && name.endsWith(".something")) {
+      } else if (
+        StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get() && name.endsWith(EXT_GRADLE_DECLARATIVE)
+      ) {
         scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE)
       } else if (
         name == OLD_PROGUARD_FILE ||

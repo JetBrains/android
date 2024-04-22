@@ -99,7 +99,7 @@ class SomethingUastLanguagePlugin : UastLanguagePlugin {
 
   override fun isExpressionValueUsed(element: UExpression) = true
 
-  override fun isFileSupported(fileName: String) = fileName.endsWith(".gradle.something")
+  override fun isFileSupported(fileName: String) = fileName.endsWith(".gradle.dcl")
 }
 
 class SomethingUFile(override val sourcePsi: SomethingFile, override val languagePlugin: SomethingUastLanguagePlugin) : UFile {

@@ -46,11 +46,11 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
   @Test
   fun checkFunctionIdentifier() {
     writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
-    val file = fixture.addFileToProject("build.gradle.something", """
+    val file = addDeclarativeBuildFile("""
       plugins{
          ${"katlin" highlightedAs HighlightSeverity.ERROR}("something")
       }
-    """.trimIndent())
+    """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -60,12 +60,12 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
   @Test
   fun dontCheckInFailedBlock() {
     writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
-    val file = fixture.addFileToProject("build.gradle.something", """
+    val file = addDeclarativeBuildFile("""
       ${"plugins1" highlightedAs HighlightSeverity.ERROR} {
         kotlin("something")
         katlin("something")
       }
-    """.trimIndent())
+    """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -74,14 +74,14 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
   @Test
   fun dontCheckInFailedBlock2() {
     writeToSchemaFile(TestFile.DECLARATIVE_ADVANCED_SCHEMAS)
-    val file = fixture.addFileToProject("build.gradle.something", """
+    val file = addDeclarativeBuildFile("""
       android {
         ${"myDeps2" highlightedAs HighlightSeverity.ERROR } {
             debugImplementation("com.google.guava:guava:30.1.1-jre")
             wrongImplementation("com.google.guava:guava:30.1.1-jre")
         }
       }
-    """.trimIndent())
+    """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -90,10 +90,10 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
   @Test
   fun checkRootBlockIdentifier() {
     writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
-    val file = fixture.addFileToProject("build.gradle.something", """
+    val file = addDeclarativeBuildFile("""
       ${"androidAplication" highlightedAs HighlightSeverity.ERROR}{
       }
-    """.trimIndent())
+    """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -102,11 +102,11 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
   @Test
   fun checkPropertyIdentifier() {
     writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
-    val file = fixture.addFileToProject("build.gradle.something", """
+    val file = addDeclarativeBuildFile("""
       androidApplication {
            minSdk = 33
       }
-    """.trimIndent())
+    """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -115,7 +115,7 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
   @Test
   fun stopCheckingWithUnknownNamedDomainObjects() {
     writeToSchemaFile(TestFile.DECLARATIVE_ADVANCED_SCHEMAS)
-    val file = fixture.addFileToProject("build.gradle.something", """
+    val file = addDeclarativeBuildFile("""
       android {
         appBuildTypes {
           // not in schema
@@ -124,7 +124,7 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
           }
         }
       }
-    """.trimIndent())
+    """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -133,7 +133,7 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
   @Test
   fun checkingWithKnownNamedDomainObjects() {
     writeToSchemaFile(TestFile.DECLARATIVE_ADVANCED_SCHEMAS)
-    val file = fixture.addFileToProject("build.gradle.something", """
+    val file = addDeclarativeBuildFile("""
       android {
         appBuildTypes {
           debug {
@@ -141,7 +141,7 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
           }
         }
       }
-    """.trimIndent())
+    """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -151,7 +151,7 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
   fun checkAdvancedCase() {
     // DSL is different from AGP as we adopting to Declarative requirements.
     writeToSchemaFile(TestFile.DECLARATIVE_ADVANCED_SCHEMAS)
-    val file = fixture.addFileToProject("build.gradle.something", """
+    val file = addDeclarativeBuildFile("""
     plugins {
         id("com.android.application")
         id("org.jetbrains.kotlin.android")
@@ -193,7 +193,7 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
             enableBaselineProfile = false
         }
     }
-    """.trimIndent())
+    """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
@@ -203,7 +203,7 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
   fun checkMultipleErrorAdvancedCase() {
     // DSL is different from AGP as we adopting to Declarative requirements.
     writeToSchemaFile(TestFile.DECLARATIVE_ADVANCED_SCHEMAS)
-    val file = fixture.addFileToProject("build.gradle.something", """
+    val file = addDeclarativeBuildFile("""
     plugins {
         id("com.android.application")
         ${"wrong" highlightedAs HighlightSeverity.ERROR }("org.jetbrains.kotlin.android")
@@ -245,15 +245,16 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
             enableBaselineProfile = false
         }
     }
-    """.trimIndent())
+    """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
   }
+
   @Test
   fun checkAllCorrectCase() {
     writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
-    val file = fixture.addFileToProject("build.gradle.something", """
+    val file = addDeclarativeBuildFile("""
       plugins {
         id("something")
       }
@@ -263,9 +264,11 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
       declarativeDependencies {
         api("dependencies")
       }
-    """.trimIndent())
+    """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
   }
+
+  private fun addDeclarativeBuildFile(text: String) = fixture.addFileToProject("build.gradle.dcl", text.trimIndent())
 }

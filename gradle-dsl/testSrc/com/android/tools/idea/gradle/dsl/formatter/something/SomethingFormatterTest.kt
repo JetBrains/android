@@ -129,7 +129,7 @@ false    )
 
   private fun doTest(before: String, after: String) {
     myFixture.loadNewFile(
-      "build.gradle.something",
+      "build.gradle.dcl",
       before.trimIndent()
     )
     WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
