@@ -15,5 +15,6 @@
     <orderEntry type="module" module-name="intellij.android.wear-designer" scope="RUNTIME" />
     <orderEntry type="library" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="intellij.android.design-plugin.descriptor" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.motion-editor" scope="RUNTIME" />
   </component>
 </module>

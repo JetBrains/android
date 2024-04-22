@@ -30,6 +30,18 @@
                     interface="com.intellij.ui.EditorNotificationProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.troubleshooting.infoCollector"
                     interface="com.intellij.troubleshooting.TroubleInfoCollector"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.property.motionEditorNlPropertiesModelProvider"
+                    interface="com.android.tools.idea.uibuilder.property.NlPropertiesModelProvider"
+                    dynamic="true" />
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.property.motionEditorNlPropertiesViewProvider"
+                    interface="com.android.tools.idea.uibuilder.property.NlPropertiesViewProvider"
+                    dynamic="true" />
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.handlers.constraint.constraintLayoutExtension"
+                    interface="com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities$ConstraintLayoutExtension"
+                    dynamic="true" />
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.scene.decorator.nlDecoratorProvider"
+                    interface="com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory$Provider"
+                    dynamic="true" />
   </extensionPoints>
 
   <!-- New layout editor -->

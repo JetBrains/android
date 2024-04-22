@@ -106,6 +106,7 @@ import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlAttributesHolder;
@@ -117,18 +118,16 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scout.Direction;
 import com.android.tools.module.AndroidModuleInfo;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1566,14 +1565,14 @@ public final class ConstraintComponentUtilities {
   }
 
   // ordered the same as Direction enum
-  private static String[][] ATTRIB_MATRIX = {
+  public static String[][] ATTRIB_MATRIX = {
     {ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null, null, null},
     {ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null, null, null},
     {null, null, ATTR_LAYOUT_START_TO_START_OF, ATTR_LAYOUT_START_TO_END_OF, null},
     {null, null, ATTR_LAYOUT_END_TO_START_OF, ATTR_LAYOUT_END_TO_END_OF, null},
     {null, null, null, null, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
   };
-  private static String[][] ATTRIB_CLEAR = {
+  public static String[][] ATTRIB_CLEAR = {
     {ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF},
     {ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF},
     {ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF},
@@ -1581,14 +1580,14 @@ public final class ConstraintComponentUtilities {
     {ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
   };
 
-  private static String[] ATTRIB_MARGIN = {
+  public static String[] ATTRIB_MARGIN = {
     ATTR_LAYOUT_MARGIN_TOP,
     ATTR_LAYOUT_MARGIN_BOTTOM,
     ATTR_LAYOUT_MARGIN_START,
     ATTR_LAYOUT_MARGIN_END
   };
 
-  private static String[] ATTRIB_MARGIN_LR = {
+  public static String[] ATTRIB_MARGIN_LR = {
     null,
     null,
     ATTR_LAYOUT_MARGIN_LEFT,
@@ -1596,94 +1595,16 @@ public final class ConstraintComponentUtilities {
   };
 
 
-  public static void clearAttributes(String uri, ArrayList<String> attributes, MTag.TagWriter tagwriter) {
-    int count = attributes.size();
-    for (int i = 0; i < count; i++) {
-      String attribute = attributes.get(i);
-      tagwriter.setAttribute(uri, attribute, null);
-    }
-  }
-
-  /**
-   * Apply scout to constraintSet not NLcomponent
-   * @param source
-   * @param sourceDirection
-   * @param target
-   * @param targetDirection
-   * @param margin
-   */
-  public static void scoutConstraintSetConnect( NlComponent source,
-    Direction sourceDirection,
-    NlComponent target,
-    Direction targetDirection,
-    int margin) {
-    int srcIndex = sourceDirection.ordinal();
-    String attrib = ATTRIB_MATRIX[srcIndex][targetDirection.ordinal()];
-    if (attrib == null) {
-      throw new RuntimeException("cannot connect " + sourceDirection + " to " + targetDirection);
-    }
-    ArrayList<String> list = new ArrayList<>();
-    for (int i = 0; i < ATTRIB_CLEAR[srcIndex].length; i++) {
-      String clr_attr = ATTRIB_CLEAR[srcIndex][i];
-      if (!attrib.equals(clr_attr)) {
-        list.add(clr_attr);
-      }
-    }
-
-    MTag.TagWriter tagwriter = MotionSceneUtils.getTagWriter(source);
-
-    clearAttributes(SHERPA_URI, list, tagwriter);
-    String targetId;
-    if (target == source.getParent()) {
-      targetId = ATTR_PARENT;
-    }
-    else {
-      targetId = NEW_ID_PREFIX + NlComponentHelperKt.ensureLiveId(target);
-    }
-    tagwriter.setAttribute(SHERPA_URI, attrib, targetId);
-    if ((srcIndex <= Direction.BASELINE.ordinal()) && (margin > 0)) {
-      tagwriter.setAttribute(ANDROID_URI, ATTRIB_MARGIN[srcIndex], margin + "dp");
-      if (ATTRIB_MARGIN_LR[srcIndex] != null) { // add the left and right as needed
-        tagwriter.setAttribute(ANDROID_URI, ATTRIB_MARGIN_LR[srcIndex], margin + "dp");
-      }
-    }
-    tagwriter.commit("create connection");
-    String str;
-    switch (sourceDirection) {
-      case BASELINE:
-        str = DecoratorUtilities.BASELINE_CONNECTION;
-        break;
-      case BOTTOM:
-        str = DecoratorUtilities.BOTTOM_CONNECTION;
-        break;
-      case LEFT:
-        str = DecoratorUtilities.LEFT_CONNECTION;
-        break;
-      case RIGHT:
-        str = DecoratorUtilities.RIGHT_CONNECTION;
-        break;
-      case TOP:
-        str = DecoratorUtilities.TOP_CONNECTION;
-        break;
-      default:
-        str = null;
-        break;
-    }
-    // noinspection ConstantConditions
-    if (str != null) {
-      DecoratorUtilities.setTimeChange(source, str, DecoratorUtilities.ViewStates.INFERRED, DecoratorUtilities.ViewStates.SELECTED);
-    }
-  }
-
   public static void scoutConnect(NlComponent source,
                                   Direction sourceDirection,
                                   NlComponent target,
                                   Direction targetDirection,
                                   int margin) {
-    if (MotionSceneUtils.isUnderConstraintSet(source)) {
-      scoutConstraintSetConnect(source, sourceDirection, target, targetDirection, margin);
-      return;
+    List<ConstraintLayoutExtension> extensions = ConstraintLayoutExtension.EP_NAME.getExtensionList();
+    for (ConstraintLayoutExtension extension : extensions) {
+      if (extension.scoutConnect(source, sourceDirection, target, targetDirection, margin)) return;
     }
+
     int srcIndex = sourceDirection.ordinal();
     String attrib = ATTRIB_MATRIX[srcIndex][targetDirection.ordinal()];
     if (attrib == null) {
@@ -1884,5 +1805,16 @@ public final class ConstraintComponentUtilities {
       return true;
     }
     return false;
+  }
+
+  public interface ConstraintLayoutExtension {
+    ExtensionPointName<ConstraintLayoutExtension> EP_NAME =
+      new ExtensionPointName<>("com.android.tools.idea.uibuilder.handlers.constraint.constraintLayoutExtension");
+
+    boolean scoutConnect(NlComponent source,
+                 Direction sourceDirection,
+                 NlComponent target,
+                 Direction targetDirection,
+                 int margin);
   }
 }

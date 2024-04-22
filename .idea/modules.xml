@@ -290,6 +290,7 @@
       <module fileurl="file://$PROJECT_DIR$/ml-api/intellij.android.ml-api.iml" filepath="$PROJECT_DIR$/ml-api/intellij.android.ml-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/mlkit/intellij.android.mlkit.iml" filepath="$PROJECT_DIR$/mlkit/intellij.android.mlkit.iml" />
       <module fileurl="file://$PROJECT_DIR$/mlkit/intellij.android.mlkit.tests.iml" filepath="$PROJECT_DIR$/mlkit/intellij.android.mlkit.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/motion-editor/intellij.android.motion-editor.iml" filepath="$PROJECT_DIR$/motion-editor/intellij.android.motion-editor.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.iml" filepath="$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/editor/gradle/intellij.android.nav.editor.gradle.iml" filepath="$PROJECT_DIR$/nav/editor/gradle/intellij.android.nav.editor.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.tests.iml" filepath="$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.tests.iml" />

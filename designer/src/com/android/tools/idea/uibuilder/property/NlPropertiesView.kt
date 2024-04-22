@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.PropertiesView
 import com.android.tools.property.panel.api.Watermark
+import com.intellij.openapi.extensions.ExtensionPointName
 
 private const val VIEW_NAME = "LayoutEditor"
 private const val WATERMARK_MESSAGE = "No component selected."
@@ -54,4 +55,15 @@ class NlPropertiesView(model: NlPropertiesModel) :
     tab.builders.add(CommonAttributesInspectorBuilder(model.project, editorProvider))
     tab.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
   }
+
+  companion object {
+    internal val EP_NAME =
+      ExtensionPointName<NlPropertiesViewProvider>(
+        "com.android.tools.idea.uibuilder.property.motionEditorNlPropertiesViewProvider"
+      )
+  }
+}
+
+interface NlPropertiesViewProvider {
+  fun create(model: NlPropertiesModel): PropertiesView<NlPropertyItem>
 }

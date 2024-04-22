@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import static junit.framework.Assert.assertTrue;
 
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -30,6 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.timing.Wait;
+import org.jetbrains.annotations.NotNull;
 
 public class ConfigureKotlinWithAndroidWithGradleDialogFixture{
   @NotNull private final IdeFrameFixture myIdeFrame;

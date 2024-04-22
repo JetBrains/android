@@ -48,7 +48,6 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
-import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -353,7 +352,7 @@ public class DragDropInteraction implements Interaction {
             AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_MOCK_VIEW.isEquals(component.getTagName());
           boolean acceptableHandler =
               (myCurrentHandler instanceof ConstraintLayoutHandler) ||
-              (myCurrentHandler instanceof MotionLayoutHandler);
+              (myCurrentHandler instanceof ConstraintLayoutHandler.ConstraintLayoutSupported);
           if (constraintHelper && !acceptableHandler) {
             error = String.format(
               "<%1$s> does not accept <%2$s> as a child", myDragReceiver.getNlComponent().getTagName(), component.getTagName());

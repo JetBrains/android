@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
+<issues format="6" by="lint 8.5.0-alpha06" type="baseline" client="" dependencies="true" name="" variant="all" version="8.5.0-alpha06">
 
     <issue
         id="DefaultLocale"
@@ -8,7 +8,7 @@
         errorLine2="                                                                                                             ~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/common/scene/Scene.java"
-            line="661"
+            line="655"
             column="110"/>
     </issue>
 
@@ -173,30 +173,8 @@
         errorLine2="                         ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/assistant/ImageViewAssistant.kt"
-            line="50"
+            line="51"
             column="26"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="  public static final int ourLeftColumnWidth = JBUI.scale(150);"
-        errorLine2="                                                    ~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/motion/editor/adapters/MEUI.java"
-            line="94"
-            column="53"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
-        errorLine1="  public static final int ourHeaderHeight = JBUI.scale(30);"
-        errorLine2="                                                 ~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/motion/editor/adapters/MEUI.java"
-            line="95"
-            column="50"/>
     </issue>
 
     <issue
@@ -382,7 +360,7 @@
         errorLine2="                                                 ~~~~~">
         <location
             file="src/com/android/tools/idea/common/scene/Scene.java"
-            line="96"
+            line="97"
             column="50"/>
     </issue>
 
@@ -503,7 +481,7 @@
         errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
-            line="83"
+            line="85"
             column="52"/>
     </issue>
 
@@ -514,63 +492,8 @@
         errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
-            line="83"
+            line="85"
             column="52"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope"
-        errorLine1="        JComponent pane = designSurface.getInteractionPane();"
-        errorLine2="                                        ~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/motion/editor/adapters/MESaveGif.java"
-            line="83"
-            column="41"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope"
-        errorLine1="    setLastUpdateCompleted(false);"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/motion/property/MotionLayoutAttributesModel.java"
-            line="109"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope"
-        errorLine1="        setUpdateCount(getUpdateCount() + 1);"
-        errorLine2="        ~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/motion/property/MotionLayoutAttributesModel.java"
-            line="127"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope"
-        errorLine1="        setUpdateCount(getUpdateCount() + 1);"
-        errorLine2="                       ~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/motion/property/MotionLayoutAttributesModel.java"
-            line="127"
-            column="24"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope"
-        errorLine1="        setLastUpdateCompleted(true);"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/motion/property/MotionLayoutAttributesModel.java"
-            line="128"
-            column="9"/>
     </issue>
 
     <issue
@@ -580,7 +503,7 @@
         errorLine2="                                                           ~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="747"
+            line="771"
             column="60"/>
     </issue>
 
@@ -591,7 +514,7 @@
         errorLine2="                             ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/statelist/SelectorMenuAction.kt"
-            line="191"
+            line="196"
             column="30"/>
     </issue>
 
@@ -602,7 +525,7 @@
         errorLine2="                             ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/statelist/SelectorMenuAction.kt"
-            line="191"
+            line="196"
             column="30"/>
     </issue>
 
@@ -613,7 +536,7 @@
         errorLine2="                            ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="574"
+            line="588"
             column="29"/>
     </issue>
 
@@ -624,7 +547,7 @@
         errorLine2="                            ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="574"
+            line="588"
             column="29"/>
     </issue>
 
@@ -648,6 +571,17 @@
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
             line="208"
             column="13"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        message="Use of `scheduleAtFixedRate` is strongly discouraged because it can lead to unexpected behavior when Android processes become cached (tasks may unexpectedly execute hundreds or thousands of times in quick succession when a process changes from cached to uncached); prefer using `scheduleWithFixedDelay`"
+        errorLine1="    executor?.scheduleAtFixedRate(onTick, 0, period.toNanos(), TimeUnit.NANOSECONDS)"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/common/util/ControllableTicker.kt"
+            line="44"
+            column="5"/>
     </issue>
 
 </issues>

@@ -1,0 +1,4 @@
+# Route bugs created from test failures to L2 triage.
+# Bug component: 540801
+# See go/studio-test-owners for more.
+include platform/tools/base:/owners/design_tools_OWNERS

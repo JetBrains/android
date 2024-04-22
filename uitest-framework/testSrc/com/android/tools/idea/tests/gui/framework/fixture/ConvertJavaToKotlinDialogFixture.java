@@ -21,16 +21,13 @@ import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
-import javax.swing.JDialog;
-import org.fest.swing.finder.DialogFinder;
+import com.android.annotations.NonNull;
 import org.fest.swing.fixture.DialogFixture;
-import org.fest.swing.timing.Wait;
 
 public class ConvertJavaToKotlinDialogFixture {
-  @NotNull private final IdeFrameFixture myIdeFrame;
-  @NotNull private final DialogFixture myDialog;
-  @NotNull static final String TITLE = "Convert Java to Kotlin";
+  @NonNull private final IdeFrameFixture myIdeFrame;
+  @NonNull private final DialogFixture myDialog;
+  @NonNull static final String TITLE = "Convert Java to Kotlin";
 
   public static ConvertJavaToKotlinDialogFixture find(IdeFrameFixture ideFrame) {
     DialogFixture convertCodeFromJavaDialog = findDialog(withTitle("Convert Java to Kotlin"))
@@ -38,7 +35,7 @@ public class ConvertJavaToKotlinDialogFixture {
     return new ConvertJavaToKotlinDialogFixture(ideFrame, convertCodeFromJavaDialog);
   }
 
-  private ConvertJavaToKotlinDialogFixture(@NotNull IdeFrameFixture ideFrameFixture,
+  private ConvertJavaToKotlinDialogFixture(@NonNull IdeFrameFixture ideFrameFixture,
                                            DialogFixture dialog) {
     myIdeFrame = ideFrameFixture;
     myDialog = dialog;

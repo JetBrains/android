@@ -49,6 +49,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.pom.Navigatable
@@ -523,4 +524,19 @@ open class NlPropertiesModel(
       ApplicationManager.getApplication().invokeLater { firePropertyValueChangeIfNeeded() }
     }
   }
+
+  companion object {
+    internal val EP_NAME =
+      ExtensionPointName<NlPropertiesModelProvider>(
+        "com.android.tools.idea.uibuilder.property.motionEditorNlPropertiesModelProvider"
+      )
+  }
+}
+
+interface NlPropertiesModelProvider {
+  fun create(
+    content: NlPropertiesPanelToolContent,
+    facet: AndroidFacet,
+    updateQueue: MergingUpdateQueue,
+  ): NlPropertiesModel
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.support
 
+import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_AFTER
 import com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE
@@ -54,7 +55,6 @@ import com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF
 import com.android.SdkConstants.ATTR_MOTION_TARGET_ID
 import com.android.SdkConstants.ID_PREFIX
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.android.tools.property.panel.api.EnumSupport
@@ -169,7 +169,7 @@ class IdEnumSupport(val property: NlPropertyItem) : EnumSupport {
     return tag
       ?.parentTag
       ?.subTags
-      ?.filter { it.localName == MotionSceneAttrs.Tags.CONSTRAINTSET && it != tag }
+      ?.filter { it.localName == SdkConstants.MotionSceneTags.CONSTRAINT_SET && it != tag }
       ?.mapNotNull { stripIdPrefix(it.getAttributeValue(ATTR_ID, ANDROID_URI)).nullize() }
       ?.map { EnumValue.item(ID_PREFIX + it) } ?: emptyList()
   }
