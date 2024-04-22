@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.intellij.psi.util.startOffset
 import com.intellij.refactoring.suggested.endOffset
-import com.intellij.refactoring.suggested.startOffset
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.org.objectweb.asm.ClassReader
 import java.nio.file.Files
 import java.nio.file.Paths
-import kotlin.math.ceil
 
 const val SLOTS_PER_INT = 10
 const val BITS_PER_INT = 31

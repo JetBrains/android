@@ -17,7 +17,7 @@ package com.android.tools.idea.lint.common
 
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
-import com.intellij.refactoring.suggested.startOffset
+import com.intellij.psi.util.startOffset
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 
 class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
