@@ -141,6 +141,48 @@ class ExplainSyncOrBuildOutputTest {
   }
 
   @Test
+  fun test336196316() {
+    val multilineErrorMessage = "Unexpected tokens (use ';' to separate expressions on the same line)\n" +
+                                "This is another line of the error description.\n" +
+                                "Multiple lines shouldn't mess up the query format."
+    val panel = createTree(multilineErrorMessage)
+    panel.setSelectionRow(5)
+
+    val action = ExplainSyncOrBuildOutput()
+    val event =
+      AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
+
+    action.actionPerformed(event)
+
+    verify(StudioBot.getInstance().chat(project))
+      .sendChatQuery(
+        buildPrompt(project) {
+          userMessage {
+            text(
+              """
+I'm getting an error trying to build my project. The error is "Unexpected tokens (use ';' to separate expressions on the same line)
+This is another line of the error description.
+Multiple lines shouldn't mess up the query format.".
+
+Here are more details about the error and my project:
+START CONTEXT
+Project name: ${project.name}
+Project path: ${project.basePath}
+END CONTEXT
+
+Explain this error and how to fix it.
+      """
+                .trimIndent(),
+              emptyList(),
+            )
+          }
+        },
+        StudioBot.RequestSource.BUILD,
+        "Explain build error: $multilineErrorMessage"
+      )
+  }
+
+  @Test
   fun testActionPerformedWithContextFlagDisabled() {
     (StudioBot.getInstance() as MockStudioBot).contextAllowed = false
     val panel = createTree()
@@ -408,7 +450,7 @@ class ExplainSyncOrBuildOutputTest {
     override fun getChildList(): List<TestExecutionNode> = listOf(*myChildren)
   }
 
-  private fun createTree(): Tree {
+  private fun createTree(errorMessage: String = "Unexpected tokens (use ';' to separate expressions on the same line)"): Tree {
     val node =
       TestExecutionNode(
         "",
@@ -421,7 +463,7 @@ class ExplainSyncOrBuildOutputTest {
               TestExecutionNode(
                 "MainActivity.kt",
                 TestExecutionNode(
-                  "Unexpected tokens (use ';' to separate expressions on the same line)"
+                  errorMessage
                 ),
               ),
             ),

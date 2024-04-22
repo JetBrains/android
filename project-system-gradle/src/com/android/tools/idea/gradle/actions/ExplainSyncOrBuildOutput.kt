@@ -157,11 +157,11 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
 
       val queryScaffold =
         """
-          I'm getting an error trying to $issueType my project. The error is "$errorName".
-          ${if (shortDescription == null) "" else "The description is \"$shortDescription\".\n"}
-          ___CONTEXT_GOES_HERE___
-          Explain this error and how to fix it.
-        """.trimIndent()
+I'm getting an error trying to $issueType my project. The error is "$errorName".
+${if (shortDescription == null) "" else "The description is \"$shortDescription\".\n"}
+___CONTEXT_GOES_HERE___
+Explain this error and how to fix it.
+        """.trim()
 
       // Trim down the context so that the entire query is below the maximum length
       val trimmedContext = context?.take(studioBot.MAX_QUERY_CHARS - queryScaffold.length)
