@@ -1,33 +1,33 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <fileType name="Something (Gradle Declarative)"
-              implementationClass="com.android.tools.idea.gradle.something.SomethingFileType"
+    <fileType name="Gradle Declarative Configuration Language"
+              implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeFileType"
               fieldName="INSTANCE"
-              language="Something"
+              language="Declarative"
               extensions="dcl"/>
-    <lang.parserDefinition language="Something"
-                           implementationClass="com.android.tools.idea.gradle.something.SomethingParserDefinition"/>
-    <lang.syntaxHighlighter language="Something" implementationClass="com.android.tools.idea.gradle.something.SomethingHighlighter"/>
-    <lang.quoteHandler language="Something" implementationClass="com.android.tools.idea.gradle.something.SomethingQuoteHandler"/>
-    <lang.braceMatcher language="Something" implementationClass="com.android.tools.idea.gradle.something.SomethingPairedBraceMatcher"/>
+    <lang.parserDefinition language="Declarative"
+                           implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeParserDefinition"/>
+    <lang.syntaxHighlighter language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeHighlighter"/>
+    <lang.quoteHandler language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeQuoteHandler"/>
+    <lang.braceMatcher language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativePairedBraceMatcher"/>
     <lang.formatter
-        language="Something"
-        implementationClass="com.android.tools.idea.gradle.something.formatting.SomethingFormattingModelBuilder"/>
+        language="Declarative"
+        implementationClass="com.android.tools.idea.gradle.declarative.formatting.DeclarativeFormattingModelBuilder"/>
     <langCodeStyleSettingsProvider
-        implementation="com.android.tools.idea.gradle.something.formatting.settings.SomethingLanguageCodeStyleSettingsProvider"/>
-    <completion.contributor language="Something"
-                            implementationClass="com.android.tools.idea.gradle.something.SomethingCompletionContributor" />
-    <completion.confidence language="Something"
-                           id="EnableAutoPopupInSomethingCompletion"
-                           implementationClass="com.android.tools.idea.gradle.something.EnableAutoPopupInSomethingCompletion" />
-    <annotator language="Something" implementationClass="com.android.tools.idea.gradle.something.SomethingAnnotator"/>
+        implementation="com.android.tools.idea.gradle.declarative.formatting.settings.DeclarativeLanguageCodeStyleSettingsProvider"/>
+    <completion.contributor language="Declarative"
+                            implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeCompletionContributor" />
+    <completion.confidence language="Declarative"
+                           id="EnableAutoPopupInDeclarativeCompletion"
+                           implementationClass="com.android.tools.idea.gradle.declarative.EnableAutoPopupInDeclarativeCompletion" />
+    <annotator language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeAnnotator"/>
 
-    <psi.referenceContributor language="Something" implementation="com.android.tools.idea.gradle.something.SomethingVersionCatalogReferenceContributor"/>
+    <psi.referenceContributor language="Declarative" implementation="com.android.tools.idea.gradle.declarative.DeclarativeVersionCatalogReferenceContributor"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.uast">
-    <uastLanguagePlugin implementation="com.android.tools.idea.gradle.something.SomethingUastLanguagePlugin"/>
+    <uastLanguagePlugin implementation="com.android.tools.idea.gradle.declarative.DeclarativeUastLanguagePlugin"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
-    <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.something.SomethingDslTransformerFactory"/>
+    <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.declarative.DeclarativeDslTransformerFactory"/>
   </extensions>
 </idea-plugin>

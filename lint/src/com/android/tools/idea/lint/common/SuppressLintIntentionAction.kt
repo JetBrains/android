@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.android.tools.idea.gradle.something.SomethingFileType
+import com.android.tools.idea.gradle.declarative.DeclarativeFileType
 import com.android.tools.lint.detector.api.Issue
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.icons.AllIcons
@@ -67,7 +67,7 @@ class SuppressLintIntentionAction(
         type === KotlinFileType.INSTANCE ||
         context.file is PsiBinaryFile ||
         type === TomlFileType ||
-        type === SomethingFileType.INSTANCE
+        type === DeclarativeFileType.INSTANCE
     )
       Presentation.of(label).withIcon(AllIcons.Actions.Cancel)
     else null

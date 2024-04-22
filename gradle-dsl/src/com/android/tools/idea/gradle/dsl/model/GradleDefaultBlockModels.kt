@@ -59,7 +59,7 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
 
   override fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> {
     return when(kind) {
-      GradleDslNameConverter.Kind.SOMETHING -> SOMETHING_ROOT_ELEMENTS_MAP
+      GradleDslNameConverter.Kind.DECLARATIVE -> DECLARATIVE_ROOT_ELEMENTS_MAP
       else -> DEFAULT_ROOT_ELEMENTS_MAP
     }
   }
@@ -76,7 +76,7 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleBuil
       "subprojects" to SubProjectsDslElement.SUBPROJECTS,
       "plugins" to PluginsDslElement.PLUGINS)
 
-    private val SOMETHING_ROOT_ELEMENTS_MAP = mapOf(
+    private val DECLARATIVE_ROOT_ELEMENTS_MAP = mapOf(
       "androidApplication" to AndroidDslElement.ANDROID,
       "buildscript" to BuildScriptDslElement.BUILDSCRIPT,
       "configurations" to ConfigurationsDslElement.CONFIGURATIONS,

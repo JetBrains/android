@@ -31,7 +31,7 @@ class GradleTomlUseScopeEnlarger: UseScopeEnlarger() {
       override fun contains(file: VirtualFile) = file.name.endsWith(EXT_GRADLE_DECLARATIVE)
       override fun isSearchInLibraries() = false
       override fun isSearchInModuleContent(aModule: Module) = true
-      override fun getDisplayName() = "Something Gradle Build Files"
+      override fun getDisplayName() = "Gradle Declarative Configuration Files"
     }))
   }
 }

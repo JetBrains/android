@@ -1,0 +1,121 @@
+/*
+ * Copyright (C) 2024 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+{
+  psiImplUtilClass="com.android.tools.idea.gradle.declarative.parser.PsiImplUtil"
+  psiPackage="com.android.tools.idea.gradle.declarative.psi"
+  psiImplPackage="com.android.tools.idea.gradle.declarative.psi.impl"
+  parserClass="com.android.tools.idea.gradle.declarative.parser.DeclarativeParser"
+  parserUtilClass="com.android.tools.idea.gradle.declarative.parser.DeclarativeParserUtil"
+
+  elementTypeHolderClass="com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder"
+  tokenTypeClass="com.android.tools.idea.gradle.declarative.parser.DeclarativeTokenType"
+  elementTypeClass="com.android.tools.idea.gradle.declarative.psi.DeclarativeElementType"
+  psiClassPrefix="Declarative"
+  psiImplClassSuffix="Impl"
+
+  implements = "com.android.tools.idea.gradle.declarative.psi.DeclarativeElement"
+  classHeader='generatedFilesHeader.txt'
+
+  tokens = [
+    // Note: we do not generate the lexer from these token definitions (any more) because of the need
+    // to support nested comments, and potentially other non-regular constructs.  We need to maintain this
+    // list of tokens so that the DeclarativeElementTypeHolder has all necessary fields generated (corresponding
+    // to these token names).
+    OP_EQ = "="
+    OP_DOT = "."
+    OP_LBRACE = "{"
+    OP_RBRACE = "}"
+    OP_LPAREN = "("
+    OP_RPAREN = ")"
+    OP_COMMA = ","
+
+    BLOCK_COMMENT_START = "/*"
+    BLOCK_COMMENT_END = "*/"
+    BLOCK_COMMENT_CONTENTS = "BLOCK_COMMENT_CONTENTS"
+
+    line_comment = "regexp://.*"
+    number = "regexp:\d(\d|_+\d)*[Ll]?"
+    string = "regexp:\"([^\"\r\n\\]|\\[^\r\n])*\"?"
+    boolean = "regexp:(true|false)"
+    null = "null"
+    token = "regexp:[a-z][a-zA-Z0-9]*"
+  ]
+
+  implements("assignment|block|factory")=[
+     "com.android.tools.idea.gradle.declarative.psi.DeclarativeEntry"
+     "com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifierOwner"
+  ]
+  implements("identifier")=[
+     "com.intellij.psi.PsiNamedElement"
+     "com.android.tools.idea.gradle.declarative.psi.DeclarativeElement"
+     "com.intellij.psi.NavigatablePsiElement"
+  ]
+  implements("factory|property|literal")=[
+     "com.android.tools.idea.gradle.declarative.psi.DeclarativeValue"
+  ]
+  implements("property")=[
+     "com.intellij.psi.ContributedReferenceHost"
+  ]
+}
+
+entries ::= entry*
+private entry ::= !<<eof>> !(OP_RBRACE|OP_RPAREN) (assignment | block | factory) {pin=1 recoverWhile=entry_recover}
+private entry_recover ::= !(token|OP_RBRACE|OP_RPAREN)
+assignment ::= lvalue OP_EQ rvalue {
+   pin=2
+   methods=[
+      getValue
+   ]
+}
+private lvalue ::= identifier
+identifier ::= token {
+   methods=[
+     getName
+     setName
+   ]
+   mixin="com.android.tools.idea.gradle.declarative.psi.DeclarativeIdentifierMixin"
+}
+literal ::= string | number | boolean {methods=[getValue]}
+private rvalue ::= factory | property | literal
+property ::= qualified | bare {methods=[getField getReceiver getReference getReferences]}
+qualified ::= property OP_DOT identifier {extends=property pin=2}
+bare ::= identifier {extends=property}
+block ::= block_head block_group {
+   methods=[
+     getEntries
+     getFactory
+     getBlockEntriesStart
+     factory=""
+   ]
+}
+
+block_group ::= OP_LBRACE block_entry* OP_RBRACE {
+   pin=1
+   methods=[
+       getEntries
+       getBlockEntriesStart
+       factory=""
+       assignment=""
+       block=""
+   ]
+   mixin="com.android.tools.idea.gradle.declarative.psi.DeclarativeBlockMixin"
+}
+private block_head ::= (factory | identifier)
+private block_entry ::= !'}' entry
+factory ::= identifier OP_LPAREN argumentsList OP_RPAREN {pin=2}
+argumentsList ::= (rvalue (OP_COMMA rvalue)*)? {
+   methods=[getArguments factory="" literal="" property=""]
+}

@@ -17,7 +17,7 @@ package com.android.tools.idea.lint.common
 
 import com.android.SdkConstants
 import com.android.SdkConstants.FQCN_SUPPRESS_LINT
-import com.android.tools.idea.gradle.something.SomethingLanguage
+import com.android.tools.idea.gradle.declarative.DeclarativeLanguage
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX
 import com.android.tools.lint.detector.api.ClassContext
 import com.google.common.base.Joiner
@@ -98,7 +98,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       GroovyLanguage -> simplePsiUpdater(::handleGroovy)
       KotlinLanguage.INSTANCE -> simplePsiUpdater(::handleKotlin)
       TomlLanguage -> simplePsiUpdater(::handleToml)
-      SomethingLanguage.INSTANCE -> simplePsiUpdater(::handleSomething)
+      DeclarativeLanguage.INSTANCE -> simplePsiUpdater(::handleDeclarative)
       else -> {
         // Suppressing lint checks tagged on things like icons, where we edit a different file.
         if (element is PsiFile) {
@@ -149,7 +149,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   }
 
   @Throws(IncorrectOperationException::class)
-  private fun handleSomething(element: PsiElement) {
+  private fun handleDeclarative(element: PsiElement) {
     val file = if (element is PsiFile) element else element.containingFile ?: return
     val project = file.project
     val offset = element.textOffset
@@ -428,7 +428,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
           else LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         }
         GroovyLanguage -> LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
-        SomethingLanguage.INSTANCE ->
+        DeclarativeLanguage.INSTANCE ->
           LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         else -> "Suppress $id"
       }

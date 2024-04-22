@@ -1419,10 +1419,14 @@
     <option name="memory" hit="Memory Settings" />
     <option name="settings" hit="Memory Settings" />
   </configurable>
-  <configurable id="preferences.sourceCode.Something (Gradle Declarative Build DSL)" configurable_name="Something (Gradle Declarative Build DSL)">
+  <configurable id="preferences.sourceCode.Gradle Declarative Configuration Language" configurable_name="Gradle Declarative Configuration Language">
     <option name="continuation" path="Tabs and Indents" hit="Continuation indent:" />
     <option name="indent" path="Tabs and Indents" hit="Continuation indent:" />
     <option name="disable" hit="Disable" />
+    <option name="configuration" hit="Gradle Declarative Configuration Language" />
+    <option name="declarative" hit="Gradle Declarative Configuration Language" />
+    <option name="gradle" hit="Gradle Declarative Configuration Language" />
+    <option name="language" hit="Gradle Declarative Configuration Language" />
     <option name="indent" path="Tabs and Indents" hit="Indent:" />
     <option name="empty" path="Tabs and Indents" hit="Keep indents on empty lines" />
     <option name="indents" path="Tabs and Indents" hit="Keep indents on empty lines" />
@@ -1435,11 +1439,6 @@
     <option name="set" hit="Set from..." />
     <option name="smart" path="Tabs and Indents" hit="Smart tabs" />
     <option name="tabs" path="Tabs and Indents" hit="Smart tabs" />
-    <option name="build" hit="Something (Gradle Declarative Build DSL)" />
-    <option name="declarative" hit="Something (Gradle Declarative Build DSL)" />
-    <option name="dsl" hit="Something (Gradle Declarative Build DSL)" />
-    <option name="gradle" hit="Something (Gradle Declarative Build DSL)" />
-    <option name="something" hit="Something (Gradle Declarative Build DSL)" />
     <option name="size" path="Tabs and Indents" hit="Tab size:" />
     <option name="tab" path="Tabs and Indents" hit="Tab size:" />
     <option name="and" path="Tabs and Indents" hit="Tabs and Indents" />
