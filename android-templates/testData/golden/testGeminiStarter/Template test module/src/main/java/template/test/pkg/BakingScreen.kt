@@ -38,14 +38,17 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 val images = arrayOf(
+    // Image generated using Gemini from the prompt "cupcake image"
     R.drawable.baked_goods_1,
+    // Image generated using Gemini from the prompt "cookies images"
     R.drawable.baked_goods_2,
-    R.drawable.baked_goods_3
+    // Image generated using Gemini from the prompt "cake images"
+    R.drawable.baked_goods_3,
 )
 val imageDescriptions = arrayOf(
     R.string.image1_description,
     R.string.image2_description,
-    R.string.image3_description
+    R.string.image3_description,
 )
 
 @Composable
