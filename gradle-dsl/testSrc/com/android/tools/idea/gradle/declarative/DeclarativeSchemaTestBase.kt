@@ -32,8 +32,8 @@ abstract class DeclarativeSchemaTestBase {
   // Keep this method here for now as schema files suppose to go away soon
   @Throws(IOException::class)
   fun writeToSchemaFile(filename: TestFileName) {
-    val projectFileName = "project.something.schema"
-    val pluginFileName = "plugins.something.schema"
+    val projectFileName = "project.dcl.schema"
+    val pluginFileName = "plugins.dcl.schema"
 
     val myTestDataRelativePath = "tools/adt/idea/gradle-dsl/testData/parser"
     val projectFile = filename.toFile(myTestDataRelativePath, projectFileName)
