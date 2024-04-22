@@ -442,10 +442,10 @@ enum class TestProject(
   GRADLE_DECLARATIVE(
     TestProjectToSnapshotPaths.GRADLE_DECLARATIVE,
     setup = fun(): () -> Unit {
-      StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true)
+      StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
 
       return fun() {
-        StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride()
+        StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
       }
     },
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },

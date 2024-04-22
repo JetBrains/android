@@ -38,7 +38,7 @@ import com.intellij.util.ThreeState
 
 private val declarativeFlag = object : PatternCondition<PsiElement>(null) {
   override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean =
-    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.get()
+    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()
 }
 
 private val SOMETHING_IN_BLOCK_SYNTAX_PATTERN: PsiElementPattern.Capture<PsiElement> = psiElement()

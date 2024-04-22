@@ -123,10 +123,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     if (facet == null && !CommonAndroidUtil.getInstance().isAndroidProject(module.project))
       return false
 
-    if (
-      StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.get() &&
-        file.name.endsWith(".gradle.something")
-    )
+    if (StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get() && file.name.endsWith(".gradle.something"))
       return true
 
     return when (file.fileType) {

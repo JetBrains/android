@@ -94,8 +94,7 @@ abstract class LintIdeSupport {
         fileType === KotlinFileType.INSTANCE ||
         fileType === PropertiesFileType.INSTANCE ||
         fileType === TomlFileType ||
-        (StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.get() &&
-          file.name.endsWith(".something"))
+        (StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get() && file.name.endsWith(".something"))
     ) {
       return true
     }

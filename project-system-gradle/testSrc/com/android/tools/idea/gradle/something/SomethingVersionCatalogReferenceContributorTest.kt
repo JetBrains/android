@@ -40,12 +40,12 @@ class SomethingVersionCatalogReferenceContributorTest {
 
   @Before
   fun setUp() {
-    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true)
+    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
   }
 
   @After
   fun tearDown() {
-    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride()
+    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
   }
 
   @Test

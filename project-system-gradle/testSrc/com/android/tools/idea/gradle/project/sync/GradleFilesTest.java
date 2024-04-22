@@ -367,25 +367,25 @@ public class GradleFilesTest extends AndroidGradleTestCase {
   }
 
   public void testIsGradleFileWithDeclarativeGradleFile() {
-    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
+    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true);
     try {
       PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder(FN_BUILD_GRADLE_DECLARATIVE);
       assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
     }
     finally {
-      StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride();
+      StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride();
     }
   }
 
   public void testIsGradleFileWithDeclarativeSettingsFile() {
-    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
+    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true);
     try {
       PsiFile psiFile = PsiFileFactory.getInstance(getProject())
         .createFileFromText(FN_SETTINGS_GRADLE_DECLARATIVE, FileTypeManager.getInstance().getStdFileType(""), "", 0L, false);
       assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
     }
     finally {
-      StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride();
+      StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride();
     }
   }
 
@@ -470,7 +470,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
   }
 
   public void testModifiedWhenAddingTextChildInDeclarativeSettingsFile() throws Exception {
-    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
+    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true);
     try {
       loadSimpleApplication();
 
@@ -479,12 +479,12 @@ public class GradleFilesTest extends AndroidGradleTestCase {
                               virtualFile);
     }
     finally {
-      StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride();
+      StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride();
     }
   }
 
   public void testModifiedWhenAddingTextChildInDeclarativeBuildFile() throws Exception {
-    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
+    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true);
     try {
       loadSimpleApplication();
 
@@ -493,7 +493,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
                               virtualFile);
     }
     finally {
-      StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride();
+      StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride();
     }
   }
 

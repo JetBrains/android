@@ -38,10 +38,10 @@ class SomethingAnnotatorTest: SomethingSchemaTestBase() {
   private val fixture by lazy { projectRule.fixture }
 
   @Before
-  fun before() = StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true)
+  fun before() = StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
 
   @After
-  fun onAfter() = StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride()
+  fun onAfter() = StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
 
   @Test
   fun checkFunctionIdentifier() {

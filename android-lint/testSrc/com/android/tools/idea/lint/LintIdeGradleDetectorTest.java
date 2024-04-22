@@ -88,7 +88,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
       .filter((x) -> !isKotlinHighlightVisitor(x)).toList();
     ExtensionTestUtil.maskExtensions(HighlightVisitor.EP_HIGHLIGHT_VISITOR, highlightVisitors, myFixture.getProjectDisposable(), false,
                                      myFixture.getProject());
-    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true);
+    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true);
   }
 
   @Override
@@ -98,7 +98,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     if (KotlinPluginModeProvider.Companion.isK2Mode()) {
       Registry.get(K2_KTS_KEY).setValue(false);
     }
-    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride();
+    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride();
   }
 
   private boolean isKotlinHighlightVisitor(HighlightVisitor visitor) {

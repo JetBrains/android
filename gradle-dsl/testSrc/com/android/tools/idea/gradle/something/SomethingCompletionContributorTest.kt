@@ -16,24 +16,16 @@
 package com.android.tools.idea.gradle.something
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
-import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.annotations.SystemIndependent
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import java.io.IOException
 
 // Test is based on generated schema files. Schema has declarations for
 // androidApplication{compileSdk, namespace, jdkVersion, minSdk}, declarativeDependencies{api, implementation}
@@ -45,11 +37,11 @@ class SomethingCompletionContributorTest : SomethingSchemaTestBase() {
 
   @Before
   fun before() {
-    StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.override(true)
+    StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.override(true)
   }
 
   @After
-  fun onAfter() = StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.clearOverride()
+  fun onAfter() = StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.clearOverride()
 
   @Test
   fun testBasicRootCompletion() {

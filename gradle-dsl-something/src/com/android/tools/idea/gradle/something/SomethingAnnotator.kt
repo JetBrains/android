@@ -30,7 +30,7 @@ import org.gradle.internal.declarativedsl.analysis.FqName
 class SomethingAnnotator : Annotator {
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    if (!StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.get()) return
+    if (!StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) return
     if (element.parent !is SomethingElement) return
     val parent = element.parent
     if (parent is SomethingIdentifier) {

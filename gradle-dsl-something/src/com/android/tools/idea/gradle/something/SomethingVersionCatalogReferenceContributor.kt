@@ -45,7 +45,7 @@ class SomethingVersionCatalogReferenceProvider : PsiReferenceProvider() {
   override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
     if (element !is SomethingProperty) return emptyArray()
     if (element.parent is SomethingProperty) return emptyArray()
-    if (!StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.get()) return emptyArray()
+    if (!StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) return emptyArray()
     lateinit var fileIdentifier: SomethingIdentifier
     element.accept(object : SomethingRecursiveVisitor() {
       override fun visitBare(o: SomethingBare) {

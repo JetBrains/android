@@ -399,7 +399,7 @@ public class GradleFiles implements Disposable.Default {
     storeExternalBuildFiles(externalBuildFiles);
 
     String[] fileNames = {FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_GRADLE_PROPERTIES};
-    if (StudioFlags.GRADLE_DECLARATIVE_SOMETHING_IDE_SUPPORT.get()) {
+    if (StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) {
       fileNames = ArrayUtils.add(fileNames, FN_SETTINGS_GRADLE_DECLARATIVE);
     }
     File rootFolderPath = getBaseDirPath(myProject);
