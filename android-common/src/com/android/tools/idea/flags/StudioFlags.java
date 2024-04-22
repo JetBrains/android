@@ -1865,6 +1865,12 @@ public final class StudioFlags {
                     "When enabled, the custom transform action, which allows users to send custom prompts to modify and iterate on code, is enabled.",
                     ChannelDefault.enabledUpTo(DEV));
 
+  public static final Flag<Boolean> STUDIOBOT_TRANSFORM_HISTORY_ENABLED =
+    new BooleanFlag(STUDIOBOT, "editor.ai.transform.history.enabled",
+                    "Enable the transform history in the transform diff.",
+                    "When enabled, allows the user to navigate transform history in the diff view.",
+                    ChannelDefault.enabledUpTo(DEV));
+
   public static final Flag<Boolean> STUDIOBOT_EXPERIMENTAL_SLASH_COMMANDS_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.experimental.slash.commands.enabled",
                     "Enable experimental slash comments.",
