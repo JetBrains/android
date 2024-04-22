@@ -35,6 +35,7 @@ import com.intellij.CommonBundle
 import com.intellij.execution.runners.ExecutionUtil.getLiveIndicator
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -87,6 +88,7 @@ import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.utils.SmartSet
 import java.awt.Color
 import java.awt.Component
+import java.awt.Container
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Font
@@ -133,6 +135,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
 
   private val snapshotTableModel = SnapshotTableModel()
   private val snapshotTable = SnapshotTable(snapshotTableModel)
+  private lateinit var decoratedTable: JPanel
   private val createSnapshotButton = JButton(message("manage.snapshots.create.snapshot")).apply {
     addActionListener { createSnapshot() }
   }
@@ -302,7 +305,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
           .setRemoveActionUpdater { !snapshotTable.selectionModel.isSelectedIndex(QUICK_BOOT_SNAPSHOT_MODEL_ROW) }
           .setToolbarPosition(ActionToolbarPosition.BOTTOM)
           .setButtonComparator(message("manage.snapshots.load"), message("manage.snapshots.edit"), message("manage.snapshots.remove"))
-          .createPanel()
+          .createPanel().also { decoratedTable = it }
       )
     }
   }
@@ -332,6 +335,7 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
               snapshotTableModel.addRow(snapshot)
               snapshotTable.selection = listOf(snapshot)
               TableUtil.scrollSelectionToVisible(snapshotTable)
+              updateToolbars(decoratedTable)  // Workaround for https://youtrack.jetbrains.com/issue/IDEA-352328.
             }
           }
         }
@@ -358,6 +362,22 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
     }
 
     emulator.saveSnapshot(snapshotId, completionTracker)
+  }
+
+  private fun updateToolbars(component: Component) {
+    val queue = ArrayDeque<Component>()
+    queue.add(component)
+    while (queue.isNotEmpty()) {
+      val c = queue.removeFirst()
+      if (c is ActionToolbar) {
+        c.updateActionsAsync()
+      }
+      else if (c is Container) {
+        for (child in c.components) {
+          queue.add(child)
+        }
+      }
+    }
   }
 
   private fun loadSnapshot() {
