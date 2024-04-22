@@ -53,8 +53,8 @@ import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
+import com.intellij.psi.util.endOffset
 import com.intellij.psi.util.startOffset
-import com.intellij.refactoring.suggested.endOffset
 import java.text.ParseException
 import java.time.Clock
 

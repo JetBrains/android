@@ -32,9 +32,9 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.endOffset
 import com.intellij.psi.util.prevLeaf
 import com.intellij.psi.util.startOffset
-import com.intellij.refactoring.suggested.endOffset
 import com.intellij.ui.popup.list.ListPopupImpl
 import org.jetbrains.kotlin.idea.util.ElementKind
 import org.jetbrains.kotlin.idea.util.findElements
