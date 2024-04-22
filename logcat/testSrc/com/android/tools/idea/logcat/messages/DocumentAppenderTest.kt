@@ -16,13 +16,13 @@
 package com.android.tools.idea.logcat.messages
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.editor.asTextRange
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.ex.DocumentEx
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.editor.markup.TextAttributes
-import com.intellij.refactoring.suggested.range
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -240,7 +240,7 @@ class DocumentAppenderTest {
 }
 
 private fun RangeHighlighter.toTextAttributesRange() =
-  TextAccumulator.Range(range!!.startOffset, range!!.endOffset, getTextAttributes(null)!!)
+  TextAccumulator.Range(asTextRange!!.startOffset, asTextRange!!.endOffset, getTextAttributes(null)!!)
 
 private fun RangeHighlighter.toTextAttributesKeyRange() =
-  TextAccumulator.Range(range!!.startOffset, range!!.endOffset, textAttributesKey!!)
+  TextAccumulator.Range(asTextRange!!.startOffset, asTextRange!!.endOffset, textAttributesKey!!)
