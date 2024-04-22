@@ -18,20 +18,29 @@ package com.android.tools.adtui.compose
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.AnActionLink
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JLabel
@@ -47,6 +56,9 @@ class InformationPopupImplTest {
 
   @get:Rule
   val edtRule = EdtRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   @Test
   fun testPopup() {
@@ -175,6 +187,51 @@ class InformationPopupImplTest {
       "Action 1, Action 2",
       fakeUi.findAllComponents<AnActionLink>().joinToString(", ") { it.text }
     )
+  }
+
+  @Test
+  fun testPopupWithAdditionalActionsDisplaysAdditionalActions() {
+    val spyActionManager = spy(ActionManager.getInstance())
+    ApplicationManager.getApplication().replaceService(
+      ActionManager::class.java, spyActionManager, disposableRule.disposable
+    )
+
+    val popup = InformationPopupImpl(
+      "Title",
+      "A Description",
+      listOf(
+        object : AnAction("Action 1") {
+          override fun actionPerformed(e: AnActionEvent) {
+          }
+        },
+        object : AnAction("Action 2") {
+          override fun actionPerformed(e: AnActionEvent) {
+          }
+        }),
+      listOf(),
+    )
+
+    val fakeUi = FakeUi(JPanel().apply {
+      layout = BorderLayout()
+      size = Dimension(200, 100)
+      add(popup.popupComponent, BorderLayout.CENTER)
+    }, 1.0, true)
+
+    fakeUi.updateToolbars()
+
+    val menuButton = fakeUi.findComponent(ActionButton::class.java)!!
+    fakeUi.clickOn(menuButton)
+
+    val captor = ArgumentCaptor.forClass(ActionGroup::class.java)
+    verify(spyActionManager).createActionPopupMenu(anyString(), captor.capture())
+
+    val additionalActionsGroup = captor.value
+    assertEquals(
+      "Action 1, Action 2",
+      additionalActionsGroup.getChildren(null).joinToString(", ") { it.templateText }
+    )
+    assertTrue(additionalActionsGroup.isPopup)
+    assertTrue(additionalActionsGroup.templatePresentation.isVisible)
   }
 
   @Test
