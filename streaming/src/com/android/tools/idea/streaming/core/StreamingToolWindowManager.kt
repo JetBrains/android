@@ -358,17 +358,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun onPhysicalDeviceHeadsUp(serialNumber: String, activation: ActivationLevel) {
-    if (toolWindow.isVisible) {
-      val content = findContentBySerialNumberOfPhysicalDevice(serialNumber)
-      if (content != null) {
-        content.select()
-        toolWindow.activate(activation)
-      }
-    }
-    else {
-      recentAttentionRequests.put(serialNumber, activation)
-      toolWindow.activate(activation)
-    }
+    val content = findContentBySerialNumberOfPhysicalDevice(serialNumber)
+    content?.select() ?: recentAttentionRequests.put(serialNumber, activation)
+    toolWindow.activate(activation)
   }
 
   private fun onEmulatorHeadsUp(serialNumber: String, runningEmulators: Set<EmulatorController>, activation: ActivationLevel) {
