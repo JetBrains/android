@@ -380,11 +380,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       return;
     }
 
-    List<String> abiList = Arrays.asList(buildProp.getOrDefault("ro.system.product.cpu.abilist", "").split(","));
-    if (abiList.isEmpty()) {
-      abiList = Arrays.asList(buildProp.getOrDefault(RO_PRODUCT_CPU_ABILIST, "").split(","));
+    String systemAbiList = buildProp.getOrDefault("ro.system.product.cpu.abilist", "");
+    List<String> abiList = systemAbiList.isBlank() ? null : Arrays.asList(systemAbiList.split(","));
+    if (abiList == null) {
+      String cpuAbiList = buildProp.getOrDefault(RO_PRODUCT_CPU_ABILIST, "");
+      abiList = cpuAbiList.isBlank() ? null : Arrays.asList(cpuAbiList.split(","));
     }
-    if (abiList.isEmpty()) {
+    if (abiList == null) {
       abiList = new ArrayList<>(2);
       String property = buildProp.get(RO_PRODUCT_CPU_ABI);
       if (property != null) {
