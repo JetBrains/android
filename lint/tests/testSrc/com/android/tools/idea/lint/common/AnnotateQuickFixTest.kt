@@ -32,8 +32,8 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.refactoring.suggested.endOffset
-import com.intellij.refactoring.suggested.startOffset
+import com.intellij.psi.util.endOffset
+import com.intellij.psi.util.startOffset
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
 class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
