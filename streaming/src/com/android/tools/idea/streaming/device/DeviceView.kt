@@ -71,6 +71,7 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_PASTE
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_REDO
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
+import com.intellij.openapi.client.ClientSystemInfo
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
@@ -631,7 +632,7 @@ internal class DeviceView(
       if (isHardwareInputEnabled()) {
         return
       }
-      if (event.isControlDown || event.isMetaDown || (!SystemInfo.isMac && event.isAltDown)) {
+      if (event.isControlDown || event.isMetaDown || (!ClientSystemInfo.isMac() && event.isAltDown)) {
         return
       }
       val c = event.keyChar
