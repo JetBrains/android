@@ -27,18 +27,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
-import com.intellij.ui.JBColor
-import org.jetbrains.jewel.bridge.toComposeColor
+import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
+import org.jetbrains.jewel.foundation.theme.LocalContentColor
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
@@ -144,11 +147,20 @@ internal fun <T> TableRow(
   Row(
     Modifier.fillMaxWidth()
       .clickable { onClick(value) }
-      .thenIf(selected) { background(JBColor.BLUE.toComposeColor()) }
+      .thenIf(selected) {
+        background(
+          retrieveColorOrUnspecified("Table.selectionBackground").takeOrElse { Color.Cyan }
+        )
+      }
       .padding(ROW_PADDING),
     horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
   ) {
-    columns.forEach { Box(with(it.width) { widthModifier() }) { it.rowContent(value) } }
+    val contentColor =
+      if (selected) retrieveColorOrUnspecified("Table.selectionForeground")
+      else LocalContentColor.current
+    CompositionLocalProvider(LocalContentColor provides contentColor) {
+      columns.forEach { Box(with(it.width) { widthModifier() }) { it.rowContent(value) } }
+    }
   }
 }
 
