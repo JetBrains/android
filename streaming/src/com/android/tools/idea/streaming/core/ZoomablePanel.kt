@@ -222,5 +222,5 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
     scale > 1.0 && floor(scale) != scale
 
   private fun computeAvailableSize(): Dimension =
-    parent.sizeWithoutInsets.scaled(screenScale)
+    parent?.sizeWithoutInsets?.scaled(screenScale) ?: Dimension(0, 0)
 }
