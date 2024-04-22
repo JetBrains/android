@@ -832,6 +832,7 @@
                     </constraints>
                     <properties>
                       <text value="Preferred ABI:"/>
+                      <toolTipText value="Selects which ABI APKs should use. Select &quot;Optimal&quot; to use the fastest ABI."/>
                     </properties>
                   </component>
                   <component id="c6e9f" class="javax.swing.JSeparator">

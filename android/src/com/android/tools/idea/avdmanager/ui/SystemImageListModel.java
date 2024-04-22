@@ -43,6 +43,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.ColumnInfo;
@@ -245,11 +246,21 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       public String valueOf(SystemImageDescription systemImage) {
         return systemImage.getPrimaryAbiType();
       }
+
+      @Override
+      public @NlsContexts.Tooltip @Nullable String getTooltipText() {
+        return "The native ABI supported by the image.";
+      }
     },
     new SystemImageColumnInfo("xABI", JBUI.scale(80)) {
       @Override
       public @Nullable String valueOf(SystemImageDescription systemImage) {
         return systemImage.getTranslatedAbiTypes().isEmpty() ? "" : systemImage.getTranslatedAbiTypes().get(0);
+      }
+
+      @Override
+      public @NlsContexts.Tooltip @Nullable String getTooltipText() {
+        return "The compatible (translated) ABI supported by the image.";
       }
     },
     new SystemImageColumnInfo("Target") {
