@@ -20,8 +20,6 @@ import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.ui.popup.Balloon
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.IntelliJSpacingConfiguration
@@ -57,17 +55,23 @@ private val SPACING = object : IntelliJSpacingConfiguration() {
 /**
  * Displays a picker with setting shortcuts.
  */
-internal class UiSettingsPanel(private val model: UiSettingsModel, showResetButton: Boolean = false) : BorderLayoutPanel()  {
+internal class UiSettingsPanel(
+  private val model: UiSettingsModel,
+  showResetButton: Boolean = false,
+  isWear: Boolean = false
+) : BorderLayoutPanel()  {
   init {
     add(panel {
       customizeSpacingConfiguration(SPACING) {
         row(title(TITLE)) {}
         separator()
 
-        row(label(DARK_THEME_TITLE)) {
-          checkBox("")
-            .bind(model.inDarkMode)
-            .apply { component.name = DARK_THEME_TITLE }
+        if (!isWear) {
+          row(label(DARK_THEME_TITLE)) {
+            checkBox("")
+              .bind(model.inDarkMode)
+              .apply { component.name = DARK_THEME_TITLE }
+          }
         }
 
         row(label(APP_LANGUAGE_TITLE)) {
@@ -82,11 +86,13 @@ internal class UiSettingsPanel(private val model: UiSettingsModel, showResetButt
             .apply { component.name = TALKBACK_TITLE }
         }.visibleIf(model.talkBackInstalled)
 
-        row(label(SELECT_TO_SPEAK_TITLE)) {
-          checkBox("")
-            .bind(model.selectToSpeakOn)
-            .apply { component.name = SELECT_TO_SPEAK_TITLE }
-        }.visibleIf(model.talkBackInstalled)
+        if (!isWear) {
+          row(label(SELECT_TO_SPEAK_TITLE)) {
+            checkBox("")
+              .bind(model.selectToSpeakOn)
+              .apply { component.name = SELECT_TO_SPEAK_TITLE }
+          }.visibleIf(model.talkBackInstalled)
+        }
 
         row(label(FONT_SIZE_TITLE)) {
           slider(0, model.fontSizeMaxIndex.value, 1, 1)
@@ -96,13 +102,15 @@ internal class UiSettingsPanel(private val model: UiSettingsModel, showResetButt
             .apply { component.name = FONT_SIZE_TITLE }
         }.visibleIf(model.fontSizeSettable)
 
-        row(label(DENSITY_TITLE)) {
-          slider(0, model.screenDensityIndex.value, 1, 1)
-            .noLabels()
-            .bindSliderPosition(model.screenDensityIndex)
-            .bindSliderMaximum(model.screenDensityMaxIndex)
-            .apply { component.name = DENSITY_TITLE }
-        }.visibleIf(model.screenDensitySettable)
+        if (!isWear) {
+          row(label(DENSITY_TITLE)) {
+            slider(0, model.screenDensityIndex.value, 1, 1)
+              .noLabels()
+              .bindSliderPosition(model.screenDensityIndex)
+              .bindSliderMaximum(model.screenDensityMaxIndex)
+              .apply { component.name = DENSITY_TITLE }
+          }.visibleIf(model.screenDensitySettable)
+        }
 
         row {
           cell(BorderLayoutPanel().apply {

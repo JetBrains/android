@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device.actions
 
+import com.android.adblib.DevicePropertyNames
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
@@ -30,7 +31,10 @@ import com.android.tools.idea.streaming.device.DeviceView
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.device.UNKNOWN_ORIENTATION
+import com.android.tools.idea.streaming.uisettings.ui.DARK_THEME_TITLE
+import com.android.tools.idea.streaming.uisettings.ui.DENSITY_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.RESET_BUTTON_TEXT
+import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
@@ -55,7 +59,9 @@ import java.awt.Point
 import java.awt.event.MouseEvent
 import java.awt.event.WindowFocusListener
 import javax.swing.JButton
+import javax.swing.JCheckBox
 import javax.swing.JComponent
+import javax.swing.JSlider
 import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.seconds
 
@@ -132,6 +138,22 @@ class DeviceUiSettingsActionTest {
     val balloon = popupFactory.getNextBalloon()
     waitForCondition(10.seconds) { balloon.isShowing }
     assertThat(balloon.component.findDescendant<JButton> { it.name == RESET_BUTTON_TEXT }).isNull()
+  }
+
+  @Test
+  fun testWearControls() {
+    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
+    val action = DeviceUiSettingsAction()
+    val view = connectDeviceAndCreateView(isWear = true)
+    val event = createTestMouseEvent(action, view)
+    action.actionPerformed(event)
+    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
+    val balloon = popupFactory.getNextBalloon()
+    waitForCondition(10.seconds) { balloon.isShowing }
+    val panel = balloon.component
+    assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNull()
+    assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()
+    assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNull()
   }
 
   @Test
@@ -228,8 +250,18 @@ class DeviceUiSettingsActionTest {
   private fun createTestKeyEvent(view: DeviceView): AnActionEvent =
     createTestEvent(view, project)
 
-  private fun connectDeviceAndCreateView(apiLevel: Int = 33, parentDisposable: Disposable = testRootDisposable): DeviceView {
-    val device = agentRule.connectDevice("Pixel 8", apiLevel, Dimension(1344, 2992), screenDensity = 480)
+  private fun connectDeviceAndCreateView(
+    apiLevel: Int = 33,
+    isWear: Boolean = false,
+    parentDisposable: Disposable = testRootDisposable
+  ): DeviceView {
+    val device = agentRule.connectDevice(
+      "Pixel 8",
+      apiLevel,
+      Dimension(1344, 2992),
+      screenDensity = 480,
+      additionalDeviceProperties = if (isWear) mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "watch") else emptyMap()
+    )
     val view = createDeviceView(device, parentDisposable)
     view.setBounds(0, 0, 600, 800)
     waitForFrame(view)

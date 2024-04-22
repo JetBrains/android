@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.adblib.DeviceSelector
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -29,7 +30,10 @@ import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.UiSettingsRule
+import com.android.tools.idea.streaming.uisettings.ui.DARK_THEME_TITLE
+import com.android.tools.idea.streaming.uisettings.ui.DENSITY_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.RESET_BUTTON_TEXT
+import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
@@ -57,7 +61,9 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.WindowFocusListener
 import javax.swing.JButton
+import javax.swing.JCheckBox
 import javax.swing.JComponent
+import javax.swing.JSlider
 import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.seconds
 
@@ -133,6 +139,24 @@ class EmulatorUiSettingsActionTest {
     val balloon = popupFactory.getNextBalloon()
     waitForCondition(10.seconds) { balloon.isShowing }
     assertThat(balloon.component.findDescendant<JButton> { it.name == RESET_BUTTON_TEXT }).isNotNull()
+  }
+
+  @Test
+  fun testWearControls() {
+    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
+    val controller = uiRule.getControllerOf(uiRule.createAndStartWatchEmulator())
+    val view = createEmulatorView(controller)
+    val action = EmulatorUiSettingsAction()
+    val event = createTestMouseEvent(action, controller, view)
+    uiRule.configureUiSettings(deviceSelector = DeviceSelector.fromSerialNumber(controller.emulatorId.serialNumber))
+    action.actionPerformed(event)
+    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
+    val balloon = popupFactory.getNextBalloon()
+    waitForCondition(10.seconds) { balloon.isShowing }
+    val panel = balloon.component
+    assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNull()
+    assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()
+    assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNull()
   }
 
   @Test
@@ -229,7 +253,7 @@ class EmulatorUiSettingsActionTest {
 
   private fun simulateDarkTheme(on: Boolean) {
     val state = if (on) "yes" else "no"
-    uiRule.adb.configureShellCommand(uiRule.deviceSelector, "cmd uimode night", "Night mode: $state")
+    uiRule.adb.configureShellCommand(uiRule.emulatorDeviceSelector, "cmd uimode night", "Night mode: $state")
   }
 
   private fun createTestMouseEvent(action: AnAction, controller: EmulatorController, view: EmulatorView): AnActionEvent {

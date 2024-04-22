@@ -67,7 +67,7 @@ class UiSettingsRule : ExternalResource() {
     get() = adb.shellV2Requests.map { it.command }
 
   val emulator: FakeEmulator by lazy { createAndStartEmulator() }
-  val deviceSelector: DeviceSelector by lazy { DeviceSelector.fromSerialNumber(emulator.serialNumber) }
+  val emulatorDeviceSelector: DeviceSelector by lazy { DeviceSelector.fromSerialNumber(emulator.serialNumber) }
   val emulatorConfiguration: EmulatorConfiguration by lazy { EmulatorConfiguration.readAvdDefinition(emulator.avdId, emulator.avdFolder)!! }
 
   override fun before() {
@@ -86,7 +86,8 @@ class UiSettingsRule : ExternalResource() {
     selectToSpeakOn: Boolean = false,
     fontSize: Int = DEFAULT_FONT_SIZE,
     physicalDensity: Int = DEFAULT_DENSITY,
-    overrideDensity: Int = DEFAULT_DENSITY
+    overrideDensity: Int = DEFAULT_DENSITY,
+    deviceSelector: DeviceSelector = emulatorDeviceSelector
   ) {
     val overrideLine = if (physicalDensity != overrideDensity) "\n      Override density: $overrideDensity" else ""
     val command = POPULATE_COMMAND
@@ -124,6 +125,15 @@ class UiSettingsRule : ExternalResource() {
 
   fun createAndStartEmulator(api: Int = 33): FakeEmulator {
     val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, api = api)
+    val emulator = emulatorRule.newEmulator(avdFolder)
+    emulator.start()
+    val emulatorController = getControllerOf(emulator)
+    waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    return emulator
+  }
+
+  fun createAndStartWatchEmulator(api: Int = 33): FakeEmulator {
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = api)
     val emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
     val emulatorController = getControllerOf(emulator)

@@ -62,25 +62,26 @@ class EmulatorUiSettingsControllerTest {
 
   @Before
   fun before() {
-    adb.configureShellCommand(uiRule.deviceSelector, "cmd uimode night yes", "Night mode: yes")
-    adb.configureShellCommand(uiRule.deviceSelector, "cmd uimode night no", "Night mode: no")
-    adb.configureShellCommand(uiRule.deviceSelector, "cmd locale set-app-locales com.example.test.process --locales da", "")
-    adb.configureShellCommand(uiRule.deviceSelector, "cmd locale set-app-locales com.example.test.process --locales ", "")
-    adb.configureShellCommand(uiRule.deviceSelector, "settings put system font_scale 2", "")
-    adb.configureShellCommand(uiRule.deviceSelector, "settings put system font_scale 0.75", "")
-    adb.configureShellCommand(uiRule.deviceSelector, "wm density 408", "Physical density: 480\nOverride density: 408")
-    adb.configureShellCommand(uiRule.deviceSelector, "wm density 480", "Physical density: 480")
-    adb.configureShellCommand(uiRule.deviceSelector, "wm density 544", "Physical density: 480\nOverride density: 544")
-    adb.configureShellCommand(uiRule.deviceSelector, "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME", "")
-    adb.configureShellCommand(uiRule.deviceSelector, "settings delete secure enabled_accessibility_services", "")
-    adb.configureShellCommand(uiRule.deviceSelector, "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME", "")
-    adb.configureShellCommand(uiRule.deviceSelector, "settings put secure accessibility_button_targets ${SELECT_TO_SPEAK_SERVICE_NAME}", "")
-    adb.configureShellCommand(uiRule.deviceSelector, "settings delete secure accessibility_button_targets", "")
-    adb.configureShellCommand(uiRule.deviceSelector, "settings put secure enabled_accessibility_services " +
+    val deviceSelector = uiRule.emulatorDeviceSelector
+    adb.configureShellCommand(deviceSelector, "cmd uimode night yes", "Night mode: yes")
+    adb.configureShellCommand(deviceSelector, "cmd uimode night no", "Night mode: no")
+    adb.configureShellCommand(deviceSelector, "cmd locale set-app-locales com.example.test.process --locales da", "")
+    adb.configureShellCommand(deviceSelector, "cmd locale set-app-locales com.example.test.process --locales ", "")
+    adb.configureShellCommand(deviceSelector, "settings put system font_scale 2", "")
+    adb.configureShellCommand(deviceSelector, "settings put system font_scale 0.75", "")
+    adb.configureShellCommand(deviceSelector, "wm density 408", "Physical density: 480\nOverride density: 408")
+    adb.configureShellCommand(deviceSelector, "wm density 480", "Physical density: 480")
+    adb.configureShellCommand(deviceSelector, "wm density 544", "Physical density: 480\nOverride density: 544")
+    adb.configureShellCommand(deviceSelector, "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME", "")
+    adb.configureShellCommand(deviceSelector, "settings delete secure enabled_accessibility_services", "")
+    adb.configureShellCommand(deviceSelector, "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME", "")
+    adb.configureShellCommand(deviceSelector, "settings put secure accessibility_button_targets ${SELECT_TO_SPEAK_SERVICE_NAME}", "")
+    adb.configureShellCommand(deviceSelector, "settings delete secure accessibility_button_targets", "")
+    adb.configureShellCommand(deviceSelector, "settings put secure enabled_accessibility_services " +
                                                      "$TALK_BACK_SERVICE_NAME:$SELECT_TO_SPEAK_SERVICE_NAME", "")
-    adb.configureShellCommand(uiRule.deviceSelector, "settings put secure enabled_accessibility_services " +
+    adb.configureShellCommand(deviceSelector, "settings put secure enabled_accessibility_services " +
                                                      "$SELECT_TO_SPEAK_SERVICE_NAME:$TALK_BACK_SERVICE_NAME", "")
-    adb.configureShellCommand(uiRule.deviceSelector, FACTORY_RESET_COMMAND.format(APPLICATION_ID1, DEFAULT_DENSITY), "")
+    adb.configureShellCommand(deviceSelector, FACTORY_RESET_COMMAND.format(APPLICATION_ID1, DEFAULT_DENSITY), "")
   }
 
   @Test
