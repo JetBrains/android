@@ -38,7 +38,7 @@ import com.intellij.util.xml.converters.DelimitedListConverter
  * Converter that supports the id reference syntax that is unique to the {@link SdkConstants.CONSTRAINT_REFERENCED_IDS} attribute.
  */
 class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(", ") {
-  override fun convertString(string: String?, context: ConvertContext?): ResourceReference? {
+  override fun convertString(string: String?, context: ConvertContext): ResourceReference? {
     if (string == null) {
       return null
     }
@@ -48,18 +48,18 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(
   override fun toString(value: ResourceReference?): String? = value?.name
 
   override fun getReferenceVariants(
-    context: ConvertContext?,
+    context: ConvertContext,
     genericDomValue: GenericDomValue<out MutableList<ResourceReference>>?
   ): Array<Any> {
-    val file = context?.file ?: return EMPTY_ARRAY
+    val file = context.file ?: return EMPTY_ARRAY
     return findIdUrlsInFile(file).stream().map { url ->
       val name = (url.namespace?.let { "$it:" } ?: "") + url.name
       LookupElementBuilder.create(name)
     }.toArray()
   }
 
-  override fun resolveReference(resourceReference: ResourceReference?, context: ConvertContext?): PsiElement? {
-    if (resourceReference == null || context == null || context.referenceXmlElement == null) {
+  override fun resolveReference(resourceReference: ResourceReference?, context: ConvertContext): PsiElement? {
+    if (resourceReference == null || context.referenceXmlElement == null) {
       return null
     }
     val facet = context.module?.androidFacet ?: return null

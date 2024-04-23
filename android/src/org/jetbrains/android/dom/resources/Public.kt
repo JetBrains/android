@@ -55,11 +55,11 @@ interface PublicResource: GenericDomValue<String>, AndroidDomElement {
  */
 class PublicResourceNameConverter: StringConverter() {
 
-  override fun resolve(resourceName: String?, context: ConvertContext?): PsiElement? {
+  override fun resolve(resourceName: String?, context: ConvertContext): PsiElement? {
     if (resourceName == null) {
       return null
     }
-    val element = context?.xmlElement ?: return null
+    val element = context.xmlElement ?: return null
     val resourceNamespace = element.resourceNamespace ?: return null
     val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java) ?: return null
     val xmlAttribute: XmlAttribute = tag.getAttribute("type") ?: return null
@@ -68,8 +68,8 @@ class PublicResourceNameConverter: StringConverter() {
     return ResourceReferencePsiElement(element, ResourceReference(resourceNamespace, resourceType, resourceName))
   }
 
-  override fun getVariants(context: ConvertContext?): Collection<String> {
-    val element = context?.invocationElement?.parent as? PublicResource ?: return emptyList()
+  override fun getVariants(context: ConvertContext): Collection<String> {
+    val element = context.invocationElement.parent as? PublicResource ?: return emptyList()
     val module = context.module ?: return emptyList()
     val facet = AndroidFacet.getInstance(module) ?: return emptyList()
     val elementType = element.getType()?.value
@@ -90,15 +90,15 @@ class PublicResourceNameConverter: StringConverter() {
  * Converter for <public\> tag type attributes.
  */
 class PublicResourceTypeConverter: ResolvingConverter<ResourceType>() {
-  override fun toString(resourceType: ResourceType?, context: ConvertContext?): String? {
+  override fun toString(resourceType: ResourceType?, context: ConvertContext): String? {
     return resourceType?.getName()
   }
 
-  override fun fromString(resourceTypeValue: String?, context: ConvertContext?): ResourceType? {
+  override fun fromString(resourceTypeValue: String?, context: ConvertContext): ResourceType? {
     return if (resourceTypeValue == null) null else ResourceType.fromXmlValue(resourceTypeValue)
   }
 
-  override fun getVariants(context: ConvertContext?): Collection<ResourceType> {
+  override fun getVariants(context: ConvertContext): Collection<ResourceType> {
     return ResourceType.REFERENCEABLE_TYPES.toMutableList()
   }
 }

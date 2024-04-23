@@ -69,7 +69,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
 
   @NotNull
   @Override
-  public Collection<?> getVariants(ConvertContext context) {
+  public Collection<?> getVariants(@NotNull ConvertContext context) {
     if (myConverterDelegate instanceof ResolvingConverter) {
       return ((ResolvingConverter)myConverterDelegate).getVariants(context);
     }
@@ -78,7 +78,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
   }
 
   @Override
-  public String getErrorMessage(@Nullable String s, ConvertContext context) {
+  public String getErrorMessage(@Nullable String s, @NotNull ConvertContext context) {
     if (context.getModule() != null && s != null && s.contains(MANIFEST_PLACEHOLDER_PREFIX)) {
       ManifestPlaceholderResolver resolver = new ManifestPlaceholderResolver(context.getModule());
       s = resolver.resolve(s);
@@ -89,7 +89,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
 
   @Nullable
   @Override
-  public Object fromString(@Nullable @NonNls String s, ConvertContext context) {
+  public Object fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
     if (s != null && s.contains("${")) {
       // This string still contains placeholders
       return new PlaceholderValue(s);
@@ -100,7 +100,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
 
   @Nullable
   @Override
-  public String toString(@Nullable Object o, ConvertContext context) {
+  public String toString(@Nullable Object o, @NotNull ConvertContext context) {
     if (o instanceof PlaceholderValue) {
       return ((PlaceholderValue)o).myValueWithPlaceholders;
     }

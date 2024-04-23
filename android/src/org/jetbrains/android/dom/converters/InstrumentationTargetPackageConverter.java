@@ -26,13 +26,13 @@ import org.jetbrains.annotations.Nullable;
 public class InstrumentationTargetPackageConverter extends Converter<String> implements CustomReferenceConverter<String> {
   @Nullable
   @Override
-  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
+  public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
     return s;
   }
 
   @Nullable
   @Override
-  public String toString(@Nullable String s, ConvertContext context) {
+  public String toString(@Nullable String s, @NotNull ConvertContext context) {
     return s;
   }
 
