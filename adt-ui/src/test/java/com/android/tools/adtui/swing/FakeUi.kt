@@ -18,6 +18,7 @@
 package com.android.tools.adtui.swing
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
@@ -52,6 +53,7 @@ import java.awt.image.VolatileImage
 import javax.swing.JLabel
 import javax.swing.JRootPane
 import javax.swing.SwingUtilities
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * A utility class to interact with Swing components in unit tests.
@@ -287,7 +289,8 @@ class FakeUi @JvmOverloads constructor(
       component.updateIcon()
     }
     if (component is ActionToolbar) {
-      PlatformTestUtil.waitForFuture(component.updateActionsAsync())
+      val future = component.updateActionsAsync()
+      waitForCondition(1.seconds) { future.isDone }
     }
     if (component is Container) {
       for (child in component.components) {
