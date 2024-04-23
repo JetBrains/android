@@ -92,15 +92,32 @@ class BasicCompileTest {
 
   @Test
   fun recoverableErrors() {
-    try {
-      val file = projectRule.createKtFile("RecoverableError.kt", """
+    // Step 1: Error Free
+    val file = projectRule.createKtFile("RecoverableError.kt", """
+        fun recoverableError() { "a".toString() }
+      """)
+
+    val cache = projectRule.initialCache(listOf(file))
+
+    // Step 2: Introduce recoverable syntax errors
+    projectRule.modifyKtFile(file, """
         fun recoverableError() { "a".toString() } }
       """)
-      compile(file)
+
+    try {
+      compile(file, cache)
       Assert.fail("RecoverableError.kt contains a lexical error and should not be updated by Live Edit")
     } catch (e: LiveEditUpdateException) {
       Assert.assertEquals("Expecting a top level declaration", e.message)
     }
+
+    // Step 3: Fix syntax error
+    projectRule.modifyKtFile(file, """
+        fun recoverableError() { "a".toString() }
+      """)
+
+    // Should not have compiler errors.
+    compile(file, cache)
   }
 
   @Test
