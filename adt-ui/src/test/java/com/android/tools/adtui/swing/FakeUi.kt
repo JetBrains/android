@@ -50,6 +50,7 @@ import java.awt.image.BufferedImage
 import java.awt.image.ColorModel
 import java.awt.image.ImageObserver
 import java.awt.image.VolatileImage
+import java.util.concurrent.Future
 import javax.swing.JLabel
 import javax.swing.JRootPane
 import javax.swing.SwingUtilities
@@ -284,18 +285,25 @@ class FakeUi @JvmOverloads constructor(
   }
 
   private fun updateToolbars(component: Component) {
-    if (component is ActionButton) {
-      component.updateUI()
-      component.updateIcon()
-    }
-    if (component is ActionToolbar) {
-      val future = component.updateActionsAsync()
-      waitForCondition(1.seconds) { future.isDone }
-    }
-    if (component is Container) {
-      for (child in component.components) {
-        updateToolbars(child)
+    val componentQueue = ArrayDeque<Component>()
+    val futures = mutableListOf<Future<*>>()
+    componentQueue.add(component)
+    while (componentQueue.isNotEmpty()) {
+      when (val c = componentQueue.removeFirst()) {
+        is ActionToolbar -> futures.add(c.updateActionsAsync())
+        is ActionButton -> {
+          c.updateUI()
+          c.updateIcon()
+        }
+        is Container -> {
+          for (child in c.components) {
+            componentQueue.add(child)
+          }
+        }
       }
+    }
+    for (future in futures) {
+      waitForCondition(1.seconds) { future.isDone }
     }
   }
 
