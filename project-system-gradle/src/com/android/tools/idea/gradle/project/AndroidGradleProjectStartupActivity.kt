@@ -210,22 +210,32 @@ private fun removeModules(moduleManager: ModuleManager, modules: List<Pair<Modul
 
 /**
  * Attempts to see if the models cached by IDEAs external system are valid, if they are then we attach them to the facet,
- * if they are not then we request a project sync in order to ensure that the IDE has access to all of models it needs to function.
+ * if they are not then we request a project sync in order to ensure that the IDE has access to all the models it needs to function.
  */
 private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo: GradleProjectInfo) {
+  try {
+    attachCachedModelsOrTriggerSyncBody(project, gradleProjectInfo)
+  }
+  catch (e: RequestSyncThrowable) {
+    // TODO(b/155467517): Reconsider the way we launch sync when GradleSyncInvoker is deleted. We may want to handle each external project
+    //  path individually.
+    LOG.info("Requesting Gradle sync (${e.reason}).")
+    val trigger = if (gradleProjectInfo.isNewProject) Trigger.TRIGGER_PROJECT_NEW else Trigger.TRIGGER_PROJECT_REOPEN
+    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(trigger))
+  }
+}
 
+private class RequestSyncThrowable(val reason: String) : Throwable()
+
+private fun attachCachedModelsOrTriggerSyncBody(project: Project, gradleProjectInfo: GradleProjectInfo) {
   val moduleManager = ModuleManager.getInstance(project)
   val projectDataManager = ProjectDataManager.getInstance()
 
   fun DataNode<ProjectData>.modules(): Collection<DataNode<ModuleData>> =
     ExternalSystemApiUtil.findAllRecursively(this, ProjectKeys.MODULE)
 
-  // TODO(b/155467517): Reconsider the way we launch sync when GradleSyncInvoker is deleted. We may want to handle each external project
-  //                    path individually.
-  fun requestSync(reason: String) {
-    LOG.info("Requesting Gradle sync ($reason).")
-    val trigger = if (gradleProjectInfo.isNewProject) Trigger.TRIGGER_PROJECT_NEW else Trigger.TRIGGER_PROJECT_REOPEN
-    GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(trigger))
+  fun requestSync(reason: String): Nothing {
+    throw RequestSyncThrowable(reason)
   }
 
   val existingGradleModules = moduleManager.modules.filter { ExternalSystemApiUtil.isExternalSystemAwareModule(GRADLE_SYSTEM_ID, it) }
@@ -234,10 +244,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     existingGradleModules
       .mapNotNull { module ->
         val externalId = ExternalSystemApiUtil.getExternalProjectId(module)
-        if (externalId == null) {
-          requestSync("Unable to get external project id for ${module.name} from project ${project.name}.")
-          return
-        }
+                         ?: requestSync("Unable to get external project id for ${module.name} from project ${project.name}.")
         externalId to module
       }
       .toMap()
@@ -251,26 +258,23 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
         val externalProjectInfo = projectDataManager.getExternalProjectData(project, GradleConstants.SYSTEM_ID, externalProjectPath)
         if (externalProjectInfo != null && externalProjectInfo.lastImportTimestamp != externalProjectInfo.lastSuccessfulImportTimestamp) {
           requestSync("Sync failed in last import attempt. Path: ${externalProjectInfo.externalProjectPath}")
-          return
         }
         externalProjectInfo?.externalProjectStructure?.modules()?.forEach { moduleDataNode ->
           if (ExternalSystemApiUtil.getChildren(moduleDataNode, ANDROID_MODEL).singleOrNull() != null) {
             val isLinked = moduleDataNode.linkAndroidModuleGroup { data -> modulesById[data.id] }
             if (!isLinked) {
               requestSync("Not enough information to link all modules from: ${moduleDataNode.data.id}")
-              return
             }
           }
         }
         val moduleVariants = project.getSelectedVariantAndAbis()
         externalProjectInfo?.findAndSetupSelectedCachedVariantData(moduleVariants)
-          ?: run { requestSync("DataNode<ProjectData> not found for $externalProjectPath. Variants: $moduleVariants"); return }
+          ?: requestSync("DataNode<ProjectData> not found for $externalProjectPath. Variants: $moduleVariants")
       }
 
 
   if (projectDataNodes.isEmpty()) {
     requestSync("No linked projects found")
-    return
   }
 
   val facets =
@@ -302,10 +306,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       // from libraries if the location changes. See TODO: b/160088430.
       val expectedUrls = library.getUrls(OrderRootType.CLASSES)
       if (expectedUrls.isNotEmpty() && expectedUrls.none { url: String -> VirtualFileManager.getInstance().findFileByUrl(url) != null }) {
-        requestSync(
-          "Cannot find any of:\n ${expectedUrls.joinToString(separator = ",\n") { it }}\n in ${library.name}"
-        )
-        return
+        requestSync("Cannot find any of:\n ${expectedUrls.joinToString(separator = ",\n") { it }}\n in ${library.name}")
       }
     }
 
@@ -327,14 +328,14 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
           val sourceSets = ExternalSystemApiUtil.findAll(node, GradleSourceSetData.KEY)
 
           val externalId = node.data.id
-          val module = modulesById[externalId] ?: run { requestSync("Module $externalId not found"); return }
+          val module = modulesById[externalId] ?: requestSync("Module $externalId not found")
 
           if (sourceSets.isEmpty()) {
             listOf(ModuleSetupData(module, node, modelFactory))
           } else {
             sourceSets
               .mapNotNull { sourceSet ->
-                val moduleId = modulesById[sourceSet.data.id] ?: run { requestSync("Module ${sourceSet.data.id} not found"); return }
+                val moduleId = modulesById[sourceSet.data.id] ?: requestSync("Module ${sourceSet.data.id} not found")
                 if (moduleId.isAndroidModule()) ModuleSetupData(moduleId, sourceSet, modelFactory) else null
               } + ModuleSetupData(module, node, modelFactory)
           }
@@ -349,23 +350,18 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
           !ApplicationManager.getApplication().getService(AgpVersionChecker::class.java).versionsAreIncompatible(agpVersion, latestKnown)
         }
 
-    /** Returns `null` if validation fails. */
     fun <T, V : Facet<*>> prepare(
       dataKey: Key<T>,
       getModel: (DataNode<*>, Key<T>) -> T?,
       getFacet: (Module) -> V?,
       attach: V.(T) -> Unit,
       validate: T.() -> Boolean = { true }
-    ): (() -> Unit)? {
+    ): (() -> Unit) {
       val model = getModel(data.dataNode, dataKey) ?: return { /* No model for datanode/datakey pair */ }
       if (!model.validate()) {
         requestSync("invalid model found for $dataKey in ${data.module.name}")
-        return null
       }
-      val facet = getFacet(data.module) ?: run {
-        requestSync("no facet found for $dataKey in ${data.module.name} module")
-        return null  // Missing facet detected, triggering sync.
-      }
+      val facet = getFacet(data.module) ?: requestSync("no facet found for $dataKey in ${data.module.name} module")
       facets.remove(facet)
       return { facet.attach(model) }
     }
@@ -383,15 +379,14 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
         AndroidFacet::getInstance,
         { AndroidModel.set(this, data.gradleAndroidModelFactory(it)) },
         validate = GradleAndroidModelData::validate
-      ) ?: return,
-      prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
-      prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, NdkFacet::setNdkModuleModel) ?: return
+      ),
+      prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, GradleFacet::setGradleModuleModel),
+      prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, NdkFacet::setNdkModuleModel)
     )
   }
 
   if (facets.isNotEmpty()) {
     requestSync("Cached models not available for:\n" + facets.joinToString(separator = ",\n") { "${it.module.name} : ${it.typeId}" })
-    return
   }
 
   LOG.info("Up-to-date models found in the cache. Not invoking Gradle sync.")
