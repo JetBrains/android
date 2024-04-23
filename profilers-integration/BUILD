@@ -150,11 +150,8 @@ iml_studio_test(
         "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
     module = ":intellij.android.profilers.integration",
-    tags_linux = [
-        "very_flaky",  # b/260867011
-        "block-network",
-    ],
-    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_linux = ["block-network"],
+    tags_mac = [],
     tags_windows = [
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
@@ -188,11 +185,8 @@ iml_studio_test(
         "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
     module = ":intellij.android.profilers.integration",
-    tags_linux = [
-        "very_flaky",  # b/260867011
-        "block-network",
-    ],
-    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_linux = ["block-network"],
+    tags_mac = [],
     tags_windows = [
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
@@ -207,11 +201,8 @@ iml_studio_test(
         "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
     module = ":intellij.android.profilers.integration",
-    tags_linux = [
-        "very_flaky",  # b/260867011
-        "block-network",
-    ],
-    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_linux = ["block-network"],
+    tags_mac = [],
     tags_windows = [
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
@@ -242,11 +233,8 @@ iml_studio_test(
         "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
     module = ":intellij.android.profilers.integration",
-    tags_linux = [
-        "very_flaky",  # b/260867011
-        "block-network",
-    ],
-    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_linux = ["block-network"],
+    tags_mac = [],
     tags_windows = [
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
