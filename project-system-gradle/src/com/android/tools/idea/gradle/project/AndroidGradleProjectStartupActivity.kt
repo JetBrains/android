@@ -258,6 +258,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
             val isLinked = moduleDataNode.linkAndroidModuleGroup { data -> modulesById[data.id] }
             if (!isLinked) {
               requestSync("Not enough information to link all modules from: ${moduleDataNode.data.id}")
+              return
             }
           }
         }
