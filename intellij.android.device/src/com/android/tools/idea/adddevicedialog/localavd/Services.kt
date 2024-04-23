@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.adddevicedialog.localavd
 
-internal enum class Service(private val string: String) {
+internal enum class Services(private val string: String) {
   GOOGLE_PLAY_STORE("Google Play Store"),
   GOOGLE_APIS("Google APIs"),
   ANDROID_OPEN_SOURCE("Android Open Source");

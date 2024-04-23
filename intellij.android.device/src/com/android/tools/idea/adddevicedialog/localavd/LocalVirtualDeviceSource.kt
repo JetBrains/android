@@ -44,10 +44,9 @@ import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 
 internal class LocalVirtualDeviceSource(
-  val systemImages: ImmutableCollection<SystemImage>,
-  val skins: ImmutableCollection<Skin>,
+  private val systemImages: ImmutableCollection<SystemImage>,
+  private val skins: ImmutableCollection<Skin>,
 ) : DeviceSource {
-
   companion object {
     fun create(): LocalVirtualDeviceSource {
       return LocalVirtualDeviceSource(
@@ -70,9 +69,11 @@ internal class LocalVirtualDeviceSource(
     val state =
       remember(device) { LocalAvdConfigurationState(systemImages, skins, device as VirtualDevice) }
 
+    val api = device.apiRange.upperEndpoint()
+
     ConfigureDevicePanel(
       state.device,
-      state.systemImages,
+      state.systemImages.filter { it.androidVersion.apiLevel == api }.toImmutableList(),
       state.skins,
       onDeviceChange = { state.device = it },
       onImportButtonClick = {

@@ -22,7 +22,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import java.util.EnumSet
 import kotlinx.collections.immutable.ImmutableCollection
+import kotlinx.collections.immutable.toImmutableSet
 import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.ui.component.TabData
@@ -63,8 +65,11 @@ private fun Tabs(
     }
   )
 
+  val servicesSet =
+    images.mapTo(EnumSet.noneOf(Services::class.java), SystemImage::services).toImmutableSet()
+
   // TODO: http://b/335494340
-  var service by remember { mutableStateOf<Service?>(Service.GOOGLE_PLAY_STORE) }
+  var services by remember { mutableStateOf(servicesSet.first()) }
 
   val state = remember { AdditionalSettingsPanelState(device) }
 
@@ -72,10 +77,10 @@ private fun Tabs(
     Tab.DEVICE ->
       DevicePanel(
         device,
-        service,
-        images,
+        services,
+        servicesSet,
         onDeviceChange,
-        onSelectedServiceChange = { service = it },
+        onSelectedServicesChange = { services = it },
       )
     Tab.ADDITIONAL_SETTINGS ->
       AdditionalSettingsPanel(device, skins, state, onDeviceChange, onImportButtonClick)

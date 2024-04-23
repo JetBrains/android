@@ -17,16 +17,18 @@ package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.runtime.Immutable
 import com.android.repository.api.RepoPackage
-import com.android.repository.api.UpdatablePackage
+import com.android.sdklib.SystemImageTags
 import com.android.sdklib.repository.meta.DetailsTypes.ApiDetailsType
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
+import com.google.common.annotations.VisibleForTesting
 
 @Immutable
-internal class SystemImage private constructor(repoPackage: RepoPackage) {
-  internal val apiLevel = (repoPackage.typeDetails as ApiDetailsType).androidVersion
+internal class SystemImage @VisibleForTesting internal constructor(repoPackage: RepoPackage) {
+  internal val androidVersion = (repoPackage.typeDetails as ApiDetailsType).androidVersion
+  internal val services = getServices(repoPackage)
 
   internal companion object {
     internal fun getSystemImages(): Collection<SystemImage> {
@@ -40,12 +42,24 @@ internal class SystemImage private constructor(repoPackage: RepoPackage) {
         StudioSettingsController.getInstance(),
       )
 
-      return manager.packages.consolidatedPkgs.values
-        .asSequence()
-        .map(UpdatablePackage::getRepresentative)
+      return manager.packages.remotePackages.values
         .filter(RepoPackage::hasSystemImage)
         .map(::SystemImage)
         .toList()
     }
+  }
+
+  private fun getServices(repoPackage: RepoPackage): Services {
+    val tags = SystemImageTags.getTags(repoPackage)
+
+    if (SystemImageTags.hasGooglePlay(tags, androidVersion, repoPackage)) {
+      return Services.GOOGLE_PLAY_STORE
+    }
+
+    if (SystemImageTags.hasGoogleApi(tags)) {
+      return Services.GOOGLE_APIS
+    }
+
+    return Services.ANDROID_OPEN_SOURCE
   }
 }

@@ -29,10 +29,10 @@ import org.jetbrains.jewel.ui.component.separator
 @Composable
 internal fun DevicePanel(
   device: VirtualDevice,
-  selectedService: Service?,
-  images: ImmutableCollection<SystemImage>,
+  selectedServices: Services?,
+  servicesCollection: ImmutableCollection<Services>,
   onDeviceChange: (VirtualDevice) -> Unit,
-  onSelectedServiceChange: (Service?) -> Unit,
+  onSelectedServicesChange: (Services?) -> Unit,
 ) {
   Text("Name", Modifier.padding(bottom = Padding.SMALL))
 
@@ -55,20 +55,20 @@ internal fun DevicePanel(
     Dropdown(
       Modifier.padding(end = Padding.MEDIUM),
       menuContent = {
-        Service.values().forEach {
-          selectableItem(selectedService == it, onClick = { onSelectedServiceChange(it) }) {
+        servicesCollection.forEach {
+          selectableItem(selectedServices == it, onClick = { onSelectedServicesChange(it) }) {
             Text(it.toString())
           }
         }
 
         separator()
 
-        selectableItem(selectedService == null, onClick = { onSelectedServiceChange(null) }) {
+        selectableItem(selectedServices == null, onClick = { onSelectedServicesChange(null) }) {
           Text("Show All")
         }
       },
     ) {
-      Text(selectedService.toString())
+      Text(selectedServices?.toString() ?: "Show All")
     }
 
     InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
