@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.AndroidGradleClassJarProvider
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
@@ -364,15 +363,6 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
   override fun supportsProfilingMode() = true
 
 }
-
-private val IdeBaseArtifactCore.scopeType: ScopeType
-  get() = when (this.name) {
-    IdeArtifactName.ANDROID_TEST -> ScopeType.ANDROID_TEST
-    IdeArtifactName.MAIN -> ScopeType.MAIN
-    IdeArtifactName.TEST_FIXTURES -> ScopeType.TEST_FIXTURES
-    IdeArtifactName.UNIT_TEST -> ScopeType.UNIT_TEST
-    IdeArtifactName.SCREENSHOT_TEST -> ScopeType.SCREENSHOT_TEST
-  }
 
 fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   val all =
