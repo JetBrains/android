@@ -115,6 +115,9 @@ class SafeMode : ApplicationLoadListener {
       private get() = "android.studio.safe.mode." + ApplicationInfo.getInstance().build + ".sentinel"
 
     private fun safeModeDisabled(): Boolean {
+      if (SystemInfo.isMac) {
+        return true
+      }
       if (System.getProperty("disable.safe.mode") != null) {
         return true
       }
