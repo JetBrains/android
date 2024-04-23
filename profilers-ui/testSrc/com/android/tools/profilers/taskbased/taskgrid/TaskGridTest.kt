@@ -22,6 +22,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
@@ -31,7 +32,6 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils
@@ -148,13 +148,13 @@ class TaskGridTest {
 
     composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(7)
 
-    composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Callstack Sample").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Java/Kotlin Method Recording").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Java/Kotlin Allocations").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Heap Dump").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Native Allocations").assertIsDisplayed().assertIsEnabled()
-    composeTestRule.onNodeWithText("Live View").assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithTag("System Trace", useUnmergedTree = true).assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithTag("Callstack Sample", useUnmergedTree = true).assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithTag("Java/Kotlin Method Recording", useUnmergedTree = true).assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithTag("Java/Kotlin Allocations", useUnmergedTree = true).assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithTag("Heap Dump", useUnmergedTree = true).assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithTag("Native Allocations", useUnmergedTree = true).assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithTag("Live View", useUnmergedTree = true).assertIsDisplayed().assertIsEnabled()
   }
 
   @Test

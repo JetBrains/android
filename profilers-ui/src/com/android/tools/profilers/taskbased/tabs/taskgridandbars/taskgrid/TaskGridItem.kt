@@ -19,9 +19,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -34,11 +35,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_HOVER_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.ui.component.Icon
@@ -81,9 +84,11 @@ fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolea
 @Composable
 fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
   val taskIcon = TaskBasedUxIcons.getLargeTaskIcon(task)
+  val taskTitle = TaskBasedUxStrings.getTaskTitle(task)
+  val taskSubtitle = TaskBasedUxStrings.getTaskSubtitle(task)
   with(boxScope) {
     Column(
-      modifier = Modifier.align(Alignment.Center).fillMaxWidth().padding(20.dp)
+      modifier = Modifier.align(Alignment.Center).fillMaxWidth().padding(vertical = 20.dp, horizontal = 10.dp).testTag(task.description)
     ) {
       Icon(
         resource = taskIcon.path,
@@ -91,11 +96,22 @@ fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
         contentDescription = task.description,
         modifier = Modifier.align(Alignment.CenterHorizontally)
       )
+      Spacer(modifier = Modifier.height(10.dp))
       Text(
-        text = task.description,
+        text = taskTitle,
         textAlign = TextAlign.Center,
-        modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp)
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.align(Alignment.CenterHorizontally)
       )
+      Spacer(modifier = Modifier.height(5.dp))
+      taskSubtitle?.let {
+        Text(
+          text = it,
+          textAlign = TextAlign.Center,
+          color = Color.Gray,
+          modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+      }
     }
   }
 }

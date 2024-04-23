@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.taskbased.common.constants
 
+import com.android.tools.profilers.tasks.ProfilerTaskType
+
 object TaskBasedUxStrings {
   // EnterTaskButton strings
   const val OPEN_PROFILER_TASK = "Open profiler task"
@@ -64,4 +66,27 @@ object TaskBasedUxStrings {
   // Delete recording strings
   const val DELETE_RECORDING_DESC = "Delete recording"
   const val DELETE_RECORDING_DISABLED_TOOLTIP = "Recording is not deletable"
+
+  fun getTaskTitle(taskType: ProfilerTaskType) =
+    when (taskType)  {
+      ProfilerTaskType.SYSTEM_TRACE -> "Capture System Activities"
+      ProfilerTaskType.HEAP_DUMP -> "Analyze Memory Usage"
+      ProfilerTaskType.CALLSTACK_SAMPLE -> "Find CPU Hotspots"
+      ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> "Track Memory Consumption"
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Find CPU Hotspots"
+      ProfilerTaskType.NATIVE_ALLOCATIONS -> "Track Memory Consumption"
+      ProfilerTaskType.LIVE_VIEW -> "View Live Telemetry"
+      ProfilerTaskType.UNSPECIFIED -> ""
+    }
+
+  fun getTaskSubtitle(taskType: ProfilerTaskType) =
+    when (taskType)  {
+      ProfilerTaskType.SYSTEM_TRACE,
+      ProfilerTaskType.HEAP_DUMP,
+      ProfilerTaskType.CALLSTACK_SAMPLE,
+      ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
+      ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING,
+      ProfilerTaskType.NATIVE_ALLOCATIONS -> taskType.description
+      ProfilerTaskType.LIVE_VIEW, ProfilerTaskType.UNSPECIFIED -> null
+    }
 }
