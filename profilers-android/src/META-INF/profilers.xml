@@ -70,6 +70,10 @@
     </action>
     <action id="Android.SelectJavaKotlinMethodRecording" class="com.android.tools.idea.profilers.actions.SelectJavaKotlinMethodRecordingTaskAction">
     </action>
+    <action id="Android.SelectJavaKotlinAllocationsTask" class="com.android.tools.idea.profilers.actions.SelectJavaKotlinAllocationsTaskAction">
+    </action>
+    <action id="Android.StopJavaKotlinAllocationsTask" class="com.android.tools.idea.profilers.actions.StopJavaKotlinAllocationsTaskAction">
+    </action>
     <action id="Android.SetRecordingTypeToSampling" class="com.android.tools.idea.profilers.actions.SetRecordingTypeToSamplingAction">
     </action>
     <action id="Android.Profile" class="com.android.tools.idea.profilers.actions.ProfileAction">

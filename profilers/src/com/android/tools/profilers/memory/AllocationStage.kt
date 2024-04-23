@@ -182,8 +182,14 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
     ) { status ->
       when (status?.status) {
         TrackStatus.Status.SUCCESS -> {
+          if (enable) {
+            logger.info("PROFILER: Java/Kotlin Allocations capture start succeeded")
+          }
           // At this point, allocation tracking has been stopped by the user, indicating that the task is complete.
-          if (!enable) trackTaskFinished(studioProfilers, true, TaskFinishedState.COMPLETED)
+          else {
+            trackTaskFinished(studioProfilers, true, TaskFinishedState.COMPLETED)
+            logger.info("PROFILER: Java/Kotlin Allocations capture stop succeeded")
+          }
         }
         TrackStatus.Status.IN_PROGRESS, TrackStatus.Status.NOT_ENABLED -> {
           // Still in progress or not enabled yet. Not enabled yet usually happens in stage exit.
@@ -198,6 +204,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
               studioProfilers,
               studioProfilers.sessionsManager.isSessionAlive,
               TaskStartFailedMetadata(allocationTrackStatus = status, traceStartStatus = null, heapDumpStatus = null))
+            logger.info("PROFILER: Java/Kotlin Allocations capture start failed")
           }
           else {
             // stop task failure
@@ -205,6 +212,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
               studioProfilers,
               studioProfilers.sessionsManager.isSessionAlive,
               TaskStopFailedMetadata(allocationTrackStatus = status, traceStopStatus = null, cpuCaptureMetadata = null))
+            logger.info("PROFILER: Java/Kotlin Allocations capture stop failed")
           }
         }
       }
@@ -212,6 +220,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   }
 
   fun stopTracking() {
+    logger.info("PROFILER: Java/Kotlin Allocations capture stop attempted")
     if (!hasEndedTracking) {
       aspect.removeDependencies(this)
       timeline.dataRange.removeDependencies(this)
