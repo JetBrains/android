@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NonNls
 /**
  * Android Graphics Shading language.
  */
-class AgslLanguage : Language(ID) {
+class AgslLanguage private constructor() : Language(ID) {
   override fun getDisplayName(): String {
     return "AGSL (Android Graphics Shading Language)"
   }
