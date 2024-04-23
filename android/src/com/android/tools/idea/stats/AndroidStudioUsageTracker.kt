@@ -26,6 +26,7 @@ import com.android.tools.idea.actions.FeatureSurveyNotificationAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.diagnostics.report.DefaultMetricsLogFileProvider
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
 import com.android.tools.idea.serverflags.ServerFlagService
@@ -45,6 +46,7 @@ import com.google.wireless.android.sdk.stats.IntelliJNewUIState
 import com.google.wireless.android.sdk.stats.MachineDetails
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
+import com.google.wireless.android.sdk.stats.SafeModeStatsEvent
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.plugins.PluginManagerCore
@@ -60,6 +62,7 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.RegistryManager
 import com.intellij.openapi.util.registry.RegistryValue
 import com.intellij.openapi.util.registry.RegistryValueListener
@@ -193,6 +196,7 @@ object AndroidStudioUsageTracker {
 
   private fun runStartupReports() {
     reportEnabledPlugins()
+    reportSafeModeStats()
   }
 
   private fun runShutdownReports() {
@@ -221,6 +225,44 @@ object AndroidStudioUsageTracker {
       AndroidStudioEvent.newBuilder()
         .setKind(EventKind.IDE_PLUGIN_INFO)
         .setIdePluginInfo(pluginInfoProto))
+  }
+
+  private fun reportSafeModeStats() {
+    System.getProperty("studio.safe.mode") ?: return
+    val safeModeStatsProto = SafeModeStatsEvent.newBuilder()
+
+    if (SystemInfo.isWindows){
+      safeModeStatsProto.setOs(SafeModeStatsEvent.OS.WINDOWS)
+    } else if (SystemInfo.isMac) {
+      safeModeStatsProto.setOs(SafeModeStatsEvent.OS.MAC)
+    } else if (SystemInfo.isUnix) {
+      safeModeStatsProto.setOs(SafeModeStatsEvent.OS.LINUX)
+    } else {
+      safeModeStatsProto.setOs(SafeModeStatsEvent.OS.UNKNOWN_OS)
+    }
+
+    safeModeStatsProto.setEntryPoint(SafeModeStatsEvent.EntryPoint.SCRIPT)
+    safeModeStatsProto.setTrigger(if (System.getProperty("studio.safe.mode") == null) SafeModeStatsEvent.Trigger.UNKNOWN_TRIGGER
+                                  else SafeModeStatsEvent.Trigger.STARTUP_FAILED)
+    safeModeStatsProto.setStartUpResult(SafeModeStatsEvent.StartUpResult.SAFE_MODE_SUCCESS)
+    safeModeStatsProto.setStudioVersion(ApplicationInfo.getInstance().strictVersion)
+    safeModeStatsProto.setJdkModified(IdeSdks.getInstance().getRunningVersionOrDefault().toString())
+
+    val plugins = PluginManagerCore.loadedPlugins
+    for (plugin in plugins) {
+      if (!plugin.isEnabled) continue
+      val id = plugin.pluginId.idString
+
+      if (id == "org.jetbrains.kotlin") {
+        safeModeStatsProto.setKotlinModified(plugin.version)
+        break
+      }
+    }
+
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(EventKind.SAFE_MODE_STATS_EVENT)
+        .setSafeModeStatsEvent(safeModeStatsProto))
   }
 
   private fun runDailyReports() {
