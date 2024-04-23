@@ -38,10 +38,9 @@ class WearTilePreviewEntryPoint : EntryPoint() {
 
   override fun isEntryPoint(psiElement: PsiElement): Boolean =
     isSelected &&
-      psiElement is PsiMethod &&
       psiElement
-        .toUElement(UMethod::class.java)
-        ?.takeIf { it.hasTilePreviewSignature() }
+        .takeIf { it.isMethodWithTilePreviewSignature() }
+        ?.toUElement(UMethod::class.java)
         ?.findAllAnnotationsInGraph { it.isTilePreviewAnnotation() }
         ?.any() == true
 

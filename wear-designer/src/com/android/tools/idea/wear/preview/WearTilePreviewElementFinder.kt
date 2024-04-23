@@ -17,7 +17,6 @@ package com.android.tools.idea.wear.preview
 
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.annotations.NodeInfo
 import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
@@ -32,10 +31,14 @@ import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.text.nullize
+import org.jetbrains.kotlin.asJava.LightClassUtil
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
@@ -124,12 +127,13 @@ private suspend fun findUMethodsWithTilePreviewSignature(
   project: Project,
   vFile: VirtualFile,
 ): List<UMethod> {
-  val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return emptyList()
+  val pointerManager = SmartPointerManager.getInstance(project)
   return smartReadAction(project) {
-    PsiTreeUtil.findChildrenOfAnyType(psiFile, PsiMethod::class.java, KtNamedFunction::class.java)
-      .mapNotNull { it.toUElement(UMethod::class.java) }
-      .filter { it.hasTilePreviewSignature() }
-  }
+      PsiTreeUtil.findChildrenOfAnyType(vFile.toPsiFile(project), PsiMethod::class.java, KtNamedFunction::class.java)
+        .map { pointerManager.createSmartPsiElementPointer(it) }
+    }
+    .filter { runReadAction { it.element?.isMethodWithTilePreviewSignature() } ?: false }
+    .mapNotNull { runReadAction { it.element.toUElement(UMethod::class.java) } }
 }
 
 private fun UMethod.findAllTilePreviewAnnotations() = findAllAnnotationsInGraph {
@@ -137,18 +141,31 @@ private fun UMethod.findAllTilePreviewAnnotations() = findAllAnnotationsInGraph 
 }
 
 /**
- * Checks if a [UMethod] has the signature required for a Tile Preview. The expected signature of a
- * Tile Preview method is to have the return type [TILE_PREVIEW_DATA_FQ_NAME] and to have either no
- * parameters or single parameter of type [SdkConstants.CLASS_CONTEXT].
+ * Checks if a [PsiElement] is a method with the signature required for a Tile Preview. The expected
+ * signature of a Tile Preview method is to have the return type [TILE_PREVIEW_DATA_FQ_NAME] and to
+ * have either no parameters or single parameter of type [SdkConstants.CLASS_CONTEXT].
+ *
+ * To be considered a method, the [PsiElement] should be either a [PsiMethod] or a
+ * [KtNamedFunction].
  */
 @RequiresReadLock
-internal fun UMethod?.hasTilePreviewSignature(): Boolean {
-  if (this == null) return false
-  if (this.returnType?.equalsToText(TILE_PREVIEW_DATA_FQ_NAME) != true) return false
+internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
+  return when (this) {
+    is PsiMethod -> hasTilePreviewSignature()
+    is KtNamedFunction ->
+      LightClassUtil.getLightClassMethod(this)?.hasTilePreviewSignature() ?: false
+    else -> false
+  }
+}
 
-  val hasNoParameters = uastParameters.isEmpty()
-  val hasContextParameter =
-    uastParameters.size == 1 &&
-      uastParameters.first().typeReference?.getQualifiedName() == SdkConstants.CLASS_CONTEXT
-  return hasNoParameters || hasContextParameter
+@RequiresReadLock
+private fun PsiMethod.hasTilePreviewSignature(): Boolean {
+  if (returnType?.equalsToText(TILE_PREVIEW_DATA_FQ_NAME) != true) return false
+
+  val hasNoParameters = !hasParameters()
+  val hasSingleContextParameter =
+    parameterList.parametersCount == 1 &&
+      parameterList.getParameter(0)?.type?.equalsToText(SdkConstants.CLASS_CONTEXT) == true
+
+  return hasNoParameters || hasSingleContextParameter
 }
