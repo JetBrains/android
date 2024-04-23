@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -34,6 +35,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.sessions.SessionItem
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.MAX_NUM_TASKS_IN_ROW
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_GRID_HORIZONTAL_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_GRID_HORIZONTAL_SPACE_DP
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_GRID_VERTICAL_SPACE_DP
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_WIDTH_DP
 import com.android.tools.profilers.taskbased.task.TaskGridModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
@@ -51,9 +56,13 @@ private fun TaskGridContainer(taskGridModel: TaskGridModel, taskGridContent: (Pr
       state = listState,
       modifier = Modifier
         .align(Alignment.Center)
-        .padding(start = 50.dp, end = 50.dp),
-      horizontalArrangement = Arrangement.spacedBy(20.dp),
-      verticalArrangement = Arrangement.spacedBy(5.dp)
+        .widthIn(
+          max = ((TASK_WIDTH_DP * MAX_NUM_TASKS_IN_ROW) +
+                 (TASK_GRID_HORIZONTAL_SPACE_DP * (MAX_NUM_TASKS_IN_ROW - 1)) +
+                 (TASK_GRID_HORIZONTAL_PADDING_DP * 2)))
+        .padding(horizontal = TASK_GRID_HORIZONTAL_PADDING_DP),
+      horizontalArrangement = Arrangement.spacedBy(TASK_GRID_HORIZONTAL_SPACE_DP),
+      verticalArrangement = Arrangement.spacedBy(TASK_GRID_VERTICAL_SPACE_DP)
     ) {
       taskGridContent(selectedTask, this)
     }

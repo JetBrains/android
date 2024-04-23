@@ -18,6 +18,7 @@ package com.android.tools.profilers.taskbased.tabs.taskgridandbars
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
@@ -34,7 +35,7 @@ private fun TaskGridAndBarsContainer(taskGrid: @Composable () -> Unit,
   Column(modifier = modifier) {
     topBar()
     ToolWindowHorizontalDivider()
-    Box(modifier = Modifier.weight(1f)) {
+    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
       taskGrid()
     }
     ToolWindowHorizontalDivider()
