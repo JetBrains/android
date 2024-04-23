@@ -547,7 +547,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       false);
 
     assertThat(info).isNotNull();
-    assertThat(info.parseUserSettingsFile(log).get(USER_SETTINGS_INI_PREFERRED_ABI)).isNull();
+    assertThat(info.getUserSettings().get(USER_SETTINGS_INI_PREFERRED_ABI)).isNull();
 
     Map<String, String> userSettings = new HashMap<>();
     userSettings.put(USER_SETTINGS_INI_PREFERRED_ABI, Abi.X86_64.toString());
@@ -564,7 +564,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       userSettings,
       false);
     assertThat(info).isNotNull();
-    assertThat(info.parseUserSettingsFile(log).get(USER_SETTINGS_INI_PREFERRED_ABI)).isEqualTo(Abi.X86_64.toString());
+    assertThat(info.getUserSettings().get(USER_SETTINGS_INI_PREFERRED_ABI)).isEqualTo(Abi.X86_64.toString());
   }
 
   private static void recordGoogleApisSysImg23(Path sdkRoot) {

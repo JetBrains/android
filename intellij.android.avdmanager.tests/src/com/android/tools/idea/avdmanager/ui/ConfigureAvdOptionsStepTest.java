@@ -194,12 +194,12 @@ public final class ConfigureAvdOptionsStepTest {
     var ini = Paths.get("ini");
     var folder = Paths.get("folder");
 
-    myQAvdInfo = new AvdInfo("name", ini, folder, QImage, myPropertiesMap);
-    myMarshmallowAvdInfo = new AvdInfo("name", ini, folder, marshmallowImage, myPropertiesMap);
-    myPreviewAvdInfo = new AvdInfo("name", ini, folder, NPreviewImage, myPropertiesMap);
-    myZuluAvdInfo = new AvdInfo("name", ini, folder, ZuluImage, myPropertiesMap);
-    myExtensionsAvdInfo = new AvdInfo("name", ini, folder, extensionsImage, myPropertiesMap);
-    myNoSystemImageAvdInfo = new AvdInfo("No Sysimg", ini, folder, null, myPropertiesMap, AvdInfo.AvdStatus.ERROR_IMAGE_MISSING);
+    myQAvdInfo = new AvdInfo("name", ini, folder, QImage, myPropertiesMap, null);
+    myMarshmallowAvdInfo = new AvdInfo("name", ini, folder, marshmallowImage, myPropertiesMap, null);
+    myPreviewAvdInfo = new AvdInfo("name", ini, folder, NPreviewImage, myPropertiesMap, null);
+    myZuluAvdInfo = new AvdInfo("name", ini, folder, ZuluImage, myPropertiesMap, null);
+    myExtensionsAvdInfo = new AvdInfo("name", ini, folder, extensionsImage, myPropertiesMap, null);
+    myNoSystemImageAvdInfo = new AvdInfo("No Sysimg", ini, folder, null, myPropertiesMap, null, AvdInfo.AvdStatus.ERROR_IMAGE_MISSING);
 
     BatchInvoker.setOverrideStrategy(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY);
   }
@@ -248,8 +248,7 @@ public final class ConfigureAvdOptionsStepTest {
     Disposer.register(myRule.getTestRootDisposable(), step);
     Disposer.register(myRule.getTestRootDisposable(), new ModelWizard.Builder(step).build());
 
-    var userSettings = myQAvdInfo.parseUserSettingsFile(null);
-    assertThat(userSettings).isEmpty();
+    assertThat(myQAvdInfo.getUserSettings()).isEmpty();
 
     // Act
     step.onEntering();
@@ -427,7 +426,7 @@ public final class ConfigureAvdOptionsStepTest {
   public void populateSnapshotList() throws Exception {
     Path snapAvdDir = InMemoryFileSystems.createInMemoryFileSystemAndFolder("proto_avd");
     AvdInfo snapshotAvdInfo =
-      new AvdInfo("snapAvd", Paths.get("ini"), snapAvdDir, mySnapshotSystemImage, myPropertiesMap);
+      new AvdInfo("snapAvd", Paths.get("ini"), snapAvdDir, mySnapshotSystemImage, myPropertiesMap, null);
     AvdOptionsModel optionsModel = new AvdOptionsModel(snapshotAvdInfo);
 
     var optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinComboBox());

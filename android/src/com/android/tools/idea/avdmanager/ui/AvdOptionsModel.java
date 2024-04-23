@@ -517,8 +517,7 @@ public final class AvdOptionsModel extends WizardModel {
 
     Map<String, String> properties = avdInfo.getProperties();
 
-    Map<String, String> userSettings = avdInfo.parseUserSettingsFile(null);
-    myPreferredAbi.set(Optional.ofNullable(userSettings.getOrDefault(AvdManager.USER_SETTINGS_INI_PREFERRED_ABI, null)));
+    myPreferredAbi.set(Optional.ofNullable(avdInfo.getUserSettings().getOrDefault(AvdManager.USER_SETTINGS_INI_PREFERRED_ABI, null)));
 
     myUseQemu2.set(properties.containsKey(AvdWizardUtils.CPU_CORES_KEY));
     String cpuCoreCount = properties.get(AvdWizardUtils.CPU_CORES_KEY);

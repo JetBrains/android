@@ -1221,6 +1221,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       Paths.get("/android/avds/myAvd-$apiLevel"),
       systemImage,
       properties,
+      null,
     )
   }
 

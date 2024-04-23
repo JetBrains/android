@@ -258,6 +258,7 @@ class AndroidDeviceSpecUtilTest {
         Pair(AVD_INI_DEVICE_NAME, name)
       )
     )
+    whenever(avdInfo.userSettings).thenReturn(mapOf())
     return avdInfo
   }
 

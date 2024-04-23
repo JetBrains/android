@@ -36,7 +36,7 @@ class UnpairTest {
   )
   private val wearPropertiesMap = mapOf(AvdManager.AVD_INI_TAG_ID to "android-wear", AvdManager.AVD_INI_ANDROID_API to "28")
   private val avdWearInfo = AvdInfo("My Wear", Paths.get("ini"), Paths.get("id2"), Mockito.mock(ISystemImage::class.java),
-                                    wearPropertiesMap)
+                                    wearPropertiesMap, null)
   private val wearDevice = PairingDevice(
     deviceID = "id2", displayName = "Round Watch", apiLevel = 30, isEmulator = true, isWearDevice = true, hasPlayStore = true,
     state = ConnectionState.ONLINE

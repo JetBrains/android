@@ -112,7 +112,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   @Nullable
   @Override
   public String getAppPreferredAbi() {
-    return myAvdInfo.parseUserSettingsFile(null).get(USER_SETTINGS_INI_PREFERRED_ABI);
+    return myAvdInfo.getUserSettings().get(USER_SETTINGS_INI_PREFERRED_ABI);
   }
 
   @NotNull

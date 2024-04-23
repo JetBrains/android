@@ -116,7 +116,7 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
       if (info == null) {
         return null;
       }
-      return info.parseUserSettingsFile(null).get(AvdManager.USER_SETTINGS_INI_PREFERRED_ABI);
+      return info.getUserSettings().get(AvdManager.USER_SETTINGS_INI_PREFERRED_ABI);
     }
     catch (ExecutionException | InterruptedException e) {
       return null;

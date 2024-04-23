@@ -178,7 +178,7 @@ class StreamingToolWindowManagerTest {
     emulator2.start(standalone = true)
 
     // Send notification that the emulator has been launched.
-    val avdInfo = AvdInfo(emulator1.avdId, emulator1.avdFolder.resolve("config.ini"), emulator1.avdFolder, mock(), null)
+    val avdInfo = AvdInfo(emulator1.avdId, emulator1.avdFolder.resolve("config.ini"), emulator1.avdFolder, mock(), null, null)
     val commandLine = GeneralCommandLine("/emulator_home/fake_emulator", "-avd", emulator1.avdId, "-qt-hide-window")
     project.messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avdInfo, commandLine, RequestType.INDIRECT, project)
     dispatchAllInvocationEvents()

@@ -269,6 +269,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
     whenever(avd.deviceManufacturer).thenReturn("Google")
     whenever(avd.deviceName).thenReturn("pixel_3")
     whenever(avd.displayName).thenReturn("Pixel 3 API 30")
+    whenever(avd.dataFolderPath).thenReturn(Path.of("/"))
 
     whenever(avd.properties)
       .thenReturn(hashMapOf(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY to noSkin.toString()))
@@ -310,5 +311,6 @@ class AvdOptionsModelTest : AndroidTestCase() {
     folderPath: Path = Paths.get("folder"),
     systemImage: ISystemImage = Mockito.mock(ISystemImage::class.java),
     properties: Map<String, String>,
-  ) = AvdInfo(name, iniFile, folderPath, systemImage, properties)
+    userSettings: Map<String, String?>? = null,
+  ) = AvdInfo(name, iniFile, folderPath, systemImage, properties, userSettings)
 }

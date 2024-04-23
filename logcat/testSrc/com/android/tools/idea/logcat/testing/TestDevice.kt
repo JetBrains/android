@@ -120,6 +120,7 @@ private fun makeAvdInfo(
       AvdManager.AVD_INI_ABI_TYPE to Abi.ARM64_V8A.toString(),
       AvdManager.AVD_INI_DISPLAY_NAME to avdName,
     ),
+    null,
     AvdInfo.AvdStatus.OK,
   )
 }

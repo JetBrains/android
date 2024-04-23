@@ -58,6 +58,7 @@ class WearPairingManagerTest {
       Paths.get("id2"),
       Mockito.mock(ISystemImage::class.java),
       wearPropertiesMap,
+      null,
     )
 
   @Test
