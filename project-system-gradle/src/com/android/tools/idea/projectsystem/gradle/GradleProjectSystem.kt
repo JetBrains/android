@@ -269,10 +269,6 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
     val applicationIdToModule: Map<String, Set<Module>>
   )
 
-  private class LazyComparator<T>(private val delegateProvider: Lazy<Comparator<T>>): Comparator<T> {
-    override fun compare(o1: T, o2: T): Int = delegateProvider.value.compare(o1, o2)
-  }
-
   private fun getGradleProjectCensus(project: Project): GradleProjectCensus {
     return CachedValuesManager.getManager(project).getCachedValue(project, CachedValueProvider {
       val packageToModule = persistentMapOf<String, PersistentSet<Module>>().builder()
