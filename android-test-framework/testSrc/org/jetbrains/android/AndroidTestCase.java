@@ -126,7 +126,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
       descriptor = AdtTestProjectDescriptors.defaultDescriptor()
         .withJavaVersion(languageLevel)
-        .withJdkPath(EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath());
+        .withJdkPath(TestUtils.getEmbeddedJdk17Path());
     } else {
       descriptor = myProjectDescriptor;
     }

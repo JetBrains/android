@@ -49,6 +49,7 @@ import com.android.tools.sdk.Annotations;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -283,7 +284,7 @@ public class AndroidSdks {
       // TODO move this method to Jdks.
       attachJdkAnnotations(sdkModificator);
     }
-    sdkModificator.commitChanges();
+    WriteAction.run(() -> sdkModificator.commitChanges());
   }
 
   public void findAndSetPlatformSources(@NotNull IAndroidTarget target, @NotNull SdkModificator sdkModificator) {
@@ -501,7 +502,7 @@ public class AndroidSdks {
     for (VirtualFile library : libraries) {
       sdkModificator.addRoot(library, CLASSES);
     }
-    sdkModificator.commitChanges();
+    WriteAction.run(() -> sdkModificator.commitChanges());
   }
 
   public boolean isInAndroidSdk(@NonNull PsiElement element) {
