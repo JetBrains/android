@@ -21,6 +21,7 @@ import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.IntelliJSpacingConfiguration
 import com.intellij.ui.dsl.builder.Row
@@ -78,6 +79,7 @@ internal class UiSettingsPanel(
           comboBox(model.appLanguage)
             .bindItem(model.appLanguage.selection)
             .apply { component.name = APP_LANGUAGE_TITLE }
+            .align(AlignX.FILL)
         }.visibleIf(model.appLanguage.sizeIsAtLeast(2))
 
         row(label(TALKBACK_TITLE)) {
