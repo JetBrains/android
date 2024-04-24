@@ -220,6 +220,22 @@ iml_studio_test(
 )
 
 iml_studio_test(
+    name = "JavaKotlinMethodRecordingTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.JavaKotlinMethodRecordingTaskTest",
+)
+
+iml_studio_test(
     name = "LiveViewTaskTest",
     timeout = "long",
     data = profilers_test_common_data + [

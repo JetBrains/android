@@ -69,6 +69,10 @@
     </action>
     <action id="Android.SelectLiveViewTask" class="com.android.tools.idea.profilers.actions.SelectLiveViewTaskAction">
     </action>
+    <action id="Android.SelectJavaKotlinMethodRecording" class="com.android.tools.idea.profilers.actions.SelectJavaKotlinMethodRecordingTaskAction">
+    </action>
+    <action id="Android.SetRecordingTypeToSampling" class="com.android.tools.idea.profilers.actions.SetRecordingTypeToSamplingAction">
+    </action>
     <action id="Android.Profile" class="com.android.tools.idea.profilers.actions.ProfileAction">
     </action>
   </actions>

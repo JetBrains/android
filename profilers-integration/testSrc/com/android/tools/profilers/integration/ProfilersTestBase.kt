@@ -259,6 +259,14 @@ open class ProfilersTestBase {
     studio.executeAction("Android.SelectLiveViewTask")
   }
 
+  protected fun selectJavaKotlinMethodRecordingTask(studio: AndroidStudio) {
+    studio.executeAction("Android.SelectJavaKotlinMethodRecording")
+  }
+
+  protected fun setRecordingTypeToSampling(studio: AndroidStudio) {
+    studio.executeAction("Android.SetRecordingTypeToSampling")
+  }
+
   protected fun selectDevice(studio: AndroidStudio) {
     studio.executeAction("Android.ProfilerSelectDevice")
   }
