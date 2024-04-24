@@ -37,6 +37,9 @@ interface DeviceProfile {
   val displayDiagonalLength: Double
     get() = 0.0
 
+  val isRound: Boolean
+    get() = false
+
   val isVirtual: Boolean
   val isRemote: Boolean
   val abis: List<Abi>
@@ -59,6 +62,7 @@ interface DeviceProfile {
     lateinit var resolution: Resolution
     var displayDensity: Int = 0
     var displayDiagonalLength: Double = 0.0
+    var isRound = false
     var isVirtual: Boolean = false
     var isRemote: Boolean = false
     lateinit var abis: List<Abi>
@@ -78,6 +82,7 @@ interface DeviceProfile {
       resolution = profile.resolution
       displayDensity = profile.displayDensity
       displayDiagonalLength = profile.displayDiagonalLength
+      isRound = profile.isRound
       isVirtual = profile.isVirtual
       isRemote = profile.isRemote
       abis = profile.abis

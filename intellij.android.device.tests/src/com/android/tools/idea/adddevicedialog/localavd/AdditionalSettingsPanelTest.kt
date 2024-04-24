@@ -107,6 +107,7 @@ class AdditionalSettingsPanelTest {
         resolution = Resolution(1200, 800),
         displayDensity = 200,
         displayDiagonalLength = 6.2,
+        isRound = false,
         formFactor = FormFactors.PHONE,
       )
 

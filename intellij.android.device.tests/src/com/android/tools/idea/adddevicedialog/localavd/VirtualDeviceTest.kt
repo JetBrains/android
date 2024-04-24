@@ -34,8 +34,8 @@ class VirtualDeviceTest {
   fun builder() {
     val device =
       VirtualDevice(
-        name = "Pixel 6 API 34",
-        manufacturer = "Google",
+        name = "RoundPhone",
+        manufacturer = "BlueBerry",
         apiRange = Range.closed(21, 34),
         formFactor = FormFactors.PHONE,
         sdkExtensionLevel = AndroidVersion(34, null, 7, true),
@@ -56,6 +56,7 @@ class VirtualDeviceTest {
         resolution = Resolution(1200, 800),
         displayDensity = 200,
         displayDiagonalLength = 6.2,
+        isRound = true,
       )
 
     assertThat(device.toBuilder().build()).isEqualTo(device)

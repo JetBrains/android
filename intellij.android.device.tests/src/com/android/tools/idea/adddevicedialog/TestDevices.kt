@@ -90,6 +90,7 @@ internal object TestDevices {
       resolution = Resolution(454, 454),
       displayDensity = 320,
       displayDiagonalLength = 1.39,
+      isRound = true,
       isVirtual = true,
       isRemote = false,
       abis = listOf(Abi.ARM64_V8A),

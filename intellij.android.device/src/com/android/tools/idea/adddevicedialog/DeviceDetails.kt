@@ -51,6 +51,7 @@ fun DeviceDetails(device: DeviceProfile, apiLevel: Int?, modifier: Modifier = Mo
       device.resolution.width,
       device.resolution.height,
       diagonalLength = device.diagonalLengthString(),
+      round = device.isRound,
       modifier =
         Modifier.widthIn(max = 200.dp).heightIn(max = 200.dp).align(Alignment.CenterHorizontally),
     )

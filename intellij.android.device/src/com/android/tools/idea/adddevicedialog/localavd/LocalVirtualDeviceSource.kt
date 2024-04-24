@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.resources.ScreenOrientation
+import com.android.resources.ScreenRound
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.Resolution
@@ -115,6 +116,7 @@ internal class LocalVirtualDeviceSource(
         Resolution(this.defaultHardware.screen.xDimension, this.defaultHardware.screen.yDimension),
       displayDensity = this.defaultHardware.screen.pixelDensity.dpiValue,
       displayDiagonalLength = this.defaultHardware.screen.diagonalLength,
+      isRound = this.defaultHardware.screen.screenRound == ScreenRound.ROUND,
       abis = this.defaultHardware.supportedAbis + this.defaultHardware.translatedAbis,
       formFactor = this.formFactor,
       // TODO: Choose an appropriate skin
