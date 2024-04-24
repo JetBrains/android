@@ -50,6 +50,7 @@ internal fun transformAndShowDiff(
   prompt: Prompt,
   filePointer: SmartPsiElementPointer<PsiFile>,
   disposable: Disposable,
+  modelType: ModelType = ModelType.CHAT,
 ): Job {
   val project = filePointer.project
   val studioBot = StudioBot.getInstance()
@@ -59,8 +60,7 @@ internal fun transformAndShowDiff(
     withBackgroundProgress(project, message("circle.to.fix.sending.query"), true) {
       val botResponse =
         studioBot
-          // TODO: upgrade to gemini
-          .model(project, ModelType.EXPERIMENTAL_VISION)
+          .model(project, modelType)
           .generateContent(prompt, GenerationConfig(candidateCount = 1))
           .first()
           .text

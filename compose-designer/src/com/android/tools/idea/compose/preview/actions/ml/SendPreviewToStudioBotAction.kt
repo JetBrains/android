@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.containingFile
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.studiobot.MimeType
+import com.android.tools.idea.studiobot.ModelType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -106,6 +107,8 @@ class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.ge
             buildPrompt(filePointer, previewCode, Blob(imageBytes, MimeType.PNG), userQuery),
             filePointer,
             diffDisposable,
+            // TODO: upgrade to gemini
+            ModelType.EXPERIMENTAL_VISION,
           )
         }
       }
