@@ -37,7 +37,7 @@ class ConnectedAndroidDeviceTest {
 
   @Test
   fun `test resizable running emulator`() {
-    val emulatorWithNoAvdName = createMockRunningEmulator(name = "resizable", version = AndroidVersion(33, null))
+    val emulatorWithNoAvdName = createMockRunningEmulator(name = "resizable", version = AndroidVersion(34, null))
     assertThat(ConnectedAndroidDevice(emulatorWithNoAvdName).supportsMultipleScreenFormats()).isEqualTo(true)
   }
 
