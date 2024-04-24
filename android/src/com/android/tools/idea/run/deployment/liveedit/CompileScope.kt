@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
 import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
@@ -199,7 +200,12 @@ private object CompileScopeImpl : CompileScope {
       put(CommonConfigurationKeys.MODULE_NAME,
           module.project.getProjectSystem().getModuleSystem(module).getModuleNameForCompilation(input[0].originalFile.virtualFile))
       KotlinFacet.get(module)?.let { kotlinFacet ->
-        (kotlinFacet.configuration.settings.compilerArguments as K2JVMCompilerArguments).moduleName?.let {
+        val moduleName = when(val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
+          is K2JVMCompilerArguments -> compilerArguments.moduleName
+          is K2MetadataCompilerArguments -> compilerArguments.moduleName
+          else -> null
+        }
+        moduleName?.let {
           put(CommonConfigurationKeys.MODULE_NAME, it)
         }
       }
