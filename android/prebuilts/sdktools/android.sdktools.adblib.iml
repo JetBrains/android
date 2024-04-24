@@ -43,5 +43,6 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="library" name="ai.grazie.code.insight.psi" level="project" />
   </component>
 </module>
