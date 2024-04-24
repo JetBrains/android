@@ -26,11 +26,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
-
 
 /**
  * A panel that can be opened or closed. It has a header with a title and an arrow indicating
@@ -52,7 +52,7 @@ fun HideablePanel(
         Icon("general/arrowRight.svg", "closed", AllIcons::class.java)
       }
       Spacer(Modifier.padding(2.dp))
-      Text(title, Modifier.weight(1f))
+      Text(title, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
     if (isOpen) {
       content()

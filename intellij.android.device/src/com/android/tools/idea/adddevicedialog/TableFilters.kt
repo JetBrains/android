@@ -21,9 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.runtime.toMutableStateMap
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.HideablePanel
 import org.jetbrains.jewel.ui.component.CheckboxRow
+import org.jetbrains.jewel.ui.component.Text
 
 /**
  * An attribute of a table row that can be extracted and used for filtering; it may or may not be
@@ -48,11 +50,9 @@ internal fun <V> SetFilter(
   HideablePanel(header, modifier.padding(6.dp)) {
     Column {
       for (item in values) {
-        CheckboxRow(
-          item.toString(),
-          selection[item] == true,
-          onCheckedChange = { selection[item] = it },
-        )
+        CheckboxRow(selection[item] == true, onCheckedChange = { selection[item] = it }) {
+          Text(item.toString(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
       }
     }
   }

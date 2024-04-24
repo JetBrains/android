@@ -68,7 +68,12 @@ internal fun ApiFilter(apiFilterState: ApiLevelSelectionState) {
 @Composable
 internal fun ApiLevel(apiLevel: ApiLevelSelection) {
   Row {
-    Text(apiLevel.nameDetails.name, Modifier.padding(end = 4.dp))
+    Text(
+      apiLevel.nameDetails.name,
+      Modifier.padding(end = 4.dp),
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
+    )
     apiLevel.nameDetails.details?.let {
       Text(it, fontWeight = FontWeight.Light, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }

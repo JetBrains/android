@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
@@ -70,8 +71,13 @@ sealed interface TableColumnWidth {
 internal fun <T> TableTextColumn(
   name: String,
   width: TableColumnWidth = TableColumnWidth.Weighted(1f),
+  overflow: TextOverflow = TextOverflow.Ellipsis,
+  maxLines: Int = 1,
   attribute: (T) -> String,
-) = TableColumn<T>(name, width, compareBy(attribute)) { Text(attribute(it)) }
+) =
+  TableColumn<T>(name, width, compareBy(attribute)) {
+    Text(attribute(it), overflow = overflow, maxLines = maxLines)
+  }
 
 internal enum class SortOrder {
   ASCENDING,
@@ -128,7 +134,7 @@ internal fun <T> TableHeader(
     columns.forEach {
       val widthModifier = with(it.width) { widthModifier() }
       Row(widthModifier.clickable { onClick(it) }) {
-        Text(it.name, fontWeight = FontWeight.Bold)
+        Text(it.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (it == sortColumn) {
           sortOrder.icon()
         }
