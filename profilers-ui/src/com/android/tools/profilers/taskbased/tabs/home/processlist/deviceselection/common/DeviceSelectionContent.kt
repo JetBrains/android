@@ -25,17 +25,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.icons.DeviceIconUtils
+import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import icons.StudioIcons
 import org.jetbrains.jewel.ui.component.Icon
-import org.jetbrains.jewel.ui.component.Text
 import javax.swing.Icon
 
 @Composable
@@ -58,8 +57,7 @@ fun DeviceSelectionContent(selectedDevice: ProfilerDeviceSelection?, selectedDev
 
 @Composable
 fun DeviceText(text: String) {
-  Text(text, fontSize = TextUnit(14f, TextUnitType.Sp), lineHeight = TextUnit(18f, TextUnitType.Sp), maxLines = 1,
-       overflow = TextOverflow.Ellipsis)
+  EllipsisText(text = text, fontSize = TextUnit(14f, TextUnitType.Sp), lineHeight = TextUnit(18f, TextUnitType.Sp))
 }
 
 @Composable
@@ -71,8 +69,7 @@ private fun DeviceIcon(icon: Icon?, description: String) {
 
 @Composable
 private fun DeviceStatusText(text: String) {
-  Text(text = text, fontSize = TextUnit(12f, TextUnitType.Sp), lineHeight = TextUnit(16f, TextUnitType.Sp), color = Color.Gray,
-       maxLines = 1, overflow = TextOverflow.Ellipsis)
+  EllipsisText(text = text, fontSize = TextUnit(12f, TextUnitType.Sp), lineHeight = TextUnit(16f, TextUnitType.Sp), color = Color.Gray)
 }
 
 @Composable

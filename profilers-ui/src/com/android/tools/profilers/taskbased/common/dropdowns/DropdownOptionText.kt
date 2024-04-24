@@ -18,15 +18,13 @@ package com.android.tools.profilers.taskbased.common.dropdowns
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
-import org.jetbrains.jewel.ui.component.Text
+import com.android.tools.profilers.taskbased.common.text.EllipsisText
 
 @Composable
 fun DropdownOptionText(text: String, modifier: Modifier = Modifier) {
-  Text(text = text, fontSize = TextUnit(14f, TextUnitType.Sp), lineHeight = TextUnit(18f, TextUnitType.Sp), maxLines = 1,
-       overflow = TextOverflow.Ellipsis,
-       modifier = modifier.padding(horizontal = TaskBasedUxDimensions.DROPDOWN_HORIZONTAL_PADDING_DP))
+  EllipsisText(text = text, fontSize = TextUnit(14f, TextUnitType.Sp), lineHeight = TextUnit(18f, TextUnitType.Sp),
+               modifier = modifier.padding(horizontal = TaskBasedUxDimensions.DROPDOWN_HORIZONTAL_PADDING_DP))
 }

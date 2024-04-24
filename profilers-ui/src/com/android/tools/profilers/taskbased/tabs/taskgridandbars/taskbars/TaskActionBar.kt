@@ -15,6 +15,10 @@
  */
 package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,11 +34,21 @@ import com.android.tools.profilers.taskbased.common.buttons.OpenTaskButton
 import com.android.tools.profilers.taskbased.common.buttons.StartTaskButton
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_ACTION_BAR_CONTENT_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_ACTION_BAR_FULL_CONTENT_MIN_WIDTH_DP
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_NOTIFICATION_CONTAINER_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.getStartTaskErrorMessage
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
+import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canStartTask
+import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.getStartTaskError
+import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.isProfileablePreferredButNotPresent
+import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.isSelectedProcessPreferred
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 import com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist.RecordingActionGroup
+import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.notifications.ProfileablePreferredWarning
+import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.notifications.StartTaskError
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.options.TaskRecordingTypeDropdown
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.options.TaskStartingPointDropdown
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 
 /**
  * The action bar for performing a task from the profiler's past recordings tab. This action bar allows the user to perform a task using a
@@ -48,17 +62,22 @@ fun TaskActionBar(pastRecordingsTabModel: PastRecordingsTabModel, ideProfilerCom
   val isRecordingSelected = recordingListModel.isRecordingSelected()
   val selectedTaskType by pastRecordingsTabModel.taskGridModel.selectedTaskType.collectAsState()
 
-  Row(
-    modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP)
+  Box(
+    modifier = Modifier.fillMaxWidth().padding(start = TASK_ACTION_BAR_CONTENT_PADDING_DP)
   ) {
-    RecordingActionGroup(artifact = recordingListModel.exportableArtifact, isRecordingExportable = isRecordingExportable,
-                         isRecordingSelected = isRecordingSelected,
-                         doDeleteSelectedRecording = recordingListModel::doDeleteSelectedRecording,
-                         profilers = recordingListModel.profilers, ideProfilerComponents = ideProfilerComponents)
-    Spacer(modifier = Modifier.weight(1f))
-    // The enter task button.
-    OpenTaskButton(selectedTaskType = selectedTaskType, selectedRecording = selectedRecording,
-                   onClick = pastRecordingsTabModel::onEnterTaskButtonClick)
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterStart)) {
+      RecordingActionGroup(artifact = recordingListModel.exportableArtifact, isRecordingExportable = isRecordingExportable,
+                           isRecordingSelected = isRecordingSelected,
+                           doDeleteSelectedRecording = recordingListModel::doDeleteSelectedRecording,
+                           profilers = recordingListModel.profilers, ideProfilerComponents = ideProfilerComponents)
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterEnd).background(
+      color = JewelTheme.globalColors.panelBackground.copy(alpha = 1.0f)).padding(TASK_NOTIFICATION_CONTAINER_PADDING_DP)) {
+      // The enter task button.
+      OpenTaskButton(selectedTaskType = selectedTaskType, selectedRecording = selectedRecording,
+                     onClick = pastRecordingsTabModel::onEnterTaskButtonClick)
+    }
   }
 }
 
@@ -80,18 +99,37 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
   val selectedDevice by processListModel.selectedDevice.collectAsState()
   val selectedProcess by processListModel.selectedProcess.collectAsState()
 
-  Row(modifier = Modifier.fillMaxWidth().padding(TASK_ACTION_BAR_CONTENT_PADDING_DP), verticalAlignment = Alignment.CenterVertically) {
-    TaskStartingPointDropdown(profilingProcessStartingPoint, taskHomeTabModel::setProfilingProcessStartingPoint,
-                              isProfilingProcessFromNowEnabled, isProfilingProcessFromProcessStartEnabled)
-    if (TaskHomeTabModel.doesTaskHaveRecordingTypes(selectedTaskType)) {
-      Spacer(modifier = Modifier.width(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP))
-      TaskRecordingTypeDropdown(taskRecordingType, taskHomeTabModel::setTaskRecordingType)
+  val profilers = taskHomeTabModel.profilers
+
+  val canStartTask = canStartTask(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint, profilers)
+  BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(start = TASK_ACTION_BAR_CONTENT_PADDING_DP)) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterStart)) {
+      TaskStartingPointDropdown(profilingProcessStartingPoint, taskHomeTabModel::setProfilingProcessStartingPoint,
+                                isProfilingProcessFromNowEnabled, isProfilingProcessFromProcessStartEnabled)
+      if (TaskHomeTabModel.doesTaskHaveRecordingTypes(selectedTaskType)) {
+        Spacer(modifier = Modifier.width(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP))
+        TaskRecordingTypeDropdown(taskRecordingType, taskHomeTabModel::setTaskRecordingType)
+      }
     }
-    Spacer(modifier = Modifier.weight(1f))
-    // The start task button.
-    StartTaskButton(selectedTaskType = selectedTaskType, selectedDevice = selectedDevice, selectedProcess = selectedProcess,
-                    profilingProcessStartingPoint = profilingProcessStartingPoint,
-                    canStartTask = taskHomeTabModel::canStartTask,
-                    onClick = taskHomeTabModel::onEnterTaskButtonClick)
+
+    val isCollapsed = maxWidth < TASK_ACTION_BAR_FULL_CONTENT_MIN_WIDTH_DP
+    val isProfileablePreferredButNotPresent = isProfileablePreferredButNotPresent(selectedTaskType, selectedProcess,
+                                                                                  profilingProcessStartingPoint)
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterEnd).background(
+      color = JewelTheme.globalColors.panelBackground.copy(alpha = 1.0f)).padding(TASK_NOTIFICATION_CONTAINER_PADDING_DP),
+        horizontalArrangement = Arrangement.spacedBy(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP)) {
+      if (!canStartTask) {
+        val startTaskError = getStartTaskError(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint,
+                                               profilers)
+        val startTaskErrorMessage = getStartTaskErrorMessage(startTaskError)
+        StartTaskError(startTaskErrorMessage, isCollapsed)
+      }
+      else if (isProfileablePreferredButNotPresent) {
+        ProfileablePreferredWarning(isSelectedProcessPreferred(selectedProcess, profilers), isCollapsed)
+      }
+      // The start task button.
+      StartTaskButton(canStartTask = canStartTask, isProfileablePreferredButNotPresent = isProfileablePreferredButNotPresent,
+                      onClick = taskHomeTabModel::onEnterTaskButtonClick)
+    }
   }
 }

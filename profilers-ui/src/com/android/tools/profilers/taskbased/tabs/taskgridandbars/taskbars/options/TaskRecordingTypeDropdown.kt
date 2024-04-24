@@ -24,9 +24,9 @@ import androidx.compose.ui.platform.testTag
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.DROPDOWN_PROMPT_HORIZONTAL_SPACE_DP
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.dropdowns.DropdownOptionText
+import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import org.jetbrains.jewel.ui.component.Dropdown
-import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 fun TaskRecordingTypeDropdown(taskRecordingType: TaskHomeTabModel.TaskRecordingType,
@@ -34,7 +34,7 @@ fun TaskRecordingTypeDropdown(taskRecordingType: TaskHomeTabModel.TaskRecordingT
 
   Row(verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(DROPDOWN_PROMPT_HORIZONTAL_SPACE_DP)) {
-    Text(TaskBasedUxStrings.RECORDING_TYPE_DROPDOWN_TITLE)
+    EllipsisText(text = TaskBasedUxStrings.RECORDING_TYPE_DROPDOWN_TITLE)
     Dropdown(modifier = Modifier.testTag("TaskRecordingTypeDropdown"), menuContent = {
       TaskHomeTabModel.TaskRecordingType.values().forEach {
         selectableItem(selected = it == taskRecordingType,

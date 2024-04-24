@@ -64,10 +64,10 @@ object TaskModelTestUtils {
     Common.Process.newBuilder().setDeviceId(deviceId).setPid(pid).setName(processName).setState(processState).setExposureLevel(
       exposureLevel).build()
 
-  fun createProfilerDeviceSelection(featureLevel: Int, isRunning: Boolean) = ProfilerDeviceSelection("FakeDevice", featureLevel, isRunning,
-                                                                                                     Common.Device.newBuilder().setModel(
-                                                                                                       "FakeDevice").setFeatureLevel(
-                                                                                                       featureLevel).build())
+  fun createProfilerDeviceSelection(featureLevel: Int, isRunning: Boolean) =
+    ProfilerDeviceSelection("FakeDevice", featureLevel, isRunning,
+                            if (isRunning) Common.Device.newBuilder().setModel("FakeDevice").setFeatureLevel(featureLevel).build()
+                            else Common.Device.getDefaultInstance())
 
   fun updateDeviceState(deviceName: String, deviceState: Common.Device.State, transportService: FakeTransportService, timer: FakeTimer) {
     val newDevice = createDevice(deviceName, deviceState)

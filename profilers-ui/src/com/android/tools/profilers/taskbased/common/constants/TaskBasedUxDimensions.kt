@@ -19,8 +19,8 @@ import androidx.compose.ui.unit.dp
 
 object TaskBasedUxDimensions {
   // Selection panel (process and recording list) minimum and maximum ratio in horizontal split divider component.
-  const val SELECTION_PANEL_MIN_RATIO_FLOAT = 0.35f
-  const val SELECTION_PANEL_MAX_RATIO_FLOAT = 0.5f
+  const val SELECTION_PANEL_MIN_RATIO_FLOAT = 0.275f
+  const val SELECTION_PANEL_MAX_RATIO_FLOAT = 0.35f
 
   // Size of each Task grid item in the Task selection grid. This includes both the task icon and title.
   val TASK_WIDTH_DP = 150.dp
@@ -57,9 +57,18 @@ object TaskBasedUxDimensions {
   // Task action bar content padding.
   val TASK_ACTION_BAR_CONTENT_PADDING_DP = 5.dp
   val TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP = 10.dp
+  val TASK_ACTION_BAR_FULL_CONTENT_MIN_WIDTH_DP = 1200.dp
 
   // Top bar dimensions
   val TOP_BAR_HEIGHT_DP = 30.dp
   val TOP_BAR_START_PADDING_DP = 10.dp
   val TOP_BAR_END_PADDING_DP = 5.dp
+
+  // Multiline tooltip dimensions
+  val TOOLTIP_VERTICAL_SPACING_DP = 5.dp
+  val TOOLTIP_MAX_WIDTH_DP = 300.dp
+
+  // Task notification dimensions
+  val TASK_NOTIFICATION_CONTAINER_PADDING_DP = 5.dp
+  val TASK_NOTIFICATION_ICON_TEXT_HORIZONTAL_SPACE_DP = 5.dp
 }

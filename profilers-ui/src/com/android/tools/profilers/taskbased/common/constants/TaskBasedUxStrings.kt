@@ -15,12 +15,18 @@
  */
 package com.android.tools.profilers.taskbased.common.constants
 
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.tasks.ProfilerTaskType
 
 object TaskBasedUxStrings {
+
+  // Commonly used strings
+  const val INFO_ICON_DESC = "More info"
+
   // EnterTaskButton strings
   const val OPEN_PROFILER_TASK = "Open profiler task"
   const val START_PROFILER_TASK = "Start profiler task"
+  const val START_PROFILER_TASK_ANYWAY = "Start anyway"
 
   // Recording screen strings
   const val RECORDING_IN_PROGRESS = "Recording..."
@@ -79,6 +85,20 @@ object TaskBasedUxStrings {
     else -> ""
   }
 
+  // Profiler actions
+  const val PROFILE_WITH_LOW_OVERHEAD_ACTION_NAME = "Profiler: Run as profileable (low overhead)"
+  const val PROFILE_WITH_COMPLETE_DATA_ACTION_NAME = "Profiler: Run as debuggable (complete data)"
+
+  // Task notifications
+  const val START_TASK_SELECTION_ERROR_ICON_DESC = "Task start selection error"
+  const val PROFILEABLE_PREFERRED_WARNING_MAIN_TEXT = "This task recommends the process to be 'profileable'"
+  const val PROFILEABLE_PREFERRED_WARNING_TOOLTIP = "The process currently selected is running in the 'debuggable' state. This will " +
+                                                    "result in inconsistent readings. For more accurate data, restart the process as" +
+                                                    " 'profileable'."
+  const val PROFILEABLE_PREFERRED_REBUILD_INSTRUCTION_TOOLTIP = "You can restart the process as 'profileable' by clicking " +
+                                                                "'${PROFILE_WITH_LOW_OVERHEAD_ACTION_NAME}' in the main toolbar more " +
+                                                                "actions menu. This will trigger a rebuild."
+
   fun getTaskTitle(taskType: ProfilerTaskType) =
     when (taskType)  {
       ProfilerTaskType.SYSTEM_TRACE -> "Capture System Activities"
@@ -100,5 +120,20 @@ object TaskBasedUxStrings {
       ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING,
       ProfilerTaskType.NATIVE_ALLOCATIONS -> taskType.description
       ProfilerTaskType.LIVE_VIEW, ProfilerTaskType.UNSPECIFIED -> null
+    }
+
+  fun getStartTaskErrorMessage(taskStartError: StartTaskSelectionError) =
+    when (taskStartError) {
+      StartTaskSelectionError.INVALID_DEVICE -> "No valid device is selected"
+      StartTaskSelectionError.INVALID_PROCESS -> "No valid process is selected"
+      StartTaskSelectionError.INVALID_TASK -> "No valid task is selected"
+      StartTaskSelectionError.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK -> "Tasks configured to run at process start require your " +
+                                                                                 "app's process to be selected"
+      StartTaskSelectionError.TASK_UNSUPPORTED_ON_STARTUP -> "The selected task does not support 'Start profiler task from process start'"
+      StartTaskSelectionError.STARTUP_TASK_USING_UNSUPPORTED_DEVICE -> "The currently selected device does not support tasks configured " +
+                                                                       "to run at process start"
+      StartTaskSelectionError.DEVICE_SELECTION_IS_OFFLINE -> "The selected device is offline"
+      StartTaskSelectionError.TASK_UNSUPPORTED_BY_DEVICE_OR_PROCESS -> "Task is not supported by the selected device or process"
+      StartTaskSelectionError.GENERAL_ERROR -> "This task cannot be run in this configuration"
     }
 }

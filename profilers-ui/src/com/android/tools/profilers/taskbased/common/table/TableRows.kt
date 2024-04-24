@@ -27,18 +27,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
-
-@Composable
-fun EllipsesText(text: String) {
-  Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -56,7 +51,7 @@ fun leftAlignedColumnText(text: String, iconPainter: Painter? = null, rowScope: 
             Icon(painter = it, contentDescription = TaskBasedUxStrings.PREFERRED_PROCESS_DESC)
           }
         }
-        EllipsesText(text = text)
+        EllipsisText(text = text)
       }
     }
   }
@@ -68,6 +63,6 @@ fun rightAlignedColumnText(text: String, colWidth: Dp) {
     modifier = Modifier.width(colWidth).fillMaxHeight().padding(horizontal = 5.dp),
     contentAlignment = Alignment.CenterEnd
   ) {
-    EllipsesText(text = text)
+    EllipsisText(text = text)
   }
 }

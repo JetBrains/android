@@ -20,6 +20,8 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
 import com.android.tools.idea.util.CommonAndroidUtil
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.PROFILE_WITH_COMPLETE_DATA_ACTION_NAME
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.PROFILE_WITH_LOW_OVERHEAD_ACTION_NAME
 import com.intellij.execution.Executor
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.configurations.RunProfile
@@ -43,8 +45,8 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
     override val actionName: String
       get() = if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
         when (profilingMode) {
-          ProfilingMode.PROFILEABLE -> "Profiler: Run as profileable (low overhead)"
-          ProfilingMode.DEBUGGABLE -> "Profiler: Run as debuggable (complete data)"
+          ProfilingMode.PROFILEABLE -> PROFILE_WITH_LOW_OVERHEAD_ACTION_NAME
+          ProfilingMode.DEBUGGABLE -> PROFILE_WITH_COMPLETE_DATA_ACTION_NAME
           else -> "Profiler: Run"
         }
       }
