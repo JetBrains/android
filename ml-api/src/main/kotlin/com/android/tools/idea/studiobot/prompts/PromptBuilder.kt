@@ -21,7 +21,6 @@ import com.android.tools.idea.studiobot.prompts.impl.PromptBuilderImpl
 import com.intellij.lang.Language
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.kotlin.idea.gradleTooling.get
 
 /**
  * Use this builder to construct prompts for Studio Bot APIs by specifying a series of messages.
