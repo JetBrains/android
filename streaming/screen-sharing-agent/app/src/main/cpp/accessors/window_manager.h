@@ -40,6 +40,8 @@ public:
 
   static void OnRotationChanged(int32_t display_id, int32_t rotation);
 
+  WindowManager() = delete;
+
 private:
   // Tracks rotation of a single display.
   struct DisplayRotationTracker {
@@ -52,8 +54,6 @@ private:
 
     DISALLOW_COPY_AND_ASSIGN(DisplayRotationTracker);
   };
-
-  WindowManager() = delete;
 
   static void InitializeStatics(Jni jni);
 

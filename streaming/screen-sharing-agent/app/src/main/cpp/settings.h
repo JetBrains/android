@@ -32,10 +32,10 @@ public:
   // or deletes that value if the value string is empty.
   static void Put(Table table, const char* key, const char* value);
 
+  Settings() = delete;
+
 private:
   static const char* table_names_[];
-
-  Settings() = delete;
 };
 
 }  // namespace screensharing

@@ -26,7 +26,6 @@ public:
   // Returns the id of the audio device of the given type, or -1 if not found.
   static int32_t GetInputAudioDeviceId(Jni jni, int32_t device_type);
 
-private:
   AudioManager() = delete;
 };
 

@@ -33,7 +33,6 @@ constexpr int32_t PRIMARY_DISPLAY_ID = 0;
 // The main class of the screen sharing agent.
 class Agent {
 public:
-  Agent() = delete;
   static void Run(const std::vector<std::string>& args);
 
   static void StartVideoStream(int32_t display_id, Size max_video_resolution);
@@ -72,6 +71,8 @@ public:
   inline static int32_t feature_level() { return feature_level_; }
 
   static SessionEnvironment& session_environment() { return *session_environment_; }
+
+  Agent() = delete;
 
 private:
   static void Initialize(const std::vector<std::string>& args);

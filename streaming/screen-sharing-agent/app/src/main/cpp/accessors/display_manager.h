@@ -52,10 +52,10 @@ public:
   static VirtualDisplay CreateVirtualDisplay(
       Jni jni, const char* name, int32_t width, int32_t height, int32_t display_id, ANativeWindow* surface);
 
+  DisplayManager() = delete;
+
 private:
   friend class DisplayListenerDispatcher;
-
-  DisplayManager() = delete;
 
   static void InitializeStatics(Jni jni);
 

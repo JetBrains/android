@@ -96,10 +96,10 @@ public:
     return level >= level_;
   }
 
+  Log() = delete;
+
 private:
   static Level level_;
-
-  Log() = delete;
 };
 
 #define TRACE Log::D("%s:%d", __FILE__, __LINE__)

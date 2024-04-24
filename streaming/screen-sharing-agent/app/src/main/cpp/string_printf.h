@@ -16,9 +16,8 @@
 
 #pragma once
 
+#include <cstdarg>
 #include <string>
-
-#include <stdarg.h>
 
 namespace screensharing {
 
