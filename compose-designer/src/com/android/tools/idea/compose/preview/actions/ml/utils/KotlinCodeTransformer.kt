@@ -42,75 +42,73 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
-internal class KotlinCodeTransformer {
-  /**
-   * Given a [Prompt] with instructions to modify a given file, show a diff view so the user can
-   * compare the changes and decide which part(s) to merge.
-   */
-  fun transformAndShowDiff(
-    prompt: Prompt,
-    filePointer: SmartPsiElementPointer<PsiFile>,
-    disposable: Disposable,
-  ): Job {
-    val project = filePointer.project
-    val studioBot = StudioBot.getInstance()
+/**
+ * Given a [Prompt] with instructions to modify a given file, show a diff view so the user can
+ * compare the changes and decide which part(s) to merge.
+ */
+internal fun transformAndShowDiff(
+  prompt: Prompt,
+  filePointer: SmartPsiElementPointer<PsiFile>,
+  disposable: Disposable,
+): Job {
+  val project = filePointer.project
+  val studioBot = StudioBot.getInstance()
 
-    // Send the prompt + code directly to the model, with a progress indicator
-    return AndroidCoroutineScope(disposable).launch(AndroidDispatchers.workerThread) {
-      withBackgroundProgress(project, message("circle.to.fix.sending.query"), true) {
-        val botResponse =
-          studioBot
-            // TODO: upgrade to gemini
-            .model(project, ModelType.EXPERIMENTAL_VISION)
-            .generateContent(prompt, GenerationConfig(candidateCount = 1))
-            .first()
-            .text
+  // Send the prompt + code directly to the model, with a progress indicator
+  return AndroidCoroutineScope(disposable).launch(AndroidDispatchers.workerThread) {
+    withBackgroundProgress(project, message("circle.to.fix.sending.query"), true) {
+      val botResponse =
+        studioBot
+          // TODO: upgrade to gemini
+          .model(project, ModelType.EXPERIMENTAL_VISION)
+          .generateContent(prompt, GenerationConfig(candidateCount = 1))
+          .first()
+          .text
 
-        withContext(AndroidDispatchers.uiThread) {
-          val psiFile = filePointer.element ?: return@withContext
-          val parsedBlock = generateKotlinCodeBlock(project, psiFile, botResponse)
+      withContext(AndroidDispatchers.uiThread) {
+        val psiFile = filePointer.element ?: return@withContext
+        val parsedBlock = generateKotlinCodeBlock(project, psiFile, botResponse)
 
-          val modifiedDocument: Document = mergeResponse(psiFile, parsedBlock)
-          showDiff(project, psiFile, modifiedDocument.text)
-        }
+        val modifiedDocument: Document = mergeResponse(psiFile, parsedBlock)
+        showDiff(project, psiFile, modifiedDocument.text)
       }
     }
   }
+}
 
-  private fun showDiff(project: Project, psiFile: PsiFile, modifiedDocument: String) {
-    val diffFactory = DiffContentFactory.getInstance()
-    val originalContent = diffFactory.create(project, psiFile.virtualFile)
-    val modifiedContent = diffFactory.create(project, modifiedDocument)
-    val request =
-      SimpleDiffRequest(
-        "Review Code Changes",
-        originalContent,
-        modifiedContent,
-        "${psiFile.name} (Original)",
-        "${psiFile.name} (Proposed)",
-      )
+private fun showDiff(project: Project, psiFile: PsiFile, modifiedDocument: String) {
+  val diffFactory = DiffContentFactory.getInstance()
+  val originalContent = diffFactory.create(project, psiFile.virtualFile)
+  val modifiedContent = diffFactory.create(project, modifiedDocument)
+  val request =
+    SimpleDiffRequest(
+      "Review Code Changes",
+      originalContent,
+      modifiedContent,
+      "${psiFile.name} (Original)",
+      "${psiFile.name} (Proposed)",
+    )
 
-    // wrapping the request in a chain to make sure user data is taken into account
-    val requestChain = SimpleDiffRequestChain(request)
-    requestChain.putUserData(DiffUserDataKeysEx.DIFF_NEW_TOOLBAR, true)
-    requestChain.putUserData(DiffUserDataKeysEx.DISABLE_CONTENTS_EQUALS_NOTIFICATION, true)
+  // wrapping the request in a chain to make sure user data is taken into account
+  val requestChain = SimpleDiffRequestChain(request)
+  requestChain.putUserData(DiffUserDataKeysEx.DIFF_NEW_TOOLBAR, true)
+  requestChain.putUserData(DiffUserDataKeysEx.DISABLE_CONTENTS_EQUALS_NOTIFICATION, true)
 
-    // TODO: Add "Accept all changes" action. Maybe triggering action.Diff.ApplyNonConflicts
-    service<DiffManager>().showDiff(project, requestChain, DiffDialogHints.DEFAULT)
+  // TODO: Add "Accept all changes" action. Maybe triggering action.Diff.ApplyNonConflicts
+  service<DiffManager>().showDiff(project, requestChain, DiffDialogHints.DEFAULT)
+}
+
+/**
+ * Merges [parsedBlock] into [psiFile] by matching function names. Returns the original document if
+ * the parsedBlock can´t be merged.
+ */
+private fun mergeResponse(psiFile: PsiFile, parsedBlock: KotlinCodeBlock): Document {
+  val project = psiFile.project
+  val merged = CodeMerger(project).mergeBlock(parsedBlock, psiFile, KotlinLanguage.INSTANCE)
+  if (merged != null) {
+    return merged
   }
-
-  /**
-   * Merges [parsedBlock] into [psiFile] by matching function names. Returns the original document
-   * if the parsedBlock can´t be merged.
-   */
-  private fun mergeResponse(psiFile: PsiFile, parsedBlock: KotlinCodeBlock): Document {
-    val project = psiFile.project
-    val merged = CodeMerger(project).mergeBlock(parsedBlock, psiFile, KotlinLanguage.INSTANCE)
-    if (merged != null) {
-      return merged
-    }
-    return PsiDocumentManager.getInstance(project).getDocument(psiFile)!!
-  }
+  return PsiDocumentManager.getInstance(project).getDocument(psiFile)!!
 }
 
 private fun generateKotlinCodeBlock(
