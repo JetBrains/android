@@ -20,7 +20,8 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
 fun CodeInsightTestFixture.stubWearTilePreviewAnnotation() {
   addFileToProjectAndInvalidate(
-    "androidx/wear/tiles/tooling/preview/Preview.kt", // language=kotlin
+    "src/main/androidx/wear/tiles/tooling/preview/Preview.kt",
+    // language=kotlin
     """
         package androidx.wear.tiles.tooling.preview
 

@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 
@@ -31,6 +32,10 @@ iml_module(
     iml_files = ["intellij.android.wear-designer.tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.wear.preview.WearDesignerTestSuite",
+    test_data = [
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:sources",
+    ],
     test_friends = ["//tools/adt/idea/wear-designer:intellij.android.wear-designer"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
