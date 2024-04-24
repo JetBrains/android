@@ -72,19 +72,37 @@ void android_main(struct android_app *pApp) {
     android_app_set_motion_event_filter(pApp, motion_event_filter_func);
 
     // This sets up a typical game/event loop. It will run until the app is destroyed.
-    int events;
-    android_poll_source *pSource;
     do {
         // Process all pending events before running game logic.
-        if (ALooper_pollAll(0, nullptr, &events, (void **) &pSource) >= 0) {
-            if (pSource) {
-                pSource->process(pApp, pSource);
+        bool done = false;
+        while (!done) {
+            // 0 is non-blocking.
+            int timeout = 0;
+            int events;
+            android_poll_source *pSource;
+            int result = ALooper_pollOnce(timeout, nullptr, &events,
+                                          reinterpret_cast<void**>(&pSource));
+            switch (result) {
+                case ALOOPER_POLL_TIMEOUT:
+                    [[clang::fallthrough]];
+                case ALOOPER_POLL_WAKE:
+                    // No events occurred before the timeout or explicit wake. Stop checking for events.
+                    done = true;
+                    break;
+                case ALOOPER_EVENT_ERROR:
+                    aout << "ALooper_pollOnce returned an error" << std::endl;
+                    break;
+                case ALOOPER_POLL_CALLBACK:
+                    break;
+                default:
+                    if (pSource) {
+                        pSource->process(pApp, pSource);
+                    }
             }
         }
 
         // Check if any user data is associated. This is assigned in handle_cmd
         if (pApp->userData) {
-
             // We know that our user data is a Renderer, so reinterpret cast it. If you change your
             // user data remember to change it here
             auto *pRenderer = reinterpret_cast<Renderer *>(pApp->userData);
