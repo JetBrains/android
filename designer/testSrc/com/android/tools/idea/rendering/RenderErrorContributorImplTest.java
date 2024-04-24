@@ -179,7 +179,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
       List.of(
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildModule\">Build</A> the module."),
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
-        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
       ),
       issues.get(0)
     );
@@ -205,7 +205,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
       List.of(
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildModule\">Build</A> the module."),
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
-        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
       ),
       issues.get(0)
     );
@@ -225,7 +225,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
       List.of(
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildModule\">Build</A> the module."),
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
-        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
       ),
       issues.get(0)
     );
@@ -309,7 +309,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
         "<A HREF=\"\">Copy stack to clipboard</A>", issues.get(0));
       assertBottomPanelEquals(
         List.of(
-          new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+          new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
         ),
         issues.get(0)
       );
@@ -327,7 +327,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
         "<A HREF=\"\">Copy stack to clipboard</A>", issues.get(0));
       assertBottomPanelEquals(
         List.of(
-          new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+          new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
         ),
         issues.get(0)
       );
@@ -420,7 +420,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
 
     assertBottomPanelEquals(
       List.of(
-        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
       ),
       issues.get(0)
     );
@@ -526,7 +526,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
         "<A HREF=\"\">Copy stack to clipboard</A>", issues.get(0));
       assertBottomPanelEquals(
         List.of(
-          new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+          new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
         ),
         issues.get(0)
       );
@@ -559,7 +559,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
         "<A HREF=\"\">Copy stack to clipboard</A>", issues.get(0));
       assertBottomPanelEquals(
         List.of(
-          new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+          new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
         ),
         issues.get(0)
       );
@@ -587,7 +587,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
                      "<BR/></DL><A HREF=\"\">Ignore all fidelity warnings for this session</A><BR/>", issues.get(1));
     assertBottomPanelEquals(
       List.of(
-        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
       ),
       issues.get(0)
     );
@@ -717,7 +717,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
       List.of(
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildModule\">Build</A> the module."),
         new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
-        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.")
       ),
       issues.get(0)
     );

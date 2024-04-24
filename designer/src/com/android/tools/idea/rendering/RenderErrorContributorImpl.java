@@ -33,7 +33,7 @@ import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.ide.common.rendering.api.ILayoutLog.TAG_RESOURCES_PREFIX;
 import static com.android.ide.common.rendering.api.ILayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
-import static com.android.tools.idea.rendering.errors.RenderErrorContributorUtilKt.createBuildAndRefreshLayoutMessage;
+import static com.android.tools.idea.rendering.errors.RenderErrorContributorUtilKt.createBuildAndRefreshPreviewMessage;
 import static com.android.tools.idea.rendering.errors.RenderErrorContributorUtilKt.createBuildTheModuleMessage;
 import static com.android.tools.idea.rendering.errors.RenderErrorContributorUtilKt.createBuildTheProjectMessage;
 import static com.android.tools.idea.res.IdeResourcesUtil.isViewPackageNeeded;
@@ -513,7 +513,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       .setSeverity(HighlightSeverity.ERROR)
       .setSummary("Rendering sandbox error")
       .setHtmlContent(builder)
-      .addMessageTip(createBuildAndRefreshLayoutMessage(myLinkManager))
+      .addMessageTip(createBuildAndRefreshPreviewMessage(myLinkManager))
       .build();
     return true;
   }
@@ -746,7 +746,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         addIssue()
           .setSummary("Incorrect resource value format")
           .setHtmlContent(builder)
-          .addMessageTip(createBuildAndRefreshLayoutMessage(myLinkManager))
+          .addMessageTip(createBuildAndRefreshPreviewMessage(myLinkManager))
           .build();
         return true;
       }
@@ -841,7 +841,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       addIssue()
         .setSeverity(ProblemSeverities.toHighlightSeverity(message.getSeverity()))
         .setSummary(summary)
-        .addMessageTip(createBuildAndRefreshLayoutMessage(myLinkManager))
+        .addMessageTip(createBuildAndRefreshPreviewMessage(myLinkManager))
         .setHtmlContent(builder)
         .build();
     }
@@ -1085,7 +1085,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       .setHtmlContent(builder)
       .addMessageTip(createBuildTheModuleMessage(myLinkManager))
       .addMessageTip(createBuildTheProjectMessage(myLinkManager, null))
-      .addMessageTip(createBuildAndRefreshLayoutMessage(myLinkManager))
+      .addMessageTip(createBuildAndRefreshPreviewMessage(myLinkManager))
       .build();
   }
 
