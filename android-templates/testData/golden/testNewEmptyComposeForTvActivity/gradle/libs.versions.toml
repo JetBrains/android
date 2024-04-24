@@ -2,7 +2,7 @@
 kotlinGradlePlugin = "1.9.0"
 coreKtx = "1.10.1"
 appcompat = "1.6.1"
-composeBom = "2023.08.00"
+composeBom = "2024.04.01"
 tvFoundation = "1.0.0-alpha07"
 tvMaterial = "1.0.0-alpha07"
 lifecycleRuntimeKtx = "2.6.1"

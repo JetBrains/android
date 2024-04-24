@@ -450,12 +450,15 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.4",
-        "@maven//:androidx.compose.foundation.foundation_1.5.0",
-        "@maven//:androidx.compose.ui.ui-tooling_1.5.0",
+        "@maven//:androidx.collection.collection-ktx_1.4.0",  # Required by SpecificActivityLocatorGradleTest after updating to Compose BOM 2024.04.01
+        "@maven//:androidx.compose.animation.animation_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.foundation.foundation_1.6.6",  # Compose BOM 2024.04.01
+        "@maven//:androidx.compose.ui.ui-tooling_1.6.6",  # Compose BOM 2024.04.01
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.core.core-ktx_1.0.1",
         "@maven//:androidx.core.core-ktx_1.10.0",
+        "@maven//:androidx.core.core-ktx_1.12.0",  # Required by SpecificActivityLocatorGradleTest after updating to Compose BOM 2024.04.01
         "@maven//:androidx.core.core-ktx_1.2.0",
         "@maven//:androidx.core.core-ktx_1.6.0",
         "@maven//:androidx.core.core-ktx_1.9.0",
