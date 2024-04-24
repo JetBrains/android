@@ -35,6 +35,8 @@ import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
 import com.android.utils.FlightRecorder
+import com.android.utils.TraceUtils.currentTime
+import com.android.utils.TraceUtils.simpleId
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
@@ -205,10 +207,14 @@ internal class DeviceView(
   private var highQualityRenderingRequested = false
 
   init {
+    thisLogger().info("${deviceClient.deviceName}: $simpleId created")
+    FlightRecorder.initialize(1000)
+    FlightRecorder.log { "$currentTime ${deviceClient.deviceName}: $simpleId created" }
     Disposer.register(disposableParent, this)
 
     addComponentListener(object : ComponentAdapter() {
       override fun componentShown(event: ComponentEvent) {
+        FlightRecorder.log { "$currentTime ${deviceClient.deviceName}: ${this@DeviceView.simpleId}.componentShown" }
         if (physicalWidth > 0 && physicalHeight > 0 && connectionState == ConnectionState.INITIAL) {
           connectToAgentAsync(initialDisplayOrientation)
         }
@@ -227,6 +233,8 @@ internal class DeviceView(
   }
 
   override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
+    FlightRecorder.log { "$currentTime ${deviceClient.deviceName}:" +
+                         " $simpleId.setBounds($x, $y, $width, $height) connectionState=$connectionState" }
     val resized = width != this.width || height != this.height
     super.setBounds(x, y, width, height)
     if (resized && physicalWidth > 0 && physicalHeight > 0) {
@@ -241,9 +249,9 @@ internal class DeviceView(
 
   /** Starts asynchronous initialization of the Screen Sharing Agent. */
   private fun connectToAgentAsync(initialDisplayOrientation: Int) {
+    FlightRecorder.log { "$currentTime ${deviceClient.deviceName}: $simpleId.connectToAgentAsync($initialDisplayOrientation)" }
     frameNumber = 0u
     connectionState = ConnectionState.CONNECTING
-    FlightRecorder.initialize(1000)
     connectionAlarm.addRequest(::reportFirstFrameDelay, 5_000)
     maxVideoSize = physicalSize
     AndroidCoroutineScope(this@DeviceView).launch {
@@ -253,11 +261,11 @@ internal class DeviceView(
 
   private fun reportFirstFrameDelay() {
     val trace = FlightRecorder.getAndClear().joinToString("\n")
-    thisLogger().warn("--- No frames received from ${deviceClient.deviceName}. Trace: ---\n$trace\n----------------------------------")
+    thisLogger().warn("${deviceClient.deviceName}: ==== No frames received. Trace: ====\n$trace\n==================================")
   }
 
   private suspend fun connectToAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
-    FlightRecorder.log { "${deviceClient.deviceName} DeviceView.connectToAgent" }
+    FlightRecorder.log { "$currentTime ${deviceClient.deviceName}: $simpleId.connectToAgent" }
     try {
       deviceClient.addAgentTerminationListener(agentTerminationListener)
       if (displayId == PRIMARY_DISPLAY_ID) {
@@ -284,6 +292,7 @@ internal class DeviceView(
       }
     }
     catch (_: CancellationException) {
+      FlightRecorder.log { "$currentTime ${deviceClient.deviceName}: $simpleId.connectToAgent CancellationException" }
       // The view has been closed.
     }
     catch (e: Throwable) {
@@ -368,6 +377,8 @@ internal class DeviceView(
   }
 
   override fun dispose() {
+    thisLogger().info("${deviceClient.deviceName}: $simpleId.dispose")
+    FlightRecorder.log { "$currentTime ${deviceClient.deviceName}: $simpleId.dispose" }
     deviceClient.videoDecoder?.removeFrameListener(displayId, frameListener)
     deviceClient.stopVideoStream(project, displayId)
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
