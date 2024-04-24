@@ -20,6 +20,7 @@ import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.ExtendedControlsStatus
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
@@ -326,7 +327,12 @@ internal class EmulatorToolWindowPanel(
     fun refreshDisplayConfiguration() {
       emulator.getDisplayConfigurations(object : EmptyStreamObserver<DisplayConfigurations>() {
         override fun onNext(response: DisplayConfigurations) {
-          LOG.debug("Display configurations: " + shortDebugString(response))
+          if (StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+            LOG.info("Display configurations: " + shortDebugString(response))
+          }
+          else {
+            LOG.debug("Display configurations: " + shortDebugString(response))
+          }
           EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
             displayConfigurationReceived(response.displaysList)
           }
