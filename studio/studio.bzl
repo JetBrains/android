@@ -760,9 +760,21 @@ def _android_studio_os(ctx, platform, out):
 
     suffix = "64" if platform == LINUX else ("64.exe" if platform == WIN else "")
     vm_options_path = platform_prefix + platform.base_path + "bin/studio" + suffix + ".vmoptions"
-    _append(ctx, platform, all_files, vm_options_path, ctx.attr.vm_options)
+    vm_options = ctx.attr.vm_options + {
+        LINUX: ctx.attr.vm_options_linux,
+        MAC: ctx.attr.vm_options_mac,
+        MAC_ARM: ctx.attr.vm_options_mac_arm,
+        WIN: ctx.attr.vm_options_win,
+    }[platform]
+    _append(ctx, platform, all_files, vm_options_path, vm_options)
 
-    _append(ctx, platform, all_files, platform_prefix + platform.base_path + "bin/idea.properties", ctx.attr.properties)
+    properties = ctx.attr.properties + {
+        LINUX: ctx.attr.properties_linux,
+        MAC: ctx.attr.properties_mac,
+        MAC_ARM: ctx.attr.properties_mac_arm,
+        WIN: ctx.attr.properties_win,
+    }[platform]
+    _append(ctx, platform, all_files, platform_prefix + platform.base_path + "bin/idea.properties", properties)
 
     # Add safe mode batch file based on the current platform
     source_map = {
@@ -947,7 +959,15 @@ _android_studio = rule(
         "platform": attr.label(providers = [IntellijInfo]),
         "plugins": attr.label_list(providers = [PluginInfo]),
         "vm_options": attr.string_list(),
+        "vm_options_linux": attr.string_list(),
+        "vm_options_mac": attr.string_list(),
+        "vm_options_mac_arm": attr.string_list(),
+        "vm_options_win": attr.string_list(),
         "properties": attr.string_list(),
+        "properties_linux": attr.string_list(),
+        "properties_mac": attr.string_list(),
+        "properties_mac_arm": attr.string_list(),
+        "properties_win": attr.string_list(),
         "selector": attr.string(mandatory = True),
         "application_icon": attr.label(providers = [AppIconInfo]),
         "searchable_options": attr.label(),
