@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea
 
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.ZoomController
 import com.android.tools.adtui.actions.ZoomType
@@ -37,6 +38,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.awt.Dimension
+import java.util.concurrent.CompletableFuture
 import java.util.function.Function
 import javax.swing.JPanel
 import org.mockito.ArgumentMatchers
@@ -101,6 +103,10 @@ object DesignSurfaceTestUtil {
 
     whenever(surface.model).thenReturn(model)
     whenever(surface.models).thenReturn(ImmutableList.of(model))
+    whenever(surface.setModel(any())).thenReturn(CompletableFuture.completedFuture(null))
+    whenever(surface.addModelWithoutRender(any()))
+      .thenReturn(CompletableFuture.completedFuture(null))
+    whenever(surface.addAndRenderModel(any())).thenReturn(CompletableFuture.completedFuture(null))
     whenever(surface.configuration).thenReturn(model.configuration)
     whenever(surface.configurations).thenReturn(ImmutableList.of(model.configuration))
 

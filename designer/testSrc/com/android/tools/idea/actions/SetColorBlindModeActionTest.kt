@@ -67,7 +67,7 @@ class SetColorBlindModeActionTest {
     }
     val myScreenViewProvider = TestScreenViewProvider()
     val surface = NlDesignSurface.build(projectRule.project, projectRule.testRootDisposable)
-    surface.model = model
+    surface.addModelWithoutRender(model).join()
 
     surface.setScreenViewProvider(myScreenViewProvider, false)
 

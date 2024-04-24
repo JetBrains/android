@@ -25,7 +25,6 @@ import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.TestSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
@@ -35,6 +34,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.PlatformTestUtil
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.datatransfer.DataFlavor
@@ -42,8 +42,6 @@ import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import junit.framework.TestCase
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
@@ -69,10 +67,10 @@ class DesignSurfaceTest : LayoutTestCase() {
 
     assertEquals(0, surface.models.size)
 
-    surface.addModelWithoutRender(model1)
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
     assertEquals(1, surface.models.size)
 
-    surface.addModelWithoutRender(model2)
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model2))
     assertEquals(2, surface.models.size)
 
     surface.removeModel(model2)
@@ -90,41 +88,39 @@ class DesignSurfaceTest : LayoutTestCase() {
 
     assertEquals(0, surface.models.size)
 
-    surface.addModelWithoutRender(model)
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
     assertEquals(1, surface.models.size)
 
-    surface.addModelWithoutRender(model)
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
     // should not add model again and the callback should not be triggered.
     assertEquals(1, surface.models.size)
   }
 
-  fun testAddDuplicatedModelConcurrently() = runBlocking {
+  fun testAddDuplicatedModelConcurrently() {
     val sceneCreationLatch = CountDownLatch(2)
     val surface =
       TestDesignSurface(
         myModule.project,
         myModule.project,
         createSceneManager = { model, surface ->
-          runBlocking {
-            sceneCreationLatch.await()
-            TestSceneManager(model, surface)
-          }
+          sceneCreationLatch.await()
+          TestSceneManager(model, surface)
         },
       )
     val model = model("model.xml", component(RELATIVE_LAYOUT)).build()
 
-    launch {
-      val manager1Deferred = async(workerThread) { surface.addModelWithoutRender(model) }
-      val manager2Deferred = async(workerThread) { surface.addModelWithoutRender(model) }
-
-      val manager1 = manager1Deferred.await()
-      val manager2 = manager2Deferred.await()
-
-      assertEquals("the same manager should be used for both models", manager1, manager2)
-    }
+    val model1Future = surface.addModelWithoutRender(model)
+    val model2Future = surface.addModelWithoutRender(model)
 
     sceneCreationLatch.countDown()
     sceneCreationLatch.countDown()
+
+    PlatformTestUtil.waitForFuture(CompletableFuture.allOf(model1Future, model2Future))
+    assertEquals(
+      "the same manager should be used for both models",
+      model1Future.get(),
+      model2Future.get(),
+    )
   }
 
   fun testRemoveIllegalModel() {
@@ -139,7 +135,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     // do nothing and the callback should not be triggered.
     assertEquals(0, surface.models.size)
 
-    surface.addModelWithoutRender(model1)
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
     assertEquals(1, surface.models.size)
 
     surface.removeModel(model2)
@@ -172,8 +168,8 @@ class DesignSurfaceTest : LayoutTestCase() {
     val model2 = builder.buildWithoutSurface()
 
     val surface = TestDesignSurface(project, testRootDisposable)
-    surface.addModelWithoutRender(model1)
-    surface.addModelWithoutRender(model2)
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model2))
 
     val scene1 = surface.getSceneManager(model1)!!.scene
     val scene2 = surface.getSceneManager(model2)!!.scene
@@ -201,8 +197,8 @@ class DesignSurfaceTest : LayoutTestCase() {
     val model2 = builder.buildWithoutSurface()
 
     val surface = TestDesignSurface(project, testRootDisposable)
-    surface.addModelWithoutRender(model1)
-    surface.addModelWithoutRender(model2)
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model2))
 
     surface.setSize(1000, 1000)
     surface.dispatchEvent(ComponentEvent(surface, ComponentEvent.COMPONENT_RESIZED))
@@ -228,16 +224,16 @@ class DesignSurfaceTest : LayoutTestCase() {
     val model3 = builder.buildWithoutSurface()
 
     val surface = TestDesignSurface(project, testRootDisposable)
-    surface.addModelWithoutRender(model1)
-    surface.addModelWithoutRender(model2)
-    surface.addModelWithoutRender(model3)
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model2))
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model3))
 
     assertThat(surface.models).containsExactly(model1, model2, model3).inOrder()
-    surface.addModelWithoutRender(model3)
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model3))
     assertThat(surface.models).containsExactly(model1, model2, model3).inOrder()
-    surface.addModelWithoutRender(model1)
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model1))
     assertThat(surface.models).containsExactly(model2, model3, model1).inOrder()
-    surface.addModelWithoutRender(model3)
+    PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model3))
     assertThat(surface.models).containsExactly(model2, model1, model3).inOrder()
   }
 

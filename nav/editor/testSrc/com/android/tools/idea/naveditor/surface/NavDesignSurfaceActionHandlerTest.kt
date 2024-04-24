@@ -52,7 +52,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val handler = NavDesignSurfaceActionHandler(surface)
     val context = DataManager.getInstance().getDataContext(model.surface)
     assertFalse(handler.canDeleteElement(context))
@@ -82,7 +82,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val handler = NavDesignSurfaceActionHandler(surface)
     val context = DataManager.getInstance().getDataContext(model.surface)
     var nlComponent = model.find("fragment")!!
@@ -240,7 +240,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val fragment2 = model.find("fragment2")!!
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(fragment1))
@@ -275,7 +275,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val action2 = model.find("a2")!!
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(action1))
@@ -300,7 +300,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     val fragment1 = model.find("fragment1")!!
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val handler = NavDesignSurfaceActionHandler(surface)
 
     surface.selectionModel.setSelection(listOf(fragment1))

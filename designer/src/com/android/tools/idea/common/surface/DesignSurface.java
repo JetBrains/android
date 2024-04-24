@@ -22,6 +22,7 @@ import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.UiThread;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -78,6 +79,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.Magnificator;
 import com.intellij.ui.components.ZoomableViewport;
 import com.intellij.util.Alarm;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
@@ -435,6 +437,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return myViewport;
   }
 
+  @Slow // Some implementations might be slow
   @NotNull
   protected abstract T createSceneManager(@NotNull NlModel model);
 
@@ -531,12 +534,13 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    * @param model the added {@link NlModel}
    * @see #addAndRenderModel(NlModel)
    */
+  @Slow
   @NotNull
   private T addModel(@NotNull NlModel model) {
-    myModelToSceneManagersLock.writeLock().lock();
-    try {
-      T manager = getSceneManager(model);
-      if (manager != null) {
+    T manager = getSceneManager(model);
+    if (manager != null) {
+      myModelToSceneManagersLock.writeLock().lock();
+      try {
         // No need to add same model twice. We just move it to the bottom of the model list since order is important.
         T managerToMove = myModelToSceneManagers.remove(model);
         if (managerToMove != null) {
@@ -544,17 +548,35 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
         }
         return manager;
       }
-      model.addListener(myModelListener);
-      manager = createSceneManager(model);
-      myModelToSceneManagers.put(model, manager);
-      if (myIsActive) {
-        manager.activate(this);
+      finally {
+        myModelToSceneManagersLock.writeLock().unlock();
       }
-      return manager;
+    }
+
+    model.addListener(myModelListener);
+    // SceneManager creation is a slow operation. Multiple can happen in parallel.
+    // We optimistically create a new scene manager for the given model and then, with the mapping
+    // locked we checked if a different one has been added.
+    T newManager = createSceneManager(model);
+    myModelToSceneManagersLock.writeLock().lock();
+    try {
+      manager = myModelToSceneManagers.putIfAbsent(model, newManager);
+      if (manager == null) {
+        // The new SceneManager was correctly added
+        manager = newManager;
+      }
     }
     finally {
       myModelToSceneManagersLock.writeLock().unlock();
     }
+    if (manager != newManager) {
+      // There was already a manager assigned to the model so discard this one.
+      Disposer.dispose(newManager);
+    }
+    if (myIsActive) {
+      manager.activate(this);
+    }
+    return manager;
   }
 
   /**
@@ -630,18 +652,17 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    * @see #addAndRenderModel(NlModel)
    */
   @NotNull
-  public final T addModelWithoutRender(@NotNull NlModel model) {
-    T manager = addModel(model);
-
-    EdtExecutorService.getInstance().execute(() -> {
-      for (DesignSurfaceListener listener : getListeners()) {
-        // TODO: The listeners have the expectation of the call happening in the EDT. We need
-        //       to address that.
-        listener.modelChanged(this, model);
-      }
-    });
-    reactivateGuiInputHandler();
-    return manager;
+  public final CompletableFuture<T> addModelWithoutRender(@NotNull NlModel modelToAdd) {
+    return CompletableFuture
+      .supplyAsync(() -> addModel(modelToAdd), AppExecutorUtil.getAppExecutorService())
+      .whenCompleteAsync((model, ex) -> {
+        for (DesignSurfaceListener listener : getListeners()) {
+          // TODO: The listeners have the expectation of the call happening in the EDT. We need
+          //       to address that.
+          listener.modelChanged(this, modelToAdd);
+        }
+        reactivateGuiInputHandler();
+      }, EdtExecutorService.getInstance());
   }
 
   /**
@@ -709,12 +730,15 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return CompletableFuture.completedFuture(null);
     }
 
-    addModel(model);
-    // Mark the scene view panel as invalid to force the scene views to be updated
-    mySceneViewPanel.invalidate();
-
-    return requestRender()
+    return CompletableFuture.supplyAsync(
+      () -> addModel(model),
+      AppExecutorUtil.getAppExecutorService()
+    )
+      .thenCompose((sceneManager) -> requestRender())
       .whenCompleteAsync((result, ex) -> {
+        // Mark the scene view panel as invalid to force the scene views to be updated
+        mySceneViewPanel.invalidate();
+
         reactivateGuiInputHandler();
         restoreZoomOrZoomToFit();
         revalidateScrollArea();
@@ -724,7 +748,8 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
         for (DesignSurfaceListener listener : getListeners()) {
           listener.modelChanged(this, model);
         }
-      }, EdtExecutorService.getInstance());
+      }, EdtExecutorService.getInstance())
+      .thenRun(() -> {});
   }
 
   /**

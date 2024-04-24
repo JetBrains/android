@@ -28,6 +28,7 @@ import com.android.tools.rendering.RenderResult
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.PlatformTestUtil
 import java.awt.Point
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
@@ -70,7 +71,7 @@ class NlVisibilityGutterPanelTest : LayoutTestCase() {
           }
         }
         .build()
-    mySurface!!.setModel(myModel)
+    PlatformTestUtil.waitForFuture(mySurface!!.addModelWithoutRender(myModel!!))
     myTree = NlComponentTree(project, mySurface, myPanel)
     myTree!!.updateQueue.isPassThrough = true
     myTree!!.updateQueue.flush()

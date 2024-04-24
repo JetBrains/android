@@ -42,6 +42,7 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.util.io.await
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
@@ -288,19 +289,17 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       (previewElement as? MethodPreviewElement<*>)?.let {
         newModel.organizationGroup = it.methodFqn
       }
+      val newSceneManager =
+        withContext(AndroidDispatchers.workerThread) { addModelWithoutRender(newModel).await() }
       val sceneManager =
-        configureLayoutlibSceneManager(
-            previewElement.displaySettings,
-            addModelWithoutRender(newModel),
-          )
-          .also {
-            if (forceReinflate) {
-              it.forceReinflate()
-            }
-            if (invalidatePreviousRender) {
-              it.invalidateCachedResponse()
-            }
+        configureLayoutlibSceneManager(previewElement.displaySettings, newSceneManager).also {
+          if (forceReinflate) {
+            it.forceReinflate()
           }
+          if (invalidatePreviousRender) {
+            it.invalidateCachedResponse()
+          }
+        }
 
       val offset = runReadAction {
         previewElement.previewElementDefinition?.element?.textOffset ?: 0

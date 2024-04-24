@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.actions.SelectNextAction
 import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.AndroidTestCase
 
@@ -51,7 +52,7 @@ class NavSelectActionsTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
 
     val action = SelectNextAction()
 
@@ -87,7 +88,7 @@ class NavSelectActionsTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
 
     val action = SelectPreviousAction()
 
@@ -114,7 +115,7 @@ class NavSelectActionsTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     surface.selectionModel.setSelection(ImmutableList.of())
 
     val root = model.find("root")!!

@@ -209,8 +209,8 @@ class NavDesignSurfaceZoomControlsTest {
       .withComponentRegistrar(NavComponentRegistrar)
       .build()
 
+    surface.addModelWithoutRender(model).join()
     UIUtil.invokeAndWaitIfNeeded {
-      surface.addModelWithoutRender(model)
       surface.currentNavigation = surface.sceneManager!!.model.find("FirstFragment")!!
     }
 

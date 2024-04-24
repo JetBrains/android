@@ -24,10 +24,10 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.actions.OrientationMenuAction
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.actions.GotoComponentAction
 import com.android.tools.idea.common.util.NlTreeDumper
-import com.android.tools.idea.actions.OrientationMenuAction
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.actions.ActivateComponentAction
@@ -63,6 +63,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
+import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 
 /**
@@ -85,7 +86,7 @@ class NavActionManagerTest : NavTestCase() {
     }
     surface = NavDesignSurface(project, myRootDisposable)
     surface.setSize(1000, 1000)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
   }
 
   fun testAddElement() {
@@ -145,7 +146,7 @@ class NavActionManagerTest : NavTestCase() {
       }
     }
 
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val fragment1 = model.find("fragment1")!!
     val actionManager = NavActionManager(surface)
     surface.selectionModel.setSelection(listOf(fragment1))
@@ -206,7 +207,7 @@ class NavActionManagerTest : NavTestCase() {
       }
     }
 
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val activity = model.find("activity")!!
     // Select the activity to enable Cut and Copy
     surface.selectionModel.setSelection(listOf(activity))
@@ -245,7 +246,7 @@ class NavActionManagerTest : NavTestCase() {
       }
     }
 
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val subflow = model.find("subflow")!!
     val actionManager = NavActionManager(surface)
     val menuGroup = actionManager.getPopupMenuActions(subflow)
@@ -290,7 +291,7 @@ class NavActionManagerTest : NavTestCase() {
       }
     }
 
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val nav = model.find("nav")!!
     val actionManager = NavActionManager(surface)
     val menuGroup = actionManager.getPopupMenuActions(nav)
@@ -329,7 +330,7 @@ class NavActionManagerTest : NavTestCase() {
         }
       }
     }
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val subnav = model.find("subnav")!!
     surface.currentNavigation = subnav
     val actionManager = NavActionManager(surface)
@@ -358,7 +359,7 @@ class NavActionManagerTest : NavTestCase() {
         fragment("fragment2")
       }
     }
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val actionManager = NavActionManager(surface)
     val fragment1 = model.find("fragment1")!!
     surface.selectionModel.setSelection(listOf(fragment1, model.find("fragment2")!!))
@@ -388,7 +389,7 @@ class NavActionManagerTest : NavTestCase() {
         fragment("fragment2")
       }
     }
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val actionManager = NavActionManager(surface)
     val action1 = model.find("action1")!!
     val menuGroup = actionManager.getPopupMenuActions(action1)

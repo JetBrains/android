@@ -19,6 +19,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestActionEvent
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.never
@@ -35,7 +36,7 @@ class ActivateSelectionActionTest : NavTestCase() {
     }
 
     val surface = NavDesignSurface(project, project)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
 
     val spy = spy(surface)
     val action = ActivateSelectionAction()

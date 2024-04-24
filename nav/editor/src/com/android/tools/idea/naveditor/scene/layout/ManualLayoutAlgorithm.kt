@@ -31,6 +31,7 @@ import com.android.tools.idea.naveditor.model.isNavigation
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
@@ -43,6 +44,7 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import java.lang.ref.WeakReference
 
 const val SKIP_PERSISTED_LAYOUT = "skipPersistedLayout"
@@ -85,10 +87,10 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
       return true
     }
 
-    var positions = getPosition(component.nlComponent.tag)
+    var positions = runReadAction { getPosition(component.nlComponent.tag) }
     if (positions == null) {
       reload(component.nlComponent.model.file, true)
-      positions = getPosition(component.nlComponent.tag)
+      positions = runReadAction { getPosition(component.nlComponent.tag) }
     }
     if (positions == null) {
       positions = tryToFindNewNestedGraphPosition(component)
@@ -132,7 +134,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
       return
     }
     val newPoint = Point(component.drawX, component.drawY)
-    val oldPoint = getPositions(component).myPosition
+    val oldPoint = runReadAction { getPositions(component) }.myPosition
     if (oldPoint != newPoint) {
       val model = component.nlComponent.model
       if (oldPoint != null) {
@@ -161,15 +163,16 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
           UndoManager.getInstance(component.nlComponent.model.project).undoableActionPerformed(action)
         }
       }
-      val newPositions = getPositions(component)
+      val newPositions = runReadAction { getPositions(component) }
       newPositions.myPosition = newPoint
       tagPositionMap.inverse().remove(newPositions)
-      setPosition(component.nlComponent.tag, newPositions)
+      setPosition(runReadAction { component.nlComponent.tag }, newPositions)
       val fileName = component.nlComponent.model.virtualFile.name
       rectifyIds(model.components.flatMap { it.children }, storage.state[fileName]!!)
     }
   }
 
+  @RequiresReadLock
   private fun getPositions(component: SceneComponent): LayoutPositions {
     var componentPositions = getPosition(component.nlComponent.tag)
     if (componentPositions == null) {
@@ -238,7 +241,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
     existing.myPositions = position.myPositions
   }
 
-  override fun getPositionData(component: SceneComponent) = getPositions(component)
+  override fun getPositionData(component: SceneComponent) = runReadAction { getPositions(component) }
 
   /**
    * This attempts to fix up the persisted information with any id changes and any deleted components.
@@ -247,7 +250,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
                          layoutPositions: LayoutPositions) {
     val seenComponents = mutableSetOf<String>()
     for (component in components) {
-      val cachedPositions = getPosition(component.tag) ?: LayoutPositions()
+      val cachedPositions = runReadAction { getPosition(component.tag) } ?: LayoutPositions()
       val id = if (component.isInclude) {
         component.getAttribute(AUTO_URI, ATTR_GRAPH)?.substring(NAVIGATION_PREFIX.length)
       }
@@ -273,12 +276,16 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
     layoutPositions.myPositions.keys.retainAll(seenComponents)
   }
 
+  @RequiresReadLock
   private fun getPosition(tag: XmlTag?): LayoutPositions? {
     return tag?.let { tagPositionMap[SmartPointerManager.createPointer(it)] }
   }
 
   private fun setPosition(tag: XmlTag?, positions: LayoutPositions) {
-    tag?.let { tagPositionMap[SmartPointerManager.createPointer(it)] = positions }
+    tag?.let {
+      val pointer = runReadAction { SmartPointerManager.createPointer(it) }
+      tagPositionMap[pointer] = positions
+    }
   }
 
   @VisibleForTesting

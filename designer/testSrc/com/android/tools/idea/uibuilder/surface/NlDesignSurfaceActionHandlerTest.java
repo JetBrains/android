@@ -71,7 +71,7 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
         return manager;
       })
     .build();
-    mySurface.setModel(myModel);
+    PlatformTestUtil.waitForFuture(mySurface.addModelWithoutRender(myModel));
     myCopyPasteManager = new MockCopyPasteManager();
     mySurfaceActionHandler = new NlDesignSurfaceActionHandler(mySurface, myCopyPasteManager);
 

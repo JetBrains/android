@@ -127,7 +127,7 @@ class AddDestinationMenuTest {
 
       _surface = NavDesignSurface(projectRule.project, disposableRule.disposable)
       surface.setSize(1000, 1000)
-      surface.model = model
+      PlatformTestUtil.waitForFuture(surface.setModel(model))
       _menu = AddDestinationMenu(surface)
       setupMainMenuPanel()
   }
@@ -596,7 +596,7 @@ class AddDestinationMenuDependencyTest : NavTestCase() {
     val model = NavModelBuilderUtil.model("nav.xml", facet, myFixture, { navigation("root") }).build()
 
     val surface = NavDesignSurface(project, testRootDisposable)
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
 
     val blankFragment = Destination.RegularDestination(
       model.components[0], "fragment", null, psiClass, layoutFile = xmlFile)

@@ -39,6 +39,7 @@ import com.android.tools.idea.naveditor.scene.draw.verifyDrawHorizontalAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.psi.xml.XmlFile
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.scale.ScaleContext
 import org.mockito.InOrder
 import org.mockito.Mockito
@@ -135,7 +136,7 @@ class DecoratorTest : NavTestCase() {
 
   private fun testFragmentDecorator(model: NlModel, drawState: SceneComponent.DrawState, isStart: Boolean = false,
                                     hasDeepLink: Boolean = false, previewType: PreviewType = PreviewType.PLACEHOLDER) {
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val sceneView = surface.focusedSceneView!!
 
     val sceneComponent = makeSceneComponent(FRAGMENT_ID, drawState)
@@ -164,7 +165,7 @@ class DecoratorTest : NavTestCase() {
       }
     }
 
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val sceneView = surface.focusedSceneView!!
 
     val refinableImage = RefinableImage(BUFFERED_IMAGE)
@@ -235,7 +236,7 @@ class DecoratorTest : NavTestCase() {
 
   private fun testActivityDecorator(model: NlModel, drawState: SceneComponent.DrawState,
                                     isStart: Boolean = false, hasDeepLink: Boolean = false) {
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val sceneView = surface.focusedSceneView!!
 
     val sceneComponent = makeSceneComponent(ACTIVITY_ID, drawState)
@@ -298,7 +299,7 @@ class DecoratorTest : NavTestCase() {
 
   private fun testNavigationDecorator(model: NlModel, drawState: SceneComponent.DrawState,
                                       isStart: Boolean = false, hasDeepLink: Boolean = false) {
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val sceneView = surface.focusedSceneView!!
 
     val sceneComponent = makeSceneComponent(NESTED_ID, drawState)
@@ -368,7 +369,7 @@ class DecoratorTest : NavTestCase() {
       }
     }
 
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val sceneView = surface.focusedSceneView!!
     val sceneComponent = makeSceneComponent("root_to_f1", SceneComponent.DrawState.NORMAL)
 
@@ -379,7 +380,7 @@ class DecoratorTest : NavTestCase() {
   }
 
   private fun testActionDecorator(model: NlModel, id: String, drawState: SceneComponent.DrawState, isPop: Boolean = false) {
-    surface.model = model
+    PlatformTestUtil.waitForFuture(surface.setModel(model))
     val sceneView = surface.focusedSceneView!!
 
     val sceneComponent = SceneComponent(surface.scene!!, surface.models.first().find(id)!!, Mockito.mock(HitProvider::class.java))

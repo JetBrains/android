@@ -404,7 +404,10 @@ class VisualizationForm(
             surface.registerIndicator(myProgressIndicator)
           }
           // In visualization tool, we add model and layout the scroll pane before rendering
-          models.forEach { model -> surface.addModelWithoutRender(model) }
+          CompletableFuture.allOf(
+              *models.map { model -> surface.addModelWithoutRender(model) }.toTypedArray()
+            )
+            .join()
           // Re-layout and set scale before rendering. This may be processed delayed but we have
           // known the preview number and sizes because the
           // models are added, so it would layout correctly.

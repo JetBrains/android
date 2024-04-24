@@ -34,6 +34,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import java.awt.Rectangle
 import java.awt.geom.Ellipse2D
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertTrue
@@ -57,7 +58,7 @@ class ComposeScreenViewProvidersTest {
           .build()
       }
     val surface = NlDesignSurface.build(projectRule.project, projectRule.testRootDisposable)
-    surface.model = model
+    surface.addModelWithoutRender(model).await()
 
     // Create a device with round shape
     val deviceWithRoundFrame =

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ATTR_DEFAULT_NAV_HOST
+import com.android.SdkConstants.ATTR_NAV_GRAPH
+import com.android.SdkConstants.AUTO_URI
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.api.InsertType
@@ -26,7 +28,8 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.XmlElementFactory
-import java.util.*
+import com.intellij.testFramework.PlatformTestUtil.waitForFuture
+import java.util.EnumSet
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.ArgumentMatchers.eq
 
@@ -51,7 +54,7 @@ class FragmentHandlerTest : LayoutTestCase() {
         .build()
 
     val surface = NlDesignSurface.build(project, project)
-    surface.model = model
+    waitForFuture(surface.addModelWithoutRender(model))
     val editorManager = FileEditorManager.getInstance(project)
 
     surface.notifyComponentActivate(model.find("regular")!!, 10, 60)
