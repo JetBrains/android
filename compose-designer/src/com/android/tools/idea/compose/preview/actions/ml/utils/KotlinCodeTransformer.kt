@@ -22,7 +22,6 @@ import com.android.tools.idea.studiobot.GenerationConfig
 import com.android.tools.idea.studiobot.ModelType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
-import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.intellij.diff.DiffContentFactory
 import com.intellij.diff.DiffDialogHints
 import com.intellij.diff.DiffManager
@@ -43,17 +42,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
-/**
- * Given the code of a Compose Preview function, an optional [Blob] representing its render and a
- * containing file, transforms the code according to a given query and show a diff view so the user
- * can compare the changes.
- */
 internal class KotlinCodeTransformer {
+  /**
+   * Given a [Prompt] with instructions to modify a given file, show a diff view so the user can
+   * compare the changes and decide which part(s) to merge.
+   */
   fun transformAndShowDiff(
-    query: String,
-    previewFunctionCode: String,
+    prompt: Prompt,
     filePointer: SmartPsiElementPointer<PsiFile>,
-    blob: Blob?,
     disposable: Disposable,
   ): Job {
     val project = filePointer.project
@@ -66,10 +62,7 @@ internal class KotlinCodeTransformer {
           studioBot
             // TODO: upgrade to gemini
             .model(project, ModelType.EXPERIMENTAL_VISION)
-            .generateContent(
-              buildPrompt(filePointer, previewFunctionCode, blob, query),
-              GenerationConfig(candidateCount = 1),
-            )
+            .generateContent(prompt, GenerationConfig(candidateCount = 1))
             .first()
             .text
 
@@ -117,48 +110,6 @@ internal class KotlinCodeTransformer {
       return merged
     }
     return PsiDocumentManager.getInstance(project).getDocument(psiFile)!!
-  }
-}
-
-/**
- * Takes the code of a Compose Preview function, its corresponding image, and a custom instruction.
- * Builds a prompt asking for the transformed function code.
- */
-private fun buildPrompt(
-  filePointer: SmartPsiElementPointer<PsiFile>,
-  selectedCode: String,
-  blob: Blob?,
-  query: String,
-): Prompt {
-  val defaultPrompt =
-    """
-      |You are an expert Android programmer knowledgeable in Kotlin and Java.
-      |You follow all the best coding practices.
-      """
-      .trimMargin()
-  return buildPrompt(filePointer.project) {
-    userMessage {
-      // TODO: This was supposed to be a systemMessage, but the current model (Vision) doesn't
-      //  support multi-turn
-      text(defaultPrompt, listOf())
-      text("This is the code corresponding to the following Compose Preview:", listOf())
-      filePointer.element?.let {
-        code(selectedCode, KotlinLanguage.INSTANCE, listOf(it.virtualFile))
-      }
-      blob?.let { blob(data = it.data, mimeType = it.mimeType, filesUsed = emptyList()) }
-      text(
-        "The response must modify the code above in order to achieve the following: $query",
-        listOf(),
-      )
-      text(
-        "The response must contain the entire function code, not only the modified parts.",
-        listOf(),
-      )
-      text(
-        "The response must only include the modified code, not any other piece of text.",
-        listOf(),
-      )
-    }
   }
 }
 
