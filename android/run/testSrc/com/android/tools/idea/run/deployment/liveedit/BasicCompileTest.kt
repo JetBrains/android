@@ -165,6 +165,47 @@ class BasicCompileTest {
   }
 
   @Test
+  fun genericSamChange() {
+    val file = projectRule.createKtFile("ModifyFieldValue.kt", """
+      fun interface Observer<T> {
+        fun onChanged(value: T)
+      }
+
+      class Watchable<T> {
+        fun <T> callObserver(value: T, o: Observer<T>) {
+          o.onChanged(value)
+        }
+      }
+
+      fun main() {
+        val x = Watchable<String>()
+        x.callObserver("hello") { println(it) }
+      }
+    """)
+    val cache = projectRule.initialCache(listOf(file))
+
+    projectRule.modifyKtFile(file, """
+      fun interface Observer<T> {
+        fun onChanged(value: T)
+      }
+
+      class Watchable<T> {
+        fun <T> callObserver(value: T, o: Observer<T>) {
+          o.onChanged(value)
+        }
+      }
+
+      fun main() {
+        val x = Watchable<String>()
+        x.callObserver("hello") { println("value: " + it) }
+      }
+    """)
+
+    val output = compile(file, cache)
+    Assert.assertEquals(1, output.supportClassesMap.size)
+  }
+
+  @Test
   fun noNewClasses() {
     val file = projectRule.createKtFile("Test.kt", """
       class A {}
@@ -403,6 +444,7 @@ class BasicCompileTest {
     val returnedValue = invokeStatic("getMessage", loadClass(output, extraClasses = apk))
     Assert.assertEquals("slices!!", returnedValue)
   }
+
 
   @Test
   fun diagnosticErrorForInvisibleReference() {

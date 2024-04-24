@@ -186,11 +186,20 @@ private fun isSyntheticClass(clazz: IrClass): Boolean {
 
   // Checking for SAM (single abstract method) interfaces; these aren't specifically tagged in bytecode, so we need a heuristic.
   // All the following should be true:
-  //   - inner classes (class is contained in a class or method)
-  //   - that implement a single interface
-  //   - that implement exactly one public method
-  if (clazz.enclosingMethod != null && clazz.interfaces.size == 1 && clazz.methods.singleOrNull(::isPublicSAMMethod) != null) {
-    return true
+  //   - class is an inner class (class is contained in a class or method)
+  //   - class implements a single interface
+  //   - class exposes one public method (not including constructors, static initializers, or bridge methods)
+  if (clazz.enclosingMethod != null && clazz.interfaces.size == 1) {
+    val publicMethods = clazz.methods.filter {
+      it.access.contains(IrAccessFlag.PUBLIC) &&
+      !it.access.contains(IrAccessFlag.SYNTHETIC) &&
+      !it.access.contains(IrAccessFlag.BRIDGE) &&
+      !it.access.contains(IrAccessFlag.STATIC) &&
+      it.name != SpecialNames.INIT.asString()
+    }
+    if (publicMethods.size == 1) {
+      return true
+    }
   }
 
   // Check for WhenMapping.
@@ -198,7 +207,7 @@ private fun isSyntheticClass(clazz: IrClass): Boolean {
     return true
   }
 
-  return false;
+  return false
 }
 
 /**
@@ -236,9 +245,6 @@ private fun checkForInit(irClass: IrClass, irMethod: IrMethod, throwOnFail: Bool
 
 private fun isKeyMeta(classFile: OutputFile) = classFile.relativePath.endsWith("\$KeyMeta.class")
 
-private fun isPublicSAMMethod(method: IrMethod) = method.access.contains(IrAccessFlag.PUBLIC) &&
-                                                  !method.access.contains(IrAccessFlag.STATIC) &&
-                                                  method.name != SpecialNames.INIT.asString()
 
 private fun isNonPrivateInline(method: IrMethod) = method.isInline() && !method.access.contains(IrAccessFlag.PRIVATE)
 
