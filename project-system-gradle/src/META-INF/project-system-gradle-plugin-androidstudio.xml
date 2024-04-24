@@ -18,6 +18,8 @@
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension"/>
     <applicationInitializedListener id="Startup.AndroidGradleOpenProjectProcessorInitializer"
                                     implementation="com.android.tools.idea.projectsystem.gradle.DisableGradleProjectOpenProcessor"/>
+    <applicationInitializedListener id="DisableGradleAttachSourcesProvider"
+                                    implementation="com.android.tools.idea.projectsystem.gradle.DisableGradleAttachSourcesProvider" />
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState"/>
     <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"
