@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.tools.adtui.common.AdtUiUtils.updateToolbars
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.intellij.openapi.Disposable
@@ -121,6 +122,14 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
   }
 
   final override fun dispose() {
+  }
+
+  override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
+    val sizeChanged = width != this.width || height != this.height
+    super.setBounds(x, y, width, height)
+    if (sizeChanged && zoomToolbarVisible) {
+      updateToolbars(floatingToolbar)
+    }
   }
 
   /**

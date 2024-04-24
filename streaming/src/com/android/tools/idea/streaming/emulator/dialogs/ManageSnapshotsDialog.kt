@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.SnapshotPackage
 import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.common.AdtUiUtils.updateToolbars
 import com.android.tools.adtui.ui.ImagePanel
 import com.android.tools.adtui.util.getHumanizedSize
 import com.android.tools.concurrency.AndroidIoManager
@@ -35,7 +36,6 @@ import com.intellij.CommonBundle
 import com.intellij.execution.runners.ExecutionUtil.getLiveIndicator
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -88,7 +88,6 @@ import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.utils.SmartSet
 import java.awt.Color
 import java.awt.Component
-import java.awt.Container
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Font
@@ -362,22 +361,6 @@ internal class ManageSnapshotsDialog(private val emulator: EmulatorController, p
     }
 
     emulator.saveSnapshot(snapshotId, completionTracker)
-  }
-
-  private fun updateToolbars(component: Component) {
-    val queue = ArrayDeque<Component>()
-    queue.add(component)
-    while (queue.isNotEmpty()) {
-      val c = queue.removeFirst()
-      if (c is ActionToolbar) {
-        c.updateActionsAsync()
-      }
-      else if (c is Container) {
-        for (child in c.components) {
-          queue.add(child)
-        }
-      }
-    }
   }
 
   private fun loadSnapshot() {

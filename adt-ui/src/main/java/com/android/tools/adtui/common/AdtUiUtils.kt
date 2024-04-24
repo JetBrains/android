@@ -16,9 +16,10 @@
 package com.android.tools.adtui.common
 
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.adtui.common.AdtUiUtils.ShrinkDirection.*
+import com.android.tools.adtui.common.AdtUiUtils.ShrinkDirection.TRUNCATE_END
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener
 import com.android.tools.adtui.stdui.TooltipLayeredPane
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.keymap.MacKeymapUtil
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.JBColor
@@ -286,6 +287,24 @@ object AdtUiUtils {
     return p
   }
 
+  /** Triggers asynchronous update of all toolbars contained in the given component. */
+  @JvmStatic
+  fun updateToolbars(component: Component) {
+    val queue = ArrayDeque<Component>()
+    queue.add(component)
+    while (queue.isNotEmpty()) {
+      val c = queue.removeFirst()
+      if (c is ActionToolbar) {
+        c.updateActionsAsync()
+      }
+      else if (c is Container) {
+        for (child in c.components) {
+          queue.add(child)
+        }
+      }
+    }
+  }
+
   /**
    * Returns all the child components of container recursively.
    */
@@ -297,4 +316,3 @@ object AdtUiUtils {
       else sequenceOf(it)
     }
 }
-
