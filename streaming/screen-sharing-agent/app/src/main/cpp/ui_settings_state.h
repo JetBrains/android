@@ -44,6 +44,14 @@ public:
     return response_.dark_mode();
   }
 
+  void set_gesture_navigation(bool gesture_navigation) {
+    response_.set_gesture_navigation(gesture_navigation);
+  }
+
+  bool gesture_navigation() {
+    return response_.gesture_navigation();
+  }
+
   void set_talkback_installed(bool installed) {
     response_.set_talkback_installed(installed);
   }

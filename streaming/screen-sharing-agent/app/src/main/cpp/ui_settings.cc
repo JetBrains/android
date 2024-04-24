@@ -34,6 +34,7 @@ namespace {
 
 #define DIVIDER_PREFIX "-- "
 #define DARK_MODE_DIVIDER "-- Dark Mode --"
+#define GESTURES_DIVIDER "-- Gestures --"
 #define LIST_PACKAGES_DIVIDER "-- List Packages --"
 #define ACCESSIBILITY_SERVICES_DIVIDER "-- Accessibility Services --"
 #define ACCESSIBILITY_BUTTON_TARGETS_DIVIDER "-- Accessibility Button Targets --"
@@ -42,6 +43,7 @@ namespace {
 #define FOREGROUND_APPLICATION_DIVIDER "-- Foreground Application --"
 #define APP_LANGUAGE_DIVIDER "-- App Language --"
 
+#define GESTURES_OVERLAY "com.android.internal.systemui.navbar.gestural"
 #define ENABLED_ACCESSIBILITY_SERVICES "enabled_accessibility_services"
 #define ACCESSIBILITY_BUTTON_TARGETS "accessibility_button_targets"
 #define TALKBACK_PACKAGE_NAME "com.google.android.marvin.talkback"
@@ -72,6 +74,15 @@ void ProcessDarkMode(stringstream* stream, UiSettingsState* state) {
     dark_mode = line == "Night mode: yes";
   }
   state->set_dark_mode(dark_mode);
+}
+
+void ProcessGestureNavigation(stringstream* stream, UiSettingsState* state) {
+  string line;
+  bool gesture_navigation = false;
+  if (getline(*stream, line, '\n')) {
+    gesture_navigation = line == "[x] " GESTURES_OVERLAY;
+  }
+  state->set_gesture_navigation(gesture_navigation);
 }
 
 void ProcessListPackages(stringstream* stream, UiSettingsState* state) {
@@ -226,6 +237,7 @@ void ProcessAdbOutput(const string& output, UiSettingsState* state, CommandConte
   string line;
   while (getline(stream, line, '\n')) {
     if (line == DARK_MODE_DIVIDER) ProcessDarkMode(&stream, state);
+    if (line == GESTURES_DIVIDER) ProcessGestureNavigation(&stream, state);
     if (line == LIST_PACKAGES_DIVIDER) ProcessListPackages(&stream, state);
     if (line == ACCESSIBILITY_SERVICES_DIVIDER) ProcessAccessibilityServices(&stream, &context->enabled);
     if (line == ACCESSIBILITY_BUTTON_TARGETS_DIVIDER) ProcessAccessibilityServices(&stream, &context->buttons);
@@ -304,6 +316,8 @@ void UiSettings::Get(UiSettingsState* state) {
   string command =
     "echo " DARK_MODE_DIVIDER "; "
     "cmd uimode night; "
+    "echo " GESTURES_DIVIDER "; "
+    "cmd overlay list android | grep " GESTURES_OVERLAY "$; "
     "echo " LIST_PACKAGES_DIVIDER "; "
     "pm list packages; "
     "echo " ACCESSIBILITY_SERVICES_DIVIDER "; "
@@ -345,6 +359,13 @@ void UiSettings::SetDarkMode(bool dark_mode) {
   string command = string("cmd uimode night ") + (dark_mode ? "yes" : "no");
   ExecuteShellCommand(command);
   last_settings_.set_dark_mode(dark_mode);
+}
+
+void UiSettings::SetGestureNavigation(bool gesture_navigation) {
+  auto operation = gesture_navigation ? "enable" : "disable";
+  string command = StringPrintf("cmd overlay %s " GESTURES_OVERLAY, operation);
+  ExecuteShellCommand(command);
+  last_settings_.set_gesture_navigation(gesture_navigation);
 }
 
 void UiSettings::SetAppLanguage(const string& application_id, const string& locale) {
@@ -391,6 +412,10 @@ void UiSettings::Reset() {
   if (current_settings.dark_mode() != initial_settings_.dark_mode() &&
       current_settings.dark_mode() == last_settings_.dark_mode()) {
     SetDarkMode(initial_settings_.dark_mode());
+  }
+  if (current_settings.gesture_navigation() != initial_settings_.gesture_navigation() &&
+      current_settings.gesture_navigation() == last_settings_.gesture_navigation()) {
+    SetGestureNavigation(initial_settings_.gesture_navigation());
   }
   for (auto it = application_ids.begin(); it != application_ids.end(); it++) {
     if (current_settings.app_locale_of(*it) != initial_settings_.app_locale_of(*it) &&

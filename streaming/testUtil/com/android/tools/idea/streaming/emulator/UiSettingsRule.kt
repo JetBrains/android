@@ -79,6 +79,7 @@ class UiSettingsRule : ExternalResource() {
 
   fun configureUiSettings(
     darkMode: Boolean = false,
+    gestureNavigation: Boolean = false,
     applicationId: String = APPLICATION_ID1,
     appLocales: String = "",
     talkBackInstalled: Boolean = false,
@@ -94,6 +95,8 @@ class UiSettingsRule : ExternalResource() {
     val response = """
       -- Dark Mode --
       Night mode: ${if (darkMode) "yes" else "no"}
+      -- Gestures --
+      [${if (gestureNavigation) "x" else " "}] com.android.internal.systemui.navbar.gestural
       -- List Packages --
       package:com.google.some.package1
       ${if (talkBackInstalled) "package:com.google.android.marvin.talkback" else "package:com.google.some.package2"}

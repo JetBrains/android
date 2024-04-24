@@ -39,6 +39,7 @@ internal abstract class UiSettingsController(
 
   init {
     model.inDarkMode.uiChangeListener = LoggingChangeListener(::setDarkMode, stats::setDarkMode)
+    model.gestureNavigation.uiChangeListener = LoggingChangeListener(::setGestureNavigation, stats::setGestureNavigation)
     model.talkBackOn.uiChangeListener = LoggingChangeListener(::setTalkBack, stats::setTalkBack)
     model.selectToSpeakOn.uiChangeListener = LoggingChangeListener(::setSelectToSpeak, stats::setSelectToSpeak)
     model.fontSizeInPercent.uiChangeListener = LoggingChangeListener(::setFontSize, stats::setFontSize)
@@ -68,6 +69,11 @@ internal abstract class UiSettingsController(
    * Changes the dark mode on the device/emulator.
    */
   protected abstract fun setDarkMode(on: Boolean)
+
+  /**
+   * Changes the navigation mode on the device to use gestures instead of buttons.
+   */
+  protected abstract fun setGestureNavigation(on: Boolean)
 
   /**
    * Changes the application language of the project application on the device/emulator.

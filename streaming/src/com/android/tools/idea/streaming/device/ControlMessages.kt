@@ -82,6 +82,7 @@ sealed class ControlMessage(val type: Int) {
         SetFontSizeMessage.TYPE -> SetFontSizeMessage.deserialize(stream)
         SetScreenDensityMessage.TYPE -> SetScreenDensityMessage.deserialize(stream)
         SetAppLanguageMessage.TYPE -> SetAppLanguageMessage.deserialize(stream)
+        SetGestureNavigationMessage.TYPE -> SetGestureNavigationMessage.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
       FlightRecorder.log { "${TraceUtils.currentTime} deserialize: message = $message" }
@@ -695,6 +696,7 @@ internal class UiSettingsRequest private constructor(override val requestId: Int
 internal data class UiSettingsResponse(
   override val requestId: Int,
   val darkMode: Boolean,
+  val gestureNavigation: Boolean,
   val foregroundApplicationId: String,
   val appLocale: String,
   val tackBackInstalled: Boolean,
@@ -709,6 +711,7 @@ internal data class UiSettingsResponse(
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
     stream.writeBoolean(darkMode)
+    stream.writeBoolean(gestureNavigation)
     stream.writeBytes(foregroundApplicationId.toByteArray(UTF_8))
     stream.writeBytes(appLocale.toByteArray(UTF_8))
     stream.writeBoolean(tackBackInstalled)
@@ -724,6 +727,7 @@ internal data class UiSettingsResponse(
     "UiSettingsResponse(" +
     "requestId=$requestId, " +
     "darkMode=$darkMode, " +
+    "gestureNavigation=$gestureNavigation, " +
     "foregroundApplicationId=\"$foregroundApplicationId\", " +
     "appLocale=\"$appLocale\", " +
     "tackBackInstalled=$tackBackInstalled, " +
@@ -738,6 +742,7 @@ internal data class UiSettingsResponse(
     override fun deserialize(stream: Base128InputStream): UiSettingsResponse {
       val requestId = stream.readInt()
       val darkMode = stream.readBoolean()
+      val gestureNavigation = stream.readBoolean()
       val foregroundApplicationId = stream.readBytes().toString(UTF_8)
       val appLocale = stream.readBytes().toString(UTF_8)
       val tackBackInstalled = stream.readBoolean()
@@ -750,6 +755,7 @@ internal data class UiSettingsResponse(
       return UiSettingsResponse(
         requestId,
         darkMode,
+        gestureNavigation,
         foregroundApplicationId,
         appLocale,
         tackBackInstalled,
@@ -903,6 +909,29 @@ internal data class SetAppLanguageMessage(val applicationId: String, val locale:
       val applicationId = stream.readBytes().toString(UTF_8)
       val locale = stream.readBytes().toString(UTF_8)
       return SetAppLanguageMessage(applicationId, locale)
+    }
+  }
+}
+
+/**
+ * Changes the gesture navigation.
+ */
+internal data class SetGestureNavigationMessage(val on: Boolean) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeBoolean(on)
+  }
+
+  override fun toString(): String =
+    "SetGestureNavigationMessage(on=$on)"
+
+  companion object : Deserializer {
+    const val TYPE = 29
+
+    override fun deserialize(stream: Base128InputStream): SetGestureNavigationMessage {
+      val on = stream.readBoolean()
+      return SetGestureNavigationMessage(on)
     }
   }
 }

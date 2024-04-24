@@ -89,6 +89,9 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case SetAppLanguageMessage::TYPE:
       return unique_ptr<ControlMessage>(SetAppLanguageMessage::Deserialize(stream));
 
+    case SetGestureNavigationMessage::TYPE:
+      return unique_ptr<ControlMessage>(SetGestureNavigationMessage::Deserialize(stream));
+
     default:
       Log::Fatal(INVALID_CONTROL_MESSAGE, "Unexpected message type %d", type);
   }
@@ -232,6 +235,11 @@ SetAppLanguageMessage* SetAppLanguageMessage::Deserialize(Base128InputStream& st
   return new SetAppLanguageMessage(application_id, locale);
 }
 
+SetGestureNavigationMessage* SetGestureNavigationMessage::Deserialize(Base128InputStream& stream) {
+  bool gesture_navigation = stream.ReadBool();
+  return new SetGestureNavigationMessage(gesture_navigation);
+}
+
 void ErrorResponse::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
   stream.WriteBytes(error_message_);
@@ -286,6 +294,7 @@ void UiSettingsRequest::Serialize(Base128OutputStream& stream) const {
 void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
   stream.WriteBool(dark_mode_);
+  stream.WriteBool(gesture_navigation_);
   stream.WriteBytes(foreground_application_id_);
   stream.WriteBytes(app_locale_);
   stream.WriteBool(talkback_installed_);
@@ -326,6 +335,11 @@ void SetAppLanguageMessage::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteBytes(application_id_);
   stream.WriteBytes(locale_);
+}
+
+void SetGestureNavigationMessage::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteInt32(gesture_navigation_);
 }
 
 }  // namespace screensharing

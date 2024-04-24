@@ -627,6 +627,7 @@ public:
 
   void copy(UiSettingsResponse* result) const {
     result->set_dark_mode(dark_mode_);
+    result->set_gesture_navigation(gesture_navigation_);
     result->set_foreground_application_id(foreground_application_id_);
     result->set_app_locale(app_locale_);
     result->set_talkback_installed(talkback_installed_);
@@ -642,6 +643,14 @@ public:
 
   bool dark_mode() {
     return dark_mode_;
+  }
+
+  void set_gesture_navigation(bool gesture_navigation) {
+    gesture_navigation_ = gesture_navigation;
+  }
+
+  bool gesture_navigation() {
+    return gesture_navigation_;
   }
 
   void set_foreground_application_id(const std::string& foreground_application_id) {
@@ -714,6 +723,7 @@ private:
   friend class ControlMessage;
 
   bool dark_mode_;
+  bool gesture_navigation_;
   std::string foreground_application_id_;
   std::string app_locale_;
   bool talkback_installed_;
@@ -895,6 +905,33 @@ private:
   std::string locale_;
 
   DISALLOW_COPY_AND_ASSIGN(SetAppLanguageMessage);
+};
+
+// Turns Gesture navigation on or off on the device.
+class SetGestureNavigationMessage : ControlMessage {
+public:
+  SetGestureNavigationMessage(bool on)
+      : ControlMessage(TYPE),
+        gesture_navigation_(on) {
+  }
+  virtual ~SetGestureNavigationMessage() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  bool gesture_navigation() const {
+    return gesture_navigation_;
+  }
+
+  static constexpr int TYPE = 29;
+
+private:
+  friend class ControlMessage;
+
+  static SetGestureNavigationMessage* Deserialize(Base128InputStream& stream);
+
+  bool gesture_navigation_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetGestureNavigationMessage);
 };
 
 }  // namespace screensharing

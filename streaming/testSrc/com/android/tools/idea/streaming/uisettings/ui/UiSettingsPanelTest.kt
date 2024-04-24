@@ -63,6 +63,7 @@ class UiSettingsPanelTest {
       isWear = nameRule.methodName == "testWearControls"
     )
     model.inDarkMode.uiChangeListener = ChangeListener { lastCommand = "dark=$it" }
+    model.gestureNavigation.uiChangeListener = ChangeListener { lastCommand = "gestures=$it" }
     model.appLanguage.selection.uiChangeListener = ChangeListener { lastCommand = "locale=${it?.tag}" }
     model.talkBackOn.uiChangeListener = ChangeListener { lastCommand = "talkBackOn=$it" }
     model.selectToSpeakOn.uiChangeListener = ChangeListener { lastCommand = "selectToSpeakOn=$it" }
@@ -81,6 +82,18 @@ class UiSettingsPanelTest {
 
     checkBox.doClick()
     waitForCondition(1.seconds) { lastCommand == "dark=false" }
+  }
+
+  @Test
+  fun testSetGestureNavigationFromUi() {
+    val checkBox = panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }
+    assertThat(checkBox.isSelected).isFalse()
+
+    checkBox.doClick()
+    waitForCondition(1.seconds) { lastCommand == "gestures=true" }
+
+    checkBox.doClick()
+    waitForCondition(1.seconds) { lastCommand == "gestures=false" }
   }
 
   @Test
@@ -171,6 +184,7 @@ class UiSettingsPanelTest {
   @Test
   fun testWearControls() {
     assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNull()
+    assertThat(panel.findDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()
     assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNull()
   }

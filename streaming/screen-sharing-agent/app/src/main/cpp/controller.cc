@@ -313,6 +313,10 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       SetAppLanguage((const SetAppLanguageMessage&) message);
       break;
 
+    case SetGestureNavigationMessage::TYPE:
+      SetGestureNavigation((const SetGestureNavigationMessage&) message);
+      break;
+
     default:
       Log::E("Unexpected message type %d", message.type());
       break;
@@ -601,6 +605,10 @@ void Controller::SetDarkMode(const SetDarkModeMessage& message) {
 
 void Controller::SetAppLanguage(const SetAppLanguageMessage& message) {
   ui_settings_.SetAppLanguage(message.application_id(), message.locale());
+}
+
+void Controller::SetGestureNavigation(const SetGestureNavigationMessage& message) {
+  ui_settings_.SetGestureNavigation(message.gesture_navigation());
 }
 
 void Controller::SetTalkBack(const SetTalkBackMessage& message) {

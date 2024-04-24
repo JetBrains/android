@@ -102,6 +102,7 @@ class EmulatorUiSettingsControllerTest {
   fun testReadCustomValue() {
     uiRule.configureUiSettings(
       darkMode = true,
+      gestureNavigation = true,
       applicationId = APPLICATION_ID1,
       appLocales = "da",
       talkBackInstalled = true,
@@ -131,6 +132,23 @@ class EmulatorUiSettingsControllerTest {
     model.inDarkMode.setFromUi(false)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd uimode night no" }
     assertUsageEvent(OperationKind.DARK_THEME)
+  }
+
+  @Test
+  fun testGestureNavigationOn() {
+    controller.initAndWait()
+    model.gestureNavigation.setFromUi(true)
+    waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd overlay enable $GESTURES_OVERLAY" }
+    assertUsageEvent(OperationKind.GESTURE_NAVIGATION)
+  }
+
+  @Test
+  fun testGestureNavigationOff() {
+    uiRule.configureUiSettings(gestureNavigation = true)
+    controller.initAndWait()
+    model.gestureNavigation.setFromUi(false)
+    waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd overlay disable $GESTURES_OVERLAY" }
+    assertUsageEvent(OperationKind.GESTURE_NAVIGATION)
   }
 
   @Test

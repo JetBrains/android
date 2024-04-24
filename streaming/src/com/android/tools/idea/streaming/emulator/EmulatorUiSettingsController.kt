@@ -41,6 +41,7 @@ import java.util.Locale
 
 private const val DIVIDER_PREFIX = "-- "
 private const val DARK_MODE_DIVIDER = "-- Dark Mode --"
+private const val GESTURES_DIVIDER = "-- Gestures --"
 private const val LIST_PACKAGES_DIVIDER = "-- List Packages --"
 private const val ACCESSIBILITY_SERVICES_DIVIDER = "-- Accessibility Services --"
 private const val ACCESSIBILITY_BUTTON_TARGETS_DIVIDER = "-- Accessibility Button Targets --"
@@ -49,6 +50,7 @@ private const val DENSITY_DIVIDER = "-- Density --"
 private const val FOREGROUND_APPLICATION_DIVIDER = "-- Foreground Application --"
 private const val APP_LANGUAGE_DIVIDER = "-- App Language --"
 
+internal const val GESTURES_OVERLAY = "com.android.internal.systemui.navbar.gestural"
 internal const val ENABLED_ACCESSIBILITY_SERVICES = "enabled_accessibility_services"
 internal const val ACCESSIBILITY_BUTTON_TARGETS = "accessibility_button_targets"
 private const val TALKBACK_PACKAGE_NAME = "com.google.android.marvin.talkback"
@@ -64,6 +66,8 @@ private const val APP_LANGUAGE_PATTERN = "Locales for (.+) for user \\d+ are \\[
 internal const val POPULATE_COMMAND =
   "echo $DARK_MODE_DIVIDER; " +
   "cmd uimode night; " +
+  "echo $GESTURES_DIVIDER; " +
+  "cmd overlay list android | grep $GESTURES_OVERLAY\$; " +
   "echo $LIST_PACKAGES_DIVIDER; " +
   "pm list packages; " +
   "echo $ACCESSIBILITY_SERVICES_DIVIDER; " +
@@ -83,6 +87,7 @@ internal const val POPULATE_LANGUAGE_COMMAND =
 
 internal const val FACTORY_RESET_COMMAND =
   "cmd uimode night no; " +
+  "cmd overlay enable $GESTURES_OVERLAY; " +
   "cmd locale set-app-locales %s --locales null; " +
   "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
   "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
@@ -133,6 +138,7 @@ internal class EmulatorUiSettingsController(
     while (iterator.hasNext()) {
       when (iterator.next()) {
         DARK_MODE_DIVIDER -> processDarkMode(iterator)
+        GESTURES_DIVIDER -> processGestureNavigation(iterator)
         LIST_PACKAGES_DIVIDER -> processListPackages(iterator)
         ACCESSIBILITY_SERVICES_DIVIDER -> processAccessibilityServices(iterator, context.enabled)
         ACCESSIBILITY_BUTTON_TARGETS_DIVIDER -> processAccessibilityServices(iterator, context.buttons)
@@ -147,6 +153,11 @@ internal class EmulatorUiSettingsController(
   private fun processDarkMode(iterator: ListIterator<String>) {
     val isInDarkMode = iterator.hasNext() && iterator.next() == "Night mode: yes"
     model.inDarkMode.setFromController(isInDarkMode)
+  }
+
+  private fun processGestureNavigation(iterator: ListIterator<String>) {
+    val gestureNavigation = iterator.hasNext() && iterator.next() == "[x] $GESTURES_OVERLAY"
+    model.gestureNavigation.setFromController(gestureNavigation)
   }
 
   private fun processListPackages(iterator: ListIterator<String>) {
@@ -225,6 +236,11 @@ internal class EmulatorUiSettingsController(
   override fun setDarkMode(on: Boolean) {
     val darkMode = if (on) "yes" else "no"
     scope.launch { executeShellCommand("cmd uimode night $darkMode") }
+  }
+
+  override fun setGestureNavigation(on: Boolean) {
+    val operation = if (on) "enable" else "disable"
+    scope.launch { executeShellCommand("cmd overlay $operation $GESTURES_OVERLAY") }
   }
 
   override fun setAppLanguage(applicationId: String, language: AppLanguage?) {

@@ -36,6 +36,7 @@ import javax.swing.plaf.UIResource
 
 private const val TITLE = "Device Settings Shortcuts"
 internal const val DARK_THEME_TITLE = "Dark Theme:"
+internal const val GESTURE_NAVIGATION_TITLE = "Gesture Navigation:"
 internal const val APP_LANGUAGE_TITLE = "App Language:"
 internal const val TALKBACK_TITLE = "TalkBack:"
 internal const val SELECT_TO_SPEAK_TITLE = "Select to Speak:"
@@ -72,6 +73,12 @@ internal class UiSettingsPanel(
             checkBox("")
               .bind(model.inDarkMode)
               .apply { component.name = DARK_THEME_TITLE }
+          }
+
+          row(label(GESTURE_NAVIGATION_TITLE)) {
+            checkBox("")
+              .bind(model.gestureNavigation)
+              .apply { component.name = GESTURE_NAVIGATION_TITLE }
           }
         }
 

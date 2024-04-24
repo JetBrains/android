@@ -30,6 +30,8 @@ public:
 
   void SetDarkMode(bool dark_mode);
 
+  void SetGestureNavigation(bool gesture_navigation);
+
   void SetAppLanguage(const std::string& application_id, const std::string& locale);
 
   void SetTalkBack(bool on);

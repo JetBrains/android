@@ -28,6 +28,8 @@ class UiSettingsStats(private val deviceInfo: DeviceInfo?) {
 
   fun setDarkMode() = logUiSettingsChange(OperationKind.DARK_THEME)
 
+  fun setGestureNavigation() = logUiSettingsChange(OperationKind.GESTURE_NAVIGATION)
+
   fun setAppLanguage() = logUiSettingsChange(OperationKind.APP_LANGUAGE)
 
   fun setTalkBack() = logUiSettingsChange(OperationKind.TALKBACK)

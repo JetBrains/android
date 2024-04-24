@@ -36,6 +36,7 @@ internal class DeviceUiSettingsController(
   override suspend fun populateModel() {
     val response = deviceController.getUiSettings()
     model.inDarkMode.setFromController(response.darkMode)
+    model.gestureNavigation.setFromController(response.gestureNavigation)
     model.talkBackInstalled.setFromController(response.tackBackInstalled)
     model.talkBackOn.setFromController(response.talkBackOn)
     model.selectToSpeakOn.setFromController(response.selectToSpeakOn)
@@ -51,6 +52,10 @@ internal class DeviceUiSettingsController(
 
   override fun setDarkMode(on: Boolean) {
     deviceController.sendControlMessage(SetDarkModeMessage(on))
+  }
+
+  override fun setGestureNavigation(on: Boolean) {
+    deviceController.sendControlMessage(SetGestureNavigationMessage(on))
   }
 
   override fun setAppLanguage(applicationId: String, language: AppLanguage?) {
