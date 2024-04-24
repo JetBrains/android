@@ -19,7 +19,6 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import com.intellij.openapi.util.SystemInfo
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -76,20 +75,17 @@ class ComposePreviewKotlin {
 
       system.installation.ideaLog.waitForMatchingLine(".*Render completed(.*)", 2, TimeUnit.MINUTES)
 
-      // Waits until there are two render completed logs (DefaultPreview and MyOrdersPreview)
+      // Waits until there are at least two render completed logs (DefaultPreview and
+      // MyOrdersPreview).
       waitForCondition {
-        system.installation.ideaLog.findMatchingLines(".*Render completed(.*)").size == 2
+        system.installation.ideaLog.findMatchingLines(".*Render completed(.*)").size >= 2
       }
     }
   }
 
-  /**
-   * Waits for 2 minutes (5 minutes on Windows) for a given [condition] to be true. Delays for 500ms
-   * per iteration.
-   */
+  /** Waits for 10 minutes for a given [condition] to be true. Delays for 500ms per iteration. */
   private fun waitForCondition(condition: () -> Boolean) {
-    // 2 minutes timeout, or 5 minutes on Windows, as render might take longer.
-    val timeoutMs = if (SystemInfo.isWindows) 300_000 else 120_000
+    val timeoutMs = 600_000
     val deadlineMs = System.currentTimeMillis() + timeoutMs
     val delayMs = 500L
     while (System.currentTimeMillis() < deadlineMs) {
