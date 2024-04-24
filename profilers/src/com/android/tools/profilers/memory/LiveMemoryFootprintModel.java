@@ -38,7 +38,7 @@ public class LiveMemoryFootprintModel extends LiveDataModel {
     myProfilers = profilers;
     myMemoryDataProvider = new MemoryDataProvider(profilers, profilers.getTimeline());
     myUpdatables = ImmutableList.of(myMemoryDataProvider.getDetailedMemoryUsage());
-    myMemoryUsageTooltip = new MemoryUsageTooltip(getLegends(),
+    myMemoryUsageTooltip = new MemoryUsageTooltip(getTooltipLegends(),
                                                   isLiveAllocationTrackingReady());
   }
 
@@ -49,7 +49,7 @@ public class LiveMemoryFootprintModel extends LiveDataModel {
     myProfilers = profilers;
     myMemoryDataProvider = memoryDataProvider;
     myUpdatables = ImmutableList.of(myMemoryDataProvider.getDetailedMemoryUsage());
-    myMemoryUsageTooltip = new MemoryUsageTooltip(getLegends(),
+    myMemoryUsageTooltip = new MemoryUsageTooltip(getTooltipLegends(),
                                                   isLiveAllocationTrackingReady());
   }
 
