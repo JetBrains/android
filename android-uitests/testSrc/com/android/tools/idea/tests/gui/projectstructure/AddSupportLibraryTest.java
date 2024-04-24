@@ -22,9 +22,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.AddProjectDependencyDi
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixtureKt;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.Dimension;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +37,8 @@ import org.junit.runner.RunWith;
 public class AddSupportLibraryTest {
   @Rule
   public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
+
+  private NlEditorFixture nlEditor;
 
   /**
    * To verify studio adds latest support library while Drag'n Drop layouts
@@ -68,7 +74,7 @@ public class AddSupportLibraryTest {
 
     editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture nlEditor = editor.getLayoutEditor();
+    nlEditor = editor.getLayoutEditor();
     assertTrue(nlEditor.canInteractWithSurface());
 
     nlEditor.dragComponentToSurface("Google", "AdView");
@@ -115,7 +121,9 @@ public class AddSupportLibraryTest {
 
     ideFrame.clearNotificationsPresentOnIdeFrame();
 
-    editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR);
+    editor.open("app/src/main/res/layout/activity_main.xml");
+    SplitEditorFixture splitEditorFixture = SplitEditorFixtureKt.getSplitEditorFixture(editor);
+    splitEditorFixture.setSplitMode();
     editor.replaceText("<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                        "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
                        "    android:layout_width=\"match_parent\"\n" +
@@ -130,16 +138,15 @@ public class AddSupportLibraryTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     editor.switchToTab("Design");
-
-    NlEditorFixture nlEditor = editor.getLayoutEditor();
-    assertTrue(nlEditor.canInteractWithSurface());
-
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    nlEditor.getPalette()
-        .getItemList("Google");
-
-    nlEditor.dragComponentToSurface("Google", "MapView");
-
+    NlEditorFixture nlEditor = editor.getLayoutEditor()
+        .waitForRenderToFinish(Wait.seconds(30));
+    assertTrue(nlEditor.canInteractWithSurface());
+    nlEditor.getPalette();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    nlEditor.dragComponentToSurface("Google", "MapView")
+        .waitForRenderToFinish();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     AddProjectDependencyDialogFixture.find(ideFrame)
       .clickOk();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
