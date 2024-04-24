@@ -240,7 +240,7 @@ class NavDesignSurfaceZoomControlsTest {
       .filterIsInstance<ZoomToFitAction>()
       .single()
 
-    val event = TestActionEvent { dataId -> surface.getData(dataId) }
+    val event = TestActionEvent.createTestEvent { dataId -> surface.getData(dataId) }
     zoomToFitAction.actionPerformed(event)
     val zoomToFitScale = surface.zoomController.scale
 
