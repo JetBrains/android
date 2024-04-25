@@ -547,8 +547,10 @@ public class AndroidGradleTests {
   public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot, null);
     File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
-    assertAbout(file()).that(path).named("Gradle distribution path").isFile();
-    wrapper.updateDistributionUrl(path);
+    if (path != null) {
+      assertAbout(file()).that(path).named("Gradle distribution path").isFile();
+      wrapper.updateDistributionUrl(path);
+    }
   }
 
   /**

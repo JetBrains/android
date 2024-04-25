@@ -146,14 +146,9 @@ iml_module(
             ],
         },
         "other": {
-            # TODO: we need this for now because a number of tests here use AndroidGradleTest or related things
-            # (e.g. AndroidGradleProjectRule) to prepare a project, even if they then don't open the project.  Fix this.
-            "data": [
-                "//tools/base/build-system:android_gradle_plugin.zip",
-                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-                "//tools/base/build-system:gradle-distrib",
-                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
-            ],
+            # Note: we do not include AGP/Gradle artifacts in this test target, to enforce the separation between tests which require Gradle
+            # to run (in split targets above) and this catch-all target.
+            "data": [],
         },
     },
     tags = ["no_test_windows"],
