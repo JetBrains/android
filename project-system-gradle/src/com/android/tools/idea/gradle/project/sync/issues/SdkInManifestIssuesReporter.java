@@ -94,10 +94,10 @@ public abstract class SdkInManifestIssuesReporter extends SimpleDeduplicatingSyn
 
   @Override
   @NotNull
-  protected OpenFileSyncMessageHyperlink createModuleLink(@NotNull Project project,
-                                                          @NotNull Module module,
-                                                          @NotNull List<IdeSyncIssue> syncIssues,
-                                                          @NotNull VirtualFile buildFile) {
+  public OpenFileSyncMessageHyperlink createModuleLink(@NotNull Project project,
+                                                       @NotNull Module module,
+                                                       @NotNull List<IdeSyncIssue> syncIssues,
+                                                       @NotNull VirtualFile buildFile) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null) {
       Manifest manifest = Manifest.getMainManifest(androidFacet);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,16 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
-import com.google.common.truth.Truth.assertThat
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.settings.GradleSettings
-import java.net.UnknownHostException
+import com.google.common.truth.Truth
+import org.junit.Test
 
-class UnknownHostIssueCheckerTest: AndroidGradleTestCase() {
-  private val unknownHostIssueChecker = UnknownHostIssueChecker()
+class UnknownHostIssueCheckerTest {
 
-  fun testCheckIssue() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-    GradleSettings.getInstance(project).isOfflineWork = false
-    val issueData = GradleIssueData(projectFolderPath.path, UnknownHostException("my host"), null, null)
-    val buildIssue = unknownHostIssueChecker.check(issueData)
-
-    assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains("Unknown host 'my host'. You may need to adjust the proxy settings in Gradle.")
-    assertThat(buildIssue.quickFixes).hasSize(2)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(ToggleOfflineModeQuickFix::class.java)
-    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
-
-  }
-
+  @Test
   fun testCheckIssueHandled() {
-    assertThat(
+    val unknownHostIssueChecker = UnknownHostIssueChecker()
+
+    Truth.assertThat(
       unknownHostIssueChecker.consumeBuildOutputFailureMessage(
         "Build failed with Exception",
         "Gradle DSL method not found",
@@ -53,7 +35,7 @@ class UnknownHostIssueCheckerTest: AndroidGradleTestCase() {
         TestMessageEventConsumer()
       )).isEqualTo(true)
 
-    assertThat(
+    Truth.assertThat(
       unknownHostIssueChecker.consumeBuildOutputFailureMessage(
         "Build failed with Exception",
         "this doesn't matter as the stacktrace.",

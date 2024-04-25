@@ -16,28 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.gradle.project.sync.quickFixes.InstallBuildToolsQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
 class SdkBuildToolsTooLowIssueCheckerTest: AndroidGradleTestCase() {
   private val sdkBuildToolsTooLowIssueChecker = SdkBuildToolsTooLowIssueChecker()
-
-  fun testCheckIssue() {
-    loadProject(SIMPLE_APPLICATION)
-    val error = "The SDK Build Tools revision (1.0.0) is too low for project ':app'. Minimum required is 2.0.3"
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(Throwable(error)), null, null)
-    val buildIssue = sdkBuildToolsTooLowIssueChecker.check(issueData)
-
-    assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains(error)
-    assertThat(buildIssue.quickFixes).hasSize(2)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(InstallBuildToolsQuickFix::class.java)
-    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
-  }
 
   fun testCheckIssueHandled() {
     assertThat(

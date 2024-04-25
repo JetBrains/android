@@ -52,44 +52,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase {
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-  }
-
   public void testExecuteWithGradle4dot0() throws Exception {
     // Check that quickfix adds google maven repository using method name when gradle version is 4.0 or higher
     verifyExecute("4.0");
-  }
-
-  public void testExecuteWithModule() throws Exception {
-    // Check that quickfix adds google maven repository to module when the repositories are defined in the module
-    loadProject(SIMPLE_APPLICATION);
-    Project project = getProject();
-    // Remove repositories from project and add a repository block to app
-    removeRepositories(project);
-    Module appModule = getModule("app");
-    GradleBuildModel buildModel = GradleBuildModel.get(appModule);
-    removeRepositories(buildModel);
-
-    // Verify that execute is applied to app build file
-    // Generate hyperlink and execute quick fix
-    AddGoogleMavenRepositoryHyperlink hyperlink =
-      new AddGoogleMavenRepositoryHyperlink(ImmutableList.of(buildModel.getVirtualFile()), /* no sync */ false);
-    hyperlink.execute(project);
-
-    // Verify it added the repository to app
-    buildModel = GradleBuildModel.get(appModule);
-    assertThat(buildModel).isNotNull();
-    List<? extends RepositoryModel> repositories = buildModel.repositories().repositories();
-    assertThat(repositories).hasSize(1);
-    assertThat(repositories.get(0)).isInstanceOf(GoogleDefaultRepositoryModel.class);
-
-    // verify it did not add repository to project
-    buildModel = GradleBuildModel.get(project);
-    assertThat(buildModel).isNotNull();
-    repositories = buildModel.repositories().repositories();
-    assertThat(repositories).hasSize(0);
   }
 
   // Check that quickfix adds google maven correctly when no build file is passed
@@ -116,133 +81,6 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
 
     // Verify it was added in buildscript
     repositories = buildModel.buildscript().repositories().repositories();
-    assertThat(repositories).hasSize(1);
-  }
-
-  public void testNoRepoAdditionToBuildFilesWhenRepoAlreadyExistsInSettings() throws Exception {
-    loadProject(SIMPLE_APPLICATION);
-    Project project = getProject();
-    removeRepositories(project);
-    ProjectBuildModel pbm = ProjectBuildModel.get(project);
-    GradleBuildModel projectBuildModel = pbm.getProjectBuildModel();
-    Module appModule = getModule("app");
-    GradleBuildModel appBuildModel = pbm.getModuleBuildModel(appModule);
-    removeRepositories(appBuildModel);
-
-    GradleSettingsModel settingsModel = pbm.getProjectSettingsModel();
-    settingsModel.dependencyResolutionManagement().repositories().addGoogleMavenRepository();
-    runWriteCommandAction(project, settingsModel::applyChanges);
-
-    AddGoogleMavenRepositoryHyperlink hyperlink = new AddGoogleMavenRepositoryHyperlink(
-      ImmutableList.of(appBuildModel.getVirtualFile(), projectBuildModel.getVirtualFile()), /* no sync */
-      false);
-    hyperlink.execute(project);
-
-    pbm = ProjectBuildModel.get(project);
-    projectBuildModel = pbm.getProjectBuildModel();
-    appBuildModel = pbm.getModuleBuildModel(appModule);
-
-    // Verify it did not add the repository because it is present in dependencyResolutionManagement
-    assertThat(appBuildModel).isNotNull();
-    List<? extends RepositoryModel> repositories = appBuildModel.repositories().repositories();
-    assertThat(repositories).isEmpty();
-    assertNull(appBuildModel.buildscript().getPsiElement());
-
-    repositories = projectBuildModel.repositories().repositories();
-    assertThat(repositories).isEmpty();
-
-    repositories = projectBuildModel.buildscript().repositories().repositories();
-    assertThat(repositories).isEmpty();
-  }
-
-  public void testGoogleRepoAdditionToSettingsFileWhenRepoBlockExistsInSettings() throws Exception {
-    loadProject(SIMPLE_APPLICATION);
-    Project project = getProject();
-    removeRepositories(project);
-    ProjectBuildModel pbm = ProjectBuildModel.get(project);
-    GradleBuildModel projectBuildModel = pbm.getProjectBuildModel();
-    Module appModule = getModule("app");
-    GradleBuildModel appBuildModel = pbm.getModuleBuildModel(appModule);
-    removeRepositories(appBuildModel);
-    File settingsFile = getSettingsFilePath();
-    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(settingsFile);
-    ApplicationManager.getApplication().runWriteAction((ThrowableComputable<Void, Exception>)() -> {
-      VfsUtil.saveText(virtualFile, VfsUtilCore.loadText(virtualFile) + """
-        dependencyResolutionManagement {
-          repositories {
-          }
-        }
-        """);
-      return null;
-    });
-    AddGoogleMavenRepositoryHyperlink hyperlink = new AddGoogleMavenRepositoryHyperlink(
-      ImmutableList.of(appBuildModel.getVirtualFile(), projectBuildModel.getVirtualFile()), /* no sync */
-      false);
-    hyperlink.execute(project);
-
-    pbm = ProjectBuildModel.get(project);
-    projectBuildModel = pbm.getProjectBuildModel();
-    appBuildModel = pbm.getModuleBuildModel(appModule);
-    GradleSettingsModel settingsModel = pbm.getProjectSettingsModel();
-    assertThat(settingsModel.dependencyResolutionManagement().repositories().hasGoogleMavenRepository()).isTrue();
-
-    // Ensure that the Google repo is only added in settings file.
-    List<? extends RepositoryModel> repositories = appBuildModel.repositories().repositories();
-    assertThat(repositories).isEmpty();
-    assertNull(appBuildModel.buildscript().getPsiElement());
-
-    repositories = projectBuildModel.repositories().repositories();
-    assertThat(repositories).isEmpty();
-
-    repositories = projectBuildModel.buildscript().repositories().repositories();
-    assertThat(repositories).isEmpty();
-  }
-
-  public void testAddToMultipleBuildFiles() throws Exception {
-    loadProject(DEPENDENT_MODULES);
-    Project project = getProject();
-    removeRepositories(project);
-
-    ProjectBuildModel pbm = ProjectBuildModel.get(project);
-    GradleBuildModel projectBuildModel = pbm.getProjectBuildModel();
-
-    Module appModule = getModule("app");
-    GradleBuildModel appBuildModel = pbm.getModuleBuildModel(appModule);
-    removeRepositories(appBuildModel);
-
-    Module libModule = getModule("lib");
-    GradleBuildModel libBuildModel = pbm.getModuleBuildModel(libModule);
-
-
-    // Generate hyperlink and execute quick fix
-    AddGoogleMavenRepositoryHyperlink hyperlink = new AddGoogleMavenRepositoryHyperlink(
-      ImmutableList.of(appBuildModel.getVirtualFile(), libBuildModel.getVirtualFile(), projectBuildModel.getVirtualFile()), /* no sync */
-      false);
-    hyperlink.execute(project);
-
-    pbm = ProjectBuildModel.get(project);
-    projectBuildModel = pbm.getProjectBuildModel();
-    appBuildModel = pbm.getModuleBuildModel(appModule);
-    libBuildModel = pbm.getModuleBuildModel(libModule);
-
-    // Verify it added the repository
-    assertThat(appBuildModel).isNotNull();
-    List<? extends RepositoryModel> repositories = appBuildModel.repositories().repositories();
-    assertThat(repositories).hasSize(1);
-    assertNull(appBuildModel.buildscript().getPsiElement());
-
-    // And of the second module
-    assertThat(libBuildModel).isNotNull();
-    repositories = libBuildModel.repositories().repositories();
-    assertThat(repositories).hasSize(1);
-    assertNull(libBuildModel.buildscript().getPsiElement());
-
-    // Since we passed the project build model file it should be present there as well
-    repositories = projectBuildModel.repositories().repositories();
-    assertThat(repositories).hasSize(1);
-
-    // Verify it was added in buildscript
-    repositories = projectBuildModel.buildscript().repositories().repositories();
     assertThat(repositories).hasSize(1);
   }
 
@@ -303,13 +141,5 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     assertThat(buildModel.repositories().repositories()).hasSize(0);
     assertThat(buildModel.buildscript().repositories().repositories()).hasSize(0);
   }
-
-  private void removeRepositories(@NotNull GradleBuildModel buildModel) {
-    assertThat(buildModel).isNotNull();
-    buildModel.removeRepositoriesBlocks();
-    assertTrue(buildModel.isModified());
-    runWriteCommandAction(getProject(), buildModel::applyChanges);
-    buildModel.reparse();
-    assertFalse(buildModel.isModified());
-  }
 }
+

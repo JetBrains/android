@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-class UnhandledIssuesReporter extends SimpleDeduplicatingSyncIssueReporter {
+public class UnhandledIssuesReporter extends SimpleDeduplicatingSyncIssueReporter {
   @Override
   int getSupportedIssueType() {
     //noinspection MagicConstant

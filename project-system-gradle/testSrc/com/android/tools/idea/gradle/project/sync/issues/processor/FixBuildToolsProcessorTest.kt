@@ -15,14 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues.processor
 
-import com.android.SdkConstants
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.collect.ImmutableList
-import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
-import com.intellij.openapi.project.Project
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import org.junit.Test
@@ -45,53 +39,5 @@ class FixBuildToolsProcessorTest : AndroidGradleTestCase() {
                  usageDescriptor.getCodeReferencesText(1, 1))
     assertEquals("Update Android Build Tools Versions", usageDescriptor.processedElementsHeader)
   }
-
-  @Test
-  fun testFindUsages() {
-    loadSimpleApplication()
-    val module = getModule("app")
-    val file = getGradleBuildFile(module)!!
-
-    val processor = FixBuildToolsProcessor(project, ImmutableList.of(file), "77.7.7", false, false)
-    val usages = processor.findUsages()
-    assertSize(1, usages)
-    assertEquals('"' + SdkConstants.CURRENT_BUILD_TOOLS_VERSION + '"', usages[0].element!!.text)
-  }
-
-  @Test
-  fun testPerformRefactoring() {
-    loadSimpleApplication()
-    val module = getModule("app")
-    val file = getGradleBuildFile(module)!!
-
-    val processor = FixBuildToolsProcessor(project, ImmutableList.of(file), "77.7.7", false, false)
-    val usages = processor.findUsages()
-    runWriteCommandAction(project) {
-      processor.performRefactoring(usages)
-    }
-
-    assertTrue(String(file.contentsToByteArray()).contains("buildToolsVersion '77.7.7'"))
-  }
-
-  @Test
-  fun testSyncAfterRefactor() {
-    loadSimpleApplication()
-    val module = getModule("app")
-    val file = getGradleBuildFile(module)!!
-
-    val processor = FixBuildToolsProcessor(project, ImmutableList.of(file), "77.7.7", true, false)
-    val usages = processor.findUsages()
-    var synced = false
-    GradleSyncState.subscribe(project, object : GradleSyncListener {
-      override fun syncSucceeded(project: Project) {
-        synced = true
-      }
-    })
-
-    runWriteCommandAction(project) {
-      processor.performRefactoring(usages)
-    }
-
-    assertTrue(synced)
-  }
 }
+

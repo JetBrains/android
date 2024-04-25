@@ -110,14 +110,50 @@ iml_module(
             "data": [
                 "//prebuilts/studio/jdk/jdk11:jdk11",
                 "//prebuilts/studio/jdk/jdk17:jdk17_runtime_files",
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
             ],
             "test_filter": "com.android.tools.idea.gradle.project.sync.jdk.integration",
         },
         "errors.integration": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.errors.integration",
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+            ],
+        },
+        "providers.integration": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.ProviderIntegrationTestCase",
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+            ],
+        },
+        "runs_gradle": {
+            "test_filter": ".runsGradle",
+            "shard_count": 23,
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+            ],
         },
         "other": {
-            "shard_count": 26,
+            # TODO: we need this for now because a number of tests here use AndroidGradleTest or related things
+            # (e.g. AndroidGradleProjectRule) to prepare a project, even if they then don't open the project.  Fix this.
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+            ],
         },
     },
     tags = ["no_test_windows"],
@@ -135,10 +171,6 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/adt/idea/project-system-gradle/testData",
-        "//tools/base/build-system:android_gradle_plugin.zip",
-        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_resources = ["testSrc/resources"],
     test_srcs = ["testSrc"],

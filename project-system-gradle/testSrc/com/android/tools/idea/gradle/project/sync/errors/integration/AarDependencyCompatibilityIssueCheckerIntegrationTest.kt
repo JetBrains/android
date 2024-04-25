@@ -42,11 +42,6 @@ import org.junit.Test
 
 class AarDependencyCompatibilityIssueCheckerIntegrationTest: AndroidGradleTestCase() {
   @Test
-  fun testAarDependencyCompatibilityIssueCheckerIsKnown() {
-    Truth.assertThat(GradleIssueChecker.getKnownIssuesCheckList().filterIsInstance(AarDependencyCompatibilityIssueChecker::class.java)).isNotEmpty()
-  }
-
-  @Test
   fun testAarDependencyCompatibilityIssue() {
 
     loadProject(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE, null,

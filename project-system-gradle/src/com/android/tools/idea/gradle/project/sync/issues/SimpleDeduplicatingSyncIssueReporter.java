@@ -65,17 +65,17 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * A convenience method to report a single sync issue in tests.
    */
   @TestOnly
-  final @NotNull List<SyncMessage> report(@NotNull IdeSyncIssue syncIssue,
-                                                   @NotNull Module module,
-                                                   @Nullable VirtualFile buildFile) {
+  public final @NotNull List<SyncMessage> report(@NotNull IdeSyncIssue syncIssue,
+                                                 @NotNull Module module,
+                                                 @Nullable VirtualFile buildFile) {
     return reportAll(ImmutableList.of(syncIssue), ImmutableMap.of(syncIssue, module),
                      buildFile == null ? ImmutableMap.of() : ImmutableMap.of(module, buildFile));
   }
 
   @Override
-  final @NotNull List<SyncMessage> reportAll(@NotNull List<IdeSyncIssue> syncIssues,
-                                                      @NotNull Map<IdeSyncIssue, Module> moduleMap,
-                                                      @NotNull Map<Module, VirtualFile> buildFileMap) {
+  public final @NotNull List<SyncMessage> reportAll(@NotNull List<IdeSyncIssue> syncIssues,
+                                                    @NotNull Map<IdeSyncIssue, Module> moduleMap,
+                                                    @NotNull Map<Module, VirtualFile> buildFileMap) {
     final var result = new ArrayList<SyncMessage>();
     // Group by the deduplication key.
     Map<Object, List<IdeSyncIssue>> groupedIssues = new LinkedHashMap<>();
@@ -206,10 +206,10 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * @param buildFile         the build file for the provided module.
    */
   @NotNull
-  protected OpenFileSyncMessageHyperlink createModuleLink(@NotNull Project project,
-                                                          @NotNull Module module,
-                                                          @NotNull List<IdeSyncIssue> syncIssues,
-                                                          @NotNull VirtualFile buildFile) {
+  public OpenFileSyncMessageHyperlink createModuleLink(@NotNull Project project,
+                                                       @NotNull Module module,
+                                                       @NotNull List<IdeSyncIssue> syncIssues,
+                                                       @NotNull VirtualFile buildFile) {
     @NotNull String displayName = ProjectSystemUtil.getModuleSystem(module).getDisplayNameForModule();
     return new OpenFileSyncMessageHyperlink(buildFile.getPath(), displayName, -1, -1);
   }

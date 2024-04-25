@@ -16,11 +16,14 @@
 package com.android.tools.idea.projectsystem;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.testutils.TestUtils;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.IconManager;
 import com.intellij.ui.icons.CoreIconManager;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
@@ -33,10 +36,13 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
-    linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
-    linkIntoOfflineMavenRepo("tools/adt/idea/project-system-gradle/test_deps.manifest");
-    linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
+    Path file = TestUtils.getWorkspaceRoot().resolve("tools/base/build-system/android_gradle_plugin.zip");
+    if (Files.exists(file)) {
+      unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
+      linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
+      linkIntoOfflineMavenRepo("tools/adt/idea/project-system-gradle/test_deps.manifest");
+      linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
+    }
     // Avoid depending on the execution order and initializing icons with dummies.
     IconLoader.activate();
     try {

@@ -48,7 +48,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
   private boolean myAssumeProjectNotInitialized = false;
 
   @Override
-  int getSupportedIssueType() {
+  public int getSupportedIssueType() {
     return IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
   }
 
@@ -189,7 +189,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
   }
 
   @VisibleForTesting
-  void assumeProjectNotInitialized(boolean assumeNotInitialized) {
+  public void assumeProjectNotInitialized(boolean assumeNotInitialized) {
     myAssumeProjectNotInitialized = assumeNotInitialized;
   }
 }

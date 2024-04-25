@@ -16,28 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 class InternetConnectionIssueCheckerTest : AndroidGradleTestCase() {
   private val internetConnectionIssueChecker = InternetConnectionIssueChecker()
-
-  fun testCheckIssue() {
-    loadSimpleApplication()
-    GradleSettings.getInstance(project).isOfflineWork = true
-    val issueData = GradleIssueData(project.basePath.toString(), Throwable("Network is unreachable"), null, null)
-    val buildIssue = internetConnectionIssueChecker.check(issueData)
-
-    assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains("Network is unreachable")
-    // Check QuickFix.
-    assertThat(buildIssue.quickFixes).hasSize(1)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(ToggleOfflineModeQuickFix::class.java)
-  }
-
   fun testCheckIssueHandled() {
     assertThat(
       internetConnectionIssueChecker.consumeBuildOutputFailureMessage(

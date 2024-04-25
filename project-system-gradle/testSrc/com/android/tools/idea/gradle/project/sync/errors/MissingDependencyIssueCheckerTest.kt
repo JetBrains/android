@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,50 +16,15 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
-import com.google.common.truth.Truth.assertThat
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.settings.GradleSettings
+import com.google.common.truth.Truth
+import org.junit.Test
 
-class MissingDependencyIssueCheckerTest: AndroidGradleTestCase() {
-  private val missingDependencyIssueChecker = MissingDependencyIssueChecker()
-
-  fun testCheckIssueWithoutLocation() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-    GradleSettings.getInstance(project).isOfflineWork = true
-
-    val errMessage = "Could not find any version that matches 1.0.0."
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(errMessage), null, null)
-    val buildIssue = missingDependencyIssueChecker.check(issueData)
-
-    assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains(errMessage)
-    assertThat(buildIssue.quickFixes).hasSize(2)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(ToggleOfflineModeQuickFix::class.java)
-    assertThat(buildIssue.quickFixes[1]).isInstanceOf(SearchInBuildFilesQuickFix::class.java)
-  }
-
-  fun testCheckIssueWithBuildFileLocation() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-    GradleSettings.getInstance(project).isOfflineWork = true
-
-    val errMessage = "Could not find myLib.\nRequired by: app\nBuild file '/xyz/build.gradle' line: 3"
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(errMessage), null, null)
-    val buildIssue = missingDependencyIssueChecker.check(issueData)
-
-    assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains(errMessage)
-    assertThat(buildIssue.quickFixes).hasSize(3)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
-    assertThat(buildIssue.quickFixes[1]).isInstanceOf(ToggleOfflineModeQuickFix::class.java)
-    assertThat(buildIssue.quickFixes[2]).isInstanceOf(SearchInBuildFilesQuickFix::class.java)
-  }
-
+class MissingDependencyIssueCheckerTest {
+  @Test
   fun testCheckIssueHandled() {
-    assertThat(
+    val missingDependencyIssueChecker = MissingDependencyIssueChecker()
+
+    Truth.assertThat(
       missingDependencyIssueChecker.consumeBuildOutputFailureMessage(
         "Build failed with Exception",
         "Could not find any version that matches the given value.",
@@ -69,7 +34,7 @@ class MissingDependencyIssueCheckerTest: AndroidGradleTestCase() {
         TestMessageEventConsumer()
       )).isEqualTo(true)
 
-    assertThat(
+    Truth.assertThat(
       missingDependencyIssueChecker.consumeBuildOutputFailureMessage(
         "Build failed with Exception",
         "Could not find dependency kotlinx.\nRequired by: ':test'",

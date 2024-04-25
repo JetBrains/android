@@ -16,7 +16,6 @@
 package org.jetbrains.android.refactoring
 
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth
@@ -133,6 +132,3 @@ abstract class MigrateBuildConfigFromGradlePropertiesTest(
     Truth.assertThat(event.presentation.isVisible).isTrue()
   }
 }
-
-// When AGP_CURRENT no longer supports android.defaults.buildfeatures.buildconfig at all, this test can be removed.
-class MigrateBuildConfigFromGradlePropertiesTestCurrent : MigrateBuildConfigFromGradlePropertiesTest(AGP_CURRENT, null)

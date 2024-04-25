@@ -50,9 +50,6 @@ import org.mockito.Mock;
  */
 public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
   @Mock private AndroidModuleValidator myValidator;
-  @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
-  @Mock private ModuleSetupContext myModuleSetupContext;
-  private IdeModifiableModelsProvider myModelsProvider;
 
   private AndroidModuleDataService myService;
 
@@ -65,50 +62,9 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     when(validatorFactory.create(getProject())).thenReturn(myValidator);
 
     myService = new AndroidModuleDataService(validatorFactory);
-    myModelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
   }
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      myModelsProvider.dispose();
-    }
-    catch (Throwable e) {
-      addSuppressedException(e);
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
   public void testGetTargetDataKey() {
     assertSame(ANDROID_MODEL, myService.getTargetDataKey());
-  }
-
-  public void testImportData() throws Exception {
-    loadSimpleApplication();
-    Module appModule = TestModuleUtil.findAppModule(getProject());
-
-    GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
-    assertNotNull(androidModel);
-
-    ExternalProjectInfo externalInfo =
-      ProjectDataManager.getInstance().getExternalProjectData(getProject(), GradleConstants.SYSTEM_ID, getProjectFolderPath().getPath());
-    assertNotNull("Initial import failed", externalInfo);
-    DataNode<ProjectData> projectStructure = externalInfo.getExternalProjectStructure();
-    assertNotNull("No project structure was found", projectStructure);
-
-    //noinspection unchecked
-    DataNode<GradleAndroidModelData> androidModelNode = (DataNode<GradleAndroidModelData>)ExternalSystemApiUtil
-      .findFirstRecursively(projectStructure, (node) -> ANDROID_MODEL.equals(node.getKey()));
-    Project project = getProject();
-
-    when(myModuleSetupContextFactory.create(appModule, myModelsProvider)).thenReturn(myModuleSetupContext);
-    myService.importData(Collections.singletonList(androidModelNode), mock(ProjectData.class), project, myModelsProvider);
-
-    assertNotNull(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME));
-    verify(myValidator).validate(same(appModule), argThat(it -> it.containsTheSameDataAs(androidModel)));
-    verify(myValidator).fixAndReportFoundIssues();
   }
 
   public void testImportDataWithoutModels() {
@@ -120,9 +76,5 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     assertNull(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME));
   }
 
-  public void testOnSuccessSetsNewProjectToFalse() throws Exception {
-    loadSimpleApplication();
-    GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(getProject());
-    assertFalse(gradleProjectInfo.isNewProject());
-  }
 }
+

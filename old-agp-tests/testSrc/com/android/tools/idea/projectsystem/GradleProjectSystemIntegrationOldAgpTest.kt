@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.testutils.junit4.OldAgpTest
+import com.android.tools.idea.projectsystem.runsGradle.GradleProjectSystemIntegrationTestCase
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.applySelectedAgpVersions

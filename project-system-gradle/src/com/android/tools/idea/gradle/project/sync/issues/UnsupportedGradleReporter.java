@@ -41,9 +41,9 @@ import static com.android.tools.idea.gradle.model.IdeSyncIssue.TYPE_GRADLE_TOO_O
 import static com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
-class UnsupportedGradleReporter extends SimpleDeduplicatingSyncIssueReporter {
+public class UnsupportedGradleReporter extends SimpleDeduplicatingSyncIssueReporter {
   @Override
-  int getSupportedIssueType() {
+  public int getSupportedIssueType() {
     return TYPE_GRADLE_TOO_OLD;
   }
 

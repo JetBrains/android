@@ -195,12 +195,12 @@ public class GradleFiles implements Disposable.Default {
 
   @NotNull
   @VisibleForTesting
-  FileEditorManagerListener getFileEditorListener() {
+  public FileEditorManagerListener getFileEditorListener() {
     return myFileEditorListener;
   }
 
   @VisibleForTesting
-  boolean hasHashForFile(@NotNull VirtualFile file) {
+  public boolean hasHashForFile(@NotNull VirtualFile file) {
     synchronized (myLock) {
       return myFileHashes.containsKey(file);
     }
@@ -512,7 +512,7 @@ public class GradleFiles implements Disposable.Default {
     removeChangedFiles();
   }
 
-  void maybeProcessSyncStarted() {
+  public void maybeProcessSyncStarted() {
     if (!myProject.isInitialized()) {
       return;
     }

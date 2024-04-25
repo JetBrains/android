@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLeve
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.pom.java.LanguageLevel
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.junit.Test
 
@@ -85,6 +86,11 @@ class DexDisabledIssueCheckerTest {
     assertThat(quickFixes).hasSize(1)
     assertThat(quickFixes[0]).isInstanceOf(SetJavaLanguageLevelAllQuickFix::class.java)
     assertThat((quickFixes[0] as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(LanguageLevel.JDK_1_8)
+  }
+
+  @Test
+  fun testDexDisabledIssueCheckerIsKnown() {
+    assertThat(GradleIssueChecker.getKnownIssuesCheckList().filterIsInstance(DexDisabledIssueChecker::class.java)).isNotEmpty()
   }
 
   @Test

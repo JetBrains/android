@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.google.common.truth.Truth
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.junit.Test
 import java.io.IOException
@@ -28,6 +29,11 @@ class AarDependencyCompatibilityIssueCheckerTest {
   private val UPDATE_LINK = "<a href=\"update.modules.minCompileSdk\">Update minCompileSdk in modules with dependencies that require a higher minCompileSdk.</a>"
 
   private val issueChecker = AarDependencyCompatibilityIssueChecker()
+
+  @Test
+  fun testAarDependencyCompatibilityIssueCheckerIsKnown() {
+    Truth.assertThat(GradleIssueChecker.getKnownIssuesCheckList().filterIsInstance(AarDependencyCompatibilityIssueChecker::class.java)).isNotEmpty()
+  }
 
   @Test
   fun `no builder exception causes null issue`() {

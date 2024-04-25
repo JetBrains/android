@@ -292,7 +292,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   }
 
   @VisibleForTesting
-  static void doBuildAndSignGradleProject(Project project,
+  public static void doBuildAndSignGradleProject(Project project,
                                           AndroidFacet facet,
                                           List<String> variants,
                                           List<Module> modules,
@@ -377,7 +377,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   @VisibleForTesting
   @Nullable
-  static BuildMode getBuildModeFromTarget(@NotNull TargetType targetType) {
+  public static BuildMode getBuildModeFromTarget(@NotNull TargetType targetType) {
     if (targetType.equals(APK)) {
       return BuildMode.ASSEMBLE;
     }
@@ -389,13 +389,13 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   @VisibleForTesting
   @NotNull
-  static File getApkLocation(@NotNull String apkFolderPath, @NotNull String buildType) {
+  public static File getApkLocation(@NotNull String apkFolderPath, @NotNull String buildType) {
     return new File(apkFolderPath, buildType);
   }
 
   @VisibleForTesting
   @NotNull
-  static List<String> getGradleTasks(@NotNull String gradleProjectPath,
+  public static List<String> getGradleTasks(@NotNull String gradleProjectPath,
                                      @NotNull GradleAndroidModel GradleAndroidModel,
                                      @NotNull List<String> buildVariants,
                                      @NotNull TargetType targetType) {
@@ -441,7 +441,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   @VisibleForTesting
   @NotNull
-  static List<String> getTaskNamesFromSelectedVariant(@NotNull List<String> buildVariants,
+  public static List<String> getTaskNamesFromSelectedVariant(@NotNull List<String> buildVariants,
                                                       @NotNull String selectedVariantName,
                                                       @NotNull String selectedTaskName) {
     List<String> gradleTasks = Lists.newArrayListWithExpectedSize(buildVariants.size());
@@ -459,7 +459,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   @VisibleForTesting
   @Nullable
-  static String replaceVariantFromTask(@NotNull String task, @NotNull String oldVariant, @NotNull String newVariant) {
+  public static String replaceVariantFromTask(@NotNull String task, @NotNull String oldVariant, @NotNull String newVariant) {
     oldVariant = decapitalize(oldVariant);
     if (task.indexOf(oldVariant) == 1) {
       // it has the pattern ":variantName[suffix]".

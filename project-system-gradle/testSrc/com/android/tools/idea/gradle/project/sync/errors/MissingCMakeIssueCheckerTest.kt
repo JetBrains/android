@@ -59,20 +59,7 @@ fun createRemotePackage(cmakeVersion: String): RemotePackage {
   return pkg
 }
 
-class MissingCMakerIssueCheckerTest : AndroidGradleTestCase() {
-
-  fun testIntegration() {
-    val missingCMakeIssueChecker = MissingCMakeIssueChecker()
-    loadSimpleApplication()
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable("Failed to find CMake."), null, null)
-    val buildIssue = missingCMakeIssueChecker.check(issueData)
-
-    // Check results.
-    assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.description).contains("Failed to find CMake.")
-    assertThat(buildIssue.quickFixes).hasSize(1)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(InstallCmakeQuickFix::class.java)
-  }
+class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
 
   private fun doTestAlreadyInstalledRemote(error: String) {
     val issueData = GradleIssueData(projectFolderPath.path, Throwable(error), null, null)
