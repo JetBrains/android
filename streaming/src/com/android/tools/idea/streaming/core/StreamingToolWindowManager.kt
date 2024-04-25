@@ -326,6 +326,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   override fun dispose() {
     deviceClientRegistry.removeListener(this)
+    contentManagers.clear()
     onToolWindowHidden()
   }
 
