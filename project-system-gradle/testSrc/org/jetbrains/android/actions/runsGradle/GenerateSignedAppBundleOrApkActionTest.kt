@@ -20,8 +20,11 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.KOTLIN_LIB
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
 import org.jetbrains.android.actions.GenerateSignedAppBundleOrApkAction
+import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
 
 /**
  * Tests for [GenerateSignedAppBundleOrApkAction]
@@ -47,6 +50,10 @@ class GenerateSignedAppBundleOrApkActionTest: AndroidGradleTestCase() {
   }
 
   fun testLibraryOnlyProjectActionDisabled() {
+    val disposable = testRootDisposable
+    val ep = WorkspaceFileIndexImpl.EP_NAME
+    val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
+    ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
     loadProject(KOTLIN_LIB)
     val action = GenerateSignedAppBundleOrApkAction()
     val event = TestActionEvent.createTestEvent(action)

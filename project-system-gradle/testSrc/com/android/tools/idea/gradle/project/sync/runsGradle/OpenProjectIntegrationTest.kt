@@ -30,12 +30,14 @@ import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 import com.android.tools.idea.testing.AndroidGradleTests.syncProject
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.fileUnderGradleRoot
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.verifySyncSkipped
 import com.android.tools.idea.testing.verifySyncSuccessful
+import com.android.tools.idea.testing.withoutKtsRelatedIndexing
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManagerEx
@@ -99,8 +101,10 @@ class OpenProjectIntegrationTest {
   @Test
   fun testReopenProject_kmpWithAndroid() {
     val preparedProject = projectRule.prepareTestProject(TestProject.ANDROID_KOTLIN_MULTIPLATFORM)
-    val before = preparedProject.open { project -> project.saveAndDump() }
-    val after = preparedProject.open { project ->
+    val before = preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { project ->
+      project.saveAndDump()
+    }
+    val after = preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { project ->
       verifySyncSkipped(project, projectRule.testRootDisposable)
       project.saveAndDump()
     }

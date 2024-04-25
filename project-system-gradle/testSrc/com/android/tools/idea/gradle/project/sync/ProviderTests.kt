@@ -33,12 +33,14 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironment
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.createRunConfigurationFromClass
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.mockDeviceFor
 import com.android.tools.idea.testing.outputCurrentlyRunningTest
 import com.android.tools.idea.testing.switchVariant
+import com.android.tools.idea.testing.withoutKtsRelatedIndexing
 import com.google.common.truth.Expect
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.RunConfiguration
@@ -136,7 +138,7 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
     Assume.assumeThat(runCatching { testConfiguration.IGNORE() }.exceptionOrNull(), CoreMatchers.nullValue())
     outputCurrentlyRunningTest(this)
     val preparedProject = prepareTestProject(scenario.testProject, agpVersion = agpVersion)
-    preparedProject.open { project ->
+    preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { project ->
       try {
         val variant = scenario.variant
         if (variant != null) {
@@ -214,7 +216,7 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
   }
 }
 
-abstract class ProviderIntegrationTestCase{
+abstract class ProviderIntegrationTestCase {
 
   @RunWith(Parameterized::class)
   class CurrentAgp : ProviderIntegrationTestCase() {

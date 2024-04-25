@@ -135,9 +135,20 @@ iml_module(
                 "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
             ],
         },
+        # This is split out because it (should) require kts indexing, which is otherwise incredibly slow in tests: we try to turn the
+        # indexing off elsewhere by masking the KotlinScriptWorkspaceFileIndexContributor extension, but it has to stay on here.
+        "kts.highlighting": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.highlighting.GradleKtsResolveSymbolsTest",
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+            ],
+        },
         "runs_gradle": {
             "test_filter": ".runsGradle",
-            "shard_count": 23,
+            "shard_count": 15,
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",

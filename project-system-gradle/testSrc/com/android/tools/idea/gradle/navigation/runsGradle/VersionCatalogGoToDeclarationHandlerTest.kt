@@ -23,6 +23,9 @@ import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.psi.PsiManager
+import com.intellij.testFramework.ExtensionTestUtil
+import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
+import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
 import org.junit.Rule
 import org.junit.Test
 
@@ -34,6 +37,10 @@ class VersionCatalogGoToDeclarationHandlerTest {
 
   @Test
   fun testGoToDeclarationInToml() {
+    val disposable = projectRule.fixture.testRootDisposable
+    val ep = WorkspaceFileIndexImpl.EP_NAME
+    val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
+    ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
 
     // Check Go To Declaration within the TOML file
@@ -75,7 +82,11 @@ class VersionCatalogGoToDeclarationHandlerTest {
   }
 
   @Test
-  fun testGotoCatalogDeclarationInKts(){
+  fun testGotoCatalogDeclarationInKts() {
+    val disposable = projectRule.fixture.testRootDisposable
+    val ep = WorkspaceFileIndexImpl.EP_NAME
+    val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
+    ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
     // Navigate from KTS catalog reference to TOML library
     checkUsage(
@@ -136,7 +147,7 @@ class VersionCatalogGoToDeclarationHandlerTest {
   }
 
   @Test
-  fun testGotoCatalogDeclarationInGroovy(){
+  fun testGotoCatalogDeclarationInGroovy() {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
     // Navigate from groovy catalog reference to TOML library
     checkUsage(

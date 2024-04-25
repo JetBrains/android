@@ -29,8 +29,12 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore.loadText
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.findFile
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
+import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -42,6 +46,15 @@ class VersionCatalogRenamingKtsTest  {
 
   private val fixture get() = projectRule.fixture
   private val project get() = projectRule.project
+
+  @Before
+  fun removeKtsIndexing() {
+    val disposable = fixture.testRootDisposable
+    val ep = WorkspaceFileIndexImpl.EP_NAME
+    val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
+    ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
+  }
+
   @Test
   fun testRenameDependencyInMainCatalog() {
     projectRule.loadProject(SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
