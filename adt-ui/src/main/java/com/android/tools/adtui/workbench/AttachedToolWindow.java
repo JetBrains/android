@@ -744,6 +744,11 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     public void actionPerformed(@NotNull AnActionEvent event) {
       showSearchField(true);
     }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.EDT;
+    }
   }
 
   private class GearAction extends DumbAwareAction {
