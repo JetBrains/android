@@ -27,7 +27,6 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.testFramework.EdtRule;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -48,7 +47,6 @@ public class InstantAppsTest {
   }
 
   @Test
-  @Ignore("b/303109738")
   public void testGetDefaultInstantAppUrlWithInstantApp() throws Exception {
     // Use a plugin version that supports instant app
     projectRule.loadProject(INSTANT_APP, "instant-app", AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
