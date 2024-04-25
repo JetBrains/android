@@ -46,6 +46,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.BorderLayout
+import java.awt.image.BufferedImage
 import java.nio.file.Paths
 import javax.swing.JPanel
 
@@ -110,19 +111,6 @@ class NavDesignSurfaceZoomControlsTest {
       """.trimIndent()
     )
 
-    executeOnPooledThread {
-      runReadAction { NavigationSchema.createIfNecessary(androidProjectRule.module) }
-    }.get()
-  }
-
-  private fun getGoldenImagePath(testName: String) =
-    Paths.get("${androidProjectRule.fixture.testDataPath}/zoomGoldenImages/$testName.png")
-
-  @Test
-  fun testNavDesignSurfaceZoom() {
-    populateSchema()
-    val facet = androidProjectRule.module.androidFacet!!
-
     androidProjectRule.fixture.addFileToProject(
       "src/main/java/com/example/myapplication/FirstFragment.java",
       //language=Java
@@ -147,10 +135,16 @@ class NavDesignSurfaceZoomControlsTest {
         }
       """.trimIndent()
     )
-    val layout = androidProjectRule.fixture.addFileToProject(
-      "res/layout/test.xml",
-      //language=xml
-      """
+
+    executeOnPooledThread {
+      runReadAction { NavigationSchema.createIfNecessary(androidProjectRule.module) }
+    }.get()
+  }
+
+  private fun addLayout() = androidProjectRule.fixture.addFileToProject(
+    "res/layout/test.xml",
+    //language=xml
+    """
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
@@ -164,10 +158,11 @@ class NavDesignSurfaceZoomControlsTest {
                 android:text="Hello world"/>
         </LinearLayout>
       """.trimIndent())
-    val navGraph = androidProjectRule.fixture.addFileToProject(
-      "res/navigation/nav_graph.xml",
-      //language=xml
-      """
+
+  private fun addNavGraph() = androidProjectRule.fixture.addFileToProject(
+    "res/navigation/nav_graph.xml",
+    //language=xml
+    """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -196,7 +191,18 @@ class NavDesignSurfaceZoomControlsTest {
             </fragment>
         </navigation>
       """.trimIndent()
-    )
+  )
+
+  private fun getGoldenImagePath(testName: String) =
+    Paths.get("${androidProjectRule.fixture.testDataPath}/zoomGoldenImages/$testName.png")
+
+  @Test
+  fun testNavDesignSurfaceZoomIn() {
+    populateSchema()
+    val facet = androidProjectRule.module.androidFacet!!
+    val layout = addLayout()
+    val navGraph = addNavGraph()
+
     waitForResourceRepositoryUpdates(androidProjectRule.fixture.module)
     val configuration = RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
     val surface = UIUtil.invokeAndWaitIfNeeded(Computable {
@@ -214,28 +220,162 @@ class NavDesignSurfaceZoomControlsTest {
       surface.currentNavigation = surface.sceneManager!!.model.find("FirstFragment")!!
     }
 
-    val fakeUi = UIUtil.invokeAndWaitIfNeeded(Computable {
-      val outerPanel = JPanel(BorderLayout()).apply {
-        border = JBUI.Borders.customLine(JBColor.RED)
-        add(surface, BorderLayout.CENTER)
-        setBounds(0, 0, 1000, 1000)
-      }
+    lateinit var fakeUi: FakeUi
+    run {
+      fakeUi = UIUtil.invokeAndWaitIfNeeded(Computable {
+        val outerPanel = JPanel(BorderLayout()).apply {
+          border = JBUI.Borders.customLine(JBColor.RED)
+          add(surface, BorderLayout.CENTER)
+          setBounds(0, 0, 1000, 1000)
+        }
 
-      FakeUi(outerPanel, 1.0, true).apply {
-        updateToolbars()
-        layoutAndDispatchEvents()
-      }
-    })
+        FakeUi(outerPanel, 1.0, true).apply {
+          updateToolbars()
+          layoutAndDispatchEvents()
+        }
+      })
 
-    ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomInitial"), fakeUi.render(), 0.1, 1)
+      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomInitial"), fakeUi.render(), 0.1, 1)
+    }
 
     val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
     val zoomInAction = zoomActionsToolbar.actions
       .filterIsInstance<ZoomInAction>()
       .single()
+
+    val event = TestActionEvent.createTestEvent { dataId -> surface.getData(dataId) }
+
+    // Verify zoom in
+    run {
+      repeat(3) {
+        zoomInAction.actionPerformed(event)
+        UIUtil.invokeAndWaitIfNeeded {
+          fakeUi.layoutAndDispatchEvents()
+        }
+      }
+      var image: BufferedImage? = null
+      UIUtil.invokeAndWaitIfNeeded {
+        image = fakeUi.render()
+      }
+      Assert.assertNotNull(image)
+      Assert.assertEquals(1.5, surface.zoomController.scale, 0.01)
+      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomIn"), image!!, 0.1, 1)
+    }
+  }
+
+  @Test
+  fun testNavDesignSurfaceZoomOut() {
+    populateSchema()
+    val facet = androidProjectRule.module.androidFacet!!
+    val layout = addLayout()
+    val navGraph = addNavGraph()
+
+    waitForResourceRepositoryUpdates(androidProjectRule.fixture.module)
+    val configuration = RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
+    val surface = UIUtil.invokeAndWaitIfNeeded(Computable {
+      NavDesignSurface(androidProjectRule.project, androidProjectRule.fixture.testRootDisposable)
+    })
+
+    surface.activate()
+
+    val model = NlModel.builder(androidProjectRule.testRootDisposable, facet, navGraph.virtualFile, configuration)
+      .withComponentRegistrar(NavComponentRegistrar)
+      .build()
+
+    surface.addModelWithoutRender(model).join()
+    UIUtil.invokeAndWaitIfNeeded {
+      surface.currentNavigation = surface.sceneManager!!.model.find("FirstFragment")!!
+    }
+
+    lateinit var fakeUi: FakeUi
+    run {
+      fakeUi = UIUtil.invokeAndWaitIfNeeded(Computable {
+        val outerPanel = JPanel(BorderLayout()).apply {
+          border = JBUI.Borders.customLine(JBColor.RED)
+          add(surface, BorderLayout.CENTER)
+          setBounds(0, 0, 1000, 1000)
+        }
+
+        FakeUi(outerPanel, 1.0, true).apply {
+          updateToolbars()
+          layoutAndDispatchEvents()
+        }
+      })
+
+      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomInitial"), fakeUi.render(), 0.1, 1)
+    }
+
+    val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
+
     val zoomOutAction = zoomActionsToolbar.actions
       .filterIsInstance<ZoomOutAction>()
       .single()
+
+    val event = TestActionEvent.createTestEvent { dataId -> surface.getData(dataId) }
+
+    // Verify zoom out
+    run {
+      repeat(3) {
+        zoomOutAction.actionPerformed(event)
+        UIUtil.invokeAndWaitIfNeeded {
+          fakeUi.layoutAndDispatchEvents()
+        }
+      }
+      var image: BufferedImage? = null
+      UIUtil.invokeAndWaitIfNeeded {
+        image = fakeUi.render()
+      }
+      Assert.assertNotNull(image)
+      Assert.assertEquals(0.67, surface.zoomController.scale, 0.01)
+      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomOut"), image!!, 0.1, 1)
+    }
+  }
+
+  @Test
+  fun testNavDesignSurfaceZoomToFit() {
+    populateSchema()
+
+    val facet = androidProjectRule.module.androidFacet!!
+    val layout = addLayout()
+    val navGraph = addNavGraph()
+
+    waitForResourceRepositoryUpdates(androidProjectRule.fixture.module)
+    val configuration = RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
+    val surface = UIUtil.invokeAndWaitIfNeeded(Computable {
+      NavDesignSurface(androidProjectRule.project, androidProjectRule.fixture.testRootDisposable)
+    })
+
+    surface.activate()
+
+    val model = NlModel.builder(androidProjectRule.testRootDisposable, facet, navGraph.virtualFile, configuration)
+      .withComponentRegistrar(NavComponentRegistrar)
+      .build()
+
+    surface.addModelWithoutRender(model).join()
+    UIUtil.invokeAndWaitIfNeeded {
+      surface.currentNavigation = surface.sceneManager!!.model.find("FirstFragment")!!
+    }
+
+    lateinit var fakeUi: FakeUi
+    run {
+      fakeUi = UIUtil.invokeAndWaitIfNeeded(Computable {
+        val outerPanel = JPanel(BorderLayout()).apply {
+          border = JBUI.Borders.customLine(JBColor.RED)
+          add(surface, BorderLayout.CENTER)
+          setBounds(0, 0, 1000, 1000)
+        }
+
+        FakeUi(outerPanel, 1.0, true).apply {
+          updateToolbars()
+          layoutAndDispatchEvents()
+        }
+      })
+
+      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomInitial"), fakeUi.render(), 0.1, 1)
+    }
+
+    val zoomActionsToolbar = fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
+
     val zoomToFitAction = zoomActionsToolbar.actions
       .filterIsInstance<ZoomToFitAction>()
       .single()
@@ -244,40 +384,19 @@ class NavDesignSurfaceZoomControlsTest {
     zoomToFitAction.actionPerformed(event)
     val zoomToFitScale = surface.zoomController.scale
 
-    // Verify zoom in
-    run {
-      val originalScale = surface.zoomController.scale
-      repeat(3) {
-        zoomInAction.actionPerformed(event)
-        UIUtil.invokeAndWaitIfNeeded {
-          fakeUi.layoutAndDispatchEvents()
-        }
-      }
-      Assert.assertTrue(surface.zoomController.scale > originalScale)
-      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomIn"), fakeUi.render(), 0.1, 1)
-    }
-
     // Verify zoom to fit
     run {
       zoomToFitAction.actionPerformed(event)
       UIUtil.invokeAndWaitIfNeeded {
         fakeUi.layoutAndDispatchEvents()
       }
-      Assert.assertEquals(zoomToFitScale, surface.zoomController.scale, 0.01)
-      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomFit"), fakeUi.render(), 0.1, 1)
-    }
-
-    // Verify zoom out
-    run {
-      val originalScale = surface.zoomController.scale
-      repeat(3) {
-        zoomOutAction.actionPerformed(event)
-        UIUtil.invokeAndWaitIfNeeded {
-          fakeUi.layoutAndDispatchEvents()
-        }
+      var image: BufferedImage? = null
+      UIUtil.invokeAndWaitIfNeeded {
+        image = fakeUi.render()
       }
-      Assert.assertTrue(surface.zoomController.scale < originalScale)
-      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomOut"), fakeUi.render(), 0.1, 1)
+      Assert.assertNotNull(image)
+      Assert.assertEquals(zoomToFitScale, surface.zoomController.scale, 0.01)
+      ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomFit"), image!!, 0.1, 1)
     }
   }
 }
