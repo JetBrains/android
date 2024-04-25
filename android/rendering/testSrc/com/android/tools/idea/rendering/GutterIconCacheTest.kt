@@ -20,6 +20,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.VirtualFile
 import icons.StudioIcons.Common.ANDROID_HEAD
@@ -89,7 +91,7 @@ class GutterIconCacheTest {
     assertThat(cache.getIcon(sampleSvgFile, null, facet)).isEqualTo(ANDROID_HEAD)
 
     // "Modify" Document by rewriting its contents
-    val document = checkNotNull(FileDocumentManager.getInstance().getDocument(sampleSvgFile))
+    val document = ReadAction.compute<Document, Throwable> {  checkNotNull(FileDocumentManager.getInstance().getDocument(sampleSvgFile))}
     with(ApplicationManager.getApplication()) {
       invokeAndWait { runWriteAction { document.setText(document.text) } }
     }
