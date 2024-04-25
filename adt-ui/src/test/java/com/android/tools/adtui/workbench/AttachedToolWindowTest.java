@@ -114,7 +114,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     when(myWorkBench.getContext()).thenReturn("");
 
     myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, false);
-    Disposer.register(getTestRootDisposable(), myToolWindow);
+    Disposer.register(getTestRootDisposable(), myWorkBench);
 
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
   }
@@ -124,10 +124,11 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     try {
       KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
       myMocks.close();
-      super.tearDown();
     }
     catch (Throwable e) {
       addSuppressedException(e);
+    } finally {
+      super.tearDown();
     }
   }
 
@@ -250,7 +251,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     // Change the workbench context to ensure we're getting a different property, and reset the tool window
     when(myWorkBench.getContext()).thenReturn("testMinimizeDefaultSetInConstructor");
     myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, true);
-    Disposer.register(getTestRootDisposable(), myToolWindow);
+
     assertThat(myToolWindow.isMinimized()).isTrue();
   }
 
