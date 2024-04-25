@@ -205,16 +205,21 @@ internal class DeviceClient(
       }
     }
 
+    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect opening AsynchronousServerSocketChannel" }
     @Suppress("BlockingMethodInNonBlockingContext")
     val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
     val port = (asyncChannel.localAddress as InetSocketAddress).port
     logger.debug("Using port $port")
     var channels: Channels? = null
+    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect creating SuspendingServerSocketChannel" }
     SuspendingServerSocketChannel(asyncChannel).use { serverSocketChannel ->
       val socketName = "screen-sharing-agent-$port"
+      B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect starting reverse forwarding" }
       ClosableReverseForwarding(deviceSelector, adbSession, SocketSpec.LocalAbstract(socketName), SocketSpec.Tcp(port)).use {
         it.startForwarding()
+        B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect waiting for agent to be pushed" }
         agentPushed.await()
+        B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect starting agent" }
         startAgent(deviceSelector, adbSession, socketName, maxVideoSize, initialDisplayOrientation, startVideoStream)
         channels = connectChannels(serverSocketChannel)
         // Port forwarding can be removed since the already established connections will continue to work without it.
@@ -341,6 +346,7 @@ internal class DeviceClient(
   }
 
   private suspend fun pushAgent(deviceSelector: DeviceSelector, adbSession: AdbSession, project: Project) {
+    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.pushAgent" }
     streamingSessionTracker.agentPushStarted()
 
     val soFile: Path
@@ -388,6 +394,7 @@ internal class DeviceClient(
       }
       adbSession.pushFile(deviceSelector, jarFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME", permissions)
       nativeLibraryPushed.await()
+      B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.pushAgent pushed" }
     }
     streamingSessionTracker.agentPushEnded()
   }
