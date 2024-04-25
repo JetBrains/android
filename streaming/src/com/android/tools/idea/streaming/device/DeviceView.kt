@@ -34,8 +34,6 @@ import com.android.tools.idea.streaming.core.scaled
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
-import com.android.utils.FlightRecorder
-import com.android.utils.TraceUtils.currentTime
 import com.android.utils.TraceUtils.simpleId
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -203,18 +201,15 @@ internal class DeviceView(
   private var wasInsideDisplay = false
   private var mouseHovering = false // Last mouse event was move without pressed buttons.
   private val repaintAlarm: Alarm = Alarm(this)
-  private val connectionAlarm: Alarm = Alarm(this)
   private var highQualityRenderingRequested = false
 
   init {
-    thisLogger().info("${deviceClient.deviceName}: $simpleId created")
-    FlightRecorder.initialize(1000)
-    FlightRecorder.log { "$currentTime ${deviceClient.deviceName}: $simpleId created" }
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId} created" }
     Disposer.register(disposableParent, this)
 
     addComponentListener(object : ComponentAdapter() {
       override fun componentShown(event: ComponentEvent) {
-        FlightRecorder.log { "$currentTime ${deviceClient.deviceName}: ${this@DeviceView.simpleId}.componentShown" }
+        B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.componentShown" }
         if (physicalWidth > 0 && physicalHeight > 0 && connectionState == ConnectionState.INITIAL) {
           connectToAgentAsync(initialDisplayOrientation)
         }
@@ -233,8 +228,8 @@ internal class DeviceView(
   }
 
   override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
-    FlightRecorder.log { "$currentTime ${deviceClient.deviceName}:" +
-                         " $simpleId.setBounds($x, $y, $width, $height) connectionState=$connectionState" }
+    B330395367Logger.log { "${deviceClient.deviceName}:" +
+                           " ${this@DeviceView.simpleId}.setBounds($x, $y, $width, $height) connectionState=$connectionState" }
     val resized = width != this.width || height != this.height
     super.setBounds(x, y, width, height)
     if (resized && physicalWidth > 0 && physicalHeight > 0) {
@@ -249,23 +244,17 @@ internal class DeviceView(
 
   /** Starts asynchronous initialization of the Screen Sharing Agent. */
   private fun connectToAgentAsync(initialDisplayOrientation: Int) {
-    FlightRecorder.log { "$currentTime ${deviceClient.deviceName}: $simpleId.connectToAgentAsync($initialDisplayOrientation)" }
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.connectToAgentAsync($initialDisplayOrientation)" }
     frameNumber = 0u
     connectionState = ConnectionState.CONNECTING
-    connectionAlarm.addRequest(::reportFirstFrameDelay, 5_000)
     maxVideoSize = physicalSize
     AndroidCoroutineScope(this@DeviceView).launch {
       connectToAgent(maxVideoSize, initialDisplayOrientation)
     }
   }
 
-  private fun reportFirstFrameDelay() {
-    val trace = FlightRecorder.getAndClear().joinToString("\n")
-    thisLogger().warn("${deviceClient.deviceName}: ==== No frames received. Trace: ====\n$trace\n==================================")
-  }
-
   private suspend fun connectToAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
-    FlightRecorder.log { "$currentTime ${deviceClient.deviceName}: $simpleId.connectToAgent" }
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.connectToAgent" }
     try {
       deviceClient.addAgentTerminationListener(agentTerminationListener)
       if (displayId == PRIMARY_DISPLAY_ID) {
@@ -292,7 +281,7 @@ internal class DeviceView(
       }
     }
     catch (_: CancellationException) {
-      FlightRecorder.log { "$currentTime ${deviceClient.deviceName}: $simpleId.connectToAgent CancellationException" }
+      B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.connectToAgent CancellationException" }
       // The view has been closed.
     }
     catch (e: Throwable) {
@@ -310,10 +299,10 @@ internal class DeviceView(
 
   private fun connected() {
     if (connectionState == ConnectionState.CONNECTING) {
+      B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.connected" }
       hideLongRunningOperationIndicatorInstantly()
       hideDisconnectedStateMessage()
       connectionState = ConnectionState.CONNECTED
-      connectionAlarm.cancelAllRequests()
       if (displayId == PRIMARY_DISPLAY_ID) {
         if (DeviceMirroringSettings.getInstance().synchronizeClipboard) {
           startClipboardSynchronization()
@@ -323,6 +312,7 @@ internal class DeviceView(
   }
 
   private fun disconnected(initialDisplayOrientation: Int, exception: Throwable? = null) {
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.disconnected" }
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
     if (displayId != PRIMARY_DISPLAY_ID) {
       return
@@ -350,7 +340,6 @@ internal class DeviceView(
       }
 
       connectionState = ConnectionState.DISCONNECTED
-      connectionAlarm.cancelAllRequests()
       showDisconnectedStateMessage(message, createShowLogHyperlinkListener(), reconnector)
     }
   }
@@ -377,8 +366,7 @@ internal class DeviceView(
   }
 
   override fun dispose() {
-    thisLogger().info("${deviceClient.deviceName}: $simpleId.dispose")
-    FlightRecorder.log { "$currentTime ${deviceClient.deviceName}: $simpleId.dispose" }
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceView.simpleId}.dispose" }
     deviceClient.videoDecoder?.removeFrameListener(displayId, frameListener)
     deviceClient.stopVideoStream(project, displayId)
     deviceClient.removeAgentTerminationListener(agentTerminationListener)

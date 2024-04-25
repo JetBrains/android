@@ -953,6 +953,10 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "remote.templates.in.plus", "Show remote device templates in plus action",
     "Show and allow starting remote device from their templates through the plus action",
     false);
+  public static final Flag<Boolean> DEVICE_MIRRORING_B330395367_LOGGING = new BooleanFlag(
+    DEVICE_MIRRORING, "b330395367.logging", "Logging for investigation of b/330395367",
+    "Enable detailed logging for investigation of b/330395367",
+    false);
   //endregion
 
   // region Device Definition Download Service

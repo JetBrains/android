@@ -41,6 +41,7 @@ import com.android.tools.idea.streaming.device.screenshot.DeviceScreenshotOption
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.android.utils.HashCodes
+import com.android.utils.TraceUtils.simpleId
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
@@ -134,6 +135,7 @@ internal class DeviceToolWindowPanel(
    * Populates the device panel with content.
    */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceToolWindowPanel.simpleId}.createContent" }
     if (contentDisposable != null) {
       thisLogger().error(IllegalStateException("${title}: content already exists"))
       return
@@ -198,13 +200,17 @@ internal class DeviceToolWindowPanel(
    * Destroys content of the device panel and returns its state for later recreation.
    */
   override fun destroyContent(): DeviceUiState {
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceToolWindowPanel.simpleId}.destroyContent" }
     val uiState = DeviceUiState()
     uiState.orientation = primaryDisplayView?.displayOrientationQuadrants ?: 0
     for (displayPanel in displayPanels.values) {
       uiState.zoomScrollState[displayPanel.displayId] = displayPanel.zoomScrollState
     }
 
-    contentDisposable?.let { Disposer.dispose(it) }
+    contentDisposable?.let {
+      B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceToolWindowPanel.simpleId}.destroyContent disposing $it" }
+      Disposer.dispose(it)
+    }
     contentDisposable = null
 
     centerPanel.removeAll()
