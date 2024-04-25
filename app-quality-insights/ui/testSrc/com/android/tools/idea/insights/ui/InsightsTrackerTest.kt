@@ -94,7 +94,6 @@ class InsightsTrackerTest {
   }
 
   @Test
-  @org.junit.Ignore("b/330645335")
   fun `log hyperlink`() {
     // Print and apply filters
     console.printAndHighlight(

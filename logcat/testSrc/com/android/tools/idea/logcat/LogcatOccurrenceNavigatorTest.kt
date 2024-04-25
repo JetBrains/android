@@ -304,7 +304,6 @@ class LogcatOccurrenceNavigatorTest {
    * direction.
    */
   @Test
-  @org.junit.Ignore("b/330645335")
   fun goOccurrence_navigate() {
     val navigator = logcatOccurrenceNavigator(editor)
     setEditorText(
@@ -345,7 +344,6 @@ class LogcatOccurrenceNavigatorTest {
   }
 
   @Test
-  @org.junit.Ignore("b/330645335")
   fun goOccurrence_navigateDownThenUp() {
     val navigator = logcatOccurrenceNavigator(editor)
     setEditorText(
