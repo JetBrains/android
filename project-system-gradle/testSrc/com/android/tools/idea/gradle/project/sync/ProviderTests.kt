@@ -76,10 +76,29 @@ interface ValueNormalizers {
   fun <T> Map<AgpVersionSoftwareEnvironmentDescriptor, T>.forVersion(): T?
 }
 
-data class TestScenario(
+class TestScenario(
+  testProject: TemplateBasedTestProject,
+  viaBundle: Boolean = false,
+  val executeMakeBeforeRun: Boolean = true,
+  target: Target = Target.AppTargetRunConfiguration,
+  variant: Pair<String, String>? = null,
+  device: AndroidVersion = AndroidVersion(AndroidVersion.VersionCodes.R)
+) {
+  val setup = TestScenarioSetup(testProject, viaBundle, target, variant, device)
+  val testProject = setup.testProject
+  val viaBundle = setup.viaBundle
+  val target = setup.target
+  val variant = setup.variant
+  val device = setup.device
+  val name: String
+    get() {
+      return setup.name + if (!executeMakeBeforeRun) "-${"before-build"}" else ""
+    }
+}
+
+data class TestScenarioSetup(
   val testProject: TemplateBasedTestProject,
   val viaBundle: Boolean = false,
-  val executeMakeBeforeRun: Boolean = true,
   val target: Target = Target.AppTargetRunConfiguration,
   val variant: Pair<String, String>? = null,
   val device: AndroidVersion = AndroidVersion(AndroidVersion.VersionCodes.R)
@@ -99,7 +118,6 @@ data class TestScenario(
 
       return testProject.projectName +
              viaBundle.prefixed("via-bundle") +
-             (!executeMakeBeforeRun).prefixed("before-build") +
              target.prefixed() +
              device.takeUnless { it.apiLevel == 30 }.prefixed() +
              variant.prefixed()
@@ -125,7 +143,22 @@ interface ProviderTestDefinition {
   val stackMarker: (() -> Unit) -> Unit
 }
 
-interface AggregateTestDefinition : AgpIntegrationTestDefinition, ProviderTestDefinition
+interface AggregateTestDefinition : AgpIntegrationTestDefinition {
+  val setup: TestScenarioSetup
+  val IGNORE: TestConfiguration.() -> Unit
+
+  fun verifyExpectations(
+    expect: Expect,
+    afterMake: Boolean,
+    valueNormalizers: ValueNormalizers,
+    project: Project,
+    runConfiguration: RunConfiguration?,
+    assembleResult: AssembleInvocationResult?,
+    device: IDevice
+  )
+
+  fun hasAfterMakeExpectations(): Boolean
+}
 
 fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefinition, expect: Expect, valueNormalizers: ValueNormalizers) {
   val agpVersion = testDefinition.agpVersion
@@ -134,13 +167,13 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
   }
 
   with(testDefinition) {
-    if (!scenario.testProject.isCompatibleWith(agpVersion)) skipTest("Project ${scenario.testProject.name} is incompatible with $agpVersion")
+    if (!setup.testProject.isCompatibleWith(agpVersion)) skipTest("Project ${setup.testProject.name} is incompatible with $agpVersion")
     Assume.assumeThat(runCatching { testConfiguration.IGNORE() }.exceptionOrNull(), CoreMatchers.nullValue())
     outputCurrentlyRunningTest(this)
-    val preparedProject = prepareTestProject(scenario.testProject, agpVersion = agpVersion)
+    val preparedProject = prepareTestProject(setup.testProject, agpVersion = agpVersion)
     preparedProject.open(updateOptions = OpenPreparedProjectOptions::withoutKtsRelatedIndexing) { project ->
       try {
-        val variant = scenario.variant
+        val variant = setup.variant
         if (variant != null) {
           switchVariant(project, variant.first, variant.second)
         }
@@ -166,12 +199,12 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
           .filterIsInstance<AndroidRunConfiguration>()
 
         val (runConfiguration, assembleResult) =
-          when (val target = scenario.target) {
+          when (val target = setup.target) {
             Target.AppTargetRunConfiguration ->
               androidRunConfigurations()
                 .single()
                 .also {
-                  it.DEPLOY_APK_FROM_BUNDLE = scenario.viaBundle
+                  it.DEPLOY_APK_FROM_BUNDLE = setup.viaBundle
                 } to null
 
             is Target.NamedAppTargetRunConfiguration ->
@@ -180,7 +213,7 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
                   it.modules.any { module -> ExternalSystemApiUtil.getExternalProjectId(module) == target.externalSystemModuleId }
                 }
                 .also {
-                  it.DEPLOY_APK_FROM_BUNDLE = scenario.viaBundle
+                  it.DEPLOY_APK_FROM_BUNDLE = setup.viaBundle
                 } to null
 
             is Target.TestTargetRunConfiguration ->
@@ -193,18 +226,18 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
               } to null
 
             is Target.ManuallyAssembled ->
-              if (scenario.viaBundle) error("viaBundle mode is not supported with ManuallyAssembled test configurations")
+              if (setup.viaBundle) error("viaBundle mode is not supported with ManuallyAssembled test configurations")
               else {
                 null to manuallyAssemble(target.gradlePath, target.forTests)
               }
           }
 
-        val device = mockDeviceFor(scenario.device, listOf(Abi.X86, Abi.X86_64), density = 160)
-        if (scenario.executeMakeBeforeRun) {
+        val device = mockDeviceFor(setup.device, listOf(Abi.X86, Abi.X86_64), density = 160)
+        verifyExpectations(expect, false, valueNormalizers, project, runConfiguration, assembleResult, device)
+        if (hasAfterMakeExpectations()) {
           runConfiguration?.executeMakeBeforeRunStepInTest(device)
+          verifyExpectations(expect, true, valueNormalizers, project, runConfiguration, assembleResult, device)
         }
-
-        verifyExpectations(expect, valueNormalizers, project, runConfiguration, assembleResult, device)
       }
       finally {
         runInEdtAndWait {
@@ -233,7 +266,7 @@ abstract class ProviderIntegrationTestCase {
       const val NUMBER_OF_EXPECTATIONS = 2  // Apk and ApplicationIdProvider's.
       fun tests(): List<AggregateTestDefinition> =
         (APPLICATION_ID_PROVIDER_TESTS + APK_PROVIDER_TESTS)
-          .groupBy { it.scenario }
+          .groupBy { it.scenario.setup }
           .map { AggregateTestDefinitionImpl(it.key, it.value) }
     }
   }
@@ -282,7 +315,7 @@ abstract class ProviderIntegrationTestCase {
 }
 
 data class AggregateTestDefinitionImpl(
-  override val scenario: TestScenario,
+  override val setup: TestScenarioSetup,
   val definitions: List<ProviderTestDefinition>,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 ) : AggregateTestDefinition {
@@ -290,10 +323,9 @@ data class AggregateTestDefinitionImpl(
     assumeFalse(definitions.all { test -> kotlin.runCatching { with(test) { IGNORE() } }.isFailure })
   }
 
-  override val stackMarker: (() -> Unit) -> Unit get() = error("")
-
   override fun verifyExpectations(
     expect: Expect,
+    afterMake: Boolean,
     valueNormalizers: ValueNormalizers,
     project: Project,
     runConfiguration: RunConfiguration?,
@@ -305,15 +337,18 @@ data class AggregateTestDefinitionImpl(
     }
     for (definition in definitions) {
       if (kotlin.runCatching { definition.IGNORE(testConfiguration) }.isFailure) continue
+      if (definition.scenario.executeMakeBeforeRun != afterMake) continue
       definition.stackMarker {
         definition.verifyExpectations(expect, valueNormalizers, project, runConfiguration, assembleResult, device)
       }
     }
   }
 
+  override fun hasAfterMakeExpectations(): Boolean = definitions.any { it.scenario.executeMakeBeforeRun }
+
   override val name: String
-    get() = "${scenario.name}${
-      if (definitions.size < NUMBER_OF_EXPECTATIONS) "(${definitions.joinToString(",") { it.javaClass.simpleName}})"
+    get() = "${setup.name}${
+      if (definitions.size != NUMBER_OF_EXPECTATIONS) "(${definitions.joinToString(",") { it.javaClass.simpleName}})"
       else ""
     }"
 
