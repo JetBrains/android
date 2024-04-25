@@ -282,9 +282,21 @@ enum class TestProject(
                    buildTypes {
             """.trimMargin())
       }
+      projectRoot.resolve("app").resolve("build.gradle").replaceContent { content ->
+        content.replace(
+          "dependencies {",
+          "dependencies {\n  implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22'"
+        )
+      }
       projectRoot.resolve("gradle.properties").replaceContent { content ->
         content
           .replace("android.experimental.enableScreenshotTest=false", "android.experimental.enableScreenshotTest=true")
+      }
+      projectRoot.resolve("build.gradle").replaceContent { content ->
+        content.replace(
+          "classpath 'com.android.tools.build:gradle:",
+          "classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22'\nclasspath 'com.android.tools.build:gradle:"
+        )
       }
     }
   ),
