@@ -40,14 +40,18 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
  * (i.e. the initial build of this session is skipped), then the resource cache is already valid and will not be cleared.
  */
 class ClearResourceCacheAfterFirstBuild(private val project: Project) {
-  private class CacheClearedCallback(val onCacheCleared: Runnable, val onSourceGenerationError: Runnable)
+  private inner class CacheClearedCallback(val onCacheCleared: Runnable, val onSourceGenerationError: Runnable) : Disposable {
+    override fun dispose() {
+      callbacks.remove(this)
+    }
+  }
 
   private val lock = Any()
   @GuardedBy("lock")
   private var cacheClean = false
   @GuardedBy("lock")
   private var errorOccurred = false
-  private val callbacks = mutableListOf<CacheClearedCallback>()
+  private val callbacks = mutableSetOf<CacheClearedCallback>()
   private var messageBusConnection: MessageBusConnection? = null
 
   class MyStartupActivity : ProjectActivity {
@@ -105,7 +109,7 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
     val (cacheClean, errorOccurred) = synchronized(lock) {
       if (!cacheClean) {
         val callback = CacheClearedCallback(onCacheClean, onSourceGenerationError)
-        Disposer.register(parentDisposable) { callbacks.remove(callback) }
+        Disposer.register(parentDisposable, callback)
         callbacks.add(callback)
       }
 
@@ -162,6 +166,7 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
     clearResourceCacheIfNecessary()
 
     callbacks.forEach { it.onCacheCleared.run() }
+    callbacks.forEach { it.dispose() }
     callbacks.clear()
   }
 
