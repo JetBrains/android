@@ -22,7 +22,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
-import com.android.resources.getTestAarRepositoryFromExplodedAar
+import com.android.resources.aar.AarSourceResourceRepository
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.testing.Facets
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
@@ -48,6 +49,17 @@ import java.io.File
 import java.util.function.Predicate
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
+
+const val AAR_LIBRARY_NAME = "com.test:test-library:1.0.0"
+const val TEST_DATA_DIR = "tools/base/resource-repository/test/resources/aar"
+
+@JvmOverloads
+fun getTestAarRepositoryFromExplodedAar(libraryDirName: String = "my_aar_lib"): AarSourceResourceRepository {
+  return AarSourceResourceRepository.create(
+    TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/$libraryDirName/res"),
+    AAR_LIBRARY_NAME
+  )
+}
 
 fun createTestAppResourceRepository(facet: AndroidFacet): LocalResourceRepository<VirtualFile> {
   val moduleResources = createTestModuleRepository(facet, emptyList())
