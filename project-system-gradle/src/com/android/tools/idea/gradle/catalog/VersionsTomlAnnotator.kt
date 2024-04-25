@@ -38,17 +38,19 @@ class VersionsTomlAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     if (!element.containingFile.name.endsWith("versions.toml"))
       return
-    val grandParent = element.parent.parent
 
     if(element.isFirstElement()){
       initFileStatusFlag(element.containingFile, holder)
     }
 
+    val grandParent = element.parent?.parent ?: return
+    val greatGrandParent = grandParent.parent ?: return
+
     // for aliases
     if (element is TomlKey
         && element.parent is TomlKeyValue
         && grandParent is TomlTable
-        && grandParent.parent is TomlFile) {
+        && greatGrandParent is TomlFile) {
       checkDependencyAliases(element, grandParent, holder)
     }
 
@@ -56,7 +58,7 @@ class VersionsTomlAnnotator : Annotator {
     if (element is TomlKey
         && element.parent is TomlTableHeader
         && grandParent is TomlTable
-        && grandParent.parent is TomlFile) {
+        && greatGrandParent is TomlFile) {
       checkTableAliases(element, grandParent, holder)
     }
   }
