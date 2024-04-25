@@ -178,9 +178,13 @@ private object CompileScopeImpl : CompileScope {
 
   override fun backendCodeGen(project: Project, analysisResult: AnalysisResult, input: List<KtFile>,  module: Module,
                               inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState {
-
-    input.firstOrNull { it.module != module }?.let {
-      throw LiveEditUpdateException.internalErrorFileOutsideModule(it) }
+    // Ideally, we want to make sure that each compilation only contains files of a single module.
+    // However, the current algorithm would fail if a file depends on an inline function that is in another module.
+    // If we are unable to pull the binary version of the inline function from the .class directories, we would need to include the .kt
+    // file in the input.
+    if (input.isNotEmpty() && input.first().module != module) {
+      throw LiveEditUpdateException.internalErrorFileOutsideModule(input.first())
+    }
 
     // The Kotlin compiler is built on top of the PSI parse tree which is used in the IDE.
     // In order to support things like auto-complete when the user is still typing code, the IDE needs to be able to perform
