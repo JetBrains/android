@@ -244,7 +244,6 @@ private class ComponentTreeTest {
   private fun setLAF(laf: LookAndFeel) {
     try {
       UIManager.setLookAndFeel(laf)
-      JBColor.setDark(UIUtil.isUnderDarcula())
     } catch (ex: Exception) {
       ex.printStackTrace()
     }
