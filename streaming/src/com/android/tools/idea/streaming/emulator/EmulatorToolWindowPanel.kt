@@ -248,10 +248,12 @@ internal class EmulatorToolWindowPanel(
    * Destroys content of the emulator panel and returns its state for later recreation.
    */
   override fun destroyContent(): EmulatorUiState {
+    val uiState = EmulatorUiState()
+    val disposable = contentDisposable ?: return uiState
+    contentDisposable = null
+
     multiDisplayStateUpdater.run()
     multiDisplayStateStorage.removeUpdater(multiDisplayStateUpdater)
-
-    val uiState = EmulatorUiState()
 
     for (panel in displayPanels.values) {
       uiState.zoomScrollState[panel.displayId] = panel.zoomScrollState
@@ -273,8 +275,7 @@ internal class EmulatorToolWindowPanel(
 
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", focusOwnerListener)
     emulator.removeConnectionStateListener(this)
-    contentDisposable?.let { Disposer.dispose(it) }
-    contentDisposable = null
+    Disposer.dispose(disposable)
 
     centerPanel.removeAll()
     displayPanels.clear()

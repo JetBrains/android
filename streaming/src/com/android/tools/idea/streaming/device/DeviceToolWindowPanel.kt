@@ -202,16 +202,15 @@ internal class DeviceToolWindowPanel(
   override fun destroyContent(): DeviceUiState {
     B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceToolWindowPanel.simpleId}.destroyContent" }
     val uiState = DeviceUiState()
+    val disposable = contentDisposable ?: return uiState
+    contentDisposable = null
     uiState.orientation = primaryDisplayView?.displayOrientationQuadrants ?: 0
     for (displayPanel in displayPanels.values) {
       uiState.zoomScrollState[displayPanel.displayId] = displayPanel.zoomScrollState
     }
 
-    contentDisposable?.let {
-      B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceToolWindowPanel.simpleId}.destroyContent disposing $it" }
-      Disposer.dispose(it)
-    }
-    contentDisposable = null
+    B330395367Logger.log { "${deviceClient.deviceName}: ${this@DeviceToolWindowPanel.simpleId}.destroyContent disposing $disposable" }
+    Disposer.dispose(disposable)
 
     centerPanel.removeAll()
     displayPanels.clear()
