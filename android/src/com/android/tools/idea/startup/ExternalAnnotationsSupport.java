@@ -35,6 +35,7 @@ import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -214,7 +215,7 @@ public class ExternalAnnotationsSupport {
   public static void addAnnotations(@NotNull Sdk sdk) {
     SdkModificator modifier = sdk.getSdkModificator();
     attachJdkAnnotations(modifier);
-    modifier.commitChanges();
+    WriteAction.run(() -> modifier.commitChanges());
   }
 
   public static void addAnnotationsIfNecessary(@NotNull Sdk sdk) {
@@ -223,8 +224,6 @@ public class ExternalAnnotationsSupport {
     if (roots.length > 0) {
       return;
     }
-    SdkModificator modifier = sdk.getSdkModificator();
-    attachJdkAnnotations(modifier);
-    modifier.commitChanges();
+    addAnnotations(sdk);
   }
 }
