@@ -187,8 +187,8 @@ internal class DeviceToolWindowPanel(
         }
 
         EventQueue.invokeLater {
-          mainToolbar.updateActionsImmediately()
-          secondaryToolbar.updateActionsImmediately()
+          mainToolbar.updateActionsAsync()
+          secondaryToolbar.updateActionsAsync()
         }
       }
     })
@@ -291,8 +291,8 @@ internal class DeviceToolWindowPanel(
       val rootPanel = buildLayout(layoutRoot, newDisplays)
       displayDescriptors = newDisplays
       setRootPanel(rootPanel)
-      mainToolbar.updateActionsImmediately()
-      secondaryToolbar.updateActionsImmediately()
+      mainToolbar.updateActionsAsync()
+      secondaryToolbar.updateActionsAsync()
     }
 
     fun buildLayout(multiDisplayState: MultiDisplayState) {
@@ -340,8 +340,8 @@ internal class DeviceToolWindowPanel(
     }
 
     private fun setRootPanel(rootPanel: JPanel) {
-      mainToolbar.updateActionsImmediately() // Rotation buttons are hidden in multi-display mode.
-      secondaryToolbar.updateActionsImmediately()
+      mainToolbar.updateActionsAsync() // Rotation buttons are hidden in multi-display mode.
+      secondaryToolbar.updateActionsAsync()
       centerPanel.removeAll()
       centerPanel.addToCenter(rootPanel)
       centerPanel.validate()
