@@ -23,11 +23,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.psi.KtProperty
 
@@ -43,17 +39,11 @@ fun Context.getPsiFile(): PsiFile? {
 }
 
 /** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
-@OptIn(KtAllowAnalysisOnEdt::class)
 internal fun KtProperty.hasBackingField(): Boolean {
-  allowAnalysisOnEdt {
-    @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
-    allowAnalysisFromWriteAction {
-      analyze(this) {
-        val propertySymbol =
-          this@hasBackingField.getVariableSymbol() as? KtPropertySymbol ?: return false
-        return propertySymbol.hasBackingField
-      }
-    }
+  analyze(this) {
+    val propertySymbol =
+      this@hasBackingField.getVariableSymbol() as? KtPropertySymbol ?: return false
+    return propertySymbol.hasBackingField
   }
 }
 
