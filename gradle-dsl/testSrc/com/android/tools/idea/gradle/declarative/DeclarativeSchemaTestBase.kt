@@ -43,7 +43,7 @@ abstract class DeclarativeSchemaTestBase {
     val projectDir = projectRule.project.guessProjectDir()!!
     runWriteAction {
       val gradlePath = projectDir.createChildDirectory(this, ".gradle")
-      val schemaFolder = gradlePath.createChildDirectory(this, "restricted-schema")
+      val schemaFolder = gradlePath.createChildDirectory(this, "declarative-schema")
       val schemaProjectFile = schemaFolder.createChildData(this, projectFileName)
       val schemaPluginFile = schemaFolder.createChildData(this, pluginFileName)
       VfsUtil.saveText(schemaProjectFile, VfsUtilCore.loadText(

@@ -44,8 +44,8 @@ class DeclarativeService {
   fun getSchema(module: Module): DeclarativeSchema? {
     return map.getOrPut(module) {
       val parentPath = module.guessModuleDir()?.path
-      val project = File(parentPath, ".gradle/restricted-schema/project.dcl.schema")
-      val plugins = File(parentPath, ".gradle/restricted-schema/plugins.dcl.schema")
+      val project = File(parentPath, ".gradle/declarative-schema/project.dcl.schema")
+      val plugins = File(parentPath, ".gradle/declarative-schema/plugins.dcl.schema")
       try {
         val projectSchema = SchemaSerialization.schemaFromJsonString(project.readText())
         val pluginSchema = SchemaSerialization.schemaFromJsonString(plugins.readText())
