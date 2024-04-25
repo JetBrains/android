@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchm
 import com.android.tools.idea.perfetto.PerfettoTraceWebLoader
 import com.android.tools.idea.project.AndroidNotification
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -43,7 +44,9 @@ class BenchmarkLinkListener(private val project: Project) : HyperlinkListener {
         PerfettoTraceWebLoader.loadTrace(virtualFileTrace.toNioPath().toFile())
       } else {
         val fd = OpenFileDescriptor(project, virtualFileTrace)
-        FileEditorManager.getInstance(project).openEditor(fd, true)
+        ApplicationManager.getApplication().invokeAndWait {
+          FileEditorManager.getInstance(project).openEditor(fd, true)
+        }
       }
     }
   }
