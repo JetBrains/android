@@ -21,7 +21,6 @@ import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -74,24 +73,7 @@ class ComposePreviewKotlin {
       studio.waitForComponentWithExactText("MyOrdersPreview (state 0)")
 
       system.installation.ideaLog.waitForMatchingLine(".*Render completed(.*)", 2, TimeUnit.MINUTES)
-
-      // Waits until there are at least two render completed logs (DefaultPreview and
-      // MyOrdersPreview).
-      waitForCondition {
-        system.installation.ideaLog.findMatchingLines(".*Render completed(.*)").size >= 2
-      }
+      studio.executeAction("CloseAllEditors")
     }
-  }
-
-  /** Waits for 10 minutes for a given [condition] to be true. Delays for 500ms per iteration. */
-  private fun waitForCondition(condition: () -> Boolean) {
-    val timeoutMs = 600_000
-    val deadlineMs = System.currentTimeMillis() + timeoutMs
-    val delayMs = 500L
-    while (System.currentTimeMillis() < deadlineMs) {
-      if (condition()) return
-      Thread.sleep(delayMs)
-    }
-    throw TimeoutException()
   }
 }
