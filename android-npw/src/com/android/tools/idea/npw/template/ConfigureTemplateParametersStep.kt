@@ -281,7 +281,7 @@ class ConfigureTemplateParametersStep(
   private fun createRowForWidget(module: Module?, widget: Widget<*>): RowEntry<*> =
     when (widget) {
       is TextFieldWidget -> RowEntry(widget.p.name, TextFieldProvider(widget.parameter))
-      is LabelWidget -> RowEntry(LabelFieldProvider(widget.text))
+      is LabelWidget -> RowEntry(LabelFieldProvider(widget.text, widget.icon))
       is LanguageWidget ->
         RowEntry(message("android.wizard.language.combo.header"), LanguageComboProvider()).also {
           val language = (it.property as SelectedItemProperty<Language>)

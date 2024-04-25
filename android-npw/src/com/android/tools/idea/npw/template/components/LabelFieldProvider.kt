@@ -16,12 +16,13 @@
 package com.android.tools.idea.npw.template.components
 
 import com.intellij.ui.components.JBLabel
+import javax.swing.Icon
 import javax.swing.JLabel
+import javax.swing.SwingConstants
 
-
-/**
- * Provides a [JBLabel] with the specified text.
- */
-class LabelFieldProvider(private val text: String) : ComponentProvider<JLabel>() {
-  override fun createComponent(): JBLabel = JBLabel("<html>$text</html>")
+/** Provides a [JBLabel] with the specified text and optional icon. */
+class LabelFieldProvider(private val text: String, private val icon: Icon?) :
+  ComponentProvider<JLabel>() {
+  override fun createComponent(): JBLabel =
+    JBLabel("<html>$text</html>", icon, SwingConstants.LEFT).apply { isAllowAutoWrapping = true }
 }
