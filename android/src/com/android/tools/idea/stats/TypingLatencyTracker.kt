@@ -20,7 +20,6 @@ import com.android.tools.analytics.toProto
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorFileType
 import com.google.wireless.android.sdk.stats.TypingLatencyStats
-import com.intellij.ide.EssentialHighlightingMode
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
@@ -28,9 +27,6 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actionSystem.LatencyListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.util.registry.RegistryManager
-import com.intellij.openapi.util.registry.RegistryValue
-import com.intellij.openapi.util.registry.RegistryValueListener
 import com.intellij.util.application
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.hours
@@ -55,19 +51,6 @@ class TypingLatencyTracker(private val coroutineScope: CoroutineScope) : Disposa
         reportTypingLatency()
       }
     }
-
-    // Since the latency message includes a value indicating whether essentials mode is enabled,
-    // send a report (and clear gathered stats) whenever that mode is toggled.
-    RegistryManager.getInstance()
-      .get("ide.highlighting.mode.essential")
-      .addListener(
-        object : RegistryValueListener {
-          override fun beforeValueChanged(value: RegistryValue) {
-            reportTypingLatency()
-          }
-        },
-        this,
-      )
 
     // Listen for any typing latency data from the platform.
     application.messageBus.connect(this).subscribe(LatencyListener.TOPIC, Listener())
@@ -121,7 +104,6 @@ class TypingLatencyTracker(private val coroutineScope: CoroutineScope) : Disposa
         }
       allStats.addLatencyRecords(record.build())
     }
-    allStats.setEssentialHighlighting(EssentialHighlightingMode.isEnabled())
     if (allStats.latencyRecordsCount == 0) {
       return
     }
