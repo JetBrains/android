@@ -158,7 +158,7 @@ public class ResourceResolverCache {
       ResourceReference theme = null;
       ResourceUrl themeUrl = ResourceUrl.parse(themeStyle);
       if (themeUrl != null) {
-        ResourceNamespace contextNamespace = ReadAction.compute(repositoryManager::getNamespace);
+        ResourceNamespace contextNamespace = repositoryManager.getNamespace();
         theme = themeUrl.resolve(contextNamespace, ResourceNamespace.Resolver.EMPTY_RESOLVER);
       }
 
