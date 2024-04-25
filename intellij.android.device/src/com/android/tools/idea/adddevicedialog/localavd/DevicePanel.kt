@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.adddevicedialog.localavd
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.android.sdklib.devices.Abi
 import kotlinx.collections.immutable.ImmutableCollection
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
@@ -31,8 +33,11 @@ internal fun DevicePanel(
   device: VirtualDevice,
   selectedServices: Services?,
   servicesCollection: ImmutableCollection<Services>,
+  selectedAbi: Abi?,
+  abis: ImmutableCollection<Abi>,
   onDeviceChange: (VirtualDevice) -> Unit,
   onSelectedServicesChange: (Services?) -> Unit,
+  onSelectedAbiChange: (Abi?) -> Unit,
 ) {
   Text("Name", Modifier.padding(bottom = Padding.SMALL))
 
@@ -49,28 +54,83 @@ internal fun DevicePanel(
     Modifier.padding(bottom = Padding.SMALL_MEDIUM),
   )
 
-  Text("Services", Modifier.padding(bottom = Padding.SMALL))
-
   Row {
-    Dropdown(
-      Modifier.padding(end = Padding.MEDIUM),
-      menuContent = {
-        servicesCollection.forEach {
-          selectableItem(selectedServices == it, onClick = { onSelectedServicesChange(it) }) {
-            Text(it.toString())
+    ServicesDropdown(
+      selectedServices,
+      servicesCollection,
+      onSelectedServicesChange,
+      Modifier.padding(end = Padding.LARGE),
+    )
+
+    AbiDropdown(selectedAbi, abis, onSelectedAbiChange)
+  }
+}
+
+@Composable
+private fun ServicesDropdown(
+  selectedServices: Services?,
+  servicesCollection: ImmutableCollection<Services>,
+  onSelectedServicesChange: (Services?) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Column(modifier) {
+    Text("Services", Modifier.padding(bottom = Padding.SMALL))
+
+    Row {
+      Dropdown(
+        Modifier.padding(end = Padding.MEDIUM),
+        menuContent = {
+          servicesCollection.forEach {
+            selectableItem(selectedServices == it, onClick = { onSelectedServicesChange(it) }) {
+              Text(it.toString())
+            }
           }
-        }
 
-        separator()
+          separator()
 
-        selectableItem(selectedServices == null, onClick = { onSelectedServicesChange(null) }) {
-          Text("Show All")
-        }
-      },
-    ) {
-      Text(selectedServices?.toString() ?: "Show All")
+          selectableItem(selectedServices == null, onClick = { onSelectedServicesChange(null) }) {
+            Text("Show All")
+          }
+        },
+      ) {
+        Text(selectedServices?.toString() ?: "Show All")
+      }
+
+      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
     }
+  }
+}
 
-    InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+@Composable
+private fun AbiDropdown(
+  selectedAbi: Abi?,
+  abis: ImmutableCollection<Abi>,
+  onSelectedAbiChange: (Abi?) -> Unit,
+) {
+  Column {
+    Text("ABI", Modifier.padding(bottom = Padding.SMALL))
+
+    Row {
+      Dropdown(
+        Modifier.padding(end = Padding.MEDIUM),
+        menuContent = {
+          abis.forEach {
+            selectableItem(selectedAbi == it, onClick = { onSelectedAbiChange(it) }) {
+              Text(it.toString())
+            }
+          }
+
+          separator()
+
+          selectableItem(selectedAbi == null, onClick = { onSelectedAbiChange(null) }) {
+            Text("Show All")
+          }
+        },
+      ) {
+        Text(selectedAbi?.toString() ?: "Show All")
+      }
+
+      InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
+    }
   }
 }

@@ -17,18 +17,31 @@ package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.runtime.Immutable
 import com.android.repository.api.RepoPackage
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags
+import com.android.sdklib.devices.Abi
 import com.android.sdklib.repository.meta.DetailsTypes.ApiDetailsType
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.google.common.annotations.VisibleForTesting
+import kotlinx.collections.immutable.ImmutableCollection
+import kotlinx.collections.immutable.toImmutableSet
 
 @Immutable
 internal class SystemImage @VisibleForTesting internal constructor(repoPackage: RepoPackage) {
-  internal val androidVersion = (repoPackage.typeDetails as ApiDetailsType).androidVersion
-  internal val services = getServices(repoPackage)
+  internal val androidVersion: AndroidVersion
+  internal val services: Services
+  internal val abis: ImmutableCollection<Abi>
+
+  init {
+    val details = repoPackage.typeDetails as ApiDetailsType
+
+    androidVersion = details.androidVersion
+    services = repoPackage.getServices()
+    abis = details.abis.map(::valueOfString).toImmutableSet()
+  }
 
   internal companion object {
     internal fun getSystemImages(): Collection<SystemImage> {
@@ -47,12 +60,15 @@ internal class SystemImage @VisibleForTesting internal constructor(repoPackage: 
         .map(::SystemImage)
         .toList()
     }
+
+    private fun valueOfString(string: String) =
+      requireNotNull(Abi.values().firstOrNull { it.toString() == string })
   }
 
-  private fun getServices(repoPackage: RepoPackage): Services {
-    val tags = SystemImageTags.getTags(repoPackage)
+  private fun RepoPackage.getServices(): Services {
+    val tags = SystemImageTags.getTags(this)
 
-    if (SystemImageTags.hasGooglePlay(tags, androidVersion, repoPackage)) {
+    if (SystemImageTags.hasGooglePlay(tags, androidVersion, this)) {
       return Services.GOOGLE_PLAY_STORE
     }
 

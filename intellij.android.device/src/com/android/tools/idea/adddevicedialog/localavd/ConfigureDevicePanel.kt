@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.android.sdklib.devices.Abi
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import java.util.EnumSet
 import kotlinx.collections.immutable.ImmutableCollection
@@ -71,6 +72,11 @@ private fun Tabs(
   // TODO: http://b/335494340
   var services by remember { mutableStateOf(servicesSet.first()) }
 
+  val abis = images.flatMapTo(EnumSet.noneOf(Abi::class.java), SystemImage::abis).toImmutableSet()
+
+  // TODO: http://b/337101897
+  var abi by remember { mutableStateOf(abis.first()) }
+
   val state = remember { AdditionalSettingsPanelState(device) }
 
   when (selectedTab) {
@@ -79,8 +85,11 @@ private fun Tabs(
         device,
         services,
         servicesSet,
+        abi,
+        abis,
         onDeviceChange,
         onSelectedServicesChange = { services = it },
+        onSelectedAbiChange = { abi = it },
       )
     Tab.ADDITIONAL_SETTINGS ->
       AdditionalSettingsPanel(device, skins, state, onDeviceChange, onImportButtonClick)

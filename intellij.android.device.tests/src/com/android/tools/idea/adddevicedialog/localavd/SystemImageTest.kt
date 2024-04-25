@@ -16,8 +16,14 @@
 package com.android.tools.idea.adddevicedialog.localavd
 
 import com.android.repository.api.RepoPackage
+import com.android.repository.impl.meta.TypeDetails
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags
+import com.android.sdklib.devices.Abi
+import com.android.sdklib.repository.IdDisplay
+import com.android.sdklib.repository.generated.addon.v3.AddonDetailsType
+import com.android.sdklib.repository.generated.common.v3.ApiDetailsType
+import com.android.sdklib.repository.generated.common.v3.IdDisplayType
 import com.android.sdklib.repository.generated.sysimg.v4.SysImgDetailsType
 import com.android.testutils.MockitoKt
 import org.junit.Assert.assertEquals
@@ -27,18 +33,12 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class SystemImageTest {
-  private val details = MockitoKt.mock<SysImgDetailsType>()
-  private val repoPackage = MockitoKt.mock<RepoPackage>()
-
-  init {
-    MockitoKt.whenever(repoPackage.typeDetails).thenReturn(details)
-  }
-
   /** system-images;android-29;google_apis_playstore;x86 */
   @Test
   fun systemImageTagsContainsGooglePlay() {
     // Arrange
-    MockitoKt.whenever(details.tags).thenReturn(listOf(SystemImageTags.PLAY_STORE_TAG))
+    val repoPackage =
+      mockRepoPackage(mockSysImgDetailsType(AndroidVersion(29), SystemImageTags.PLAY_STORE_TAG))
 
     // Act
     val services = SystemImage(repoPackage).services
@@ -51,7 +51,10 @@ class SystemImageTest {
   @Test
   fun systemImageTagEqualsAndroidAutomotiveWithGooglePlay() {
     // Arrange
-    MockitoKt.whenever(details.tags).thenReturn(listOf(SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG))
+    val details =
+      mockSysImgDetailsType(AndroidVersion(32), SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG)
+
+    val repoPackage = mockRepoPackage(details)
 
     // Act
     val services = SystemImage(repoPackage).services
@@ -64,8 +67,12 @@ class SystemImageTest {
   @Test
   fun systemImageTagEqualsWearOsEtc() {
     // Arrange
+    val details = MockitoKt.mock<SysImgDetailsType>()
     MockitoKt.whenever(details.androidVersion).thenReturn(AndroidVersion(30))
     MockitoKt.whenever(details.tags).thenReturn(listOf(SystemImageTags.WEAR_TAG))
+
+    val repoPackage = MockitoKt.mock<RepoPackage>()
+    MockitoKt.whenever(repoPackage.typeDetails).thenReturn(details)
 
     MockitoKt.whenever(repoPackage.path)
       .thenReturn("system-images;android-30;android-wear;arm64-v8a")
@@ -81,7 +88,8 @@ class SystemImageTest {
   @Test
   fun systemImageTagsContainsGoogleApis() {
     // Arrange
-    MockitoKt.whenever(details.tags).thenReturn(listOf(SystemImageTags.GOOGLE_APIS_TAG))
+    val repoPackage =
+      mockRepoPackage(mockSysImgDetailsType(AndroidVersion(23), SystemImageTags.GOOGLE_APIS_TAG))
 
     // Act
     val services = SystemImage(repoPackage).services
@@ -94,12 +102,48 @@ class SystemImageTest {
   @Test
   fun systemImageTagsSizeEquals1Etc() {
     // Arrange
-    MockitoKt.whenever(details.tags).thenReturn(listOf(SystemImageTags.ANDROID_TV_TAG))
+    val repoPackage =
+      mockRepoPackage(mockSysImgDetailsType(AndroidVersion(31), SystemImageTags.ANDROID_TV_TAG))
 
     // Act
     val services = SystemImage(repoPackage).services
 
     // Assert
     assertEquals(Services.GOOGLE_APIS, services)
+  }
+
+  /** add-ons;addon-google_apis-google-15 */
+  @Test
+  fun systemImageTagsDoesntContainGoogleApisX86() {
+    // Arrange
+    val details = MockitoKt.mock<AddonDetailsType>()
+    MockitoKt.whenever(details.androidVersion).thenReturn(AndroidVersion(15))
+    MockitoKt.whenever(details.tag).thenReturn(SystemImageTags.GOOGLE_APIS_TAG as IdDisplayType)
+    MockitoKt.whenever(details.abis).thenReturn(listOf("armeabi"))
+
+    val repoPackage = mockRepoPackage(details)
+
+    // Act
+    val abis = SystemImage(repoPackage).abis
+
+    // Assert
+    assertEquals(setOf(Abi.ARMEABI), abis)
+  }
+
+  private companion object {
+    private fun mockRepoPackage(details: TypeDetails): RepoPackage {
+      val repoPackage = MockitoKt.mock<RepoPackage>()
+      MockitoKt.whenever(repoPackage.typeDetails).thenReturn(details)
+
+      return repoPackage
+    }
+
+    private fun mockSysImgDetailsType(version: AndroidVersion, tag: IdDisplay): ApiDetailsType {
+      val details = MockitoKt.mock<SysImgDetailsType>()
+      MockitoKt.whenever(details.androidVersion).thenReturn(version)
+      MockitoKt.whenever(details.tags).thenReturn(listOf(tag))
+
+      return details
+    }
   }
 }
