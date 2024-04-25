@@ -19,10 +19,12 @@ import static org.junit.Assert.assertEquals;
 
 import com.intellij.execution.ExecutionTargetProvider;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,6 +50,7 @@ public final class DeviceAndSnapshotExecutionTargetProviderTest {
   @Test
   public void getTargetsTargetsArePresent() {
     // Arrange
+    setupAndroidFacetMock(myProject);
     var targets = Set.<Target>of(new QuickBootTarget(Keys.PIXEL_4_API_30));
     Mockito.when(myAction.getSelectedTargets(myProject)).thenReturn(Optional.of(targets));
 
@@ -61,9 +64,17 @@ public final class DeviceAndSnapshotExecutionTargetProviderTest {
   @Test
   public void getTargets() {
     // Act
+    setupAndroidFacetMock(myProject);
     var executionTargets = myProvider.getTargets(myProject, myConfiguration);
 
     // Assert
     assertEquals(List.of(new DeviceAndSnapshotComboBoxExecutionTarget(Set.of(), myGetter)), executionTargets);
+  }
+
+  private static void setupAndroidFacetMock(Project project){
+    ProjectFacetManager mockProjectManager = Mockito.mock(ProjectFacetManager.class);
+    Mockito.when(mockProjectManager.hasFacets(AndroidFacet.ID)).thenReturn(true);
+
+    Mockito.when(ProjectFacetManager.getInstance(project)).thenReturn(mockProjectManager);
   }
 }
