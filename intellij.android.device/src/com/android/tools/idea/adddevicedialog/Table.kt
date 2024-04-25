@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Stable
@@ -39,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +49,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
 import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
+import org.jetbrains.jewel.foundation.Stroke
+import org.jetbrains.jewel.foundation.modifier.border
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalContentColor
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
@@ -136,11 +141,18 @@ internal fun <T> TableHeader(
 ) {
   Row(
     Modifier.fillMaxWidth().padding(ROW_PADDING),
-    horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
+    horizontalArrangement = Arrangement.spacedBy(CELL_SPACING / 2),
   ) {
     columns.forEach {
       val widthModifier = with(it.width) { widthModifier() }
-      Row(widthModifier.clickable { onClick(it) }) {
+      var isFocused by remember { mutableStateOf(false) }
+      Row(
+        widthModifier
+          .thenIf(isFocused) { focusBorder() }
+          .padding(CELL_SPACING / 2)
+          .onFocusChanged { isFocused = it.isFocused }
+          .thenIf(it.comparator != null) { clickable { onClick(it) } }
+      ) {
         Text(it.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (it == sortColumn) {
           sortOrder.Icon()
@@ -157,15 +169,20 @@ internal fun <T> TableRow(
   onClick: (T) -> Unit = {},
   columns: List<TableColumn<T>>,
 ) {
+  var isFocused by remember { mutableStateOf(false) }
   Row(
-    Modifier.fillMaxWidth()
-      .clickable { onClick(value) }
-      .thenIf(selected) {
+    Modifier.thenIf(selected) {
         background(
           retrieveColorOrUnspecified("Table.selectionBackground").takeOrElse { Color.Cyan }
         )
       }
-      .padding(ROW_PADDING),
+      // Divide the padding before and after the border
+      .padding(ROW_PADDING / 2)
+      .thenIf(isFocused) { focusBorder() }
+      .padding(ROW_PADDING / 2)
+      .onFocusChanged { isFocused = it.isFocused }
+      .clickable { onClick(value) }
+      .fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
   ) {
     val contentColor =
@@ -186,7 +203,7 @@ internal fun <T> Table(
   tableSelectionState: TableSelectionState<T> = remember { TableSelectionState<T>() },
   tableSortState: TableSortState<T> = remember { TableSortState<T>() },
 ) {
-  Column(modifier) {
+  Column(modifier.padding(ROW_PADDING)) {
     TableHeader(
       tableSortState.sortColumn,
       tableSortState.sortOrder,
@@ -222,6 +239,15 @@ internal fun <T> Table(
     }
   }
 }
+
+@Composable
+private fun Modifier.focusBorder() =
+  border(
+    Stroke.Alignment.Center,
+    shape = RoundedCornerShape(4.dp),
+    color = JewelTheme.globalColors.outlines.focused,
+    width = JewelTheme.globalMetrics.outlineWidth,
+  )
 
 private val CELL_SPACING = 4.dp
 private val ROW_PADDING = 4.dp
