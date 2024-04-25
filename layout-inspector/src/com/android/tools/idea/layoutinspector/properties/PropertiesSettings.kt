@@ -20,7 +20,7 @@ import com.intellij.ide.util.PropertiesComponent
 
 enum class DimensionUnits {
   PIXELS,
-  DP
+  DP,
 }
 
 private const val DIMENSION_UNITS = "live.layout.inspector.attr.dimension.unit"

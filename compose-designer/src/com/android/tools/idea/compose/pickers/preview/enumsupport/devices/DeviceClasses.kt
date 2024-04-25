@@ -51,7 +51,7 @@ internal enum class DeviceClass(val display: String, val icon: Icon? = null) {
   Wear("Wear", StudioIcons.LayoutEditor.Toolbar.DEVICE_WEAR),
   Tv("Tv", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV),
   Auto("Auto", StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE),
-  Generic("Generic Devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE)
+  Generic("Generic Devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE),
 }
 
 /**

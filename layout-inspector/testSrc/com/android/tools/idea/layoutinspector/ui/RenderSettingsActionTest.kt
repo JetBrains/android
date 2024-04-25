@@ -33,12 +33,12 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.testFramework.ApplicationRule
+import java.awt.event.MouseEvent
+import java.util.EnumSet
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Test
 import org.mockito.Mockito.doAnswer
-import java.awt.event.MouseEvent
-import java.util.EnumSet
 
 class RenderSettingsActionTest {
   private lateinit var event: AnActionEvent

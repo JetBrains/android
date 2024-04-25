@@ -72,6 +72,7 @@ internal fun PsiElementPattern<*, *>.inArrayWithinConstraintBlockProperty(
     .withConstraintSetsParentAtLevel(
       CONSTRAINT_BLOCK_PROPERTY_DEPTH + 1
     ) // JsonArray adds one level
+
 // endregion
 
 // region Kotlin Syntax Helpers

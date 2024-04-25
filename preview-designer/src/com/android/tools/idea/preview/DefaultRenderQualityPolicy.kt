@@ -35,6 +35,7 @@ class DefaultRenderQualityPolicy(val screenScalingFactorProvider: () -> Double) 
 
     const val lowestQuality: Float = 0.001f
   }
+
   /**
    * When false, then the target quality of all the previews configured following this policy
    * instance will be [lowestQuality].

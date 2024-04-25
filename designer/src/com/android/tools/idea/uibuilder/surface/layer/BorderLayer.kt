@@ -44,7 +44,7 @@ enum class BorderColor(
   DEFAULT_WITH_SHADOW(defaultBorderColor, UIUtil.TRANSPARENT_COLOR, 4),
   DEFAULT_WITHOUT_SHADOW(defaultBorderColor, defaultBorderColor, 1),
   SELECTED(selectedBorderColor, selectedBorderColor, 1),
-  HOVERED(hoveredBorderColor, hoveredBorderColor, 2)
+  HOVERED(hoveredBorderColor, hoveredBorderColor, 2),
 }
 
 class BorderLayer

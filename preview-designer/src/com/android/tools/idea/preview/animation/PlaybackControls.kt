@@ -50,7 +50,7 @@ class PlaybackControls(
     X_0_5(0.5f, "0.5x"),
     X_0_75(0.75f, "0.75x"),
     X_1(1f, "1x"),
-    X_2(2f, "2x")
+    X_2(2f, "2x"),
   }
 
   private val playPauseAction = PlayPauseAction(parentDisposable)

@@ -114,6 +114,6 @@ class CoordinatorPlaceholder(
     BOTTOM,
     RIGHT_TOP,
     RIGHT,
-    RIGHT_BOTTOM
+    RIGHT_BOTTOM,
   }
 }

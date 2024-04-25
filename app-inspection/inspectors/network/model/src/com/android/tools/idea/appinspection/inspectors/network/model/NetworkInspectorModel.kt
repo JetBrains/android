@@ -54,7 +54,7 @@ class NetworkInspectorModel(
   enum class DetailContent {
     CONNECTION,
     RULE,
-    EMPTY
+    EMPTY,
   }
 
   var detailContent: DetailContent = DetailContent.EMPTY
@@ -168,6 +168,7 @@ class NetworkInspectorModel(
     timeline.viewRange.clear()
     timeline.tooltipRange.clear()
   }
+
   /** Returns true if the timeline in live mode. */
   private fun isLive() =
     timeline.viewRange.max < 0 || (timeline.viewRange.max == timeline.dataRange.max)

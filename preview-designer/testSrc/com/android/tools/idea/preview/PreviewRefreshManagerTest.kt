@@ -461,7 +461,7 @@ class PreviewRefreshManagerTest {
           runBlocking { delay(1000) }
           // Here is one of the sides of the deadlock seen in b/291792172,
           // this would hang if we regress
-          runWriteActionAndWait { /*do nothing, just try to get the UI thread*/}
+          runWriteActionAndWait { /*do nothing, just try to get the UI thread*/ }
         },
       )
     )

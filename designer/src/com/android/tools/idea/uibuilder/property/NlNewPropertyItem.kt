@@ -93,6 +93,7 @@ class NlNewPropertyItem(
 
   // There should only be one instance of NeleNewPropertyItem per Property panel.
   override fun equals(other: Any?) = other is NlNewPropertyItem
+
   // The hashCode can be an arbitrary number since we only have 1 instance
   override fun hashCode() = 517
 

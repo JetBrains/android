@@ -66,7 +66,7 @@ import javax.swing.table.TableRowSorter
 class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) {
   private enum class Column(val displayName: String) {
     NAME("Initiating thread"),
-    TIMELINE("Timeline")
+    TIMELINE("Timeline"),
   }
 
   private val threadsTable: JTable

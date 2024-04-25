@@ -225,6 +225,7 @@ class AnimationInspectionsTest {
     fixture.configureByText("Test.kt", fileContent)
     assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
+
   // endregion
 
   // region AnimatedContent
@@ -327,6 +328,7 @@ class AnimationInspectionsTest {
 
     fixture.checkResult(fileContentAfterFix)
   }
+
   // endregion
 
   // region rememberInfiniteTransition
@@ -412,6 +414,7 @@ class AnimationInspectionsTest {
 
     fixture.checkResult(fileContentAfterFix)
   }
+
   // endregion
 
   // region infinite transition property
@@ -555,6 +558,7 @@ class AnimationInspectionsTest {
 
     fixture.checkResult(fileContentAfterFix)
   }
+
   // endregion
 
   // region animate*AsState
@@ -711,6 +715,7 @@ class AnimationInspectionsTest {
 
     fixture.checkResult(fileContentAfterFix)
   }
+
   // endregion
 
   // region Crossfade

@@ -34,7 +34,7 @@ typealias EntryUpdateEventListener =
 enum class EntryUpdateEventType {
   ADD,
   UPDATE,
-  REMOVE
+  REMOVE,
 }
 
 sealed class WmiMessengerTarget {
@@ -50,7 +50,7 @@ sealed class WmiMessengerTarget {
 class EventWrapper(val case: Case, data: ByteArray) {
   enum class Case {
     WORK,
-    BACKGROUND_TASK
+    BACKGROUND_TASK,
   }
 
   @TestOnly

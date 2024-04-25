@@ -235,8 +235,8 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
 
   private fun LookupElementPresentation.rewriteSignature(parts: ComposableFunctionRenderParts) {
     clearTail()
-    parts.parameters?.let { appendTailTextItalic(it, /* grayed = */ false) }
-    parts.tail?.let { appendTailText(" $it", /* grayed = */ true) }
+    parts.parameters?.let { appendTailTextItalic(it, /* grayed= */ false) }
+    parts.tail?.let { appendTailText(" $it", /* grayed= */ true) }
   }
 }
 

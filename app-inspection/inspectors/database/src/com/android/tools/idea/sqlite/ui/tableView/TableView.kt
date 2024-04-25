@@ -147,11 +147,13 @@ sealed class RowDiffOperation {
   /** Update operations are applied to the cells of existing rows */
   data class UpdateCell(val newValue: SqliteColumnValue, val rowIndex: Int, val colIndex: Int) :
     RowDiffOperation()
+
   /**
    * Add operations are applied after [UpdateCell] operations, therefore rows are added at the end
    * of the table
    */
   data class AddRow(val row: SqliteRow) : RowDiffOperation()
+
   /**
    * Remove operations are applied after [UpdateCell] operations
    *

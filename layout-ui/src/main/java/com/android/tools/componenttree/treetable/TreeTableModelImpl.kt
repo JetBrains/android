@@ -103,6 +103,7 @@ class TreeTableModelImpl(
   }
 
   override fun columnDataChanged() = fireColumnDataChanged()
+
   // endregion
 
   // region TreeTableModel implementation
@@ -142,6 +143,7 @@ class TreeTableModelImpl(
   override fun setValueAt(aValue: Any?, node: Any?, column: Int) {}
 
   override fun setTree(tree: JTree?) {}
+
   // endregion
 
   /** Find the parent node of the given [node] using the relevant [NodeType]. */

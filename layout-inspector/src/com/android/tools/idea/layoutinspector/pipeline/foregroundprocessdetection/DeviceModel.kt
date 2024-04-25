@@ -127,5 +127,5 @@ enum class ForegroundProcessDetectionSupport {
    * The handshake is started but not concluded yet. So we don't know if fg process detection is
    * supported or not.
    */
-  HANDSHAKE_IN_PROGRESS
+  HANDSHAKE_IN_PROGRESS,
 }

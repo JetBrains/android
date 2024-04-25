@@ -17,9 +17,9 @@ package com.android.tools.idea.adddevicedialog.localavd
 
 import com.android.resources.ScreenOrientation
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.SystemImageDescription
+import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 

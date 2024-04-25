@@ -46,5 +46,5 @@ internal enum class DeviceSpecRule(
   LanguageWithParentId(
     requiredParameters = listOf(LanguageParameterRule.parent),
     optionalParameters = listOf(LanguageParameterRule.orientation),
-  )
+  ),
 }

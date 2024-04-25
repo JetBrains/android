@@ -53,6 +53,6 @@ class DataBindingDefaultTracker private constructor(private val project: Project
 
   override fun trackDataBindingCompletion(
     eventType: DataBindingEvent.EventType,
-    context: DataBindingEvent.DataBindingContext
+    context: DataBindingEvent.DataBindingContext,
   ) {}
 }

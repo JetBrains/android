@@ -1393,9 +1393,15 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     var lintXml = moduleDir!!.findChild("lint.xml")
     assertThat(lintXml).isNull()
 
-    val action = SuppressLintIntentionAction(IconDetector.DUPLICATES_NAMES, iconFile!!).asIntention()
+    val action =
+      SuppressLintIntentionAction(IconDetector.DUPLICATES_NAMES, iconFile!!).asIntention()
     assertTrue(action.isAvailable(project, myFixture.editor, iconFile))
-    ShowIntentionActionsHandler.chooseActionAndInvoke(iconFile, myFixture.editor, action, "Suppress")
+    ShowIntentionActionsHandler.chooseActionAndInvoke(
+      iconFile,
+      myFixture.editor,
+      action,
+      "Suppress",
+    )
     moduleDir.refresh(false, true)
 
     lintXml = moduleDir.findChild("lint.xml")

@@ -398,9 +398,11 @@ class LogcatMessageAssemblerTest {
         Message 1 Line 1
       """
       )
-      assembler.processNewLines("""
+      assembler.processNewLines(
+        """
         Message 1 Line 2
-      """)
+      """
+      )
 
       assembler.processNewLines(
         """

@@ -65,7 +65,7 @@ class BackgroundTaskEntriesView(
 ) : JPanel() {
   enum class Mode {
     TABLE,
-    GRAPH
+    GRAPH,
   }
 
   private inner class CancelAction :

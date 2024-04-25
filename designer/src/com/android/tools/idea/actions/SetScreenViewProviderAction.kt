@@ -37,5 +37,6 @@ class SetScreenViewProviderAction(private val sceneModeProvider: ScreenViewProvi
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     (e.getData(DESIGN_SURFACE) as? NlDesignSurface)?.setScreenViewProvider(sceneModeProvider, true)
   }
+
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }

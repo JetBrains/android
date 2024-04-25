@@ -69,5 +69,5 @@ private enum class IntegerValidatorType {
   NORMAL,
 
   /** To validate for positive integers (>0). */
-  STRICT
+  STRICT,
 }

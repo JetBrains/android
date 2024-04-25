@@ -90,5 +90,5 @@ enum class NetworkState {
   SENDING,
   RECEIVING,
   WAITING,
-  NONE
+  NONE,
 }

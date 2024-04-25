@@ -55,5 +55,4 @@ class AppInsightsToggleAction(
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-
 }

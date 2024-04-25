@@ -40,6 +40,7 @@ class CustomViewPreviewRepresentationProvider : PreviewRepresentationProvider {
   init {
     DesignerTypeRegistrar.register(CustomViewEditorFileType)
   }
+
   /**
    * Checks if the input [psiFile] contains custom views and therefore can be provided with the
    * [PreviewRepresentation] of them.

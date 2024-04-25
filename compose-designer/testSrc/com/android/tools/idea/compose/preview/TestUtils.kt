@@ -62,7 +62,7 @@ internal enum class SimpleComposeAppPaths(val path: String) {
     "lib/src/androidTest/java/google/simpleapplicationlib/AndroidPreviews.kt"
   ),
   LIB_PREVIEWS_UNIT_TEST("lib/src/test/java/google/simpleapplicationlib/UnitPreviews.kt"),
-  APP_BUILD_GRADLE("app/build.gradle")
+  APP_BUILD_GRADLE("app/build.gradle"),
 }
 
 internal const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.runtime.Composable"

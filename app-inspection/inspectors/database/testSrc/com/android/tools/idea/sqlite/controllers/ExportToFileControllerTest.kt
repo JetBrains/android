@@ -816,7 +816,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
 
   enum class DatabaseType {
     Live,
-    File
+    File,
   }
 
   data class TestConfig(val databaseType: DatabaseType, val targetFileAlreadyExists: Boolean)
@@ -986,6 +986,6 @@ private class ExportProcessedListener {
   enum class Scenario {
     NOT_CALLED,
     SUCCESS,
-    ERROR
+    ERROR,
   }
 }

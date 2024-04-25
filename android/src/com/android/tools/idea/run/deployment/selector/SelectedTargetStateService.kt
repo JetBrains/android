@@ -176,7 +176,7 @@ internal data class SelectionStateXml(
 
 internal enum class SelectionMode {
   DROPDOWN,
-  DIALOG
+  DIALOG,
 }
 
 internal data class DropdownSelection(val target: TargetId, val timestamp: Instant?) {
@@ -260,7 +260,7 @@ internal data class DeviceIdXml(
 
 internal enum class DeviceIdType {
   HANDLE,
-  TEMPLATE
+  TEMPLATE,
 }
 
 internal fun DeviceId.toXml() =

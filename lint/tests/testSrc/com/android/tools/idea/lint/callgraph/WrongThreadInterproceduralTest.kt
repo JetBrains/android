@@ -34,17 +34,21 @@ class WrongThreadInterproceduralTest : LightJavaCodeInsightFixtureAdtTestCase() 
   private fun addFile(file: String) = myFixture.copyFileToProject("callgraph/$file", "src/$file")
 
   private fun doTest(ext: String) {
-    myFixture.testDataPath = resolveWorkspacePath("tools/adt/idea/lint/tests/testData/lint").toString()
+    myFixture.testDataPath =
+      resolveWorkspacePath("tools/adt/idea/lint/tests/testData/lint").toString()
 
-    // Most of the test uses the new AndroidX annotations, but we make sure that the old annotations work too.
+    // Most of the test uses the new AndroidX annotations, but we make sure that the old annotations
+    // work too.
     addFile("AndroidxAnnotations$ext")
     addFile("SupportAnnotations$ext")
 
     val virtualFile = addFile("ThreadAnnotations$ext")
-    val (_, receiverEval, graph) = buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
+    val (_, receiverEval, graph) =
+      buildInterproceduralAnalysesForTest(virtualFile, myFixture.project)
     val paths = searchForInterproceduralThreadAnnotationViolations(graph, receiverEval)
 
-    val pathStrs = paths
+    val pathStrs =
+      paths
         .map { (searchNodes, _, _) ->
           searchNodes.joinToString(separator = " -> ") { (contextualNode, _) ->
             contextualNode.node.shortName
@@ -53,15 +57,17 @@ class WrongThreadInterproceduralTest : LightJavaCodeInsightFixtureAdtTestCase() 
         .toSortedSet()
         .joinToString(separator = "\n")
 
-    val expectedPathStrs = listOf(
-        "Test#oldAnnotationA -> Test#oldAnnotationB -> Test#oldAnnotationC",
-        "Test#uiThreadStatic -> Test#unannotatedStatic -> Test#workerThreadStatic",
-        "Test#uiThread -> Test#unannotated -> Test#workerThread",
-        "Test#callRunIt -> Test#runIt -> Test#callRunIt#lambda -> Test#runUi",
-        "A#run -> Test#b",
-        "B#run -> Test#a",
-        "Test#callInvokeLater#lambda -> Test#c",
-        "Test#callInvokeInBackground#lambda -> Test#d")
+    val expectedPathStrs =
+      listOf(
+          "Test#oldAnnotationA -> Test#oldAnnotationB -> Test#oldAnnotationC",
+          "Test#uiThreadStatic -> Test#unannotatedStatic -> Test#workerThreadStatic",
+          "Test#uiThread -> Test#unannotated -> Test#workerThread",
+          "Test#callRunIt -> Test#runIt -> Test#callRunIt#lambda -> Test#runUi",
+          "A#run -> Test#b",
+          "B#run -> Test#a",
+          "Test#callInvokeLater#lambda -> Test#c",
+          "Test#callInvokeInBackground#lambda -> Test#d",
+        )
         .toSortedSet()
         .joinToString(separator = "\n")
 

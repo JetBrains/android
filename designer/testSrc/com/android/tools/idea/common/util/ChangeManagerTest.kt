@@ -45,6 +45,7 @@ private fun PsiFile.runOnDocument(runnable: (PsiDocumentManager, Document) -> Un
 
   WriteCommandAction.runWriteCommandAction(project) { runnable(documentManager, document) }
 }
+
 /** Extension to replace the first occurrence of the [find] string to [replace] */
 private fun PsiFile.replaceStringOnce(find: String, replace: String) =
   runOnDocument { documentManager, document ->
@@ -56,6 +57,7 @@ private fun PsiFile.replaceStringOnce(find: String, replace: String) =
     document.replaceString(index, index + find.length, replace)
     documentManager.commitDocument(document)
   }
+
 /** Helper class do test change tracking and asserting on specific types of changes. */
 private class ChangeTracker {
   private var refreshCounter = 0

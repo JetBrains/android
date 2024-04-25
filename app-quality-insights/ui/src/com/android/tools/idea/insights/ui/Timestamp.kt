@@ -39,7 +39,7 @@ enum class TimestampState {
   UNAVAILABLE,
 
   /** Initial placeholder state. */
-  UNINITIALIZED
+  UNINITIALIZED,
 }
 
 data class Timestamp(val time: Instant?, val state: TimestampState) {

@@ -66,7 +66,7 @@ data class RepoInfo(val vcsKey: VCS_CATEGORY, val rootPath: String, val revision
 /** Version control system */
 enum class VCS_CATEGORY {
   GIT,
-  TEST_VCS
+  TEST_VCS,
 }
 
 fun mapVcsCategoryFrom(proto: VersionControlSystem): VCS_CATEGORY? {

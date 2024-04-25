@@ -172,7 +172,7 @@ interface RenderAsyncActionExecutor {
     COMPOSE_PREVIEW("Compose preview", 100),
     WEAR_TILE_PREVIEW("Wear tile preview", 100),
     GLANCE_PREVIEW("Glance preview", 100),
-    VISUAL_LINT("Visual lint", 1)
+    VISUAL_LINT("Visual lint", 1),
   }
 
   companion object {

@@ -65,7 +65,8 @@ data class AddNoteRequested(val issueId: IssueId, val message: String, val clock
   }
 
   private fun fetchEmail(): String {
-    return service<GoogleLoginService>().getEmail()?.takeUnless { it.isEmpty() } ?: "You (logged out)"
+    return service<GoogleLoginService>().getEmail()?.takeUnless { it.isEmpty() }
+      ?: "You (logged out)"
   }
 }
 

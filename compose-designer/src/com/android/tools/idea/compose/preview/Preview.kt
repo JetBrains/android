@@ -886,6 +886,7 @@ class ComposePreviewRepresentation(
   override fun onDeactivate() {
     lifecycleManager.deactivate()
   }
+
   // endregion
 
   override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {

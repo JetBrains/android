@@ -22,7 +22,7 @@ import androidx.compose.animation.tooling.TransitionInfo
 enum class ClockType {
   DEFAULT,
   WITH_TRANSITIONS,
-  WITH_COORDINATION
+  WITH_COORDINATION,
 }
 
 internal fun ClockType.getClock(): TestClock =

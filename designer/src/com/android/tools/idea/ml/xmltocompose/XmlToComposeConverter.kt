@@ -42,6 +42,6 @@ interface XmlToComposeConverter : Disposable {
 data class ConversionResponse(val generatedCode: String, val status: Status) {
   enum class Status {
     ERROR,
-    SUCCESS
+    SUCCESS,
   }
 }

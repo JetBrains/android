@@ -49,7 +49,7 @@ interface OfflineModeManager {
 
   enum class DownloadState {
     IN_PROGRESS,
-    COMPLETED
+    COMPLETED,
   }
 }
 
@@ -159,6 +159,7 @@ class OfflineModeManagerImpl(
 
   companion object {
     private const val PROJECT_TRUSTED_KEY = "PROJECT_TRUSTED_KEY"
+
     /**
      * Before downloading any database, ask the user if they trust the app. We're doing this because
      * downloading a db and running statements on it might result in executing malicious code.

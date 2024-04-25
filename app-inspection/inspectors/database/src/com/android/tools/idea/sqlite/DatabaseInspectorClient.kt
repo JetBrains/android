@@ -110,6 +110,7 @@ class DatabaseInspectorClient(
       }
     }
   }
+
   /**
    * Sends a command to the on-device inspector to start looking for database connections. When the
    * on-device inspector discovers a connection, it sends back an asynchronous databaseOpen event.

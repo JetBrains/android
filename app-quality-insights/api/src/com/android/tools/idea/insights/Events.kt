@@ -24,7 +24,7 @@ data class Caption(val title: String = "", val subtitle: String = "")
 enum class Blames {
   UNKNOWN_BLAMED,
   BLAMED,
-  NOT_BLAMED
+  NOT_BLAMED,
 }
 
 /** Represents a Frame of the stack, as well as metadata & analysis results. */

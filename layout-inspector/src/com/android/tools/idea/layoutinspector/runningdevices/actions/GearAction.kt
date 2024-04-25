@@ -61,7 +61,7 @@ enum class UiConfig {
   LEFT_VERTICAL,
   LEFT_VERTICAL_SWAP,
   RIGHT_VERTICAL,
-  RIGHT_VERTICAL_SWAP
+  RIGHT_VERTICAL_SWAP,
 }
 
 abstract class UiConfigAction(

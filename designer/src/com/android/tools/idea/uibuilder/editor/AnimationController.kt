@@ -57,7 +57,7 @@ enum class PlayStatus {
   /** The animation is reset. The animation frame is same as its initial value. */
   STOP,
   /** The played animation reaches the end itself. The animation frame is same as its max time. */
-  COMPLETE
+  COMPLETE,
 }
 
 interface AnimationControllerListener {

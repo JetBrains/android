@@ -36,5 +36,5 @@ enum class SceneViewAlignment(val alignmentX: Float) {
   RIGHT(RIGHT_ALIGNMENT),
 
   /** Center contents within the minimum size bounds. */
-  CENTER(CENTER_ALIGNMENT)
+  CENTER(CENTER_ALIGNMENT),
 }

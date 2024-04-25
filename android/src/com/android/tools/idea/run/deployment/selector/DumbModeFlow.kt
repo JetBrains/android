@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.callbackFlow
 
 internal enum class DumbModeStatus {
   DUMB_MODE,
-  SMART_MODE
+  SMART_MODE,
 }
 
 internal fun dumbModeFlow(project: Project): Flow<DumbModeStatus> = callbackFlow {

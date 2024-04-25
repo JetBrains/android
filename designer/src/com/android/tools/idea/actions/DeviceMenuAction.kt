@@ -438,7 +438,7 @@ private class PixelDeviceComparator(val varianceComparator: Comparator<String>) 
   private enum class Series {
     PIXEL,
     NEXUS,
-    OTHER
+    OTHER,
   }
 
   private fun getSeries(name: String): Series {

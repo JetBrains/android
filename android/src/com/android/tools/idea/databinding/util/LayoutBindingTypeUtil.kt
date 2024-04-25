@@ -37,7 +37,7 @@ object LayoutBindingTypeUtil {
       SdkConstants.VIEW,
       SdkConstants.VIEW_GROUP,
       SdkConstants.TEXTURE_VIEW,
-      SdkConstants.SURFACE_VIEW
+      SdkConstants.SURFACE_VIEW,
     )
 
   /**
@@ -63,7 +63,7 @@ object LayoutBindingTypeUtil {
   fun resolveViewPsiType(
     xmlData: BindingXmlData,
     viewIdData: ViewIdData,
-    context: PsiElement
+    context: PsiElement,
   ): PsiType? {
     val androidFacet = context.androidFacet ?: return null
     val viewClassName = getViewClassName(xmlData, viewIdData, androidFacet) ?: return null
@@ -92,7 +92,7 @@ object LayoutBindingTypeUtil {
   private fun getViewClassName(
     xmlData: BindingXmlData,
     viewIdData: ViewIdData,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ): String? {
     return getViewClassName(xmlData, viewIdData.viewName, viewIdData.layoutName, facet)
   }
@@ -101,7 +101,7 @@ object LayoutBindingTypeUtil {
     xmlData: BindingXmlData,
     viewName: String,
     layoutName: String?,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ): String? {
     return when {
       SdkConstants.VIEW_MERGE == viewName -> getViewClassNameFromMergeTag(layoutName, facet)
@@ -147,7 +147,7 @@ object LayoutBindingTypeUtil {
 
   private fun getViewClassNameFromLayoutAttribute(
     layoutName: String?,
-    facet: AndroidFacet
+    facet: AndroidFacet,
   ): String? {
     if (layoutName == null) {
       return null

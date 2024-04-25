@@ -30,7 +30,7 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
     STARTED,
     STOPPED,
     FINISHED,
-    UNSPECIFIED
+    UNSPECIFIED,
   }
 
   private var _className = ""

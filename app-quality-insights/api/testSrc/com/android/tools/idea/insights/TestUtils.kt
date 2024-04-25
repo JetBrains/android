@@ -335,5 +335,6 @@ val ISSUE_VARIANT2 =
 
 // Used for testing cached issues because their counts are zeroed out.
 fun IssueDetails.zeroCounts() = copy(impactedDevicesCount = 0, eventsCount = 0)
+
 // Used for testing cached issues because their counts are zeroed out.
 fun AppInsightsIssue.zeroCounts() = copy(issueDetails = issueDetails.zeroCounts())

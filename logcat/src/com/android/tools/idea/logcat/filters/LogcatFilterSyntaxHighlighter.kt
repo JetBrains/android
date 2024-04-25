@@ -41,8 +41,7 @@ internal enum class LogcatFilterTextAttributes(fallback: TextAttributesKey? = nu
   STRING_KVALUE,
   REGEX_KVALUE,
   VALUE(HighlighterColors.TEXT),
-  BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),
-  ;
+  BAD_CHARACTER(HighlighterColors.BAD_CHARACTER);
 
   val key = TextAttributesKey.createTextAttributesKey("LOGCAT_FILTER_$name", fallback)
   val keys = arrayOf(key)

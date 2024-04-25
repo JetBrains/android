@@ -127,6 +127,7 @@ interface StringResourceWriter {
     value: String?,
     item: ResourceItem,
   ): Boolean = setAttribute(project, attribute, value, listOf(item))
+
   /**
    * Sets the value of the given [attribute] on each of the given [items] to be [value]. If [value]
    * is `null`, the attribute will be removed from each item entirely.
@@ -146,6 +147,7 @@ interface StringResourceWriter {
    * @return `true` iff the [item] was successfully deleted
    */
   fun delete(project: Project, item: ResourceItem): Boolean = delete(project, listOf(item))
+
   /**
    * Deletes all the given [items] from the string resource files.
    *
@@ -161,6 +163,7 @@ interface StringResourceWriter {
   fun safeDelete(project: Project, item: ResourceItem, successCallback: Runnable) {
     safeDelete(project, listOf(item), successCallback)
   }
+
   /**
    * Attempts to safely delete the given [items] from the string resource files.
    *

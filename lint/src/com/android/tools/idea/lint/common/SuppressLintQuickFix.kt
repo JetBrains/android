@@ -155,6 +155,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     val offset = element.textOffset
     addNoInspectionComment(project, file, offset)
   }
+
   /**
    * Given a file and offset of a statement, inserts a //noinspection <id> comment on the
    * **previous** line.

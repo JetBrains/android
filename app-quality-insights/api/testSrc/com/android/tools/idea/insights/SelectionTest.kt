@@ -115,5 +115,5 @@ class SelectionTest {
 
 enum class SelectionEnum {
   ONE,
-  TWO
+  TWO,
 }

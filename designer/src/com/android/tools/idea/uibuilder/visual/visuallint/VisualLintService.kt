@@ -395,5 +395,5 @@ class VisualLintIssueModel(parentDisposable: Disposable, project: Project) :
 enum class VisualLintMode {
   DISABLED,
   RUN_ON_PREVIEW_ONLY,
-  RUN_IN_BACKGROUND
+  RUN_IN_BACKGROUND,
 }

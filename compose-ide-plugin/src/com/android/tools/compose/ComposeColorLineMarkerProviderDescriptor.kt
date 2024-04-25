@@ -242,7 +242,7 @@ enum class ComposeColorConstructor {
   INT_X4,
   FLOAT_X3,
   FLOAT_X4,
-  FLOAT_X4_COLORSPACE
+  FLOAT_X4_COLORSPACE,
 }
 
 private fun getColorInt(arguments: List<KtValueArgument>): Color? {

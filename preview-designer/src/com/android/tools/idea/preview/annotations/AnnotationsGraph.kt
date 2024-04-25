@@ -107,6 +107,7 @@ class AnnotationsGraph<S, T>(
   private val resultFactory: ResultFactory<S, T>,
 ) {
   private val logger = Logger.getInstance(this.javaClass)
+
   /**
    * DFS to traverse the annotations graph using the given [sourceElements] as starting points.
    *

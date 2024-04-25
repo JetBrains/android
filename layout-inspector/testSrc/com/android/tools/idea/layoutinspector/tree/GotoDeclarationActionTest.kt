@@ -43,14 +43,14 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.runInEdtAndGet
+import java.awt.Dimension
+import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.awt.Dimension
-import java.awt.event.KeyEvent
-import java.awt.event.MouseEvent
 
 class GotoDeclarationActionTest {
 

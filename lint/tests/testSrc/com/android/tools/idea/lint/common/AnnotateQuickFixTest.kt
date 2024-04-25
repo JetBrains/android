@@ -41,7 +41,8 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
     check(
       fileName = "src/p1/p2/AnnotateTest.kt",
       // language=kotlin
-      originalSource = """
+      originalSource =
+        """
         package p1.p2
 
         const val someProperty = ""
@@ -65,7 +66,8 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
     check(
       fileName = "src/p1/p2/AnnotateTest.kt",
       // language=kotlin
-      originalSource = """
+      originalSource =
+        """
         /** Class */
         class AnnotateTest
         """,
@@ -142,7 +144,8 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
     check(
       fileName = "src/p1/p2/AnnotateTest.kt",
       // language=kotlin
-      originalSource = """
+      originalSource =
+        """
         package p1.p2
 
         const val someProperty = ""
@@ -166,7 +169,8 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
     check(
       fileName = "src/p1/p2/AnnotateTest.kt",
       // language=kotlin
-      originalSource = """
+      originalSource =
+        """
         package p1.p2
 
         const val someProperty = ""

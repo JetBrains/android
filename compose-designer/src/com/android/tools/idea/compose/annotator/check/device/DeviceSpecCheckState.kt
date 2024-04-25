@@ -76,5 +76,5 @@ internal enum class DimensionParameterCheckResult : ParameterCheckResult {
    * The number part is correct, and there is a suffix for the unit, however, it does not match the
    * unit of other parameters.
    */
-  WrongUnit
+  WrongUnit,
 }

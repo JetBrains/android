@@ -26,6 +26,7 @@ import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
 private const val TEXT_FIELD_MAX_DP_WIDTH = 488
+
 /** [VisualLintAnalyzer] for issues where a text field is wider than the recommended 488dp. */
 object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType

@@ -154,7 +154,9 @@ class TestVisualizationContent : VisualizationContent {
   override fun dispose() = Unit
 }
 
-@Language("kotlin") private const val KT_FILE_TEXT = """
+@Language("kotlin")
+private const val KT_FILE_TEXT =
+  """
 package my_test_project
 object SomeFile
 """

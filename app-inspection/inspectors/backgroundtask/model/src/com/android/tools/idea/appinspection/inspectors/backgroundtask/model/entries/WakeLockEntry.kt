@@ -30,7 +30,7 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
   enum class State {
     ACQUIRED,
     RELEASED,
-    UNSPECIFIED
+    UNSPECIFIED,
   }
 
   private var _className = ""

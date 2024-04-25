@@ -237,6 +237,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
  * return value is 0.22
  */
 private fun percentageValueToDouble(percentage: Int): Double = percentage * 0.01
+
 /**
  * Helper function to convert a double value to percentage value. For example, when [double] is
  * 0.44, the return value is 44.

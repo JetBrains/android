@@ -132,7 +132,8 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
                   WriteAction.run<Throwable> {
                     val startElement = issue.startElementPointer.element ?: return@run
                     suppressLint.applyFix(
-                      startElement, ActionContext.from(null, startElement.containingFile),
+                      startElement,
+                      ActionContext.from(null, startElement.containingFile),
                     )
                   }
                 },

@@ -40,7 +40,7 @@ class FontEnumSupport(private val facet: AndroidFacet, private val resolver: Res
   private val projectFonts =
     ProjectFonts(
       StudioDownloadableFontCacheService.getInstance(),
-      StudioResourceRepositoryManager.getInstance(facet)
+      StudioResourceRepositoryManager.getInstance(facet),
     )
 
   override val values: List<EnumValue>

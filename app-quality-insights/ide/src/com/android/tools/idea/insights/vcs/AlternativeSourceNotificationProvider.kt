@@ -177,7 +177,7 @@ class AlternativeSourceNotificationProvider : EditorNotificationProvider {
   enum class AppScopeMatchResult {
     MATCH,
     MISMATCH,
-    UNKNOWN
+    UNKNOWN,
   }
 
   data class ComboBoxFileElement(val virtualFile: VirtualFile, val project: Project) {

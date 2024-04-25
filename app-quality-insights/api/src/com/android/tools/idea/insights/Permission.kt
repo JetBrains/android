@@ -18,5 +18,5 @@ package com.android.tools.idea.insights
 enum class Permission {
   NONE,
   READ_ONLY,
-  FULL
+  FULL,
 }

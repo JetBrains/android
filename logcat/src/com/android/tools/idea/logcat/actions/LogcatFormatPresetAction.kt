@@ -33,6 +33,7 @@ sealed class LogcatFormatPresetAction(
   DumbAware {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun actionPerformed(e: AnActionEvent) {
     if (!isSelected()) {
       logcatPresenter.formattingOptions = style.formattingOptions

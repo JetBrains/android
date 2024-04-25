@@ -44,6 +44,6 @@ interface DataBindingTracker {
   /** Tracks data binding completion events in layout xml. */
   fun trackDataBindingCompletion(
     eventType: DataBindingEvent.EventType,
-    context: DataBindingEvent.DataBindingContext
+    context: DataBindingEvent.DataBindingContext,
   )
 }

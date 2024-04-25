@@ -35,7 +35,7 @@ private enum class ActiveState {
   INITIALIZED,
   RESUMED,
   DEACTIVATED,
-  FULLY_DEACTIVATED
+  FULLY_DEACTIVATED,
 }
 
 class PreviewLifecycleManagerTest {

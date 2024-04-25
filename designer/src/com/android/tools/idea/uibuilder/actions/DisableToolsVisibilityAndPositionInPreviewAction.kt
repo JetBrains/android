@@ -37,6 +37,7 @@ object DisableToolsVisibilityAndPositionInPreviewAction :
     TOOLS_ATTRIBUTE_ON,
   ) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isVisible = true

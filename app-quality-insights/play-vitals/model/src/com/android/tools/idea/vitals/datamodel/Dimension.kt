@@ -140,7 +140,7 @@ enum class DimensionType(val value: String) {
   //  *  `deviceScreenDpi`
   //     ([string][google.play.developer.reporting.{$api_version}.DimensionValue.string_value]):
   //     Screen density of the device, e.g., mdpi, hdpi.
-  DEVICE_SCREEN_DPI("deviceScreenDpi")
+  DEVICE_SCREEN_DPI("deviceScreenDpi"),
 }
 
 fun String.toEnumDimensionType(): DimensionType {

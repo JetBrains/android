@@ -32,6 +32,7 @@ import java.util.function.Consumer
 
 private val LOG: Logger
   get() = Logger.getInstance("PreviewCanvasTracker.kt")
+
 /** Interface for usage tracking in the compose preview canvas event. */
 interface PreviewCanvasTracker {
   /** Logs the selection of layout in compose preview. */

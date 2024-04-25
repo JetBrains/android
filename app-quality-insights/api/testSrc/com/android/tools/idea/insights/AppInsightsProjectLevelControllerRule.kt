@@ -36,6 +36,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.runInEdtAndWait
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.swing.event.HyperlinkListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -46,8 +48,6 @@ import kotlinx.coroutines.withTimeout
 import org.junit.runner.Description
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.event.HyperlinkListener
 
 private suspend fun <T> ReceiveChannel<T>.receiveWithTimeout(): T = withTimeout(5000) { receive() }
 

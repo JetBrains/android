@@ -28,18 +28,19 @@ class ResourceModuleRendererFactory : ModuleRendererFactory() {
   override fun handles(element: Any?): Boolean = element is ResourceNavigationItem
 
   override fun getModuleTextWithIcon(element: Any?): TextWithIcon? {
-    // workaround https://youtrack.jetbrains.com/issue/IDEA-345002/ModuleRendererFactorygetModuleTextWithIcon-not-called-in-ReadAction
+    // workaround
+    // https://youtrack.jetbrains.com/issue/IDEA-345002/ModuleRendererFactorygetModuleTextWithIcon-not-called-in-ReadAction
     val textWithIcon = runReadAction {
       val resourceNavigationItem = element as ResourceNavigationItem
-      val virtualFile = resourceNavigationItem.resource.getSourceAsVirtualFile() ?: return@runReadAction null
+      val virtualFile =
+        resourceNavigationItem.resource.getSourceAsVirtualFile() ?: return@runReadAction null
       val fileIndex = ProjectFileIndex.getInstance(resourceNavigationItem.project)
       val inTestSource = fileIndex.isInTestSourceContent(virtualFile)
       val module = fileIndex.getModuleForFile(virtualFile) ?: return@runReadAction null
       val icon =
         if (inTestSource) {
           AllIcons.Nodes.TestSourceFolder
-        }
-        else {
+        } else {
           ModuleType.get(module).icon
         }
       return@runReadAction TextWithIcon(module.name, icon)

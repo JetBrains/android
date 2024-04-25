@@ -40,7 +40,7 @@ interface PositionProxy {
 enum class TimelineElementStatus {
   Inactive,
   Hovered,
-  Dragged
+  Dragged,
 }
 
 /** Group of [TimelineElement] for timeline. Group elements are moved and frozen together. */

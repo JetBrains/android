@@ -23,6 +23,7 @@ sealed interface PreviewGroup {
   val displayName: String
   val icon: Icon?
   val name: String?
+
   /**
    * A [PreviewGroup] defined by the user. These can only be created as part of [PreviewElement]s.
    */

@@ -25,7 +25,7 @@ internal enum class KotlinCodeFragmentType {
   CLASS,
   DECLARATION,
   BLOCK,
-  COMMENT
+  COMMENT,
 }
 
 internal data class KotlinCodeBlock(val text: String, val fragments: List<KotlinCodeFragment>)

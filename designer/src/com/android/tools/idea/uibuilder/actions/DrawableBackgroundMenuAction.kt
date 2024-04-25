@@ -56,7 +56,7 @@ enum class DrawableBackgroundType {
   NONE,
   WHITE,
   BLACK,
-  CHECKERED
+  CHECKERED,
 }
 
 /**

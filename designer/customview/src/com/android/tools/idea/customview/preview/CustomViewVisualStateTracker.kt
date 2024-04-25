@@ -45,7 +45,7 @@ class CustomViewVisualStateTracker(
     RENDERING,
     OK,
     BUILDING,
-    BUILD_FAILED
+    BUILD_FAILED,
   }
 
   private fun recalculateStates() {

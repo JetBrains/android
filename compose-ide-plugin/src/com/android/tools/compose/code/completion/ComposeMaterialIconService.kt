@@ -81,7 +81,7 @@ internal constructor(private val loadIcons: IconLoader) : Disposable {
     // If we have the icon wrapper, there's no need to start a new loading process.
     if (iconsWrapper.get() != null) return
 
-    if (!iconLoadingInProgress.compareAndSet(/* expectedValue = */ false, /* newValue = */ true)) {
+    if (!iconLoadingInProgress.compareAndSet(/* expectedValue= */ false, /* newValue= */ true)) {
       // Icons are already being loaded, so do nothing.
       return
     }

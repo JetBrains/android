@@ -28,6 +28,7 @@ interface LayoutBindingSupport {
         "com.android.tools.idea.databinding.layoutBindingSupport"
       )
   }
+
   /**
    * Return a [ModificationTracker] that is incremented every time the setting for whether data
    * binding is enabled or disabled changes.

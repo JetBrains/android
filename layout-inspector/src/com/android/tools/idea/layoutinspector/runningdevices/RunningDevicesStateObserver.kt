@@ -46,6 +46,7 @@ class RunningDevicesStateObserver(private val project: Project) : Disposable {
      * tab if Running Deices is running in split window mode.
      */
     fun onVisibleTabsChanged(visibleTabs: List<DeviceId>)
+
     /** Called when a tab is added or removed to Running Devices */
     fun onExistingTabsChanged(existingTabs: List<DeviceId>)
   }

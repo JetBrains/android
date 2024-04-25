@@ -62,6 +62,7 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
   private val projectRule = AndroidGradleProjectRule()
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
+
   // TODO (b/162520387): Do not ignore these methods when testing.
   private val IGNORED_METHODS =
     setOf("equals", "hashCode", "toString", "getActionId", "getArguments")

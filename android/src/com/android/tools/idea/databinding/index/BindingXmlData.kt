@@ -28,7 +28,7 @@ enum class BindingLayoutType {
   PLAIN_LAYOUT,
 
   /** The layout XML starts with `<layout>` tag, and possibly contains a `<data>` tag. */
-  DATA_BINDING_LAYOUT
+  DATA_BINDING_LAYOUT,
 }
 
 /** Data class for storing information related to <variable> tags. */
@@ -58,7 +58,7 @@ data class ViewIdData(
   val id: String,
   val viewName: String,
   val layoutName: String?,
-  val typeOverride: String?
+  val typeOverride: String?,
 )
 
 /**
@@ -84,7 +84,7 @@ data class BindingXmlData(
   val customBindingName: String?,
   val imports: Collection<ImportData>,
   val variables: Collection<VariableData>,
-  val viewIds: Collection<ViewIdData>
+  val viewIds: Collection<ViewIdData>,
 ) {
   private val importsMap = imports.associateBy { it.shortName }
   private val variablesMap = variables.associateBy { it.name }

@@ -73,7 +73,7 @@ open class ComposePreviewRunConfiguration(
   enum class TriggerSource(val eventType: ComposeDeployEvent.ComposeDeployEventType) {
     UNKNOWN(ComposeDeployEvent.ComposeDeployEventType.UNKNOWN_EVENT_TYPE),
     TOOLBAR(ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_TOOLBAR),
-    GUTTER(ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_GUTTER)
+    GUTTER(ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_GUTTER),
   }
 
   var triggerSource = TriggerSource.UNKNOWN

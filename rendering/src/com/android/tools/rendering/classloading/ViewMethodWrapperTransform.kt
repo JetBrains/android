@@ -128,7 +128,7 @@ class ViewMethodWrapperTransform(delegate: ClassVisitor) :
     if (
       "onMeasure" == name
     ) { // For onMeasure we need to generate a call to setMeasureDimension to avoid an exception
-        // when no size is set
+      // when no size is set
       mw.visitVarInsn(Opcodes.ALOAD, 0) // this
       mw.visitInsn(Opcodes.ICONST_0) // measuredWidth
       mw.visitInsn(Opcodes.ICONST_0) // measuredHeight

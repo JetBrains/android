@@ -26,7 +26,7 @@ import java.awt.LayoutManager2
 enum class Placement {
   LEFT,
   RIGHT,
-  LINE
+  LINE,
 }
 
 private const val MIN_WIDTH = 120

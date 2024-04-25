@@ -23,7 +23,7 @@ import javax.swing.JComponent
 enum class EditorContext {
   STAND_ALONE_EDITOR,
   TABLE_EDITOR,
-  TABLE_RENDERER
+  TABLE_RENDERER,
 }
 
 /**

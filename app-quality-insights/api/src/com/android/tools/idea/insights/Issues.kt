@@ -25,7 +25,7 @@ enum class IssueState {
   OPEN,
   OPENING,
   CLOSED,
-  CLOSING
+  CLOSING,
 }
 
 /** Represents discovered issue, including one representative event for it. */

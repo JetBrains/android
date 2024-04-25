@@ -21,5 +21,5 @@ import com.android.tools.lint.checks.BuildListDetector
 class AndroidLintBuildListAddsInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.build.list.adds"),
-    BuildListDetector.ISSUE
+    BuildListDetector.ISSUE,
   )

@@ -96,7 +96,7 @@ class ChainStyleViewAction(
   @VisibleForTesting
   enum class ChainDirection {
     HORIZONTAL,
-    VERTICAL
+    VERTICAL,
   }
 
   override fun perform(

@@ -60,8 +60,7 @@ enum class LintTestProject(
   NON_STANDARD_SOURCE_SETS(TestDataPaths.NON_STANDARD_SOURCE_SETS, pathToOpen = "/application"),
   PSD_SAMPLE_GROOVY(TestDataPaths.PSD_SAMPLE_GROOVY),
   SIMPLE_APPLICATION(TestDataPaths.SIMPLE_APPLICATION),
-  TEST_FIXTURES(TestDataPaths.TEST_FIXTURES),
-  ;
+  TEST_FIXTURES(TestDataPaths.TEST_FIXTURES);
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String =
     "tools/adt/idea/android/testData/snapshots"

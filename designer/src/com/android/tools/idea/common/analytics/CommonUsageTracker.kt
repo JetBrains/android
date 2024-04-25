@@ -46,7 +46,7 @@ interface CommonUsageTracker {
     val durationProvider: Function<RenderResult, Long>,
   ) {
     INFLATE(10, LayoutEditorEventType.INFLATE_ONLY, { it.stats.inflateDurationMs }),
-    RENDER(1, LayoutEditorEventType.RENDER_ONLY, { it.stats.renderDurationMs })
+    RENDER(1, LayoutEditorEventType.RENDER_ONLY, { it.stats.renderDurationMs }),
   }
 
   /**

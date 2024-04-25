@@ -185,5 +185,5 @@ enum class ComposeConverterDataType(val classFqn: String) {
   LIVE_DATA("androidx.lifecycle.LiveData"),
   MUTABLE_STATE("androidx.compose.runtime.MutableState"),
   STATE_FLOW("kotlinx.coroutines.flow.StateFlow"),
-  UNKNOWN("")
+  UNKNOWN(""),
 }

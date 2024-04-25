@@ -69,7 +69,8 @@ class CommonViewControlActionTest {
 
     val viewControlAction = CommonViewControlAction(options)
 
-    val expected = """View Control
+    val expected =
+      """View Control
     Switch Layout
     Layout A
     Layout B

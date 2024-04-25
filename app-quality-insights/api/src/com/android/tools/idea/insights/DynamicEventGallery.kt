@@ -24,7 +24,7 @@ data class EventPage(val events: List<Event>, val token: String) {
 
 enum class EventMovement {
   NEXT,
-  PREVIOUS
+  PREVIOUS,
 }
 
 /**

@@ -446,7 +446,9 @@ class PreviewFixTest : AbstractAndroidLintTest() {
         .trimIndent(),
     )
 
-    val intention = SuppressLintIntentionAction(DuplicateResourceDetector.ISSUE, myFixture.elementAtCaret).asIntention()
+    val intention =
+      SuppressLintIntentionAction(DuplicateResourceDetector.ISSUE, myFixture.elementAtCaret)
+        .asIntention()
 
     myFixture.checkPreviewAndLaunchAction(intention)
     myFixture.checkResult(
@@ -476,7 +478,8 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       )
     myFixture.configureFromExistingVirtualFile(layout.virtualFile)
 
-    val intention = SuppressLintIntentionAction(ApiDetector.UNSUPPORTED, myFixture.elementAtCaret).asIntention()
+    val intention =
+      SuppressLintIntentionAction(ApiDetector.UNSUPPORTED, myFixture.elementAtCaret).asIntention()
 
     myFixture.checkPreviewAndLaunchAction(intention)
     myFixture.checkResult(

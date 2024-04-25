@@ -46,7 +46,7 @@ class ModuleRClass(
 
   enum class SourceSet {
     MAIN,
-    TEST
+    TEST,
   }
 
   init {

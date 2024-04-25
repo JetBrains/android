@@ -35,7 +35,7 @@ enum class PreferredVisibility {
   /** If the representation would prefer to be visible in split mode on initialization. */
   SPLIT,
   /** If the representation would prefer to be visible in design mode on initialization. */
-  FULL
+  FULL,
 }
 
 /**
@@ -99,6 +99,7 @@ interface PreviewRepresentation : Disposable {
    * [onActivate] will be called if the representation becomes active again.
    */
   fun onDeactivate() {}
+
   // endregion
 
   // region State handling
@@ -112,6 +113,7 @@ interface PreviewRepresentation : Disposable {
 
   /** Called to retrieve any saved state for this [PreviewRepresentation]. */
   fun getState(): PreviewRepresentationState? = null
+
   // endregion
 
   // region Text editor caret handling

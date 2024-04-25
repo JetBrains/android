@@ -183,13 +183,13 @@ enum class SqliteStatementType {
   EXPLAIN,
   PRAGMA_QUERY,
   PRAGMA_UPDATE,
-  UNKNOWN
+  UNKNOWN,
 }
 
 enum class RowIdName(val stringName: String) {
   ROWID("rowid"),
   OID("oid"),
-  @Suppress("EnumEntryName") _ROWID_("_rowid_")
+  @Suppress("EnumEntryName") _ROWID_("_rowid_"),
 }
 
 /**

@@ -53,6 +53,7 @@ class AppWidgetPreviewRepresentationProvider(
   init {
     DesignerTypeRegistrar.register(GlanceAppWidgetEditorFileType)
   }
+
   /**
    * Checks if the input [psiFile] contains glance app widget services and therefore can be provided
    * with the [PreviewRepresentation] of them.

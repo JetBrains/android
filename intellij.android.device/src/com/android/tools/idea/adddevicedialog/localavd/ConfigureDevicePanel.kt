@@ -89,5 +89,5 @@ private fun Tabs(
 
 private enum class Tab(val text: String) {
   DEVICE("Device"),
-  ADDITIONAL_SETTINGS("Additional settings")
+  ADDITIONAL_SETTINGS("Additional settings"),
 }

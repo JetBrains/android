@@ -399,7 +399,7 @@ private enum class EdgeSide {
   TOP,
   RIGHT,
   BOTTOM,
-  BASELINE
+  BASELINE,
 }
 
 /** Helper class to record and add draw command. */

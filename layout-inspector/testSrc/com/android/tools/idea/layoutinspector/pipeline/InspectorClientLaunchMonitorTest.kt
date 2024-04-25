@@ -64,7 +64,7 @@ import org.mockito.Mockito.verify
 
 private enum class DebuggerType {
   JAVA,
-  HYBRID
+  HYBRID,
 }
 
 private const val PORT = 53707

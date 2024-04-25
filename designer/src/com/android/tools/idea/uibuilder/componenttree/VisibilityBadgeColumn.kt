@@ -82,7 +82,7 @@ private enum class Visibility {
   GONE,
   TOOLS_VISIBLE,
   TOOLS_INVISIBLE,
-  TOOLS_GONE
+  TOOLS_GONE,
 }
 
 private val Visibility.icon: Icon?

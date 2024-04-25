@@ -33,7 +33,7 @@ enum class Delimiter(val delimiter: Char) {
   TAB('	'),
   COMMA(','),
   VERTICAL_BAR('|'),
-  SPACE(' ')
+  SPACE(' '),
 }
 
 /** All the information needed to perform an export operation */

@@ -121,7 +121,7 @@ private object ComponentIndexer : DaggerConceptIndexer<DaggerIndexClassWrapper> 
     for (className in listedClasses) {
       val indexValue = ClassIndexValue(dataType, wrapper.getClassId())
       val classSimpleName =
-        className.substringAfterLast('.', /* missingDelimiterValue = */ className)
+        className.substringAfterLast('.', /* missingDelimiterValue= */ className)
       indexEntries.addIndexValue(classSimpleName, indexValue)
     }
   }

@@ -52,10 +52,10 @@ class DataBindingAnnotationsService(val module: Module) {
         {
           CachedValueProvider.Result.create(
             computeBindingAdapterAttributes(),
-            AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(module.project)
+            AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(module.project),
           )
         },
-        false
+        false,
       )
 
   /**
@@ -70,14 +70,14 @@ class DataBindingAnnotationsService(val module: Module) {
   private fun findJavaAndKotlinAnnotations(
     fqName: String,
     scope: GlobalSearchScope,
-    project: Project
+    project: Project,
   ): List<PsiAnnotation> {
     val facade = JavaPsiFacade.getInstance(project)
     val bindingAdapterAnnotation = facade.findClass(fqName, scope) ?: return emptyList()
     return AnnotatedElementsSearch.searchElements(
         bindingAdapterAnnotation,
         scope,
-        PsiMethod::class.java
+        PsiMethod::class.java,
       )
       .mapNotNull { annotatedMethod -> AnnotationUtil.findAnnotation(annotatedMethod, fqName) }
   }

@@ -135,6 +135,7 @@ class MouseReleasedEvent(mouseEvent: MouseEvent, info: InteractionInformation) :
 
 class MouseWheelMovedEvent(mouseWheelEvent: MouseWheelEvent, info: InteractionInformation) :
   InteractionInputEvent<MouseWheelEvent>(mouseWheelEvent, info)
+
 /**
  * There is no real mouse wheel stop event in Swing framework. [GuiInputHandler] sent this event
  * when mouse wheel is stopped scrolling for [GuiInputHandler.SCROLL_END_TIME_MS] milliseconds.
@@ -153,18 +154,21 @@ class KeyPressedEvent(keyEvent: KeyEvent, info: InteractionInformation) :
 
 class KeyReleasedEvent(keyEvent: KeyEvent, info: InteractionInformation) :
   InteractionInputEvent<KeyEvent>(keyEvent, info)
+
 /**
  * The drag event which dragging a component into [DesignSurface], see
  * [java.awt.dnd.DropTargetListener.dragEnter]
  */
 class DragEnterEvent(dropTargetDragEvent: DropTargetDragEvent, info: InteractionInformation) :
   InteractionInputEvent<DropTargetDragEvent>(dropTargetDragEvent, info)
+
 /**
  * The drag event which dragging a component over [DesignSurface], see
  * [java.awt.dnd.DropTargetListener.dragOver]
  */
 class DragOverEvent(dropTargetDragEvent: DropTargetDragEvent, info: InteractionInformation) :
   InteractionInputEvent<DropTargetDragEvent>(dropTargetDragEvent, info)
+
 /**
  * The event which user modifies the drop gesture. see
  * [java.awt.dnd.DropTargetListener.dropActionChanged]
@@ -173,12 +177,14 @@ class DropActionChangedEvent(
   dropTargetDragEvent: DropTargetDragEvent,
   info: InteractionInformation,
 ) : InteractionInputEvent<DropTargetDragEvent>(dropTargetDragEvent, info)
+
 /**
  * The drag event which dragging ongoing from [DesignSurface], see
  * [java.awt.dnd.DropTargetListener.dragExit]
  */
 class DragExistEvent(dropTargetEvent: DropTargetEvent, info: InteractionInformation) :
   InteractionInputEvent<DropTargetEvent>(dropTargetEvent, info)
+
 /**
  * The drop event which dropping a component into [DesignSurface], see
  * [java.awt.dnd.DropTargetListener.drop]

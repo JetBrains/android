@@ -849,6 +849,7 @@ interface DatabaseInspectorController : Disposable {
 
   interface TabController : Disposable {
     val closeTabInvoked: () -> Unit
+
     /**
      * Triggers a refresh operation in this tab. If called multiple times in sequence, this method
      * is re-executed only once the future from the first invocation completes. While the future of

@@ -21,6 +21,7 @@ import com.google.common.hash.Hashing
 import com.intellij.openapi.diagnostic.Logger
 
 private val LOG = Logger.getInstance(ModuleClassLoader::class.java)
+
 /**
  * Classloader used in rendering and responsible for loading classes for a specific android project
  * module, restricting and isolating access the same way it is done in the actual android
@@ -38,6 +39,7 @@ abstract class ModuleClassLoader(parent: ClassLoader?, loader: Loader) :
   protected abstract fun isCompatibleParentClassLoader(parent: ClassLoader?): Boolean
 
   protected abstract fun areDependenciesUpToDate(): Boolean
+
   /**
    * Checks if the [ModuleClassLoader] has the same transformations and parent [ClassLoader] making
    * it compatible but not necessarily up-to-date because it does not check the state of user

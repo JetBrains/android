@@ -53,7 +53,7 @@ constructor(
    * The array of qualified names for ObservableField, or any of the primitive versions such as
    * ObservableBoolean and ObservableInt
    */
-  @JvmField val observableFields: Array<String>
+  @JvmField val observableFields: Array<String>,
 ) {
 
   /** Project does not use data binding */
@@ -83,8 +83,8 @@ constructor(
       AndroidXConstants.CLASS_OBSERVABLE_INT.newName(),
       AndroidXConstants.CLASS_OBSERVABLE_LONG.newName(),
       AndroidXConstants.CLASS_OBSERVABLE_PARCELABLE.newName(),
-      AndroidXConstants.CLASS_OBSERVABLE_SHORT.newName()
-    )
+      AndroidXConstants.CLASS_OBSERVABLE_SHORT.newName(),
+    ),
   ),
   /** Project uses data binding in pre-androidx namespace */
   SUPPORT(
@@ -111,8 +111,8 @@ constructor(
       AndroidXConstants.CLASS_OBSERVABLE_INT.oldName(),
       AndroidXConstants.CLASS_OBSERVABLE_LONG.oldName(),
       AndroidXConstants.CLASS_OBSERVABLE_PARCELABLE.oldName(),
-      AndroidXConstants.CLASS_OBSERVABLE_SHORT.oldName()
-    )
+      AndroidXConstants.CLASS_OBSERVABLE_SHORT.oldName(),
+    ),
   );
 
   companion object {

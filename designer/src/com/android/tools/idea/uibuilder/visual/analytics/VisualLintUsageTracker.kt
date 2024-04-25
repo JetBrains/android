@@ -151,5 +151,5 @@ private object VisualLintNoOpUsageTracker : VisualLintUsageTracker {
 
 enum class VisualLintOrigin {
   XML_LINTING,
-  UI_CHECK
+  UI_CHECK,
 }

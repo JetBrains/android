@@ -87,6 +87,7 @@ abstract class LintIdeSupport {
   open fun getSeverityOverrides(module: Module): Map<String, Int>? = null
 
   open fun askForAttributeValue(attributeName: String, context: PsiElement): String? = null
+
   /** Whether or not the given file should be annotated on the fly in the editor */
   open fun canAnnotate(file: PsiFile, module: Module): Boolean {
     val fileType = file.fileType
@@ -181,6 +182,7 @@ abstract class LintIdeSupport {
   open fun requestFeedbackFix(issue: Issue): LocalQuickFix = error("Not supported")
 
   open fun requestFeedbackIntentionAction(issue: Issue): IntentionAction = error("Not supported")
+
   // Editor session
   open fun logSession(lint: LintDriver, lintResult: LintEditorResult) {}
 

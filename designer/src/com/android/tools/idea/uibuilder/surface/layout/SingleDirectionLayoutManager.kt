@@ -47,7 +47,7 @@ open class SingleDirectionLayoutManager(
   enum class Alignment {
     START,
     CENTER,
-    END
+    END,
   }
 
   private var previousHorizontalPadding = 0

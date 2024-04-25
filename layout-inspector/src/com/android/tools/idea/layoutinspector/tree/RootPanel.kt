@@ -129,7 +129,7 @@ class RootPanel(
     PROCESS_NOT_DEBUGGABLE,
     SHOW_TREE,
     WAITING_TO_CONNECT,
-    START_LOADING
+    START_LOADING,
   }
 
   @VisibleForTesting

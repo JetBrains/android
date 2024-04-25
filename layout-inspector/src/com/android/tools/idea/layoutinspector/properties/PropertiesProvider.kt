@@ -40,6 +40,7 @@ fun interface ResultListener {
     propertiesTable: PropertiesTable<InspectorPropertyItem>,
   )
 }
+
 /** A [PropertiesProvider] provides properties to registered listeners.. */
 interface PropertiesProvider {
 

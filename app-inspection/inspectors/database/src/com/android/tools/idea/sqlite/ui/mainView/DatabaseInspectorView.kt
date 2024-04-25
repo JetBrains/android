@@ -83,16 +83,22 @@ interface DatabaseInspectorView {
   interface Listener {
     /** Called when the user wants to open a table */
     fun tableNodeActionInvoked(databaseId: SqliteDatabaseId, table: SqliteTable)
+
     /** Called when the user wants to close a tab */
     fun closeTabActionInvoked(tabId: TabId)
+
     /** Called when the user wants to open the evaluator tab */
     fun openSqliteEvaluatorTabActionInvoked()
+
     /** Called when the user wants to refresh the schema of all open databases */
     fun refreshAllOpenDatabasesSchemaActionInvoked()
+
     /** Called to request the on-device inspector to force database connections to remain open */
     fun toggleKeepConnectionOpenActionInvoked()
+
     /** Called when the user wants to stop entering offline mode */
     fun cancelOfflineModeInvoked()
+
     /** Called when user wants to export data */
     fun showExportToFileDialogInvoked(exportDialogParams: ExportDialogParams)
   }

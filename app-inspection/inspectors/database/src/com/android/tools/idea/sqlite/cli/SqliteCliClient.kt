@@ -92,6 +92,7 @@ class SqliteCliArgs private constructor() {
     fun queryViewList() = apply { args.add(SqliteCliArg("$SELECT_VIEW_NAMES;")) }
 
     fun raw(rawArg: String) = apply { args.add(SqliteCliArg(rawArg)) }
+
     /**
      * Moves data from the WAL (write-ahead log) to the main DB file.
      *

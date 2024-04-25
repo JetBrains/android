@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.GradleDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
 class AndroidLintCredentialDependencyInspection :
   AndroidLintInspectionBase(
     message("android.lint.inspections.credential.dependency"),
-    GradleDetector.CREDENTIAL_DEP
+    GradleDetector.CREDENTIAL_DEP,
   )

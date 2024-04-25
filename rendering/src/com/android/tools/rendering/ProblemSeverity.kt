@@ -18,5 +18,5 @@ package com.android.tools.rendering
 /** Severity of a [RenderProblem]. */
 enum class ProblemSeverity {
   WARNING,
-  ERROR
+  ERROR,
 }

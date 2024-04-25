@@ -74,7 +74,7 @@ interface StudioBot {
     PLAY_VITALS,
     CRASHLYTICS,
     LOGCAT,
-    OTHER
+    OTHER,
   }
 
   open class StubStudioBot : StudioBot {

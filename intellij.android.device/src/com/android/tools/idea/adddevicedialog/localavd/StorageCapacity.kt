@@ -41,7 +41,7 @@ internal constructor(internal val value: Long, internal val unit: Unit) {
     KB(1_024),
     MB(1_024 * 1_024),
     GB(1_024 * 1_024 * 1_024),
-    TB(1_024L * 1_024 * 1_024 * 1_024)
+    TB(1_024L * 1_024 * 1_024 * 1_024),
   }
 
   override fun toString() = value.toString() + unit.toString().first()

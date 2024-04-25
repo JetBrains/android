@@ -45,7 +45,7 @@ class AppInsightsDropDownActionTest {
   enum class TestValues {
     DEFAULT,
     ONE,
-    TWO
+    TWO,
   }
 
   @Test

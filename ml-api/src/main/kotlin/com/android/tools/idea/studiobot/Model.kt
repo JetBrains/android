@@ -127,7 +127,7 @@ data class Citation(val action: CitationAction, val url: String? = null)
 /** See [Citation] */
 enum class CitationAction {
   CITE,
-  BLOCK
+  BLOCK,
 }
 
 open class StubModel : Model {

@@ -45,7 +45,7 @@ const val DECREASE_BREAK_OFF = 0.75f
 
 enum class SelectionOrigin {
   INTERNAL,
-  COMPONENT_TREE
+  COMPONENT_TREE,
 }
 
 class InspectorModel(
@@ -132,12 +132,12 @@ class InspectorModel(
 
   enum class Posture {
     HALF_OPEN,
-    FLAT
+    FLAT,
   }
 
   enum class FoldOrientation {
     VERTICAL,
-    HORIZONTAL
+    HORIZONTAL,
   }
 
   class FoldInfo(var angle: Int?, var posture: Posture?, var orientation: FoldOrientation) {

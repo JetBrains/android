@@ -143,8 +143,7 @@ internal enum class LogcatFilterField(val displayName: String) {
   },
   PROCESS(message("logcat.filter.completion.hint.key.process")) {
     override fun getValue(message: LogcatMessageWrapper) = message.logcatMessage.header.processName
-  },
-  ;
+  };
 
   abstract fun getValue(message: LogcatMessageWrapper): String
 }

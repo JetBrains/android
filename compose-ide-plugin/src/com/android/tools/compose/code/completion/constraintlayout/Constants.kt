@@ -83,13 +83,13 @@ internal enum class StandardAnchor(override val keyWord: String) : ConstraintLay
 internal enum class SpecialAnchor(override val keyWord: String) : ConstraintLayoutKeyWord {
   Center("center"),
   CenterH("centerHorizontally"),
-  CenterV("centerVertically")
+  CenterV("centerVertically"),
 }
 
 /** Supported keywords to define the dimension of a widget. */
 internal enum class Dimension(override val keyWord: String) : ConstraintLayoutKeyWord {
   Width("width"),
-  Height("height")
+  Height("height"),
 }
 
 /** Keywords to apply rendering time transformations to a widget. */
@@ -104,25 +104,26 @@ internal enum class RenderTransform(override val keyWord: String) : ConstraintLa
   TranslationY("translationY"),
   TranslationZ("translationZ"),
 }
+
 // endregion
 
 internal enum class DimBehavior(override val keyWord: String) : ConstraintLayoutKeyWord {
   Spread("spread"),
   Wrap("wrap"),
   PreferWrap("preferWrap"),
-  MatchParent("parent")
+  MatchParent("parent"),
 }
 
 internal enum class VisibilityMode(override val keyWord: String) : ConstraintLayoutKeyWord {
   Visible("visible"),
   Invisible("invisible"),
-  Gone("gone")
+  Gone("gone"),
 }
 
 internal enum class ClearOption(override val keyWord: String) : ConstraintLayoutKeyWord {
   Constraints("constraints"),
   Dimensions("dimensions"),
-  Transforms("transforms")
+  Transforms("transforms"),
 }
 
 internal enum class TransitionField(override val keyWord: String) : ConstraintLayoutKeyWord {
@@ -130,14 +131,14 @@ internal enum class TransitionField(override val keyWord: String) : ConstraintLa
   To("to"),
   PathArc("pathMotionArc"),
   KeyFrames("KeyFrames"),
-  OnSwipe("onSwipe")
+  OnSwipe("onSwipe"),
 }
 
 internal enum class OnSwipeField(override val keyWord: String) : ConstraintLayoutKeyWord {
   AnchorId("anchor"),
   Direction("direction"),
   Side("side"),
-  Mode("mode")
+  Mode("mode"),
 }
 
 internal enum class OnSwipeSide(override val keyWord: String) : ConstraintLayoutKeyWord {
@@ -147,7 +148,7 @@ internal enum class OnSwipeSide(override val keyWord: String) : ConstraintLayout
   Bottom("bottom"),
   Middle("middle"),
   Start("start"),
-  End("end")
+  End("end"),
 }
 
 internal enum class OnSwipeDirection(override val keyWord: String) : ConstraintLayoutKeyWord {
@@ -158,18 +159,18 @@ internal enum class OnSwipeDirection(override val keyWord: String) : ConstraintL
   Start("start"),
   End("end"),
   Clockwise("clockwise"),
-  AntiClockwise("anticlockwise")
+  AntiClockwise("anticlockwise"),
 }
 
 internal enum class OnSwipeMode(override val keyWord: String) : ConstraintLayoutKeyWord {
   Velocity("velocity"),
-  Spring("spring")
+  Spring("spring"),
 }
 
 internal enum class KeyFrameField(override val keyWord: String) : ConstraintLayoutKeyWord {
   Positions("KeyPositions"),
   Attributes("KeyAttributes"),
-  Cycles("KeyCycles")
+  Cycles("KeyCycles"),
 }
 
 /** Common fields used by any of [KeyFrameField]. */
@@ -187,11 +188,11 @@ internal enum class KeyPositionField(override val keyWord: String) : ConstraintL
   PercentWidth("percentWidth"),
   PercentHeight("percentHeight"),
   PathArc("pathMotionArc"),
-  Type("type")
+  Type("type"),
 }
 
 internal enum class KeyCycleField(override val keyWord: String) : ConstraintLayoutKeyWord {
   Period("period"),
   Offset("offset"),
-  Phase("phase")
+  Phase("phase"),
 }
