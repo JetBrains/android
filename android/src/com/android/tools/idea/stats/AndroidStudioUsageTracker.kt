@@ -57,15 +57,11 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.editor.actionSystem.LatencyListener
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.registry.RegistryManager
-import com.intellij.openapi.util.registry.RegistryValue
-import com.intellij.openapi.util.registry.RegistryValueListener
 import com.intellij.ui.NewUI
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
@@ -175,7 +171,7 @@ object AndroidStudioUsageTracker {
     scheduler.scheduleWithFixedDelay({ runDailyReports() }, 0, 1, TimeUnit.DAYS)
     // Send initial report immediately, hourly from then on.
     scheduler.scheduleWithFixedDelay({ runHourlyReports() }, 0, 1, TimeUnit.HOURS)
-    subscribeToEvents()
+    TypingLatencyTracker.ensureSubscribed()
     setupMetricsListener()
 
     // Studio ping is called in the appStarted event below, then it is scheduled
@@ -185,22 +181,12 @@ object AndroidStudioUsageTracker {
     updateNewUISettings()
   }
 
-  private fun subscribeToEvents() {
-    val app = ApplicationManager.getApplication()
-    val connection = app.messageBus.connect()
-    connection.subscribe(LatencyListener.TOPIC, TypingLatencyTracker)
-    RegistryManager.getInstance().get("ide.highlighting.mode.essential").addListener(object : RegistryValueListener {
-      override fun beforeValueChanged(value: RegistryValue) = TypingLatencyTracker.reportTypingLatency()
-    }, AndroidPluginDisposable.getApplicationInstance())
-  }
-
   private fun runStartupReports() {
     reportEnabledPlugins()
     reportSafeModeStats()
   }
 
   private fun runShutdownReports() {
-    TypingLatencyTracker.reportTypingLatency()
     CompletionStats.reportCompletionStats()
     ManifestMergerStatsTracker.reportMergerStats()
   }
@@ -231,13 +217,16 @@ object AndroidStudioUsageTracker {
     System.getProperty("studio.safe.mode") ?: return
     val safeModeStatsProto = SafeModeStatsEvent.newBuilder()
 
-    if (SystemInfo.isWindows){
+    if (SystemInfo.isWindows) {
       safeModeStatsProto.setOs(SafeModeStatsEvent.OS.WINDOWS)
-    } else if (SystemInfo.isMac) {
+    }
+    else if (SystemInfo.isMac) {
       safeModeStatsProto.setOs(SafeModeStatsEvent.OS.MAC)
-    } else if (SystemInfo.isUnix) {
+    }
+    else if (SystemInfo.isUnix) {
       safeModeStatsProto.setOs(SafeModeStatsEvent.OS.LINUX)
-    } else {
+    }
+    else {
       safeModeStatsProto.setOs(SafeModeStatsEvent.OS.UNKNOWN_OS)
     }
 
@@ -432,8 +421,6 @@ object AndroidStudioUsageTracker {
                        .setCategory(AndroidStudioEvent.EventCategory.SYSTEM)
                        .setKind(EventKind.STUDIO_PROCESS_STATS)
                        .setJavaProcessStats(CommonMetricsData.javaProcessStats))
-
-    TypingLatencyTracker.reportTypingLatency()
     CompletionStats.reportCompletionStats()
     ManifestMergerStatsTracker.reportMergerStats()
   }
