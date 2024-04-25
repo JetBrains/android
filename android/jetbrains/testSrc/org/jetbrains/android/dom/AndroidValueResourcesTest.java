@@ -1147,8 +1147,8 @@ public class AndroidValueResourcesTest {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
     assertThat(fixes.size()).isEqualTo(2);
-    assertThat(((QuickFixWrapper)fixes.get(0)).getFix()).isInstanceOf(RenameTo.class);
-    assertThat(((QuickFixWrapper)fixes.get(1)).getFix()).isInstanceOf(SaveTo.class);
+    assertThat(QuickFixWrapper.unwrap(fixes.get(0))).isInstanceOf(RenameTo.class);
+    assertThat(QuickFixWrapper.unwrap(fixes.get(1))).isInstanceOf(SaveTo.class);
   }
 
   private VirtualFile copyFileToProject(String path) {
