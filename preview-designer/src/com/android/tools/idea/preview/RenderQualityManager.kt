@@ -36,6 +36,7 @@ import kotlin.concurrent.withLock
 import kotlin.math.abs
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Base interface for render quality management. Any RenderQualityManager should fulfill the three
@@ -149,7 +150,10 @@ class DefaultRenderQualityManager(
   override fun getTargetQuality(sceneManager: LayoutlibSceneManager): Float {
     if (isPaused) return getDefaultPreviewQuality()
     uiDataLock.withLock {
-      if (!isUiDataUpToDate) {
+      if (
+        // Update rectangles if any UI related dimensions changed or a sceneView instance changed
+        !isUiDataUpToDate || sceneManager.sceneViews.any { !sceneViewRectangles.containsKey(it) }
+      ) {
         sceneViewRectangles = mySurface.findSceneViewRectangles()
         scrollRectangle = mySurface.currentScrollRectangle
         isUiDataUpToDate = true
@@ -180,6 +184,10 @@ class DefaultRenderQualityManager(
   override fun resume() {
     isPaused = false
   }
+
+  @TestOnly
+  internal fun sceneViewRectanglesContainsForTest(sceneView: SceneView) =
+    sceneViewRectangles.containsKey(sceneView)
 }
 
 /**

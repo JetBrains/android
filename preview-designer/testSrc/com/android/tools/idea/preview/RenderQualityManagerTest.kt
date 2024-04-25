@@ -93,7 +93,9 @@ class RenderQualityManagerTest {
 
     sceneViewMock = mock<SceneView>()
     sceneManagerMock = mock<LayoutlibSceneManager>()
-    whenever(sceneManagerMock.sceneViews).thenReturn(listOf(sceneViewMock))
+    whenever(sceneManagerMock.sceneViews).then {
+      return@then listOf(sceneViewMock)
+    }
     whenever(sceneManagerMock.lastRenderQuality).then {
       return@then tool.currentQuality
     }
@@ -224,5 +226,19 @@ class RenderQualityManagerTest {
 
     qualityManager.resume()
     assertTrue(qualityManager.needsQualityChange(sceneManagerMock))
+  }
+
+  // Regression test for b/336947005
+  @Test
+  fun testSceneViewChangeIsDetected() = runBlocking {
+    qualityManager.needsQualityChange(sceneManagerMock)
+    assertTrue(qualityManager.sceneViewRectanglesContainsForTest(sceneViewMock))
+
+    sceneViewMock = mock<SceneView>()
+    assertFalse(qualityManager.sceneViewRectanglesContainsForTest(sceneViewMock))
+
+    // when checking quality targets, the new sceneView should be detected and loaded into the map
+    qualityManager.needsQualityChange(sceneManagerMock)
+    assertTrue(qualityManager.sceneViewRectanglesContainsForTest(sceneViewMock))
   }
 }
