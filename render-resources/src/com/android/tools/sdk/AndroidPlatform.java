@@ -16,25 +16,25 @@
 
 package com.android.tools.sdk;
 
+import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidPlatform {
-  @NotNull private final AndroidSdkData mySdkData;
-  @NotNull private final IAndroidTarget myTarget;
+  @NonNull private final AndroidSdkData mySdkData;
+  @NonNull private final IAndroidTarget myTarget;
 
-  public AndroidPlatform(@NotNull AndroidSdkData sdkData, @NotNull IAndroidTarget target) {
+  public AndroidPlatform(@NonNull AndroidSdkData sdkData, @NonNull IAndroidTarget target) {
     mySdkData = sdkData;
     myTarget = target;
   }
 
-  @NotNull
+  @NonNull
   public AndroidSdkData getSdkData() {
     return mySdkData;
   }
 
-  @NotNull
+  @NonNull
   public IAndroidTarget getTarget() {
     return myTarget;
   }
@@ -67,7 +67,7 @@ public class AndroidPlatform {
     return myTarget.getVersion().getApiLevel();
   }
 
-  @NotNull
+  @NonNull
   public AndroidVersion getApiVersion() {
     return myTarget.getVersion();
   }

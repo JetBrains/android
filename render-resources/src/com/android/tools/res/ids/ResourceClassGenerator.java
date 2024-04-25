@@ -15,6 +15,8 @@
  */
 package com.android.tools.res.ids;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -28,8 +30,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
@@ -77,20 +77,20 @@ public class ResourceClassGenerator {
      * the generation changes.
      */
     long getGeneration();
-    int getOrGenerateId(@NotNull ResourceReference resourceReference);
+    int getOrGenerateId(@NonNull ResourceReference resourceReference);
   }
 
   private long myIdGeneratorGeneration = -1L;
   private Map<ResourceType, Object2IntOpenHashMap<String>> myCache;
   /** For int[] in styleables. The ints in styleables are stored in {@link #myCache}. */
   private Map<String, IntArrayList> myStyleableCache;
-  @NotNull private final ResourceRepository myResources;
-  @NotNull private final NumericIdProvider myIdProvider;
-  @NotNull private final ResourceNamespace myNamespace;
+  @NonNull private final ResourceRepository myResources;
+  @NonNull private final NumericIdProvider myIdProvider;
+  @NonNull private final ResourceNamespace myNamespace;
 
-  private ResourceClassGenerator(@NotNull NumericIdProvider idProvider,
-                                 @NotNull ResourceRepository resources,
-                                 @NotNull ResourceNamespace namespace) {
+  private ResourceClassGenerator(@NonNull NumericIdProvider idProvider,
+                                 @NonNull ResourceRepository resources,
+                                 @NonNull ResourceNamespace namespace) {
     myIdProvider = idProvider;
     myResources = resources;
     myNamespace = namespace;
@@ -99,10 +99,10 @@ public class ResourceClassGenerator {
   /**
    * Creates a new {@linkplain ResourceClassGenerator}.
    */
-  @NotNull
-  public static ResourceClassGenerator create(@NotNull NumericIdProvider manager,
-                                              @NotNull ResourceRepository resources,
-                                              @NotNull ResourceNamespace namespace) {
+  @NonNull
+  public static ResourceClassGenerator create(@NonNull NumericIdProvider manager,
+                                              @NonNull ResourceRepository resources,
+                                              @NonNull ResourceNamespace namespace) {
     return new ResourceClassGenerator(manager, resources, namespace);
   }
 
@@ -174,7 +174,7 @@ public class ResourceClassGenerator {
     return cw.toByteArray();
   }
 
-  private void generateValuesForType(@NotNull ClassWriter cw, @NotNull ResourceType resType, @NotNull Object2IntOpenHashMap<String> cache) {
+  private void generateValuesForType(@NonNull ClassWriter cw, @NonNull ResourceType resType, @NonNull Object2IntOpenHashMap<String> cache) {
     Collection<String> resourceNames = myResources.getResourceNames(myNamespace, resType);
     for (String name : resourceNames) {
       int initialValue = myIdProvider.getOrGenerateId(new ResourceReference(myNamespace, resType, name));
@@ -187,15 +187,15 @@ public class ResourceClassGenerator {
   /**
    * Returns the list of {@link ResourceReference} to attributes declared in the given styleable resource item.
    */
-  @NotNull
-  private static List<ResourceReference> getStyleableAttributes(@NotNull ResourceItem item) {
+  @NonNull
+  private static List<ResourceReference> getStyleableAttributes(@NonNull ResourceItem item) {
     ResourceValue resourceValue = item.getResourceValue();
     assert resourceValue instanceof StyleableResourceValue;
     StyleableResourceValue dv = (StyleableResourceValue)resourceValue;
     return Lists.transform(dv.getAllAttributes(), ResourceValue::asReference);
   }
 
-  private void generateStyleable(@NotNull ClassWriter cw, String className) {
+  private void generateStyleable(@NonNull ClassWriter cw, String className) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("generateStyleable(%s)", anonymizeClassName(className)));
     }
@@ -257,17 +257,17 @@ public class ResourceClassGenerator {
     mv.visitEnd();
   }
 
-  private static void generateFields(@NotNull final ClassWriter cw, @NotNull Object2IntOpenHashMap<String> values) {
+  private static void generateFields(@NonNull final ClassWriter cw, @NonNull Object2IntOpenHashMap<String> values) {
     values.forEach((name, value) -> {
       generateField(cw, name, value);
     });
   }
 
-  private static void generateField(@NotNull ClassWriter cw, String name, int value) {
+  private static void generateField(@NonNull ClassWriter cw, String name, int value) {
     cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, name, "I", null, value).visitEnd();
   }
 
-  private void generateIntArraysFromCache(@NotNull ClassWriter cw, String className) {
+  private void generateIntArraysFromCache(@NonNull ClassWriter cw, String className) {
     // Generate the field declarations.
     for (String name : myStyleableCache.keySet()) {
       cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, name, "[I", null, null);
@@ -287,7 +287,7 @@ public class ResourceClassGenerator {
   /**
    * Generates the instruction to push value into the stack. It will select the best opcode depending on the given value.
    */
-  private static void pushIntValue(@NotNull MethodVisitor mv, int value) {
+  private static void pushIntValue(@NonNull MethodVisitor mv, int value) {
     if (value >= -1 && value <= 5) {
       mv.visitInsn(ICONST_0 + value);
     } else if (value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE) {
@@ -303,8 +303,8 @@ public class ResourceClassGenerator {
    * Generate code to put set the initial values of an array field (for styleables).
    * @param mv the class initializer's MethodVisitor (&lt;clinit&gt;)
    */
-  private static void generateArrayInitialization(@NotNull MethodVisitor mv, String className, String fieldName,
-                                                  @NotNull IntArrayList values) {
+  private static void generateArrayInitialization(@NonNull MethodVisitor mv, String className, String fieldName,
+                                                  @NonNull IntArrayList values) {
     if (values.isEmpty()) {
       return;
     }
@@ -320,7 +320,7 @@ public class ResourceClassGenerator {
   }
 
   /** Generate an empty constructor. */
-  private static void generateConstructor(@NotNull ClassWriter cw) {
+  private static void generateConstructor(@NonNull ClassWriter cw) {
     MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
     mv.visitCode();
     mv.visitVarInsn(ALOAD, 0);
@@ -330,7 +330,7 @@ public class ResourceClassGenerator {
     mv.visitEnd();
   }
 
-  public String getResourceName(String styleableName, @NotNull ResourceReference value) {
+  public String getResourceName(String styleableName, @NonNull ResourceReference value) {
     StringBuilder sb = new StringBuilder(30);
     sb.append(styleableName);
     sb.append('_');
@@ -345,7 +345,7 @@ public class ResourceClassGenerator {
     return sb.toString();
   }
 
-  private static void appendEscaped(@NotNull StringBuilder sb, @NotNull String v) {
+  private static void appendEscaped(@NonNull StringBuilder sb, @NonNull String v) {
     // See RClassNaming.getFieldNameByResourceName
     for (int i = 0, n = v.length(); i < n; i++) {
       char c = v.charAt(i);
@@ -358,10 +358,10 @@ public class ResourceClassGenerator {
   }
 
   private static class MergedStyleable {
-    @NotNull final String name;
-    @NotNull final LinkedHashSet<ResourceReference> attrs;
+    @NonNull final String name;
+    @NonNull final LinkedHashSet<ResourceReference> attrs;
 
-    private MergedStyleable(@NotNull String name, @NotNull LinkedHashSet<ResourceReference> attrs) {
+    private MergedStyleable(@NonNull String name, @NonNull LinkedHashSet<ResourceReference> attrs) {
       this.name = name;
       this.attrs = attrs;
     }

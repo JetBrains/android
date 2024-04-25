@@ -29,6 +29,8 @@ import static com.android.tools.configurations.ConfigurationListener.CFG_THEME;
 import static com.android.tools.configurations.ConfigurationListener.CFG_UI_MODE;
 import static com.android.tools.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -67,8 +69,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
@@ -97,17 +97,17 @@ public class Configuration {
   /**
    * The {@link FolderConfiguration} representing the state of the UI controls
    */
-  @NotNull
+  @NonNull
   protected final FolderConfiguration myFullConfig = new FolderConfiguration();
 
   /** The associated {@link ConfigurationSettings} */
-  @NotNull
+  @NonNull
   protected final ConfigurationSettings mySettings;
 
   /**
    * The {@link FolderConfiguration} being edited.
    */
-  @NotNull
+  @NonNull
   protected final FolderConfiguration myEditedConfig;
 
   /**
@@ -166,13 +166,13 @@ public class Configuration {
   /**
    * UI mode
    */
-  @NotNull
+  @NonNull
   private UiMode myUiMode = UiMode.NORMAL;
 
   /**
    * Night mode
    */
-  @NotNull
+  @NonNull
   private NightMode myNightMode = NightMode.NOTNIGHT;
 
   /**
@@ -199,7 +199,7 @@ public class Configuration {
 
   private float myFontScale = 1f;
   private int myUiModeFlagValue;
-  @NotNull private AdaptiveIconShape myAdaptiveShape = AdaptiveIconShape.getDefaultShape();
+  @NonNull private AdaptiveIconShape myAdaptiveShape = AdaptiveIconShape.getDefaultShape();
   private boolean myUseThemedIcon = false;
   private Wallpaper myWallpaper = null;
   private Consumer<BufferedImage> myImageTransformation = null;
@@ -207,7 +207,7 @@ public class Configuration {
   /**
    * Creates a new {@linkplain Configuration}
    */
-  protected Configuration(@NotNull ConfigurationSettings settings, @NotNull FolderConfiguration editedConfig) {
+  protected Configuration(@NonNull ConfigurationSettings settings, @NonNull FolderConfiguration editedConfig) {
     mySettings = settings;
     myEditedConfig = editedConfig;
 
@@ -230,12 +230,12 @@ public class Configuration {
    *
    * @return a new configuration
    */
-  @NotNull
-  public static Configuration create(@NotNull ConfigurationSettings settings, @NotNull FolderConfiguration editedConfig) {
+  @NonNull
+  public static Configuration create(@NonNull ConfigurationSettings settings, @NonNull FolderConfiguration editedConfig) {
     return new Configuration(settings, editedConfig);
   }
 
-  protected void copyFrom(@NotNull Configuration from) {
+  protected void copyFrom(@NonNull Configuration from) {
     myFullConfig.set(from.myFullConfig);
     myFolderConfigDirty = from.myFolderConfigDirty;
     myProjectStateVersion = from.myProjectStateVersion;
@@ -276,7 +276,7 @@ public class Configuration {
    *
    * @return the settings
    */
-  @NotNull
+  @NonNull
   public ConfigurationSettings getSettings() {
     return mySettings;
   }
@@ -342,7 +342,7 @@ public class Configuration {
   }
 
   @Nullable
-  public static FolderConfiguration getFolderConfig(@NotNull ConfigurationModelModule module, @NotNull State state, @NotNull Locale locale,
+  public static FolderConfiguration getFolderConfig(@NonNull ConfigurationModelModule module, @NonNull State state, @NonNull Locale locale,
                                                     @Nullable IAndroidTarget target) {
     FolderConfiguration currentConfig = DeviceConfigHelper.getFolderConfig(state);
     if (currentConfig != null) {
@@ -361,7 +361,7 @@ public class Configuration {
   }
 
   private static LayoutLibrary getLayoutLibrary(
-    @Nullable IAndroidTarget target, @Nullable AndroidPlatform platform, @NotNull LayoutlibContext context) {
+    @Nullable IAndroidTarget target, @Nullable AndroidPlatform platform, @NonNull LayoutlibContext context) {
     if (target == null || platform == null) {
       return null;
     }
@@ -399,7 +399,7 @@ public class Configuration {
    *
    * @return the locale
    */
-  @NotNull
+  @NonNull
   public Locale getLocale() {
     if (myLocale == null) {
       return mySettings.getLocale();
@@ -412,7 +412,7 @@ public class Configuration {
    *
    * @return the UI mode
    */
-  @NotNull
+  @NonNull
   public UiMode getUiMode() {
     return myUiMode;
   }
@@ -422,7 +422,7 @@ public class Configuration {
    *
    * @return the night mode
    */
-  @NotNull
+  @NonNull
   public NightMode getNightMode() {
     return myNightMode;
   }
@@ -432,7 +432,7 @@ public class Configuration {
    *
    * @return the theme style name
    */
-  @NotNull
+  @NonNull
   public String getTheme() {
     if (myTheme == null) {
       return getPreferredTheme();
@@ -524,7 +524,7 @@ public class Configuration {
    *
    * @return the full configuration
    */
-  @NotNull
+  @NonNull
   public FolderConfiguration getFullConfig() {
     if ((myFolderConfigDirty & MASK_FOLDERCONFIG) != 0 || myProjectStateVersion != mySettings.getStateVersion()) {
       syncFolderConfig();
@@ -539,7 +539,7 @@ public class Configuration {
    *
    * @return the constraints configuration
    */
-  @NotNull
+  @NonNull
   public FolderConfiguration getEditedConfig() {
     return myEditedConfig;
   }
@@ -611,7 +611,7 @@ public class Configuration {
    *         (this can only happen if the states don't have a single qualifier that is the same).
    */
   @Nullable
-  private static String getClosestMatch(@NotNull FolderConfiguration oldConfig, @NotNull List<State> states) {
+  private static String getClosestMatch(@NonNull FolderConfiguration oldConfig, @NonNull List<State> states) {
     // create 2 lists as we're going to go through one and put the
     // candidates in the other.
     List<State> list1 = new ArrayList<>(states.size());
@@ -711,7 +711,7 @@ public class Configuration {
    *
    * @param locale the locale
    */
-  public void setLocale(@NotNull Locale locale) {
+  public void setLocale(@NonNull Locale locale) {
     if (!Objects.equals(myLocale, locale)) {
       myLocale = locale;
 
@@ -748,7 +748,7 @@ public class Configuration {
    *
    * @param night the night mode
    */
-  public void setNightMode(@NotNull NightMode night) {
+  public void setNightMode(@NonNull NightMode night) {
     if (myNightMode != night) {
       if (night == NightMode.NIGHT) {
         setUiModeFlagValue((getUiModeFlagValue() & UI_MODE_TYPE_MASK) | UI_MODE_NIGHT_YES);
@@ -764,7 +764,7 @@ public class Configuration {
    *
    * @param uiMode the UI mode
    */
-  public void setUiMode(@NotNull UiMode uiMode) {
+  public void setUiMode(@NonNull UiMode uiMode) {
     if (myUiMode != uiMode) {
       int newUiTypeFlags = 0;
       switch (uiMode) {
@@ -866,7 +866,7 @@ public class Configuration {
   /**
    * Sets the {@link AdaptiveIconShape} to use when rendering
    */
-  public void setAdaptiveShape(@NotNull AdaptiveIconShape adaptiveShape) {
+  public void setAdaptiveShape(@NonNull AdaptiveIconShape adaptiveShape) {
     if (myAdaptiveShape != adaptiveShape) {
       myAdaptiveShape = adaptiveShape;
       updated(CFG_ADAPTIVE_SHAPE);
@@ -876,7 +876,7 @@ public class Configuration {
   /**
    * Returns the {@link AdaptiveIconShape} to use when rendering
    */
-  @NotNull
+  @NonNull
   public AdaptiveIconShape getAdaptiveShape() {
     return myAdaptiveShape;
   }
@@ -1034,7 +1034,7 @@ public class Configuration {
    *
    * @return the density
    */
-  @NotNull
+  @NonNull
   public Density getDensity() {
     DensityQualifier qualifier = getFullConfig().getDensityQualifier();
     if (qualifier != null) {
@@ -1136,7 +1136,7 @@ public class Configuration {
    *
    * @param listener the listener to add
    */
-  public void addListener(@NotNull ConfigurationListener listener) {
+  public void addListener(@NonNull ConfigurationListener listener) {
     if (myListeners == null) {
       myListeners = new ArrayList<>();
     }
@@ -1148,7 +1148,7 @@ public class Configuration {
    *
    * @param listener the listener to remove
    */
-  public void removeListener(@NotNull ConfigurationListener listener) {
+  public void removeListener(@NonNull ConfigurationListener listener) {
     if (myListeners != null) {
       myListeners.remove(listener);
       if (myListeners.isEmpty()) {
@@ -1160,7 +1160,7 @@ public class Configuration {
   // ---- Resolving resources ----
 
   @Slow
-  public @NotNull ResourceResolver getResourceResolver() {
+  public @NonNull ResourceResolver getResourceResolver() {
     String theme = getTheme();
     Device device = getDevice();
     ResourceResolverCache resolverCache = mySettings.getResolverCache();
@@ -1204,7 +1204,7 @@ public class Configuration {
       .toString();
   }
 
-  @NotNull
+  @NonNull
   public ConfigurationModelModule getConfigModule() {
     return mySettings.getConfigModule();
   }
@@ -1235,7 +1235,7 @@ public class Configuration {
    * Returns a target that is only suitable to be used for rendering (as opposed to a target that can be used for attribute resolution).
    */
   @Nullable
-  private static IAndroidTarget getTargetForRendering(@Nullable IAndroidTarget target, @NotNull ConfigurationModelModule module) {
+  private static IAndroidTarget getTargetForRendering(@Nullable IAndroidTarget target, @NonNull ConfigurationModelModule module) {
     if (target == null) {
       return null;
     }
@@ -1248,7 +1248,7 @@ public class Configuration {
    * This method takes into account the activity name and the device settings. It will also consider the manifest and the post splash
    * theme, if defined.
    */
-  @NotNull
+  @NonNull
   public String getPreferredTheme() {
     return mySettings.getConfigModule().getThemeInfoProvider().getDefaultTheme(this);
   }

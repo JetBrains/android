@@ -21,6 +21,7 @@ iml_module(
         "//tools/base/apkparser:studio.android.sdktools.binary-resources[module]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
         "//tools/adt/idea/.idea/libraries:asm-tools",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
     ],
 )
 

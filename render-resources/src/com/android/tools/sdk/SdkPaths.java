@@ -16,12 +16,12 @@
 package com.android.tools.sdk;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.io.CancellableFileIo;
 import com.google.common.base.Strings;
 import java.io.File;
 import java.nio.file.Path;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods for SDK paths.
@@ -37,21 +37,21 @@ public class SdkPaths {
    * @param includePathInMessage indicates whether the given path should be included in the result message.
    * @return the validation result.
    */
-  @NotNull
+  @NonNull
   public static ValidationResult validateAndroidSdk(@Nullable Path sdkPath, boolean includePathInMessage) {
     return validatedSdkPath(sdkPath, "SDK", false, includePathInMessage);
   }
 
   /** @see #validateAndroidSdk(Path, boolean) */
   @Deprecated
-  @NotNull
+  @NonNull
   public static ValidationResult validateAndroidSdk(@Nullable File sdkFile, boolean includePathInMessage) {
     return validateAndroidSdk(sdkFile == null ? null : sdkFile.toPath(), includePathInMessage);
   }
 
-  @NotNull
+  @NonNull
   public static ValidationResult validatedSdkPath(@Nullable Path sdkPath,
-                                                  @NotNull String sdkName,
+                                                  @NonNull String sdkName,
                                                   boolean checkForWritable,
                                                   boolean includePathInMessage) {
     if (sdkPath == null) {
@@ -95,13 +95,13 @@ public class SdkPaths {
   }
 
   public static class ValidationResult {
-    @NotNull public static final ValidationResult SUCCESS = new ValidationResult(true, null);
+    @NonNull public static final ValidationResult SUCCESS = new ValidationResult(true, null);
 
     public final boolean success;
     @Nullable public final String message;
 
-    @NotNull
-    public static ValidationResult error(@NotNull String message) {
+    @NonNull
+    public static ValidationResult error(@NonNull String message) {
       return new ValidationResult(false, message);
     }
 

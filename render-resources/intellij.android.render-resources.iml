@@ -18,5 +18,6 @@
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="module" module-name="intellij.android.environment-services" />
     <orderEntry type="library" name="asm-tools" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
   </component>
 </module>
