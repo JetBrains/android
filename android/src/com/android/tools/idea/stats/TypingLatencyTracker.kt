@@ -27,24 +27,25 @@ import com.intellij.ide.EssentialHighlightingMode
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actionSystem.LatencyListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.async
 import org.HdrHistogram.SingleWriterRecorder
 import org.jetbrains.android.AndroidPluginDisposable
-import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Tracks typing latency across all file types.
- * To log an [AndroidStudioEvent] with the collected data, call [reportTypingLatency].
+ * Tracks typing latency across all file types. To log an [AndroidStudioEvent] with the collected
+ * data, call [reportTypingLatency].
  */
 object TypingLatencyTracker : LatencyListener {
 
   /**
-   * Maps file types to latency recorders.
-   * We use [SingleWriterRecorder] to allow thread-safe read access from background threads.
+   * Maps file types to latency recorders. We use [SingleWriterRecorder] to allow thread-safe read
+   * access from background threads.
    */
   private val latencyRecorders = ConcurrentHashMap<EditorFileType, SingleWriterRecorder>()
 
-  private val coroutineScope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
+  private val coroutineScope =
+    AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
 
   override fun recordTypingLatency(editor: Editor, action: String, latencyMs: Long) {
     if (latencyMs < 0) return // Can happen due to non-monotonic system time, for example.
@@ -53,29 +54,32 @@ object TypingLatencyTracker : LatencyListener {
     coroutineScope.async(uiThread) {
       val fileType = getEditorFileTypeForAnalytics(file, editor.project)
       val recorder = latencyRecorders.computeIfAbsent(fileType) { SingleWriterRecorder(1) }
-      // This runs on the EDT to ensure a single writer, but is thread-safe with respect to a background thread reading the histogram.
+      // This runs on the EDT to ensure a single writer, but is thread-safe with respect to a
+      // background thread reading the histogram.
       recorder.recordValue(latencyMs)
     }
   }
 
   /**
-   * Logs an [AndroidStudioEvent] with typing latency information.
-   * Resets statistics so that latencies are not double-counted in the next report.
+   * Logs an [AndroidStudioEvent] with typing latency information. Resets statistics so that
+   * latencies are not double-counted in the next report.
    */
   fun reportTypingLatency() {
     val allStats = TypingLatencyStats.newBuilder()
     for ((fileType, recorder) in latencyRecorders) {
-      val histogram = recorder.intervalHistogram // Automatically resets statistics for this recorder.
+      val histogram =
+        recorder.intervalHistogram // Automatically resets statistics for this recorder.
       if (histogram.totalCount == 0L) {
         continue
       }
-      val record = TypingLatencyStats.LatencyRecord.newBuilder().also {
-        it.fileType = fileType
-        it.totalKeysTyped = histogram.totalCount
-        it.totalLatencyMs = (histogram.totalCount * histogram.mean).toLong()
-        it.maxLatencyMs = histogram.maxValue
-        it.histogram = histogram.toProto()
-      }
+      val record =
+        TypingLatencyStats.LatencyRecord.newBuilder().also {
+          it.fileType = fileType
+          it.totalKeysTyped = histogram.totalCount
+          it.totalLatencyMs = (histogram.totalCount * histogram.mean).toLong()
+          it.maxLatencyMs = histogram.maxValue
+          it.histogram = histogram.toProto()
+        }
       allStats.addLatencyRecords(record.build())
     }
     allStats.setEssentialHighlighting(EssentialHighlightingMode.isEnabled())
