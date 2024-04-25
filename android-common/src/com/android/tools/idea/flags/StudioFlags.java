@@ -1570,6 +1570,14 @@ public final class StudioFlags {
       "Enable FTL DirectAccess Monthly Quota",
       false);
 
+  public static final Flag<Boolean> DIRECT_ACCESS_CREATE_PROJECT =
+    new BooleanFlag(
+      FIREBASE_TEST_LAB,
+      "direct.access.create.project",
+      "Direct Access Create Project",
+      "Create a cloud project on logging in and authenticating Firebase",
+      false);
+
   public static final Flag<Boolean> DIRECT_ACCESS_SETTINGS_PAGE =
     new BooleanFlag(
       FIREBASE_TEST_LAB,
