@@ -78,10 +78,18 @@ void ProcessDarkMode(stringstream* stream, UiSettingsState* state) {
 
 void ProcessGestureNavigation(stringstream* stream, UiSettingsState* state) {
   string line;
+  bool gesture_overlay_installed = false;
   bool gesture_navigation = false;
+  int line_start_position = stream->tellg();
   if (getline(*stream, line, '\n')) {
-    gesture_navigation = line == "[x] " GESTURES_OVERLAY;
+    if (line.rfind(DIVIDER_PREFIX, 0) == 0) { // line.startsWith(DIVIDER_PREFIX)
+      stream->seekg(line_start_position); // Go back to start of line
+    } else {
+      gesture_overlay_installed = true;
+      gesture_navigation = line == "[x] " GESTURES_OVERLAY;
+    }
   }
+  state->set_gesture_overlay_installed(gesture_overlay_installed);
   state->set_gesture_navigation(gesture_navigation);
 }
 

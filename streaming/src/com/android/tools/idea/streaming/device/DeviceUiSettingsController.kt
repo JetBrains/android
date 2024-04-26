@@ -36,6 +36,7 @@ internal class DeviceUiSettingsController(
   override suspend fun populateModel() {
     val response = deviceController.getUiSettings()
     model.inDarkMode.setFromController(response.darkMode)
+    model.gestureOverlayInstalled.setFromController(response.gestureOverlayInstalled)
     model.gestureNavigation.setFromController(response.gestureNavigation)
     model.talkBackInstalled.setFromController(response.tackBackInstalled)
     model.talkBackOn.setFromController(response.talkBackOn)

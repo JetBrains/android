@@ -79,7 +79,7 @@ internal class UiSettingsPanel(
             checkBox("")
               .bind(model.gestureNavigation)
               .apply { component.name = GESTURE_NAVIGATION_TITLE }
-          }
+          }.visibleIf(model.gestureOverlayInstalled)
         }
 
         row(label(APP_LANGUAGE_TITLE)) {

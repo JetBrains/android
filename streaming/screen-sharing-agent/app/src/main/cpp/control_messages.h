@@ -627,6 +627,7 @@ public:
 
   void copy(UiSettingsResponse* result) const {
     result->set_dark_mode(dark_mode_);
+    result->set_gesture_overlay_installed(gesture_overlay_installed_);
     result->set_gesture_navigation(gesture_navigation_);
     result->set_foreground_application_id(foreground_application_id_);
     result->set_app_locale(app_locale_);
@@ -643,6 +644,14 @@ public:
 
   bool dark_mode() {
     return dark_mode_;
+  }
+
+  void set_gesture_overlay_installed(bool gesture_overlay_installed) {
+    gesture_overlay_installed_ = gesture_overlay_installed;
+  }
+
+  bool gesture_overlay_installed() {
+    return gesture_overlay_installed_;
   }
 
   void set_gesture_navigation(bool gesture_navigation) {
@@ -723,6 +732,7 @@ private:
   friend class ControlMessage;
 
   bool dark_mode_;
+  bool gesture_overlay_installed_;
   bool gesture_navigation_;
   std::string foreground_application_id_;
   std::string app_locale_;

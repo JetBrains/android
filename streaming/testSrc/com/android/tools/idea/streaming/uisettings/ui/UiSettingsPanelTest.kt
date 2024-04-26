@@ -85,8 +85,17 @@ class UiSettingsPanelTest {
   }
 
   @Test
-  fun testSetGestureNavigationFromUi() {
+  fun testGestureOverlayNotInstalled() {
+    model.gestureOverlayInstalled.setFromController(false)
     val checkBox = panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }
+    assertThat(checkBox.isVisible).isFalse()
+  }
+
+  @Test
+  fun testSetGestureNavigationFromUi() {
+    model.gestureOverlayInstalled.setFromController(true)
+    val checkBox = panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }
+    assertThat(checkBox.isVisible).isTrue()
     assertThat(checkBox.isSelected).isFalse()
 
     checkBox.doClick()

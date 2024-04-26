@@ -79,6 +79,7 @@ class UiSettingsRule : ExternalResource() {
 
   fun configureUiSettings(
     darkMode: Boolean = false,
+    gestureOverlayInstalled: Boolean = true,
     gestureNavigation: Boolean = false,
     applicationId: String = APPLICATION_ID1,
     appLocales: String = "",
@@ -96,7 +97,7 @@ class UiSettingsRule : ExternalResource() {
       -- Dark Mode --
       Night mode: ${if (darkMode) "yes" else "no"}
       -- Gestures --
-      [${if (gestureNavigation) "x" else " "}] com.android.internal.systemui.navbar.gestural
+      ${if (gestureOverlayInstalled) "[${if (gestureNavigation) "x" else " "}] com.android.internal.systemui.navbar.gestural" else ""}
       -- List Packages --
       package:com.google.some.package1
       ${if (talkBackInstalled) "package:com.google.android.marvin.talkback" else "package:com.google.some.package2"}
@@ -112,7 +113,7 @@ class UiSettingsRule : ExternalResource() {
       -- Foreground Application --
          Proc # 0: fg     T/A/TOP  LCMNFU  t: 0 17132:com.example.test.process1/u0a405 (top-activity)
          Proc # 0: fg     T/A/TOP  LCMNFU  t: 0 17132:com.example.test.process1/u0a405 (top-activity)
-    """.trimIndent()
+    """.trimIndent().replace("\n\n", "\n") // trim spaces and remove all empty lines
     adb.configureShellCommand(deviceSelector, command, response)
 
     adb.configureShellCommand(deviceSelector, POPULATE_LANGUAGE_COMMAND.format(applicationId), """

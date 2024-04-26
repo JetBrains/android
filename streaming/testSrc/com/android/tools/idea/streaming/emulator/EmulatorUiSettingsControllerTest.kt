@@ -118,6 +118,14 @@ class EmulatorUiSettingsControllerTest {
   }
 
   @Test
+  fun testGestureOverlayMissingAndTalkbackInstalled() {
+    uiRule.configureUiSettings(gestureOverlayInstalled = false, talkBackInstalled = true)
+    controller.initAndWait()
+    assertThat(model.gestureOverlayInstalled.value).isFalse()
+    assertThat(model.talkBackInstalled.value).isTrue()
+  }
+
+  @Test
   fun testSetNightModeOn() {
     controller.initAndWait()
     model.inDarkMode.setFromUi(true)

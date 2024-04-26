@@ -696,6 +696,7 @@ internal class UiSettingsRequest private constructor(override val requestId: Int
 internal data class UiSettingsResponse(
   override val requestId: Int,
   val darkMode: Boolean,
+  val gestureOverlayInstalled: Boolean,
   val gestureNavigation: Boolean,
   val foregroundApplicationId: String,
   val appLocale: String,
@@ -711,6 +712,7 @@ internal data class UiSettingsResponse(
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
     stream.writeBoolean(darkMode)
+    stream.writeBoolean(gestureOverlayInstalled)
     stream.writeBoolean(gestureNavigation)
     stream.writeBytes(foregroundApplicationId.toByteArray(UTF_8))
     stream.writeBytes(appLocale.toByteArray(UTF_8))
@@ -727,6 +729,7 @@ internal data class UiSettingsResponse(
     "UiSettingsResponse(" +
     "requestId=$requestId, " +
     "darkMode=$darkMode, " +
+    "gestureOverlayInstalled=$gestureOverlayInstalled, " +
     "gestureNavigation=$gestureNavigation, " +
     "foregroundApplicationId=\"$foregroundApplicationId\", " +
     "appLocale=\"$appLocale\", " +
@@ -742,6 +745,7 @@ internal data class UiSettingsResponse(
     override fun deserialize(stream: Base128InputStream): UiSettingsResponse {
       val requestId = stream.readInt()
       val darkMode = stream.readBoolean()
+      val gestureOverlayInstalled = stream.readBoolean()
       val gestureNavigation = stream.readBoolean()
       val foregroundApplicationId = stream.readBytes().toString(UTF_8)
       val appLocale = stream.readBytes().toString(UTF_8)
@@ -755,6 +759,7 @@ internal data class UiSettingsResponse(
       return UiSettingsResponse(
         requestId,
         darkMode,
+        gestureOverlayInstalled,
         gestureNavigation,
         foregroundApplicationId,
         appLocale,

@@ -220,6 +220,8 @@ class FakeScreenSharingAgent(
   @Volatile
   var darkMode = false
   @Volatile
+  var gestureOverlayInstalled = true
+  @Volatile
   var gestureNavigation = false
   @Volatile
   var foregroundProcess = ""
@@ -626,7 +628,7 @@ class FakeScreenSharingAgent(
 
   private fun sendUiSettingsResponse(message: UiSettingsRequest) {
     sendNotificationOrResponse(
-      UiSettingsResponse(message.requestId, darkMode, gestureNavigation, foregroundProcess, appLocales, talkBackInstalled, talkBackOn, selectToSpeakOn, fontSizeSettable, fontSize, screenDensitySettable, screenDensity))
+      UiSettingsResponse(message.requestId, darkMode, gestureOverlayInstalled, gestureNavigation, foregroundProcess, appLocales, talkBackInstalled, talkBackOn, selectToSpeakOn, fontSizeSettable, fontSize, screenDensitySettable, screenDensity))
   }
 
   private fun setDarkMode(message: SetDarkModeMessage) {

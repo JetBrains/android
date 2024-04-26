@@ -42,6 +42,7 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api:
   private val densities = GoogleDensityRange.computeDensityRange(screenSize, physicalDensity)
 
   val inDarkMode: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
+  val gestureOverlayInstalled: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
   val gestureNavigation: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val appLanguage = UiComboBoxModel<AppLanguage>()
   val talkBackInstalled: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)

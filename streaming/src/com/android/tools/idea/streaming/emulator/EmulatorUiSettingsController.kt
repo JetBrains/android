@@ -156,7 +156,19 @@ internal class EmulatorUiSettingsController(
   }
 
   private fun processGestureNavigation(iterator: ListIterator<String>) {
-    val gestureNavigation = iterator.hasNext() && iterator.next() == "[x] $GESTURES_OVERLAY"
+    var gestureOverlayInstalled = false
+    var gestureNavigation = false
+    if (iterator.hasNext()) {
+      val line = iterator.next()
+      if (line.startsWith(DIVIDER_PREFIX)) {
+        iterator.previous()
+      }
+      else {
+        gestureOverlayInstalled = true
+        gestureNavigation = line == "[x] $GESTURES_OVERLAY"
+      }
+    }
+    model.gestureOverlayInstalled.setFromController(gestureOverlayInstalled)
     model.gestureNavigation.setFromController(gestureNavigation)
   }
 

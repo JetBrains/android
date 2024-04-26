@@ -294,6 +294,7 @@ void UiSettingsRequest::Serialize(Base128OutputStream& stream) const {
 void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
   stream.WriteBool(dark_mode_);
+  stream.WriteBool(gesture_overlay_installed_);
   stream.WriteBool(gesture_navigation_);
   stream.WriteBytes(foreground_application_id_);
   stream.WriteBytes(app_locale_);
