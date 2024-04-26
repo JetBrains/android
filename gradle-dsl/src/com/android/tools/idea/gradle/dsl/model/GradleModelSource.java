@@ -13,32 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.projectsystem.gradle;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
+package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogView;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
-import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
-import com.android.tools.idea.gradle.dsl.model.GradleVersionCatalogViewImpl;
-import com.android.tools.idea.gradle.dsl.model.ProjectBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
-import com.android.tools.idea.projectsystem.AndroidProjectRootUtil;
+import com.google.common.base.Strings;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
+import org.jetbrains.plugins.gradle.util.GradleUtil;
 
 public final class GradleModelSource extends GradleModelProvider {
 
@@ -145,17 +141,18 @@ public final class GradleModelSource extends GradleModelProvider {
     @Nullable
     @Override
     public VirtualFile getGradleBuildFile(@NotNull Module module) {
-      GradleModuleModel moduleModel = GradleProjectSystemUtil.getGradleModuleModel(module);
-      if (moduleModel != null) {
-        return moduleModel.getBuildFile();
-      }
-      return null;
+      return GradleUtil.getGradleBuildScriptSource(module);
     }
 
     @Nullable
     @Override
     public @SystemIndependent String getGradleProjectRootPath(@NotNull Module module) {
-      return AndroidProjectRootUtil.getModuleDirPath(module);
+      String linkedProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module);
+      if (!Strings.isNullOrEmpty(linkedProjectPath)) {
+        return linkedProjectPath;
+      }
+      @SystemIndependent String moduleFilePath = module.getModuleFilePath();
+      return VfsUtil.getParentDir(moduleFilePath);
     }
 
     @Nullable
@@ -165,6 +162,13 @@ public final class GradleModelSource extends GradleModelProvider {
       if (projectDir == null) return null;
       return projectDir.getPath();
     }
+  }
 
+  @NotNull
+  private static File getBaseDirPath(@NotNull Project project) {
+    if (project.isDefault()) {
+      return new File("");
+    }
+    return new File(Objects.requireNonNull(FileUtil.toCanonicalPath(project.getBasePath())));
   }
 }
