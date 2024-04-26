@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.dependencies
 
 import com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.Companion.calculateAddDependencyPolicy
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel
 
 typealias Alias = String
 
@@ -28,6 +30,11 @@ abstract class DependenciesHelper {
         AddDependencyPolicy.VERSION_CATALOG -> CatalogDependenciesInserter(projectModel)
         AddDependencyPolicy.BUILD_FILE -> DependenciesInserter(projectModel)
       }
+
+    @JvmStatic
+    fun getDefaultCatalogModel(projectModel: ProjectBuildModel): GradleVersionCatalogModel? {
+      return projectModel.versionCatalogsModel.getVersionCatalogModel(VersionCatalogModel.DEFAULT_CATALOG_NAME)
+    }
 
   }
 }

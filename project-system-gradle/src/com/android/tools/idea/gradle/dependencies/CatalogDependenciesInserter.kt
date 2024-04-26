@@ -223,7 +223,7 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
 
 
   private fun getCatalogModel(): GradleVersionCatalogModel {
-    val catalogModel = projectModel.versionCatalogsModel.getVersionCatalogModel(VersionCatalogModel.DEFAULT_CATALOG_NAME)
+    val catalogModel = DependenciesHelper.getDefaultCatalogModel(projectModel)
     // check invariant that at this point catalog must be available as algorithm chose to add dependency to catalog
     check(catalogModel != null) { "Catalog ${VersionCatalogModel.DEFAULT_CATALOG_NAME} must be available to add dependency" }
     return catalogModel

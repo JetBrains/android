@@ -33,8 +33,12 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import com.android.ide.common.gradle.Component;
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
+import com.android.tools.idea.gradle.dependencies.DependenciesHelper;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
@@ -168,23 +172,27 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     Project project = firstModule.getProject();
 
     VirtualFile openedFile = FileEditorManagerEx.getInstanceEx(firstModule.getProject()).getCurrentFile();
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
 
-    List<GradleBuildModel> buildModelsToUpdate = new ArrayList<>();
+    List<GradleFileModel> buildModelsToUpdate = new ArrayList<>();
     for (Module module : modules) {
       GradleBuildModel buildModel = GradleBuildModel.get(module);
       if (buildModel == null) {
         return null;
       }
       String configurationName = getConfigurationName(module, scope, openedFile);
-      DependenciesModel dependencies = buildModel.dependencies();
-      dependencies.addArtifact(configurationName, dependencySpec);
+      DependenciesHelper.withModel(projectBuildModel)
+        .addDependency(configurationName, dependencySpec.compactNotation(), buildModel);
       buildModelsToUpdate.add(buildModel);
     }
+    GradleVersionCatalogModel maybeCatalog =
+      DependenciesHelper.getDefaultCatalogModel(projectBuildModel);
+    if (maybeCatalog != null) buildModelsToUpdate.add(maybeCatalog);
 
     new WriteCommandAction(project, "Add Gradle Library Dependency") {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
-        for (GradleBuildModel buildModel : buildModelsToUpdate) {
+        for (GradleFileModel buildModel : buildModelsToUpdate) {
           buildModel.applyChanges();
         }
         registerUndoAction(project);
