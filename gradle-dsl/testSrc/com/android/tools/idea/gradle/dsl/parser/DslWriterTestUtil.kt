@@ -96,12 +96,6 @@ fun <K, V> blockOf(vararg pairs: Pair<K, V>): Map<K, V> {
   return b
 }
 
-fun <K, V> blockOf(pair: Pair<K, V>): Map<K, V> {
-  val b = Block<K, V>()
-  b[pair.first] = pair.second
-  return b
-}
-
 fun blockOf(): Map<*, *> {
   return Block<Any,Any>()
 }

@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.GROOVY
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement

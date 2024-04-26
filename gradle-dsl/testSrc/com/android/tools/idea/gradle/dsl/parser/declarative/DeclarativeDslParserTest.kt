@@ -191,7 +191,7 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
           val newList = LinkedList<Any>()
           element.arguments.forEach {
             if (it is GradleDslMethodCall) {
-              populate(it.methodName, it) { k, v -> newList.add(mapOf<String, Any>(k to v)) }
+              populate(it.methodName, it) { k, v -> newList.add(mapOf(k to v)) }
             }
             else populate("", it) { _, v -> newList.add(v) }
 

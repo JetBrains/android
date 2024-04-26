@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.model.catalog
 import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogVersions
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationSpec
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.LiteralVersionDeclarationModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.MapVersionDeclarationModel

@@ -129,18 +129,6 @@ abstract class PluginDeclarationModelImpl(open val dslElement: GradleDslElement)
       }
     }
 
-    private fun createModelFor(name: String,
-                               getFunc: (PluginDeclarationSpec) -> String?,
-                               setFunc: (PluginDeclarationSpecImpl, String) -> Boolean
-    ): ResolvedPropertyModel {
-      val element = dslElement
-      assert(element.parent != null)
-      val fakeElement: FakeElement = FakePluginDeclarationElement(element.parent!!, GradleNameElement.fake(name), element, getFunc,
-                                                                      setFunc, false)
-      val builder = GradlePropertyModelBuilder.create(fakeElement)
-      return builder.addTransform(FakeElementTransform()).buildResolved()
-    }
-
     override fun id(): ResolvedPropertyModel {
       val element = dslElement
       assert(element.parent != null)

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationSpec
-import com.android.tools.idea.gradle.dsl.utils.GRADLE_PATH_SEPARATOR
 import com.google.common.base.Splitter
 
 class VersionDeclarationSpecImpl internal constructor (
