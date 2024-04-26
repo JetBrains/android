@@ -29,11 +29,11 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.sdklib.repository.meta.DetailsTypes.ApiDetailsType;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -202,28 +202,25 @@ public final class SystemImageDescription {
       myRemotePackage = p;
 
       TypeDetails details = myRemotePackage.getTypeDetails();
-      assert details instanceof DetailsTypes.ApiDetailsType;
-      myAndroidVersion = ((DetailsTypes.ApiDetailsType)details).getAndroidVersion();
+      assert details instanceof ApiDetailsType;
+
+      var apiDetailsType = (ApiDetailsType)details;
+      myAndroidVersion = apiDetailsType.getAndroidVersion();
 
       IdDisplay vendor = null;
-      List<String> abis = Collections.singletonList("armeabi");
       List<String> translatedAbis = Collections.emptyList();
 
       myTags = SystemImageTags.getTags(p);
 
       if (details instanceof DetailsTypes.AddonDetailsType) {
         vendor = ((DetailsTypes.AddonDetailsType)details).getVendor();
-        if (myTags.contains(SystemImageTags.GOOGLE_APIS_X86_TAG)) {
-          abis = Collections.singletonList("x86");
-        }
       }
       if (details instanceof DetailsTypes.SysImgDetailsType) {
         vendor = ((DetailsTypes.SysImgDetailsType)details).getVendor();
-        abis = ((DetailsTypes.SysImgDetailsType)details).getAbis();
         translatedAbis = ((DetailsTypes.SysImgDetailsType)details).getTranslatedAbis();
       }
       myVendor = vendor;
-      myAbis = abis;
+      myAbis = apiDetailsType.getAbis();
       myTranslatedAbis = translatedAbis;
     }
 
