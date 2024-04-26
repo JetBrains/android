@@ -39,6 +39,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
+import junit.framework.TestCase
 import org.apache.commons.lang3.StringUtils.countMatches
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -297,6 +298,50 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   }
 
   @Test
+  fun testAddPluginToSettingsWithCatalog() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { _, _, helper ->
+             val changed = helper.applySettingsPlugin("com.example.foo", "10.0")
+             assertThat(changed.size).isEqualTo(1)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).doesNotContain("example")
+
+             val settingsBuildContent = project.getTextForFile("settings.gradle")
+             val pluginsBlockContent = getBlockContent(settingsBuildContent, "plugins")
+             assertThat(pluginsBlockContent).contains("com.example.foo")
+             assertThat(settingsBuildContent).doesNotContain("libs.plugins.example.foo")
+
+             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(catalogContent).doesNotContain("com.example.foo")
+           })
+  }
+
+  @Test
+  fun testAddPluginToSettingsPluginManagementWithCatalog() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { projectBuildModel, _, helper ->
+             val pluginsModel = projectBuildModel.projectSettingsModel?.pluginManagement()?.plugins()
+             assertThat(pluginsModel).isNotNull()
+             val changed = helper.declarePluginInPluginManagement("com.example.foo", "10.0", null, pluginsModel!!)
+             assertThat(changed.size).isEqualTo(1)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).doesNotContain("example")
+
+             val settingsBuildContent = project.getTextForFile("settings.gradle")
+             val pluginsBlockContent = getBlockContent(settingsBuildContent, "pluginManagement.plugins")
+             assertThat(pluginsBlockContent).contains("com.example.foo")
+             assertThat(settingsBuildContent).doesNotContain("libs.plugins.example.foo")
+
+             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(catalogContent).doesNotContain("com.example.foo")
+           })
+  }
+
+  @Test
   fun testAddPluginToModuleWithNoCatalog() {
     doTest(SIMPLE_APPLICATION,
            { projectBuildModel, moduleModel, helper ->
@@ -314,6 +359,49 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            })
   }
 
+  @Test
+  fun testAddPluginToSettingsWithNoCatalog() {
+    doTest(SIMPLE_APPLICATION,
+           { _, _, helper ->
+             val changed = helper.applySettingsPlugin("com.example.foo", "10.0")
+             assertThat(changed.size).isEqualTo(1)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).doesNotContain("example")
+
+             val settingsBuildContent = project.getTextForFile("settings.gradle")
+             val pluginsBlockContent = getBlockContent(settingsBuildContent, "plugins")
+             assertThat(pluginsBlockContent).contains("id 'com.example.foo' version '10.0'")
+             assertThat(settingsBuildContent).doesNotContain("libs.plugins.example.foo")
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(buildFileContent).doesNotContain("com.example.foo")
+           })
+  }
+
+  @Test
+  fun testAddPluginToSettingsPluginManagementWithNoCatalog() {
+    doTest(SIMPLE_APPLICATION,
+           { projectBuildModel, _, helper ->
+             val pluginsModel = projectBuildModel.projectSettingsModel?.pluginManagement()?.plugins()
+             assertThat(pluginsModel).isNotNull()
+             val changed = helper.declarePluginInPluginManagement("com.example.foo", "10.0", null, pluginsModel!!)
+             assertThat(changed.size).isEqualTo(1)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).doesNotContain("example")
+
+             val settingsBuildContent = project.getTextForFile("settings.gradle")
+             val pluginsBlockContent = getBlockContent(settingsBuildContent, "pluginManagement.plugins")
+             assertThat(pluginsBlockContent).contains("id 'com.example.foo' version '10.0'")
+             assertThat(settingsBuildContent).doesNotContain("libs.plugins.example.foo")
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(buildFileContent).doesNotContain("com.example.foo")
+           })
+  }
 
   @Test
   fun testSimpleAddWithCatalogIgnoreExistingDeclaration() {
@@ -655,6 +743,67 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
       moduleModel.applyChanges()
     }
     assert.invoke()
+  }
+
+  private fun isRootElement(string: String, elementPosition: Int): Boolean {
+    var counter = 0
+    for (pos in 0 until elementPosition) {
+      when (string[pos]) {
+        '{' -> counter += 1
+        '}' -> counter -= 1
+        else -> Unit
+      }
+      assertThat(counter).isGreaterThan(-1)
+    }
+    return counter == 0
+  }
+
+  /**
+   * Returns content between curly braces `plugins{ ... }``
+   */
+  private fun getBlockContent(string: String, blockStart: Int): String? {
+    var start = -1
+    var counter = 0
+    for (pos in blockStart until string.length) {
+      when (string[pos]) {
+        '{' -> {
+          if(start == -1) start = pos
+          counter += 1
+        }
+        '}' -> counter -= 1
+        else -> Unit
+      }
+      if (counter == 0 && start >= 0) return string.substring(start + 1, pos - 1)
+    }
+    return null
+  }
+
+  /**
+   * Method returns content of block that we specify in path - for example `pluginManagement.plugins`
+   * It does not handle block duplication.
+   */
+  private fun getBlockContent(text: String, path: String): String {
+    val elements = path.split(".")
+    assert(elements.isNotEmpty()) { "Path must be formatted as dot separated path `pluginManagement.plugins`" }
+    fun snippet(string: String, element: String): String? {
+      val blockNamePosition = "$element[ \\t\\n\\{]".toRegex().find(string)?.range?.start
+      if (blockNamePosition == null) {
+        fail("Cannot find $element")
+        return null
+      }
+      if (blockNamePosition >= 0)
+        if (isRootElement(string, blockNamePosition)) {
+          return getBlockContent(string, blockNamePosition)
+        }
+        else return snippet(string.substring(blockNamePosition + element.length), element)
+      return null
+    }
+
+    var currentSnippet = text
+    for (element in elements) {
+      snippet(currentSnippet, element)?.let { currentSnippet = it } ?: fail("Cannot get block content for element $element in $path for file: `$text`")
+    }
+    return currentSnippet
   }
 
   private fun Project.doesFileExists(relativePath:String) =

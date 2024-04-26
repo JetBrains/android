@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
 import com.intellij.psi.PsiFile
 import org.gradle.api.plugins.JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME
 import org.jetbrains.kotlin.utils.addIfNotNull
+import com.intellij.openapi.diagnostic.Logger
 
 open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
 
@@ -54,7 +55,7 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
 
     // in case there is nothing - we force adding plugin to root project plugins block
     result?.changedFiles?.let { updatedFiles.addAll(it) } ?: updatedFiles.addAll(
-        addPlugin(pluginId, version, apply = false, projectBuildModel, projectBuildModel)
+      addPlugin(pluginId, version, apply = false, projectBuildModel, projectBuildModel)
     )
 
 
@@ -180,8 +181,8 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
     // buildModel may be root project of multimodule project or module project itself
     val moduleInsertion = isSingleModuleProject() || buildModel.psiFile != projectModel.projectBuildModel?.psiFile
 
-    settingsPlugins.applyPlugin(pluginId, version, apply)
-    changedFiles.addIfNotNull(settingsPlugins.psiElement?.containingFile)
+    declarePluginInPluginManagement(pluginId, version, apply, settingsPlugins).also { changedFiles.addAll(it) }
+
     if (moduleInsertion) {
       addPlugin(pluginId, buildModel, matcher)?.also { changedFiles.add(it) }
     }
@@ -232,6 +233,37 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
     addPlugin(pluginId, buildModel, matcher)?.also { changedFiles.add(it) }
     return changedFiles
   }
+
+  // Having plugins in settings pluginManagement.plugin block is a way to declare plugins with version, but not apply it immediately
+  // Version catalog is a new way for declaring plugins with version, so we should avoid updating this section when there is a
+  // catalog in project
+  fun declarePluginInPluginManagement(pluginId: String,
+                                      version: String,
+                                      apply: Boolean?,
+                                      settingsPlugins: PluginsBlockModel): Set<PsiFile> {
+    val changedFiles = mutableSetOf<PsiFile>()
+    settingsPlugins.applyPlugin(pluginId, version, apply)
+    changedFiles.addIfNotNull(projectModel.projectSettingsModel?.psiFile)
+    return changedFiles
+  }
+
+  // Adding plugin to settings file plugin{} block.
+  // It does not init version catalog declaration yet so catalog references are illegible here.
+  fun applySettingsPlugin(pluginId: String,
+                          version: String): Set<PsiFile> {
+    val changedFiles = mutableSetOf<PsiFile>()
+    val settingsFile = projectModel.projectSettingsModel
+    if (settingsFile == null)
+      log.warn("Settings file does not exist so cannot insert declaration into plugin{} block")
+
+    settingsFile?.plugins()?.let {
+      it.applyPlugin(pluginId, version)
+      changedFiles.addIfNotNull(projectModel.projectSettingsModel?.psiFile)
+    }
+
+    return changedFiles
+  }
+
 
   open fun addDependency(configuration: String,
                          dependency: String,
@@ -305,5 +337,9 @@ open class DependenciesInserter(private val projectModel: ProjectBuildModel) {
    */
   fun addDependency(configuration: String, dependency: String, parsedModel: GradleBuildModel) =
     addDependency(configuration, dependency, listOf(), parsedModel, ExactDependencyMatcher(configuration, dependency))
+
+  companion object {
+    val log = Logger.getInstance(DependenciesHelper::class.java)
+  }
 
 }
