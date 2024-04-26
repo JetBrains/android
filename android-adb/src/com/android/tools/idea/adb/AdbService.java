@@ -154,34 +154,27 @@ public final class AdbService implements Disposable,
 
   @Override
   public void deviceConnected(@NotNull IDevice device) {
-    if (device.isOnline()) {
-      logDeviceOnline(device);
-    }
+    logDeviceConnectionStatus(device);
   }
 
   @Override
   public void deviceDisconnected(@NotNull IDevice device) {
-    logDeviceOffline(device);
+    logDeviceConnectionStatus(device);
   }
 
   @Override
   public void deviceChanged(@NotNull IDevice device, int changeMask) {
     if ((changeMask & IDevice.CHANGE_STATE) != 0) {
-      if (device.isOnline()) {
-        logDeviceOnline(device);
-      }
-      else {
-        logDeviceOffline(device);
-      }
+      logDeviceConnectionStatus(device);
     }
   }
 
-  private void logDeviceOnline(@NotNull IDevice device) {
-    LOG.info(String.format("Device [%s] has come online", device.getSerialNumber()));
-  }
-
-  private void logDeviceOffline(@NotNull IDevice device) {
-    LOG.info(String.format("Device [%s] is offline", device.getSerialNumber()));
+  private void logDeviceConnectionStatus(@NotNull IDevice device) {
+    if (device.isOnline()) {
+      LOG.info(String.format("Device [%s] has come online", device.getSerialNumber()));
+    } else {
+      LOG.info(String.format("Device [%s] is offline (device state is `%s`)", device.getSerialNumber(), device.getState()));
+    }
   }
 
   @Override
