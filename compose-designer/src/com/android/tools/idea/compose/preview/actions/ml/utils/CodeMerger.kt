@@ -191,6 +191,32 @@ internal class CodeMerger(private val project: Project) {
     }
     return document
   }
+
+  /**
+   * Returns the document obtained by appending the given [block] of code to the end of the existing
+   * [userFile]. The block starts in a new line, so a line break is needed before inserting the full
+   * string.
+   */
+  fun appendBlock(block: KotlinCodeBlock, userFile: PsiFile): Document {
+    val project = userFile.project
+
+    val documentManager = PsiDocumentManager.getInstance(project)
+    val originalDocument =
+      documentManager.getDocument(userFile)
+        ?: throw RuntimeException("No document associated with ${userFile.name}")
+
+    val psiFile =
+      PsiFileFactory.getInstance(project)
+        .createFileFromText(userFile.language, originalDocument.text)
+    val mergedDocument = PsiDocumentManager.getInstance(project).getDocument(psiFile)!!
+
+    WriteCommandAction.runWriteCommandAction(project) {
+      mergedDocument.insertString(mergedDocument.textLength, "\n${block.text}")
+      documentManager.commitDocument(mergedDocument)
+    }
+
+    return mergedDocument
+  }
 }
 
 private fun getIndent(file: PsiFile, offset: Int): CharSequence {

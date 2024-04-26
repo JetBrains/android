@@ -33,7 +33,6 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
 import com.intellij.platform.ide.progress.withBackgroundProgress
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.Job
@@ -69,7 +68,7 @@ internal fun transformAndShowDiff(
         val psiFile = filePointer.element ?: return@withContext
         val parsedBlock = generateKotlinCodeBlock(project, psiFile, botResponse)
 
-        val modifiedDocument: Document = mergeResponse(psiFile, parsedBlock)
+        val modifiedDocument: Document = mergeOrAppendResponse(psiFile, parsedBlock)
         showDiff(project, psiFile, modifiedDocument.text)
       }
     }
@@ -99,16 +98,17 @@ private fun showDiff(project: Project, psiFile: PsiFile, modifiedDocument: Strin
 }
 
 /**
- * Merges [parsedBlock] into [psiFile] by matching function names. Returns the original document if
- * the parsedBlock can´t be merged.
+ * Merges [parsedBlock] into [psiFile] by matching function names. If the parsedBlock can´t be
+ * merged, appends it to the end of the file.
  */
-private fun mergeResponse(psiFile: PsiFile, parsedBlock: KotlinCodeBlock): Document {
+private fun mergeOrAppendResponse(psiFile: PsiFile, parsedBlock: KotlinCodeBlock): Document {
   val project = psiFile.project
-  val merged = CodeMerger(project).mergeBlock(parsedBlock, psiFile, KotlinLanguage.INSTANCE)
+  val codeMerger = CodeMerger(project)
+  val merged = codeMerger.mergeBlock(parsedBlock, psiFile, KotlinLanguage.INSTANCE)
   if (merged != null) {
     return merged
   }
-  return PsiDocumentManager.getInstance(project).getDocument(psiFile)!!
+  return codeMerger.appendBlock(parsedBlock, psiFile)
 }
 
 private fun generateKotlinCodeBlock(
