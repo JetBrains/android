@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dependencies;
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
 import static com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.calculateAddDependencyPolicy;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
-import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
 
@@ -317,8 +316,8 @@ public class GradleDependencyManager {
           addDependenciesToBuildFile(buildModel, module, missing, nameMapper);
         });
       case VERSION_CATALOG -> {
-        GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
-        GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel(DEFAULT_CATALOG_NAME);
+        ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
+        GradleVersionCatalogModel catalogModel = DependenciesHelper.getDefaultCatalogModel(projectBuildModel);
         if (catalogModel == null) {
           LOG.warn("Version Catalog model is null but VERSION_CATALOG policy in effect");
           return addDependenciesInTransaction(module, dependencies, AddDependencyPolicy.BUILD_FILE, nameMapper);

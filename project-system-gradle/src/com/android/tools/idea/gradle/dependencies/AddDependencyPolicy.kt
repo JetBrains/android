@@ -23,8 +23,7 @@ enum class AddDependencyPolicy {
 
   companion object {
    @JvmStatic fun calculateAddDependencyPolicy(projectModel: ProjectBuildModel): AddDependencyPolicy {
-      val catalogsModel = projectModel.versionCatalogsModel
-      val catalog = catalogsModel.getVersionCatalogModel(VersionCatalogModel.DEFAULT_CATALOG_NAME)
+      val catalog = DependenciesHelper.getDefaultCatalogModel(projectModel)
       return if (catalog != null) VERSION_CATALOG else BUILD_FILE
     }
   }
