@@ -18,7 +18,10 @@ package com.android.testutils
 
 import com.intellij.util.ui.EDT
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -59,14 +62,19 @@ fun waitForCondition(timeout: Long, timeUnit: TimeUnit, condition: () -> Boolean
  * Helper function that will loop until a [condition] is met or a [timeout] is exceeded. In each
  * iteration, the function will delay for a given time and then a given callback will be executed.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 suspend inline fun delayUntilCondition(
   delayPerIterationMs: Long,
   timeout: Duration = 30.seconds,
   crossinline condition: suspend () -> Boolean
 ) {
-  withTimeout(timeout) {
-    while (!condition()) {
-      delay(delayPerIterationMs)
+  // Use withContext and the Default dispatcher to avoid any possible test
+  // dispatcher skipping over this timeout.
+  withContext(Dispatchers.Default.limitedParallelism(1)) {
+    withTimeout(timeout) {
+      while (!condition()) {
+        delay(delayPerIterationMs)
+      }
     }
   }
 }

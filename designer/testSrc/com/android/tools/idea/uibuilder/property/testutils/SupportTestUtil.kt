@@ -153,7 +153,7 @@ private constructor(
     }
   }
 
-  fun makeProperty(
+  suspend fun makePropertySuspend(
     namespace: String,
     name: String,
     type: NlPropertyType,
@@ -176,14 +176,21 @@ private constructor(
       else -> makeProperty(namespace, definition, type)
     }.also {
       if (initializeResolver) {
-        runBlocking {
+        delayUntilCondition(10) {
           // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
           // asynchronously.
-          delayUntilCondition(10) { it.resolver != null }
+          it.resolver != null
         }
       }
     }
   }
+
+  fun makeProperty(
+    namespace: String,
+    name: String,
+    type: NlPropertyType,
+    initializeResolver: Boolean = true,
+  ): NlPropertyItem = runBlocking { makePropertySuspend(namespace, name, type, initializeResolver) }
 
   fun makeProperty(
     namespace: String,
