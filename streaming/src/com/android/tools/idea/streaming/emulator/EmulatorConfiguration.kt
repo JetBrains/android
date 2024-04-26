@@ -23,6 +23,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.google.common.base.Splitter
+import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import java.awt.Dimension
@@ -37,6 +38,7 @@ class EmulatorConfiguration private constructor(
   val avdFolder: Path,
   val displaySize: Dimension,
   val density: Int,
+  val additionalDisplays: Map<Int, Dimension>,
   val skinFolder: Path?,
   val deviceType: DeviceType,
   val hasOrientationSensors: Boolean,
@@ -60,9 +62,7 @@ class EmulatorConfiguration private constructor(
      */
     fun readAvdDefinition(avdId: String, avdFolder: Path): EmulatorConfiguration? {
       val hardwareIniFile = avdFolder.resolve("hardware-qemu.ini")
-      val keysToExtract1 = setOf("android.sdk.root", "hw.audioOutput", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density",
-                                 "hw.sensor.hinge.resizable.config")
-      val hardwareIni = readKeyValueFile(hardwareIniFile, keysToExtract1) ?: return null
+      val hardwareIni = readKeyValueFile(hardwareIniFile) ?: return null
 
       val sdkPath = hardwareIni["android.sdk.root"] ?: System.getenv(ANDROID_HOME_ENV) ?: ""
       val androidSdkRoot = avdFolder.resolve(sdkPath)
@@ -72,6 +72,37 @@ class EmulatorConfiguration private constructor(
         return null
       }
       val density = parseInt(hardwareIni["hw.lcd.density"], 0)
+
+      // Extract parameters of secondary displays from lines like "hw.display6.width=400" and "hw.display6.height=600".
+      val additionalDisplays = mutableMapOf<Int, Dimension>()
+      for ((key, value) in hardwareIni) {
+        if (key.startsWith("hw.display")) {
+          val prefixLength = "hw.display".length
+          val dotPos = key.indexOf('.', startIndex = prefixLength)
+          if (dotPos > prefixLength && dotPos < key.length - 1) {
+            val displayId = parseInt(key.substring(prefixLength, dotPos), 0)
+            if (displayId > 0) {
+              val dim = parseInt(value, 0)
+              if (dim > 0) {
+                val suffix = key.substring(dotPos + 1)
+                when (suffix) {
+                  "width" -> additionalDisplays.computeIfAbsent(displayId) { Dimension() }.width = dim
+                  "height" -> additionalDisplays.computeIfAbsent(displayId) { Dimension() }.height = dim
+                }
+              }
+            }
+          }
+        }
+      }
+      // Remove secondary displays with invalid dimensions.
+      val iter = additionalDisplays.iterator()
+      while (iter.hasNext()) {
+        val size = iter.next().value
+        if (size.width <= 0 || size.height <= 0) {
+          iter.remove()
+        }
+      }
+
       val hasAudioOutput = hardwareIni["hw.audioOutput"]?.toBoolean() ?: true
 
       val configIniFile = avdFolder.resolve("config.ini")
@@ -143,6 +174,7 @@ class EmulatorConfiguration private constructor(
                                    avdFolder = avdFolder,
                                    displaySize = Dimension(displayWidth, displayHeight),
                                    density = density,
+                                   additionalDisplays = ImmutableMap.copyOf(additionalDisplays),
                                    skinFolder = skinPath,
                                    deviceType = deviceType,
                                    hasOrientationSensors = hasOrientationSensors,
