@@ -59,6 +59,7 @@ open class GradleFileModelTestCase {
   var languageName: String? = null
   protected lateinit var buildFile: VirtualFile
   protected lateinit var settingsFile: VirtualFile
+  protected lateinit var catalogFile: VirtualFile
   protected lateinit var gradleWrapperPropertiesFile: VirtualFile
   protected lateinit var testDataPath: String
   protected val isGroovy: Boolean get() = languageName == GROOVY_LANGUAGE
@@ -103,6 +104,13 @@ open class GradleFileModelTestCase {
   protected fun writeToBuildFile(fileName: TestFileName) = writeToGradleFile(fileName, buildFile)
 
   protected fun writeToSettingsFile(fileName: TestFileName) = writeToGradleFile(fileName, settingsFile)
+
+  protected fun writeToCatalogFile(fileName: TestFileName) = writeToGradleFile(fileName, settingsFile)
+  protected fun createCatalogFile(path: String) {
+    runWriteAction {
+      catalogFile = projectRule.fixture.tempDirFixture.createFile(path)
+    }
+  }
 
   protected fun writeToGradleWrapperPropertiesFile(fileName: TestFileName) {
     val testFile = fileName.toFile(testDataPath, "")

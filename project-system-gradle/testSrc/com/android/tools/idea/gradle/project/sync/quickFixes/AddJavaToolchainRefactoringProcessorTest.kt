@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.project.sync.quickFixes
 
 import com.android.tools.idea.gradle.GradleFileModelTestCase
+import com.google.common.truth.Truth
+import com.intellij.openapi.vfs.readText
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 
 @RunsInEdt
@@ -81,4 +82,18 @@ class AddJavaToolchainRefactoringProcessorTest : GradleFileModelTestCase() {
 
     verifyFileContents(settingsFile, TestFileName("JavaToolchain/settingsWithFooJayResolverConventionApplied"))
   }
+
+  @Test
+  fun addDefaultResolverPluginToSettingsWhenProjectWithCatalog() {
+    writeToSettingsFile(TestFileName("JavaToolchain/settingsEmpty"))
+    writeToBuildFile(TestFileName("JavaToolchain/appNoJavaBlock"))
+    createCatalogFile("gradle/libs.versions.toml")
+
+    val processor = AddJavaToolchainDefinition(project, 17, listOf(projectRule.module))
+    processor.run()
+
+    verifyFileContents(settingsFile, TestFileName("JavaToolchain/settingsWithFooJayResolverConventionAppliedCatalog"))
+    Truth.assertThat(catalogFile.readText()).isEmpty()
+  }
+
 }

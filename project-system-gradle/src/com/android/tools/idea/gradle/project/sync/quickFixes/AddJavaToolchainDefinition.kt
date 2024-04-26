@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.quickFixes
 
+import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.java.JavaLanguageVersionPropertyModel
@@ -71,14 +72,14 @@ class AddJavaToolchainDefinition(
         plugin.name().toString() ==  DEFAULT_RESOLVER_PLUGIN_NAME
       }
 
-      val needToAddPlugin = !pluginFound
-      settingsModel.plugins().takeIf { needToAddPlugin }?.let { pluginsBlock ->
+      if (!pluginFound) {
         listOf(
           settingsModel.plugins(),
           settingsModel
         ).firstNotNullOfOrNull { it.psiElement }
-          ?. let { psiElement -> AddPluginUsageInfo(psiElement, pluginsBlock) }
+          ?.let { psiElement -> AddPluginUsageInfo(psiElement, this@AddJavaToolchainDefinition.projectBuildModel) }
       }
+      else null
     }
   }
 
@@ -116,10 +117,11 @@ class AddJavaToolchainDefinition(
   }
   private class AddPluginUsageInfo(
     psiElement: PsiElement,
-    val pluginsBlockModel: PluginsBlockModel
-  ) : UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
+    val projectBuildModel: ProjectBuildModel
+    ) : UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
     fun perform() {
-      pluginsBlockModel.applyPlugin(DEFAULT_RESOLVER_PLUGIN_NAME, "0.8.0")
+      DependenciesHelper.withModel(projectBuildModel)
+        .applySettingsPlugin(DEFAULT_RESOLVER_PLUGIN_NAME, "0.8.0")
     }
   }
 
