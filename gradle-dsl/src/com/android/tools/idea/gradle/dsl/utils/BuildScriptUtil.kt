@@ -21,11 +21,11 @@
  */
 package com.android.tools.idea.gradle.dsl.utils
 
-import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.util.registry.Registry
 import java.io.File
 
 internal fun findGradleBuildFile(dirPath: File) : File {
-  if(StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get()) {
+  if(Registry.`is`("android.gradle.declarative.plugin.studio.support", false)) {
     val declarativeBuildFile = File(dirPath, FN_DECLARATIVE_BUILD_GRADLE)
     if (declarativeBuildFile.isFile) return declarativeBuildFile
   }
@@ -39,7 +39,7 @@ internal fun findGradleBuildFile(dirPath: File) : File {
 }
 
 internal fun findGradleSettingsFile(dirPath: File) : File {
-  if(StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get()) {
+  if(Registry.`is`("android.gradle.declarative.plugin.studio.support", false)) {
     val declarativeSettingsFile = File(dirPath, FN_DECLARATIVE_SETTINGS_GRADLE)
     if (declarativeSettingsFile.isFile) return declarativeSettingsFile
   }

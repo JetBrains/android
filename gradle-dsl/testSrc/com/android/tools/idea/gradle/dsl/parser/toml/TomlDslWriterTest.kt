@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.parser.toml
 
 import com.android.testutils.MockitoKt
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -27,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.utils.EXT_DECLARATIVE_TOML
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
@@ -47,7 +47,7 @@ class TomlDslWriterTest(private val fileName: String) : LightPlatformTestCase() 
   }
 
   override fun setUp(){
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true)
+    Registry.`is`("android.gradle.declarative.plugin.studio.support", true)
     super.setUp()
   }
 

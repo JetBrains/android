@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
@@ -25,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.registry.Registry
 import org.jetbrains.annotations.SystemDependent
 import org.junit.After
 import org.junit.Before
@@ -38,12 +38,14 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Before
   override fun before() {
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true)
+    Registry.get("android.gradle.declarative.plugin.studio.support").setValue(true)
     super.before()
   }
 
   @After
-  fun onAfter() = StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride()
+  fun onAfter() {
+    Registry.get("android.gradle.declarative.plugin.studio.support").resetToDefault()
+  }
 
   private fun runBasicAndroidBlockTest(buildFile: TestFileName) {
     writeToBuildFile(buildFile)

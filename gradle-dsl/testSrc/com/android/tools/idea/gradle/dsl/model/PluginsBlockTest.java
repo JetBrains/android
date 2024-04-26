@@ -19,7 +19,6 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
@@ -27,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.util.List;
+import com.intellij.openapi.util.registry.Registry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
 import org.junit.After;
@@ -37,13 +37,13 @@ public class PluginsBlockTest extends GradleFileModelTestCase {
 
   @Before
   public void before() throws Exception {
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true);
+    Registry.get("android.gradle.declarative.plugin.studio.support").setValue(true);
     super.before();
   }
 
   @After
   public void onAfter() {
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride();
+    Registry.get("android.gradle.declarative.plugin.studio.support").resetToDefault();
   }
 
   @Test

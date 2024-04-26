@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.declarative
 
 import com.android.SdkConstants
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.util.findCatalogKey
 import com.android.tools.idea.gradle.util.findVersionCatalog
 import com.android.tools.idea.gradle.util.generateExistingPath
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PlatformPatterns.psiElement
@@ -59,7 +59,7 @@ class DeclarativeCatalogDependencyReferenceContributor: PsiReferenceContributor(
 
 private class VersionCatalogReferenceProvider : PsiReferenceProvider() {
   override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
-    if(!StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get()) return emptyArray()
+    if(!Registry.`is`("android.gradle.declarative.plugin.studio.support", false)) return emptyArray()
     if(element !is TomlLiteral) return emptyArray()
     val text = StringUtil.unquoteString(element.text)
     return arrayOf(VersionCatalogDeclarationReference(element, text))

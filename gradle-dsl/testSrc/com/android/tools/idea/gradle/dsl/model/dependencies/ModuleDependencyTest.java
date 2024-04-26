@@ -20,7 +20,6 @@ import static org.jetbrains.kotlin.lexer.KtTokens.BLOCK_COMMENT;
 import static org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes.ML_COMMENT;
 import static org.junit.Assume.assumeTrue;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -33,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.io.IOException;
@@ -51,13 +51,13 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Before
   public void before() throws Exception {
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true);
+    Registry.is("android.gradle.declarative.plugin.studio.support", true);
     super.before();
   }
 
   @After
   public void onAfter() {
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride();
+    Registry.is("android.gradle.declarative.plugin.studio.support", false);
   }
 
   @Test

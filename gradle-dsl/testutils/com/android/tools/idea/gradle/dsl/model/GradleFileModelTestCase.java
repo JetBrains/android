@@ -47,7 +47,6 @@ import static org.junit.runners.Parameterized.Parameter;
 import static org.junit.runners.Parameterized.Parameters;
 
 import com.android.test.testutils.TestUtils;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
@@ -74,6 +73,7 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -225,7 +225,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   public void before() throws Exception {
     if(isDeclarative())
       assumeTrue("'Studio declarative support' flag is false - so test does not know/care about declarative build",
-                 StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get());
+                 Registry.is("android.gradle.declarative.plugin.studio.support"));
 
     IdeSdks.removeJdksOn(getTestRootDisposable());
 

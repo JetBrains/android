@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -25,15 +24,15 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
-import org.junit.Assume.assumeTrue
 
 class DeclarativeTomlDslParserTest : LightPlatformTestCase() {
 
   override fun setUp(){
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true)
+    Registry.`is`("android.gradle.declarative.plugin.studio.support", true)
     super.setUp()
   }
 

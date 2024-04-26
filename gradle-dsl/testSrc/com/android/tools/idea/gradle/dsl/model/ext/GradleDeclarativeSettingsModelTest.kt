@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.intellij.openapi.util.registry.Registry
 import org.junit.After
 import org.junit.Assume
 import org.junit.Before
@@ -27,13 +27,13 @@ class GradleDeclarativeSettingsModelTest : GradleFileModelTestCase() {
   @Before
   override fun before() {
     Assume.assumeTrue(isDeclarative)
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true)
+    Registry.get("android.gradle.declarative.plugin.studio.support").setValue(true)
     super.before()
   }
 
   @After
   fun clearFlags() {
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride()
+    Registry.get("android.gradle.declarative.plugin.studio.support").resetToDefault()
   }
 
   @Test

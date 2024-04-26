@@ -41,7 +41,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import static org.junit.Assume.assumeTrue;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
@@ -65,6 +64,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.io.IOException;
@@ -92,13 +92,13 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Before
   public void before() throws Exception {
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true);
+    Registry.is("android.gradle.declarative.plugin.studio.support", true);
     super.before();
   }
 
   @After
   public void onAfter() {
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride();
+    Registry.is("android.gradle.declarative.plugin.studio.support", false);
   }
 
   @Test

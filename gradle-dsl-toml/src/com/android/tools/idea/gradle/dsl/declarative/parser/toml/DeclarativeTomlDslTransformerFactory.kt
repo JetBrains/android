@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.declarative.parser.toml
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.GradleDslTransformerFactory
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
@@ -24,8 +23,8 @@ import com.intellij.psi.PsiFile
 import org.toml.lang.psi.TomlFile
 
 class DeclarativeTomlDslTransformerFactory : GradleDslTransformerFactory {
-  override fun canTransform(psiFile: PsiFile) =
-    psiFile is TomlFile && psiFile.name.endsWith(EXT_DECLARATIVE_TOML) && StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get()
+  override fun canTransform(psiFile: PsiFile) = psiFile is TomlFile
+                                                && psiFile.name.endsWith(EXT_DECLARATIVE_TOML)
 
   override fun createParser(psiFile: PsiFile, context: BuildModelContext, dslFile: GradleDslFile) =
     DeclarativeTomlDslParser(psiFile as TomlFile, context, dslFile)
