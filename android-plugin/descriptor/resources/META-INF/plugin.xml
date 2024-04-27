@@ -7,7 +7,6 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>2023.1.1 Canary 6</version>
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
@@ -50,11 +49,9 @@
   <xi:include href="/META-INF/utp.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/backgroundtask-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-debuggers.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/gradle-dsl-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/gradle-dsl-toml.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/intellij.android.device.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-device.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/logcat.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/intellij.android.device-file-explorer-toolwindow.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-device-file-explorer-toolwindow.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/intellij.android.device-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-npw.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/wizard-template-impl.xml" xpointer="xpointer(/idea-plugin/*)"/>
