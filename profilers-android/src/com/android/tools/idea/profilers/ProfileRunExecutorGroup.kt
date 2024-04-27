@@ -15,18 +15,13 @@
  */
 package com.android.tools.idea.profilers
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.profilers.AndroidProfilerBundle.message
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
 import com.intellij.execution.Executor
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowId
 import icons.StudioIcons
@@ -65,21 +60,6 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
       ProfilingMode.PROFILEABLE -> message("android.profiler.action.profile.configuration.with.low.overhead", configurationName)
       ProfilingMode.DEBUGGABLE -> message("android.profiler.action.profile.configuration.with.complete.data", configurationName)
       else -> message("android.profiler.action.profile.configuration", configurationName)
-    }
-  }
-
-  private class GroupWrapper(actionGroup: ActionGroup) : ExecutorGroupWrapper(actionGroup) {
-    /**
-     * @return true if the Profileable Builds feature flag is true and the project's build system supports profiling mode (e.g. Gradle).
-     */
-    override fun groupShouldBeVisible(e: AnActionEvent): Boolean {
-      val isProfilingModeSupported = e.project?.getProjectSystem()?.supportsProfilingMode() ?: false
-      return isProfilingModeSupported && StudioFlags.PROFILEABLE_BUILDS.get()
-    }
-
-    override fun updateDisabledActionPresentation(eventPresentation: Presentation) {
-      eventPresentation.icon = PROFILEABLE_ICON
-      eventPresentation.text = message("android.profiler.action.profile")
     }
   }
 
@@ -124,8 +104,6 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
    * method.
    */
   override fun getToolWindowId(): String = ToolWindowId.RUN
-
-  override fun createExecutorGroupWrapper(actionGroup: ActionGroup): ExecutorGroupWrapper = GroupWrapper(actionGroup)
 
   /**
    * Returns the child executor for the given profiling mode.
