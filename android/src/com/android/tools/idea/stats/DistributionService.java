@@ -123,7 +123,7 @@ public class DistributionService extends DownloadService {
   @Override
   public void loadFromFile(@NotNull URL url) {
     try {
-      String jsonString = ResourceUtil.loadText(url);
+      String jsonString = ResourceUtil.loadText(URLUtil.openStream(url));
       List<Distribution> distributions = loadDistributionsFromJson(jsonString);
       myDistributions = distributions != null ? ImmutableList.copyOf(distributions) : null;
     }
