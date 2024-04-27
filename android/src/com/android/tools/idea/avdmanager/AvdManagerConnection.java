@@ -19,6 +19,8 @@ import static com.android.SdkConstants.ANDROID_SDK_ROOT_ENV;
 import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.SdkConstants.FD_LIB;
 import static com.android.SdkConstants.FN_HARDWARE_INI;
+import static com.android.ide.common.rendering.HardwareConfigHelper.isAutomotive;
+import static com.android.ide.common.rendering.HardwareConfigHelper.isAutomotiveDistantDisplay;
 import static com.android.ide.common.rendering.HardwareConfigHelper.isRollable;
 import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
 import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
@@ -36,6 +38,15 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RANGES;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_1_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_2_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CLUSTER_WIDTH;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CLUSTER_HEIGHT;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CLUSTER_DENSITY;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CLUSTER_FLAG;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISTANT_DISPLAY_WIDTH;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISTANT_DISPLAY_HEIGHT;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISTANT_DISPLAY_DENSITY;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISTANT_DISPLAY_FLAG;
+
 import static java.nio.file.StandardOpenOption.WRITE;
 
 import com.android.SdkConstants;
@@ -999,6 +1010,19 @@ public class AvdManagerConnection {
     }
     if (device.getId().equals("resizable")) {
       hardwareProperties.put(AVD_INI_RESIZABLE_CONFIG, "phone-0-1080-2400-420, foldable-1-2208-1840-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
+    }
+    //TODO: Remove hard coded config when the runtime configuration is available (b/337978287, b/337980217)
+    if (isAutomotive(device)) {
+      hardwareProperties.put(AVD_INI_CLUSTER_WIDTH, "400");
+      hardwareProperties.put(AVD_INI_CLUSTER_HEIGHT, "600");
+      hardwareProperties.put(AVD_INI_CLUSTER_DENSITY, "120");
+      hardwareProperties.put(AVD_INI_CLUSTER_FLAG, "0");
+    }
+    if (isAutomotiveDistantDisplay(device)) {
+      hardwareProperties.put(AVD_INI_DISTANT_DISPLAY_WIDTH, "3000");
+      hardwareProperties.put(AVD_INI_DISTANT_DISPLAY_HEIGHT, "600");
+      hardwareProperties.put(AVD_INI_DISTANT_DISPLAY_DENSITY, "120");
+      hardwareProperties.put(AVD_INI_DISTANT_DISPLAY_FLAG, "0");
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       assert myAvdManager != null;
