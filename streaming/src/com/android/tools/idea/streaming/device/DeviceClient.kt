@@ -467,6 +467,7 @@ internal class DeviceClient(
         }
       }
       catch (e: Throwable) {
+        onDisconnection()
         adbSession.throwIfCancellationOrDeviceDisconnected(e)
         throw RuntimeException("Command \"$command\" failed", e)
       }
