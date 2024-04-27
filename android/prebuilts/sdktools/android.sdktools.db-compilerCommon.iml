@@ -72,7 +72,7 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="jetifier-core" type="repository">
-        <properties maven-id="com.android.tools.build.jetifier:jetifier-core:1.0.0-beta10">
+        <properties include-transitive-deps="false" maven-id="com.android.tools.build.jetifier:jetifier-core:1.0.0-beta10">
           <verification>
             <artifact url="file://$MAVEN_REPOSITORY$/com/android/tools/build/jetifier/jetifier-core/1.0.0-beta10/jetifier-core-1.0.0-beta10.jar">
               <sha256sum>26abb4a13927d9062169c504c9e94fe80e9ae3a4f7b5ab8875ab007536a91f5e</sha256sum>

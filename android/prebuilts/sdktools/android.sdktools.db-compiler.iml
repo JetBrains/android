@@ -72,7 +72,7 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="auto-common" type="repository">
-        <properties maven-id="com.google.auto:auto-common:0.10">
+        <properties include-transitive-deps="false" maven-id="com.google.auto:auto-common:0.10">
           <verification>
             <artifact url="file://$MAVEN_REPOSITORY$/com/google/auto/auto-common/0.10/auto-common-0.10.jar">
               <sha256sum>b876b5fddaceeba7d359667f6c4fb8c6f8658da1ab902ffb79ec9a415deede5f</sha256sum>

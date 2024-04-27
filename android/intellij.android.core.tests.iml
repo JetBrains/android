@@ -67,13 +67,13 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="aapt-proto" level="project" />
-    <orderEntry type="library" name="android-test-plugin-host-device-info-proto" level="project" />
-    <orderEntry type="library" name="emulator-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="aapt-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="android-test-plugin-host-device-info-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="library" name="utp-core-proto-jarjar" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="utp-core-proto-jarjar" level="project" />
     <orderEntry type="library" scope="TEST" name="ASM" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
@@ -91,8 +91,8 @@
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="sqlite" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-ir" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-ir" level="project" />
     <orderEntry type="module" module-name="android.sdktools.builder-model" />
     <orderEntry type="module" module-name="android.sdktools.manifest-parser" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.database" />
