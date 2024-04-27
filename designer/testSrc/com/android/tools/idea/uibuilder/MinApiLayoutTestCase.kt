@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder
 
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.uibuilder.MinApiLayoutTestCase.Companion.setUpManifest
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
 const val MOST_RECENT_API_LEVEL = AndroidVersion.VersionCodes.O_MR1

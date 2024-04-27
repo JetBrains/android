@@ -40,7 +40,6 @@ import com.android.tools.rendering.tracking.RenderTaskAllocationTrackerImpl;
 import com.android.tools.rendering.tracking.StackTraceCapture;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.IncorrectOperationException;
@@ -80,8 +79,6 @@ final public class RenderService implements Disposable {
 
   @TestOnly
   public static void initializeRenderExecutor() {
-    assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit testszs
-
     synchronized (ourExecutorLock) {
       ourExecutor = RenderExecutor.create();
     }
@@ -98,8 +95,6 @@ final public class RenderService implements Disposable {
    */
   @TestOnly
   public static void shutdownRenderExecutor(@SuppressWarnings("SameParameterValue") long timeoutSeconds) {
-    assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit tests
-
     // We avoid using getExecutor here since we do not want to create a new one if it doesn't exist
     RenderExecutor currentExecutor = getExistingExecutor();
     if (currentExecutor != null) currentExecutor.shutdown(timeoutSeconds);
@@ -137,6 +132,11 @@ final public class RenderService implements Disposable {
     @NotNull RenderProblem.RunnableFixFactory fixFactory,
     @NotNull Supplier<HtmlLinkManager> linkManagerFactory) {
     return new RenderLogger(project, myCredential, logFramework, fixFactory, linkManagerFactory);
+  }
+
+  @NotNull
+  public RenderLogger createLogger(@Nullable Project project) {
+    return new RenderLogger(project);
   }
 
   @NotNull
@@ -320,6 +320,16 @@ final public class RenderService implements Disposable {
      */
     @NotNull private RenderingTopic myTopic = RenderingTopic.NOT_SPECIFIED;
 
+    /**
+     * When true, layoutlib will try to create views using the viewInflaterClass
+     * defined in the project's theme, or, if not defined, it will try to use the
+     * android.support.v7.app.AppCompatViewInflater.
+     *
+     * Material themes, for example, usually contain a viewInflaterClass attribute.
+     */
+    private boolean useCustomInflater = true;
+    private RenderTask.TestEventListener myTestEventListener = RenderTask.NOP_TEST_EVENT_LISTENER;
+
     private RenderTaskBuilder(@NotNull RenderModelModule module,
                               @NotNull Configuration configuration,
                               @NotNull ImagePool defaultImagePool,
@@ -406,9 +416,6 @@ final public class RenderService implements Disposable {
     @VisibleForTesting
     @NotNull
     public RenderTaskBuilder disableSecurityManager() {
-      if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        throw new IllegalStateException("This method can only be called in unit test mode");
-      }
       this.isSecurityManagerEnabled = false;
       return this;
     }
@@ -493,11 +500,28 @@ final public class RenderService implements Disposable {
     }
 
     /**
+     * Sets whether layoutlib should try to use a custom inflater when rendering.
+     * By default, this value is true.
+     */
+    @NotNull
+    public RenderTaskBuilder setUseCustomInflater(boolean useCustomInflater) {
+      this.useCustomInflater = useCustomInflater;
+      return this;
+    }
+
+    /**
      * Sets a custom parser for creating the {@link ViewInfo} hierarchy from the layout root view.
      */
     @NotNull
     public RenderTaskBuilder setCustomContentHierarchyParser(@NotNull Function<Object, List<ViewInfo>> parser) {
       myCustomContentHierarchyParser = parser;
+      return this;
+    }
+
+    @TestOnly
+    @NotNull
+    public RenderTaskBuilder setTestEventListener(@NotNull RenderTask.TestEventListener testEventListener) {
+      myTestEventListener = testEventListener;
       return this;
     }
 
@@ -545,7 +569,7 @@ final public class RenderService implements Disposable {
           String message = e.getPresentableMessage();
           message = message != null ? message : RenderingBundle.message("android.layout.preview.default.error.message");
           myLogger.addMessage(
-            RenderProblem.createPlain(
+            RenderProblem.createHtml(
               ERROR, message, module.getProject(), myLogger.getLinkManager(), e, module.getEnvironment().getRunnableFixFactory()));
           return null;
         }
@@ -556,7 +580,7 @@ final public class RenderService implements Disposable {
                            myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, reportOutOfDateUserClasses, myTopic);
+                           classesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, myTestEventListener);
 
           if (myXmlFile != null) {
             task.setXmlFile(myXmlFile);

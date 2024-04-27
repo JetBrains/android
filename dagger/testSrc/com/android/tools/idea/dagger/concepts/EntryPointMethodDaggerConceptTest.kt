@@ -25,6 +25,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.junit.Rule
@@ -73,15 +74,15 @@ class EntryPointMethodDaggerConceptTest {
       .containsExactly(
         "Bar",
         setOf(
-          EntryPointMethodIndexValue("com.example.MyEntryPoint", "bar1"),
-          EntryPointMethodIndexValue("com.example.MyEntryPoint", "bar2")
+          EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1"),
+          EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2")
         )
       )
   }
 
   @Test
   fun entryPointMethodIndexValue_serialization() {
-    val indexValue = EntryPointMethodIndexValue("abc", "def")
+    val indexValue = EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "def")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -119,13 +120,13 @@ class EntryPointMethodDaggerConceptTest {
 
     // Expected to resolve
     assertThat(
-        EntryPointMethodIndexValue("com.example.MyEntryPoint", "bar1")
+        EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(bar1DaggerElement)
 
     assertThat(
-        EntryPointMethodIndexValue("com.example.MyEntryPoint", "bar2")
+        EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(bar2DaggerElement)
@@ -133,15 +134,15 @@ class EntryPointMethodDaggerConceptTest {
     // Expected to not resolve
     val nonResolving =
       listOf(
-        "com.example.MyEntryPoint" to "barWithArgument",
-        "com.example.MyEntryPoint" to "functionWithoutType",
-        "com.example.NotAnEntryPoint" to "bar3",
-        "com.example.NotAnEntryPoint" to "bar4",
+        MY_ENTRY_POINT_ID to "barWithArgument",
+        MY_ENTRY_POINT_ID to "functionWithoutType",
+        NOT_AN_ENTRY_POINT_ID to "bar3",
+        NOT_AN_ENTRY_POINT_ID to "bar4",
       )
 
-    for ((classFqName, methodName) in nonResolving) {
+    for ((classId, methodName) in nonResolving) {
       assertThat(
-          EntryPointMethodIndexValue(classFqName, methodName)
+          EntryPointMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
         )
         .isEmpty()
@@ -181,13 +182,13 @@ class EntryPointMethodDaggerConceptTest {
 
     // Expected to resolve
     assertThat(
-        EntryPointMethodIndexValue("com.example.MyEntryPoint", "bar1")
+        EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar1")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(bar1DaggerElement)
 
     assertThat(
-        EntryPointMethodIndexValue("com.example.MyEntryPoint", "bar2")
+        EntryPointMethodIndexValue(MY_ENTRY_POINT_ID, "bar2")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(bar2DaggerElement)
@@ -195,14 +196,14 @@ class EntryPointMethodDaggerConceptTest {
     // Expected to not resolve
     val nonResolving =
       listOf(
-        "com.example.MyEntryPoint" to "barWithArgument",
-        "com.example.NotAnEntryPoint" to "bar3",
-        "com.example.NotAnEntryPoint" to "bar4",
+        MY_ENTRY_POINT_ID to "barWithArgument",
+        NOT_AN_ENTRY_POINT_ID to "bar3",
+        NOT_AN_ENTRY_POINT_ID to "bar4",
       )
 
-    for ((classFqName, methodName) in nonResolving) {
+    for ((classId, methodName) in nonResolving) {
       assertThat(
-          EntryPointMethodIndexValue(classFqName, methodName)
+          EntryPointMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
         )
         .isEmpty()
@@ -276,5 +277,10 @@ class EntryPointMethodDaggerConceptTest {
           "MyEntryPoint"
         )
       )
+  }
+
+  companion object {
+    private val MY_ENTRY_POINT_ID = ClassId.fromString("com/example/MyEntryPoint")
+    private val NOT_AN_ENTRY_POINT_ID = ClassId.fromString("com/example/NotAnEntryPoint")
   }
 }

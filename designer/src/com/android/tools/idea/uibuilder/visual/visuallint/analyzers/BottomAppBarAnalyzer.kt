@@ -79,9 +79,9 @@ object BottomAppBarAnalyzer : VisualLintAnalyzer() {
         .add(" for breakpoints over 600dp.")
     }
     return VisualLintIssueContent(
-      view,
-      "Bottom app bars are only recommended for compact screens",
-      content
+      view = view,
+      message = "Bottom app bars are only recommended for compact screens",
+      descriptionProvider = content
     )
   }
 }

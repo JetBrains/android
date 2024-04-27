@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.testutils.TestUtils
-import com.android.testutils.TestUtils.getSdk
+import com.android.test.testutils.TestUtils
+import com.android.test.testutils.TestUtils.getSdk
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.dumpProject
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths

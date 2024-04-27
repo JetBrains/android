@@ -37,24 +37,32 @@ object XmlResourceNSDescriptor : XmlNSDescriptorImpl() {
     val manager = DomManager.getDomManager(doc.project)
 
     return CachedValuesManager.getManager(doc.project).getCachedValue(facet) {
-      val static = AndroidXmlResourcesUtil.ROOT_TAGS.map {
-        object : AbstractDomChildrenDescriptor(manager) {
-          override fun getDefaultName() = it
-          override fun getDeclaration() = null
-        } as XmlElementDescriptor
-      }.toTypedArray()
-      CachedValueProvider.Result.create(static, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project))
+      val static =
+        AndroidXmlResourcesUtil.KNOWN_ROOT_TAGS.map {
+            object : AbstractDomChildrenDescriptor(manager) {
+              override fun getDefaultName() = it
+
+              override fun getDeclaration() = null
+            }
+              as XmlElementDescriptor
+          }
+          .toTypedArray()
+      CachedValueProvider.Result.create(
+        static,
+        AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project)
+      )
     }
   }
 }
 
-// TODO: don't extend AndroidXmlTagDescriptor. Currently it extends AndroidXmlTagDescriptor for support inspection behavior.
-class PreferenceElementDescriptor(override val clazz: PsiClass?, delegate: XmlElementDescriptor, private val baseGroupClassName: String) :
-  TagFromClassDescriptor,
-  AndroidXmlTagDescriptor(delegate) {
-  override val isContainer by lazy {
-    InheritanceUtil.isInheritor(clazz, baseGroupClassName)
-  }
+// TODO: don't extend AndroidXmlTagDescriptor. Currently it extends AndroidXmlTagDescriptor for
+// support inspection behavior.
+class PreferenceElementDescriptor(
+  override val clazz: PsiClass?,
+  delegate: XmlElementDescriptor,
+  private val baseGroupClassName: String
+) : TagFromClassDescriptor, AndroidXmlTagDescriptor(delegate) {
+  override val isContainer by lazy { InheritanceUtil.isInheritor(clazz, baseGroupClassName) }
 
   override fun getDeclaration() = clazz
 

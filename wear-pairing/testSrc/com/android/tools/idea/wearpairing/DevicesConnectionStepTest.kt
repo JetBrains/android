@@ -20,6 +20,7 @@ import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.analytics.LoggedUsage
@@ -34,6 +35,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.labels.LinkLabel
@@ -142,6 +144,30 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
     waitForCondition(fakeUi, 15) {
       fakeUi.findComponent<LinkLabel<Any>> { it.text == "Retry" } != null
     }
+    assertEquals(
+      """
+        The Wear OS device is configured for a different companion app. Learn more to manually install the Wear OS companion app and pair the device.
+      """.trimIndent(),
+      StringUtil.removeHtmlTags(fakeUi.findAllComponents<HtmlLabel>().last().text, true)
+    )
+  }
+
+  @Test
+  fun shouldWarnAboutUnsupportedAbiCompanionApp() {
+    phoneDevice.launch = { Futures.immediateFuture(createTestDevice(abis = listOf("x86_64"))) }
+    wearDevice.launch = { Futures.immediateFuture(createTestDevice(companionAppId = "com.google.android.wearable.app")) }
+
+    val (fakeUi, _) = createDeviceConnectionStepUi()
+
+    waitForCondition(fakeUi, 15) {
+      fakeUi.findComponent<LinkLabel<Any>> { it.text == "Retry" } != null
+    }
+    assertEquals(
+      """
+        This phone does not support this version of the companion app. Learn more to upgrade to a new Wear OS emulator that uses a newer version of the companion app.
+      """.trimIndent(),
+      StringUtil.removeHtmlTags(fakeUi.findAllComponents<HtmlLabel>().last().text, true)
+    )
   }
 
   @Test
@@ -314,6 +340,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   private fun createTestDevice(companionAppVersion: String = "",
                                gmscoreVersion: Int = Int.MAX_VALUE,
                                companionAppId: String? = null,
+                               abis: List<String>? = null,
                                additionalReplies: (request: String) -> String? = { null }): IDevice {
     val iDevice = Mockito.mock(IDevice::class.java)
     whenever(
@@ -345,6 +372,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
     whenever(iDevice.arePropertiesSet()).thenReturn(true)
     whenever(iDevice.getProperty("dev.bootcomplete")).thenReturn("1")
     whenever(iDevice.getSystemProperty("ro.oem.companion_package")).thenReturn(Futures.immediateFuture(""))
+    abis?.let { whenever(iDevice.abis).thenReturn(it) }
 
     return iDevice
   }

@@ -16,12 +16,12 @@
 package com.android.tools.idea.diagnostics.crash;
 
 import com.android.annotations.NonNull;
+import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiInvalidElementAccessException;
-import java.nio.charset.StandardCharsets;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
@@ -42,8 +42,8 @@ public class StudioPsiInvalidationTraceReport extends BaseStudioReport {
     super.serializeTo(builder);
 
     builder.addTextBody(StudioExceptionReport.KEY_EXCEPTION_INFO, Throwables.getStackTraceAsString(currentStack));
-    builder.addTextBody("invalidationReason", invalidationReason, ContentType.create("text/plain", StandardCharsets.UTF_8));
-    builder.addTextBody("threadDump", threadDump, ContentType.create("text/plain", StandardCharsets.UTF_8));
+    builder.addTextBody("invalidationReason", invalidationReason, ContentType.create("text/plain", Charsets.UTF_8));
+    builder.addTextBody("threadDump", threadDump, ContentType.create("text/plain", Charsets.UTF_8));
   }
 
   private static String getInvalidationReason(PsiFile psiFile) {

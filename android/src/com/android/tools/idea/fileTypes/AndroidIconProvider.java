@@ -15,15 +15,6 @@
  */
 package com.android.tools.idea.fileTypes;
 
-import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
-import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
-import static com.intellij.ide.projectView.impl.ProjectRootsUtil.isModuleContentRoot;
-import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
-import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
-import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
-import static icons.StudioIcons.Shell.Filetree.INSTANT_APPS;
-import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
-
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
@@ -41,9 +32,19 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import icons.StudioIcons;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
+import static com.intellij.ide.projectView.impl.ProjectRootsUtil.isModuleContentRoot;
+import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
+import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
+import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
+import static icons.StudioIcons.Shell.Filetree.INSTANT_APPS;
+import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
 
 public class AndroidIconProvider extends IconProvider {
   @Nullable

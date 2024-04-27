@@ -19,9 +19,11 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.util.Disposer
-import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -57,7 +59,13 @@ class CustomViewPreviewRepresentationTest {
               )
               .also { Disposer.register(projectRule.fixture.testRootDisposable, it) }
           }
-        TestCase.assertNotNull("failed to instantiate with scope $scope", representation)
+        assertNotNull("failed to instantiate with scope $scope", representation)
+        assertTrue(representation.hasPendingRefresh)
+        assertFalse(representation.isActive)
+
+        representation.onActivate()
+        assertTrue(representation.isActive)
+        assertFalse("onActivate should trigger a refresh", representation.hasPendingRefresh)
       }
     }
   }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.util
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.replaceElement
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.TransformTestCase
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement

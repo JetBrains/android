@@ -26,7 +26,7 @@ import com.intellij.testFramework.JavaPsiTestCase
 class NullabilityLightFieldBuilderTest : JavaPsiTestCase() {
   fun testCanCreateLightFieldBuilderWithNullabilityAnnotations() {
     val manager = PsiManager.getInstance(project)
-    val stringType = PsiType.getTypeByName("java.lange.String", project, GlobalSearchScope.everythingScope(project))
+    val stringType = PsiType.getTypeByName("java.lange.String", project, GlobalSearchScope.everythingScope(project));
 
     val nameField = NullabilityLightFieldBuilder(manager, "name", stringType, true, PsiModifier.PUBLIC, PsiModifier.FINAL)
     val nicknameField = NullabilityLightFieldBuilder(manager, "nickname", stringType, false, PsiModifier.PUBLIC, PsiModifier.FINAL)

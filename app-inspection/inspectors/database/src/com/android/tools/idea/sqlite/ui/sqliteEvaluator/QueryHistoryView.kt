@@ -15,27 +15,14 @@
  */
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
-import com.intellij.ui.ColoredListCellRenderer
-import com.intellij.ui.DoubleClickListener
-import com.intellij.ui.EditorTextField
-import com.intellij.ui.HintHint
-import com.intellij.ui.LightweightHint
+import com.intellij.ui.*
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
-import java.awt.event.FocusEvent
-import java.awt.event.FocusListener
-import java.awt.event.KeyEvent
-import java.awt.event.KeyListener
-import java.awt.event.MouseEvent
-import java.awt.event.MouseMotionListener
-import javax.swing.DefaultListModel
-import javax.swing.JComponent
-import javax.swing.JList
-import javax.swing.JPanel
-import javax.swing.ListSelectionModel
+import java.awt.event.*
+import javax.swing.*
 import javax.swing.event.ListSelectionEvent
 
 /**

@@ -28,6 +28,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.webp.WebpMetadata;
+import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.SystemInfo;
 import java.awt.Color;
@@ -40,7 +41,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
@@ -78,7 +78,7 @@ public class DeviceArtPainterTest {
   // This test is disabled but code is preserved here; this is handy for quickly checking rendering results when tweaking the code to
   // assemble composite images. (Make sure you also turn off the thumbnail cache first! Return null from DeviceArtPainter#getCachedImage.)
   @Test
-  @Ignore
+  @Ignore("b/303116235")
   public void testRendering() throws Exception {
     DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
     for (DeviceArtDescriptor spec : framePainter.getDescriptors()) {
@@ -266,7 +266,7 @@ public class DeviceArtPainterTest {
   // This test no longer applies; it was used to convert assets with a lot of padding into more tightly cropped screenshots.
   // We're preserving the code since for future device releases we might get new artwork which includes padding.
   @Test
-  @Ignore
+  @Ignore("b/303116235")
   public void testCropData() throws Exception {
 
     // Apply crop
@@ -380,7 +380,7 @@ public class DeviceArtPainterTest {
       // (3) Rewrite emulator skin file
       File layoutFile = new File(srcDir, spec.getId() + File.separator + SdkConstants.FN_SKIN_LAYOUT);
       if (layoutFile.exists() && !spec.getId().startsWith("tv_")) { // no crop data in tv (and lack of portrait fails below)
-        String layout = Files.toString(layoutFile, StandardCharsets.UTF_8);
+        String layout = Files.toString(layoutFile, Charsets.UTF_8);
         final Rectangle portraitCrop = spec.getCrop(ScreenOrientation.PORTRAIT);
         if (portraitCrop != null) {
           final Rectangle landscapeCrop = spec.getCrop(ScreenOrientation.LANDSCAPE);
@@ -412,7 +412,7 @@ public class DeviceArtPainterTest {
             boolean mkdirs = outputLayoutFile.getParentFile().mkdirs();
             assertTrue(mkdirs);
           }
-          Files.write(layout, outputLayoutFile, StandardCharsets.UTF_8);
+          Files.write(layout, outputLayoutFile, Charsets.UTF_8);
         } // else: No crop data found; this device frame has already been cropped
       }
 
@@ -421,7 +421,7 @@ public class DeviceArtPainterTest {
     sb.append("\n</devices>\n");
 
     File deviceArt = new File(destDir, "device-art.xml");
-    Files.write(sb.toString(), deviceArt, StandardCharsets.UTF_8);
+    Files.write(sb.toString(), deviceArt, Charsets.UTF_8);
     System.out.println("Wrote device art file " + deviceArt);
   }
 

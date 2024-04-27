@@ -16,20 +16,26 @@
 package com.android.tools.idea.adb;
 
 import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MILLIS;
+import static com.android.tools.idea.flags.StudioFlags.ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER;
 import static com.android.tools.idea.flags.StudioFlags.JDWP_SCACHE;
 import static com.google.common.util.concurrent.Futures.immediateFuture;
 
 import com.android.adblib.AdbSession;
 import com.android.adblib.CoroutineScopeCache;
+import com.android.adblib.ddmlibcompatibility.AdbLibIDeviceManagerFactory;
+import com.android.adblib.ddmlibcompatibility.IDeviceUsageTrackerImpl;
 import com.android.adblib.ddmlibcompatibility.debugging.AdbLibClientManagerFactory;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.AdbInitOptions;
 import com.android.ddmlib.AdbVersion;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.DdmPreferences;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IDeviceUsageTracker;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.TimeoutRemainder;
 import com.android.ddmlib.clientmanager.ClientManager;
+import com.android.ddmlib.idevicemanager.IDeviceManagerFactory;
 import com.android.tools.idea.adblib.AdbLibApplicationService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.io.Files;
@@ -52,9 +58,6 @@ import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.popup.util.PopupUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -64,6 +67,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 /**
@@ -77,7 +82,10 @@ import org.jetbrains.annotations.TestOnly;
  * {@link AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
  */
 @Service
-public final class AdbService implements Disposable, AdbOptionsService.AdbOptionsListener, AndroidDebugBridge.IDebugBridgeChangeListener {
+public final class AdbService implements Disposable,
+                                         AdbOptionsService.AdbOptionsListener,
+                                         AndroidDebugBridge.IDebugBridgeChangeListener,
+                                         AndroidDebugBridge.IDeviceChangeListener {
   @TestOnly
   public static boolean disabled = false;
 
@@ -142,6 +150,38 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
 
   @Override
   public void bridgeChanged(@Nullable AndroidDebugBridge bridge) {
+  }
+
+  @Override
+  public void deviceConnected(@NotNull IDevice device) {
+    if (device.isOnline()) {
+      logDeviceOnline(device);
+    }
+  }
+
+  @Override
+  public void deviceDisconnected(@NotNull IDevice device) {
+    logDeviceOffline(device);
+  }
+
+  @Override
+  public void deviceChanged(@NotNull IDevice device, int changeMask) {
+    if ((changeMask & IDevice.CHANGE_STATE) != 0) {
+      if (device.isOnline()) {
+        logDeviceOnline(device);
+      }
+      else {
+        logDeviceOffline(device);
+      }
+    }
+  }
+
+  private void logDeviceOnline(@NotNull IDevice device) {
+    LOG.info(String.format("Device [%s] has come online", device.getSerialNumber()));
+  }
+
+  private void logDeviceOffline(@NotNull IDevice device) {
+    LOG.info(String.format("Device [%s] is offline", device.getSerialNumber()));
   }
 
   @Override
@@ -294,6 +334,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
   public void dispose() {
     LOG.info("Disposing AdbService");
     AndroidDebugBridge.removeDebugBridgeChangeListener(this);
+    AndroidDebugBridge.removeDeviceChangeListener(this);
     AdbOptionsService.getInstance().removeListener(this);
     try {
       mySequentialExecutor.submit(() -> {
@@ -345,6 +386,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
 
     AdbOptionsService.getInstance().addListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
+    AndroidDebugBridge.addDeviceChangeListener(this);
 
     // TODO Also connect to adblib
     AndroidDebugBridge.setJdwpTracerFactory(() -> new StudioDDMLibJdwpTracer(StudioFlags.JDWP_TRACER.get()) {});
@@ -408,6 +450,13 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     options.setClientManager(StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() ?
                              getClientManager() :
                              null);
+    if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_IDEVICE_MANAGER.get()) {
+      LOG.info("'adblib.migration.ddmlib.idevicemanager' flag is set to true");
+      options.setIDeviceManagerFactory(getIDeviceManagerFactory());
+    }
+    options.setIDeviceUsageTracker(ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER.get() ?
+                                   getIDeviceUsageTracker() :
+                                   null);
     return options.build();
   }
 
@@ -419,6 +468,26 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
   private static ClientManager getClientManager() {
     AdbSession session = AdbLibApplicationService.getInstance().getSession();
     return session.getCache().getOrPut(CLIENT_MANAGER_KEY, () -> AdbLibClientManagerFactory.createClientManager(session));
+  }
+
+  @NotNull
+  private static final CoroutineScopeCache.Key<IDeviceManagerFactory> IDEVICE_MANAGER_FACTORY_KEY =
+    new CoroutineScopeCache.Key<>("IDevice manager for ddmlib compatibility");
+
+  @NotNull
+  private static IDeviceManagerFactory getIDeviceManagerFactory() {
+    AdbSession session = AdbLibApplicationService.getInstance().getSession();
+    return session.getCache().getOrPut(IDEVICE_MANAGER_FACTORY_KEY, () -> new AdbLibIDeviceManagerFactory(session));
+  }
+
+  @NotNull
+  private static final CoroutineScopeCache.Key<IDeviceUsageTracker> IDEVICE_TRACKER_USAGE_KEY =
+    new CoroutineScopeCache.Key<>("IDevice usage tracker for ddmlib compatibility");
+
+  @NotNull
+  private static IDeviceUsageTracker getIDeviceUsageTracker() {
+    AdbSession session = AdbLibApplicationService.getInstance().getSession();
+    return session.getCache().getOrPut(IDEVICE_TRACKER_USAGE_KEY, () -> IDeviceUsageTrackerImpl.Companion.forDeviceImpl(session));
   }
 
   /**

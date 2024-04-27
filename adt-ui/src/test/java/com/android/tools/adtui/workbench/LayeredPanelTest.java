@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -128,12 +128,12 @@ public class LayeredPanelTest {
     when(myToolWindow1.isLeft()).thenReturn(true);
     myPanel.modelChanged(myModel, myEventType);
 
-    mySplitter.setFirstSize(JBUIScale.scale(700));
+    mySplitter.setFirstSize(JBUI.scale(700));
     fireWidthChanged();
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.PALETTE.UNSCALED.WIDTH", -1)).isEqualTo(700);
 
     myPanel.modelChanged(myModel, myEventType);
-    assertThat(mySplitter.getFirstSize()).isEqualTo(JBUIScale.scale(700));
+    assertThat(mySplitter.getFirstSize()).isEqualTo(JBUI.scale(700));
   }
 
   private void fireWidthChanged() {

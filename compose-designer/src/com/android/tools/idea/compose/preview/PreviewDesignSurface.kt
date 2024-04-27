@@ -19,123 +19,43 @@ import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionHandler
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
-import com.android.tools.idea.compose.preview.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.graphics.NlConstants
+import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
+import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
+import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
-import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
 import com.android.tools.rendering.RenderAsyncActionExecutor
+import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 
-private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->
-  // Minimum 5 at 20% and maximum 20 at 100%, responsive.
-  val min = 5
-  val max = 20
-
-  when {
-    scale <= 0.2 -> min
-    scale >= 1.0 -> max
-    else ->
-      min + ((max - min) / (1 - 0.2)) * (scale - 0.2) // find interpolated value between min and max
-  }.toInt()
-}
-
-private val NO_GROUP_TRANSFORM:
-  (Collection<PositionableContent>) -> List<List<PositionableContent>> =
-  {
-    // FIXME(b/258718991): we decide not group the previews for now.
-    listOf(it.toList())
-  }
-
-@Suppress("unused") // b/258718991
-private val GROUP_BY_GROUP_ID_TRANSFORM:
-  (Collection<PositionableContent>) -> List<List<PositionableContent>> =
-  { contents ->
-    val groups = mutableMapOf<String?, MutableList<PositionableContent>>()
-    for (content in contents) {
-      groups.getOrPut(content.groupId) { mutableListOf() }.add(content)
-    }
-    // Put the previews which don't have group first.
-    // TODO(b/245363234)?: Consider to sort the group by name?
-    val nulls = groups.remove(null)
-    if (nulls != null) listOf(nulls) + groups.values.toList() else groups.values.toList()
-  }
-
-/** Toolbar option to select [LayoutMode.Gallery] layout. */
-internal val PREVIEW_LAYOUT_GALLERY_OPTION =
-  SurfaceLayoutManagerOption(
-    message("gallery.mode.title"),
-    GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
-    DesignSurface.SceneViewAlignment.LEFT,
-  )
+internal val BASE_LAYOUT_MANAGER_OPTIONS =
+  listOf(LIST_LAYOUT_MANAGER_OPTION, GRID_LAYOUT_MANAGER_OPTIONS)
 
 /** List of available layouts for the Compose Preview Surface. */
 internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
-  if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
-    listOf(
-      SurfaceLayoutManagerOption(
-        message("vertical.layout"),
-        VerticalOnlyLayoutManager(
-          NlConstants.DEFAULT_SCREEN_OFFSET_X,
-          NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-          NlConstants.SCREEN_DELTA,
-          NlConstants.SCREEN_DELTA,
-          SingleDirectionLayoutManager.Alignment.CENTER
-        )
-      ),
-      SurfaceLayoutManagerOption(
-        message("grid.layout"),
-        GridSurfaceLayoutManager(
-          NlConstants.DEFAULT_SCREEN_OFFSET_X,
-          NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-          NlConstants.SCREEN_DELTA,
-          NlConstants.SCREEN_DELTA
-        ),
-        DesignSurface.SceneViewAlignment.LEFT
-      ),
-      PREVIEW_LAYOUT_GALLERY_OPTION
-    )
-  } else {
-    listOf(
-      SurfaceLayoutManagerOption(
-        message("new.list.layout.title"),
-        GroupedListSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
-        DesignSurface.SceneViewAlignment.LEFT
-      ),
-      SurfaceLayoutManagerOption(
-        message("new.grid.layout.title"),
-        GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
-        DesignSurface.SceneViewAlignment.LEFT,
-      ),
-      PREVIEW_LAYOUT_GALLERY_OPTION
-    )
-  }
+  BASE_LAYOUT_MANAGER_OPTIONS + PREVIEW_LAYOUT_GALLERY_OPTION
 
 /** Default layout manager selected in the preview. */
 internal val DEFAULT_PREVIEW_LAYOUT_MANAGER = PREVIEW_LAYOUT_MANAGER_OPTIONS.first().layoutManager
 
 private val COMPOSE_SUPPORTED_ACTIONS =
-  setOf(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
+  ImmutableSet.of(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 /**
  * Creates a [NlDesignSurface.Builder] with a common setup for the design surfaces in Compose
- * preview.
+ * preview. [isInteractive] should return when the Preview is in interactive mode. When it is, the
+ * [NlDesignSurface] will disable the interception of global shortcuts like refresh ("R") or toggle
+ * issue panel ("E").
  */
 private fun createPreviewDesignSurfaceBuilder(
   project: Project,
@@ -144,11 +64,11 @@ private fun createPreviewDesignSurfaceBuilder(
   dataProvider: DataProvider,
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider,
-  screenViewProvider: ScreenViewProvider
+  screenViewProvider: ScreenViewProvider,
+  isInteractive: () -> Boolean
 ): NlDesignSurface.Builder =
   NlDesignSurface.builder(project, parentDisposable)
-    .setNavigationHandler(navigationHandler)
-    .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
+    .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setSceneManagerProvider { surface, model ->
@@ -166,6 +86,9 @@ private fun createPreviewDesignSurfaceBuilder(
           it.setListenResourceChange(false) // don't re-render on resource changes
           it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
           it.setRenderingTopic(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW)
+          // When the cache successful render image is enabled, the scene manager will retain
+          // the last valid image even if subsequent renders fail.
+          it.setCacheSuccessfulRenderImage(StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.get())
         }
     }
     .setDelegateDataProvider(dataProvider)
@@ -174,13 +97,21 @@ private fun createPreviewDesignSurfaceBuilder(
       else NopSelectionModel
     )
     .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.AUTO_HIDE)
-    .setSupportedActions(COMPOSE_SUPPORTED_ACTIONS)
+    .setSupportedActionsProvider {
+      if (!isInteractive()) COMPOSE_SUPPORTED_ACTIONS else ImmutableSet.of()
+    }
     .setShouldRenderErrorsPanel(true)
     .setScreenViewProvider(screenViewProvider, false)
     .setMaxFitIntoZoomLevel(2.0) // Set fit into limit to 200%
     .setMinScale(0.01) // Allow down to 1% zoom level
+    .setVisualLintIssueProvider { ComposeVisualLintIssueProvider(it) }
 
-/** Creates a [NlDesignSurface.Builder] for the main design surface in the Compose preview. */
+/**
+ * Creates a [NlDesignSurface.Builder] for the main design surface in the Compose preview.
+ * [isInteractive] should return when the Preview is in interactive mode. When it is, the
+ * [NlDesignSurface] will disable the interception of global shortcuts like refresh ("R") or toggle
+ * issue panel ("E").
+ */
 internal fun createMainDesignSurfaceBuilder(
   project: Project,
   navigationHandler: NavigationHandler,
@@ -188,7 +119,8 @@ internal fun createMainDesignSurfaceBuilder(
   dataProvider: DataProvider,
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider,
-  screenViewProvider: ScreenViewProvider
+  screenViewProvider: ScreenViewProvider,
+  isInteractive: () -> Boolean
 ) =
   createPreviewDesignSurfaceBuilder(
       project,
@@ -197,6 +129,7 @@ internal fun createMainDesignSurfaceBuilder(
       dataProvider, // Will be overridden by the preview provider
       parentDisposable,
       sceneComponentProvider,
-      screenViewProvider
+      screenViewProvider,
+      isInteractive
     )
     .setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)

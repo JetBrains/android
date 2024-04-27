@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
+import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
@@ -43,7 +44,7 @@ import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil.getFileClassInfoNoResolve
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
-import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.KtClass
@@ -58,19 +59,17 @@ import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 import java.util.Optional
 
-class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCache? = null) {
+class LiveEditCompiler(val project: Project,
+                       private val irClassCache: IrClassCache,
+                       apkClassProvider: ApkClassProvider = DefaultApkClassProvider()) {
 
   private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompiler::class.java))
 
   // Cache of fully-qualified class name to inlineable bytecode on disk or in memory
   var inlineCandidateCache = SourceInlineCandidateCache()
 
-  // Not the same information as the IR cache; the IR cache may be populated with classes that have not been sent to device, due to the need
-  // to precompile files before Live Editing them.
-  private val classesSentToDevice = mutableSetOf<String>()
-
   private var desugarer = LiveEditDesugar()
-
+  private val outputBuilder = LiveEditOutputBuilder(apkClassProvider)
   private val logger = LiveEditLogger("LE Compiler")
 
   /**
@@ -82,7 +81,10 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
    * LiveEditException detailing the failure.
    */
   @Trace
-  fun compile(inputs: List<LiveEditCompilerInput>, giveWritePriority : Boolean = true, apiVersions : Set<MinApiLevel> = emptySet()) : Optional<LiveEditDesugarResponse> {
+  fun compile(inputs: List<LiveEditCompilerInput>,
+              giveWritePriority: Boolean = true,
+              apiVersions: Set<MinApiLevel> = emptySet(),
+              psiValidator: PsiValidator? = null): Optional<LiveEditDesugarResponse> {
     // Bundle changes per-file to prevent wasted recompilation of the same file. The most common
     // scenario is multiple pending changes in the same file, so this is somewhat important.
     val changedFiles = HashMultimap.create<KtFile, LiveEditCompilerInput>()
@@ -102,7 +104,7 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
       for ((file, input) in changedFiles.asMap()) {
         try {
           // Compiler pass
-          compileKtFile(file, input, outputBuilder)
+          compileKtFile(file, input, psiValidator, outputBuilder)
           val outputs = outputBuilder.build()
           logger.dumpCompilerOutputs(outputs.classes)
 
@@ -150,7 +152,10 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
     return@Computable null
   }
 
-  private fun compileKtFile(file: KtFile, inputs: Collection<LiveEditCompilerInput>, output: LiveEditCompilerOutput.Builder) {
+  private fun compileKtFile(file: KtFile,
+                            inputs: Collection<LiveEditCompilerInput>,
+                            psiValidator: PsiValidator?,
+                            output: LiveEditCompilerOutput.Builder) {
     val tracker = PerformanceTracker()
     var inputFiles = listOf(file)
 
@@ -206,9 +211,13 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
       }
 
       if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
-        LiveEditOutputBuilder.getGeneratedCode(file, generationState.factory.asList(), irClassCache!!, inlineCandidateCache,
-                                               classesSentToDevice, output)
-        output.classes.forEach { classesSentToDevice.add(it.name) }
+        // Run this validation *after* compilation so that PSI validation doesn't run until the class is in a state that compiles. This
+        // allows the user time to undo incompatible changes without triggering an error, similar to how differ validation works.
+        val errors = psiValidator?.validatePsiChanges(file)
+        if (!errors.isNullOrEmpty()) {
+          throw errors[0]
+        }
+        outputBuilder.getGeneratedCode(file, generationState.factory.asList(), irClassCache!!, inlineCandidateCache, output)
         return@runWithCompileLock
       }
 
@@ -429,7 +438,6 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
 
   fun resetState() {
     inlineCandidateCache.clear()
-    classesSentToDevice.clear()
 
     try {
       // Desugarer caches jar indexes and entries. It MUST be closed and recreated.

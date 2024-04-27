@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.importing
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -38,7 +38,7 @@ import java.io.File
 
 private val LOG: Logger =  Logger.getInstance(TopLevelModuleFactory::class.java)
 
-class TopLevelModuleFactory {
+class TopLevelModuleFactory() {
 
   /**
    * Creates and configures a temporary module holding covering sources in the root of the Gradle project root to solve the
@@ -103,16 +103,16 @@ class TopLevelModuleFactory {
     val projectRootDirPath = PathUtil.toSystemIndependentName(gradleRoot.path)
     ExternalSystemModulePropertyManager.getInstance(module)
       .setExternalOptions(
-        GradleUtil.GRADLE_SYSTEM_ID,
+        GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
         ModuleData(
           ":",
-          GradleUtil.GRADLE_SYSTEM_ID,
+          GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
           StdModuleTypes.JAVA.id, gradleRoot.name,
           projectRootDirPath!!,
           projectRootDirPath
         ),
         ProjectData(
-          /* owner = */ GradleUtil.GRADLE_SYSTEM_ID,
+          /* owner = */ GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
           /* externalName = */ project.name,
           /* ideProjectFileDirectoryPath = */ gradleRootPath,
           /* linkedExternalProjectPath = */ ExternalSystemApiUtil.toCanonicalPath(gradleRoot.canonicalPath)
@@ -137,7 +137,7 @@ class TopLevelModuleFactory {
       if (gradleFacet == null) {
         // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
         gradleFacet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null)
-
+        @Suppress("UnstableApiUsage")
         facetModel.addFacet(gradleFacet, ExternalSystemApiUtil.toExternalSource(GradleConstants.SYSTEM_ID))
       }
     } finally {

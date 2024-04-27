@@ -25,11 +25,6 @@ import com.android.tools.idea.sqlite.cli.SqliteQueries.selectTableNames
 import com.android.tools.idea.sqlite.cli.SqliteQueries.selectViewNames
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.text.Strings
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.yield
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
@@ -42,6 +37,11 @@ import java.io.StringWriter
 import java.io.Writer
 import java.nio.file.Path
 import kotlin.text.Charsets.UTF_8
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 
 private const val sqliteCliOutputArgPrefix = ".output"
 
@@ -67,19 +67,29 @@ class SqliteCliArgs private constructor() {
     private val args = mutableListOf<SqliteCliArg>()
 
     fun database(path: Path) = apply { args.add(SqliteCliArg(".open '${path.toAbsolutePath()}'")) }
+
     fun output(path: Path) = apply {
       args.add(SqliteCliArg("$sqliteCliOutputArgPrefix ${path.toAbsolutePath()}"))
     }
+
     fun modeCsv() = apply { args.add(SqliteCliArg(".mode csv")) }
+
     fun dump() = apply { args.add(SqliteCliArg(".dump")) }
+
     fun dumpTable(tableName: String) = apply { args.add(SqliteCliArg(".dump '$tableName'")) }
+
     fun headersOn() = apply { args.add(SqliteCliArg(".headers on")) }
+
     fun separator(separator: Char) = apply { args.add(SqliteCliArg(".separator '$separator'")) }
+
     fun queryTableContents(tableName: String) = apply {
       args.add(SqliteCliArg("${selectTableContents(tableName)};"))
     }
+
     fun queryTableList() = apply { args.add(SqliteCliArg("$selectTableNames;")) }
+
     fun queryViewList() = apply { args.add(SqliteCliArg("$selectViewNames;")) }
+
     fun raw(rawArg: String) = apply { args.add(SqliteCliArg(rawArg)) }
     /**
      * Moves data from the WAL (write-ahead log) to the main DB file.
@@ -89,6 +99,7 @@ class SqliteCliArgs private constructor() {
     fun walCheckpointTruncate() = apply {
       args.add(SqliteCliArg("PRAGMA wal_checkpoint(TRUNCATE);"))
     }
+
     private fun quit() = apply {
       args.add(SqliteCliArg(".quit"))
     } // exits the sqlite3 interactive mode
@@ -102,6 +113,7 @@ object SqliteQueries {
     "select name from sqlite_master where type = 'table' AND name not like 'sqlite_%'"
   const val selectViewNames =
     "select name from sqlite_master where type = 'view' AND name not like 'sqlite_%'"
+
   fun selectTableContents(tableName: String) = "select * from '$tableName'"
 }
 
@@ -172,10 +184,7 @@ private object ProcessExecutor {
     withContext(dispatcher) {
       val process = ProcessBuilder(listOf(executable)).start()
 
-      val exitCode = async {
-        @Suppress("UsePlatformProcessAwaitExit")
-        process.waitFor()
-      }
+      val exitCode = async { process.waitFor() }
       val errOutput = async {
         consumeProcessOutput(process.errorStream, errWriter, process, dispatcher)
       }

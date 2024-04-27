@@ -78,8 +78,8 @@ public interface AndroidDevice {
    */
   boolean supportsFeature(@NotNull IDevice.HardwareFeature feature);
 
-  /** Whether the device supports running SDKs in the privacy sandbox */
-  default boolean getSupportsPrivacySandbox() throws InterruptedException {
+  /** Whether the device supports running SDKs in the Privacy Sandbox */
+  default boolean getSupportsSdkRuntime() {
     return false;
   }
   /**

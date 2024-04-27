@@ -15,11 +15,10 @@
  */
 package com.android.tools.adtui.workbench;
 
-import com.intellij.openapi.ui.Divider;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.SideBorder;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -46,7 +45,7 @@ class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
   SidePanel(@NotNull Side side, @NotNull SideModel<T> model) {
     super(new BorderLayout());
     mySide = side;
-    mySplitter = new MySplitter();
+    mySplitter = new OnePixelSplitter(true);
     myEmpty = new JPanel();
     myLayout = new JBCardLayout();
     myCards = new JPanel(myLayout);
@@ -99,19 +98,5 @@ class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
 
   private void addHiddenTools(@NotNull List<AttachedToolWindow> tools) {
     tools.forEach(tool -> myCards.add(tool.getComponent(), tool.getToolName()));
-  }
-
-  private static class MySplitter extends Splitter {
-    private MySplitter() {
-      super(true);
-      setDividerWidth(9);
-    }
-
-    @Override
-    protected Divider createDivider() {
-      Divider divider = new DividerImpl();
-      divider.setBorder(IdeBorderFactory.createBorder(SideBorder.TOP + SideBorder.BOTTOM));
-      return divider;
-    }
   }
 }

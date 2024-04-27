@@ -20,7 +20,7 @@ import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.process.SimpleProcessListener
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
@@ -31,6 +31,7 @@ import com.android.tools.idea.appinspection.test.INSPECTOR_ID_2
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_3
 import com.android.tools.idea.appinspection.test.TEST_JAR
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
+import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -69,20 +70,16 @@ class AppInspectorTabLaunchSupportTest {
       override val inspectorLaunchParams =
         LibraryInspectorLaunchParams(
           TEST_JAR,
-          ArtifactCoordinate("incompatible", "lib", "INCOMPATIBLE", ArtifactCoordinate.Type.JAR)
+          mockMinimumArtifactCoordinate("incompatible", "lib", "INCOMPATIBLE")
         )
     }
   private val libraryInspector =
     object : StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
       override val inspectorLaunchParams =
-        LibraryInspectorLaunchParams(
-          TEST_JAR,
-          ArtifactCoordinate("a", "b", "1.0.0", ArtifactCoordinate.Type.JAR)
-        )
+        LibraryInspectorLaunchParams(TEST_JAR, mockMinimumArtifactCoordinate("a", "b", "1.0.0"))
     }
 
-  private val unresolvedLibrary =
-    ArtifactCoordinate("fallback", "library", "1.0.0", ArtifactCoordinate.Type.JAR)
+  private val unresolvedLibrary = mockMinimumArtifactCoordinate("fallback", "library", "1.0.0")
   private val unresolvedJar = AppInspectorJar("fallback_jar")
   private val unresolvedLibraryInspector =
     object : StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
@@ -102,7 +99,7 @@ class AppInspectorTabLaunchSupportTest {
    */
   @Test
   fun getApplicableTabProviders() =
-    runBlocking {
+    runBlocking<Unit> {
       val support =
         AppInspectorTabLaunchSupport(
           {
@@ -118,10 +115,10 @@ class AppInspectorTabLaunchSupportTest {
           projectRule.project,
           object : InspectorArtifactService {
             override suspend fun getOrResolveInspectorArtifact(
-              artifactCoordinate: ArtifactCoordinate,
+              artifactCoordinate: RunningArtifactCoordinate,
               project: Project
             ): Path {
-              return if (artifactCoordinate == unresolvedLibrary) {
+              return if (artifactCoordinate.sameArtifact(unresolvedLibrary)) {
                 throw AppInspectionArtifactNotFoundException("not found", artifactCoordinate)
               } else {
                 Paths.get("resolved", "jar")
@@ -146,10 +143,12 @@ class AppInspectorTabLaunchSupportTest {
                         .setVersion(compatibility.coordinate.version)
                         .build()
                     } else {
+                      val version =
+                        compatibility.coordinate.version.takeIf { it != "1.0.0" } ?: "1.0.1"
                       AppInspection.LibraryCompatibilityInfo.newBuilder()
                         .setStatus(AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE)
                         .setTargetLibrary(compatibility.coordinate)
-                        .setVersion(compatibility.coordinate.version)
+                        .setVersion(version)
                         .build()
                     }
                   }
@@ -201,11 +200,12 @@ class AppInspectorTabLaunchSupportTest {
             assertThat(jar).isSameAs(TEST_JAR)
           }
           else -> {
-            assertThat(target.artifactCoordinate)
-              .isEqualTo(
-                (tabTargets.provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
-                  .minVersionLibraryCoordinate
-              )
+            (tabTargets.provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
+              .minVersionLibraryCoordinate
+              .let { minimum ->
+                assertThat(target.artifactCoordinate?.sameArtifact(minimum)).isTrue()
+                assertThat(minimum.version).isNotEqualTo(target.artifactCoordinate?.version)
+              }
             assertThat(jar).isEqualTo(AppInspectorJar("jar", "resolved", "resolved"))
           }
         }

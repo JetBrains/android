@@ -99,7 +99,7 @@ data class GradlePluginInfo(val name: String, val group: String?)
  * @param project the project to obtain all the [ProjectBuildModel]s for
  * @return a list of all [ProjectBuildModel]s
  */
-private fun getIncludedBuilds(project: Project): List<ProjectBuildModel> {
+fun getIncludedBuilds(project: Project): List<ProjectBuildModel> {
   val result = mutableListOf<ProjectBuildModel>()
   result.add(ProjectBuildModel.get(project))
   val basePath = project.basePath ?: return result

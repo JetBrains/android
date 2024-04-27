@@ -24,6 +24,8 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.problems.ProblemListener
 import com.intellij.psi.PsiManager
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
@@ -37,12 +39,10 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import org.assertj.core.api.Assertions
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
 
 class FlowsTest {
 
@@ -75,7 +75,7 @@ class FlowsTest {
               }
               .collect()
           } catch (_: TimeoutCancellationException) {
-            Assertions.fail("Timeout waiting for the changes")
+            fail("Timeout waiting for the changes")
           }
         }
       }

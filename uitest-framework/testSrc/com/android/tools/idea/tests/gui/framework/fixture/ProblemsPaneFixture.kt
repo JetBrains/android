@@ -22,8 +22,14 @@ import org.fest.swing.util.TextMatcher
 /**
  * Fixture for the ProblemsPane in the IDE
  */
+
 class ProblemsPaneFixture(ideFrameFixture: IdeFrameFixture) :
   ToolWindowFixture(ProblemsView.ID, ideFrameFixture.project, ideFrameFixture.robot()) {
+
+  init {
+    activate()
+    waitUntilIsVisible()
+  }
 
   fun isTabExist(tabTitle: String): Boolean {
     val nameMatcher = TabNameMatcher(tabTitle)
@@ -34,6 +40,10 @@ class ProblemsPaneFixture(ideFrameFixture: IdeFrameFixture) :
 
   public override fun waitUntilIsVisible(): ToolWindowFixture {
     return super.waitUntilIsVisible()
+  }
+
+  fun getAvailableTabsCount(): Int {
+    return super.getContents().size
   }
 }
 

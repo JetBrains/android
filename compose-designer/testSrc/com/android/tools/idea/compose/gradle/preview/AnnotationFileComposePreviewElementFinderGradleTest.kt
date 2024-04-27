@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
@@ -24,7 +24,7 @@ import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.moveCaretLines
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -62,7 +62,9 @@ class AnnotationFileComposePreviewElementFinderGradleTest {
 
     // Add library dependency to build.gradle
     val buildGradleFile = getPsiFile(SimpleComposeAppPaths.APP_BUILD_GRADLE.path)
-    invokeAndWaitIfNeeded { fixture.openFileInEditor(buildGradleFile.virtualFile) }
+    ApplicationManager.getApplication().invokeAndWait {
+      fixture.openFileInEditor(buildGradleFile.virtualFile)
+    }
     runWriteActionAndWait {
       fixture.moveCaret("dependencies {|")
       fixture.editor.executeAndSave {
@@ -78,7 +80,9 @@ class AnnotationFileComposePreviewElementFinderGradleTest {
 
     // Use MultiPreview from the added library
     val mainFile = getPsiFile(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)
-    invokeAndWaitIfNeeded { fixture.openFileInEditor(mainFile.virtualFile) }
+    ApplicationManager.getApplication().invokeAndWait {
+      fixture.openFileInEditor(mainFile.virtualFile)
+    }
     runWriteActionAndWait {
       fixture.moveCaret("|class MainActivity")
       fixture.editor.moveCaretLines(-1)

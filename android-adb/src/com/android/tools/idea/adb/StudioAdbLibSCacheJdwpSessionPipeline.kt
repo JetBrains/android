@@ -16,24 +16,24 @@
 package com.android.tools.idea.adb
 
 import com.android.adblib.AdbSession
-import com.android.adblib.thisLogger
+import com.android.adblib.adbLogger
 import com.android.adblib.tools.debugging.JdwpSessionPipeline
 import com.android.adblib.tools.debugging.SharedJdwpSessionMonitor
 import com.android.adblib.tools.debugging.packets.JdwpPacketView
 import com.android.adblib.tools.debugging.packets.writeToBuffer
-import com.android.adblib.tools.debugging.receiveAllPacketsCatching
 import com.android.adblib.tools.debugging.sendPacket
 import com.android.adblib.tools.debugging.utils.SynchronizedChannel
 import com.android.adblib.tools.debugging.utils.SynchronizedReceiveChannel
 import com.android.adblib.tools.debugging.utils.SynchronizedSendChannel
-import com.android.adblib.tools.debugging.utils.receiveAllCatching
+import com.android.adblib.tools.debugging.utils.logIOCompletionErrors
+import com.android.adblib.tools.debugging.utils.receiveAll
 import com.android.adblib.utils.ResizableBuffer
 import com.android.jdwpscache.SCacheResponse
 import com.android.jdwpscache.SuspendingSCache
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import java.util.concurrent.CancellationException
+import kotlin.coroutines.cancellation.CancellationException
 
 internal class StudioAdbLibSCacheJdwpSessionPipeline(
   session: AdbSession,
@@ -41,7 +41,7 @@ internal class StudioAdbLibSCacheJdwpSessionPipeline(
   private val sessionMonitor: SharedJdwpSessionMonitor?,
   private val debuggerPipeline: JdwpSessionPipeline,
 ) : JdwpSessionPipeline {
-  private val logger = thisLogger(session)
+  private val logger = adbLogger(session)
 
   /**
    * The actual SCache implementation.
@@ -66,21 +66,40 @@ internal class StudioAdbLibSCacheJdwpSessionPipeline(
     get() = receiveChannelImpl
 
   init {
-    scope.launch(session.ioDispatcher) {
+    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+      logger.logIOCompletionErrors(throwable)
+    }
+
+    // Note: We use a custom exception handler because we handle exceptions, and we don't
+    // want them to go to the parent scope handler as "unhandled" exceptions in a `launch` job.
+    // Note: We cancel both channels on completion so that we never leave one of the two
+    // coroutine running if the other completed.
+    scope.launch(session.ioDispatcher + exceptionHandler) {
       forwardSendChannelToDebugger()
+    }.invokeOnCompletion {
+      cancelChannels(it)
     }
 
-    scope.launch(session.ioDispatcher) {
+    scope.launch(session.ioDispatcher + exceptionHandler) {
       forwardDebuggerToReceiveChannel()
+    }.invokeOnCompletion {
+      cancelChannels(it)
     }
+  }
 
-    scope.coroutineContext.job.invokeOnCompletion { throwable ->
-      logger.debug { "Scope completion: closing SCache and monitor" }
-      scache.close()
-      sessionMonitor?.close()
-      sendChannelImpl.cancel(throwable as? CancellationException)
-      receiveChannelImpl.cancel(throwable as? CancellationException)
-    }
+  private fun cancelChannels(throwable: Throwable?) {
+    logger.debug { "Scope completion: closing SCache and monitor" }
+
+    scache.close()
+    sessionMonitor?.close()
+
+    // Ensure exception is propagated to channels so that
+    // 1) callers (i.e. consumer of 'send' and 'receive' channels) get notified of errors
+    // 2) both forwarding coroutines always complete together
+    val cancellationException = (throwable as? CancellationException)
+                                ?: CancellationException("SCache Debugger pipeline for JDWP session has completed", throwable)
+    sendChannelImpl.cancel(cancellationException)
+    receiveChannelImpl.cancel(cancellationException)
   }
 
   override fun toString(): String {
@@ -89,38 +108,32 @@ internal class StudioAdbLibSCacheJdwpSessionPipeline(
 
   private suspend fun forwardSendChannelToDebugger() {
     val workBuffer = ResizableBuffer()
-    sendChannelImpl.receiveAllCatching { packet ->
+    // Note: 'receiveAll' is a terminal operator, throws exception when completed or cancelled
+    sendChannelImpl.receiveAll { packet ->
       logger.verbose { "Sending packet to debugger: $packet" }
       val buffer = packet.writeToBuffer(workBuffer)
       val response = scache.onDownstreamPacket(buffer)
       processSCacheResponse(response)
-    }.onClosed { throwable ->
-      logger.debug(throwable) { "Channel is closed, exiting loop" }
-    }.onFailure { throwable ->
-      logger.warn(throwable, "Receiving elements from a channel should never fail")
     }
   }
 
   private suspend fun forwardDebuggerToReceiveChannel() {
     val workBuffer = ResizableBuffer()
-    debuggerPipeline.receiveAllPacketsCatching { packet ->
+    // Note: Throws an EOFException exception when channel is closed
+    debuggerPipeline.receiveChannel.receiveAll { packet ->
       logger.verbose { "Sending packet to channel: $packet" }
       val buffer = packet.writeToBuffer(workBuffer)
       val response = scache.onUpstreamPacket(buffer)
       processSCacheResponse(response)
-    }.onClosed { throwable ->
-      logger.debug(throwable) { "Channel is closed, exiting loop" }
-    }.onFailure { throwable ->
-      logger.warn(throwable, "Receiving elements from a channel should never fail")
     }
   }
 
   private suspend fun processSCacheResponse(response: SCacheResponse) {
-    logger.debug { "Processing SCache response: " +
-                   "edict.toUpstream size=${response.edict.toUpstream.size}, " +
-                   "edict.toDownstream size=${response.edict.toDownstream.size}, " +
-                   "journal.toUpstream size=${response.journal.toUpstream.size}, " +
-                   "journal.toDownstream size=${response.journal.toUpstream.size}" }
+    logger.verbose { "Processing SCache response: " +
+                     "edict.toUpstream size=${response.edict.toUpstream.size}, " +
+                     "edict.toDownstream size=${response.edict.toDownstream.size}, " +
+                     "journal.toUpstream size=${response.journal.toUpstream.size}, " +
+                     "journal.toDownstream size=${response.journal.toUpstream.size}" }
 
     // Packets from the debuggee (device) to the debugger
     response.edict.toDownstream

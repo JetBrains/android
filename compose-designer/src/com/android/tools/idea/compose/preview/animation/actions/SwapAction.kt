@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.animation.actions
 
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.animation.AnimationTracker
+import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
@@ -29,10 +29,11 @@ class SwapAction(val tracker: AnimationTracker, val swapStates: () -> Unit) :
   ) {
 
   private var isSwappingStates = false
+
   override fun actionPerformed(e: AnActionEvent) {
     isSwappingStates = true
     swapStates()
     isSwappingStates = false
     tracker.triggerSwapStatesAction()
   }
-  }
+}

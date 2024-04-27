@@ -2,34 +2,12 @@
 
 package com.android.tools.idea.compose.preview.util.device.parser;
 
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.CHIN_SIZE_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.COLON;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.COMMA;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.DP;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.DPI_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.EQUALS;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.FALSE;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.HEIGHT_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.ID_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.IS_ROUND_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.LANDSCAPE_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.NAME_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.NUMERIC_T;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.ORIENTATION_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.PARENT_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.PORTRAIT_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.PX;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.SPEC_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.SQUARE_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.STRING_T;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.TRUE;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.UNIT_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.WIDTH_KEYWORD;
-import static com.intellij.psi.TokenType.BAD_CHARACTER;
-import static com.intellij.psi.TokenType.WHITE_SPACE;
-
 import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
+
+import static com.intellij.psi.TokenType.BAD_CHARACTER;
+import static com.intellij.psi.TokenType.WHITE_SPACE;
+import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.*;
 
 
 /**

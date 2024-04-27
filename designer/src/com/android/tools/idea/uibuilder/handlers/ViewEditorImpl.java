@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static com.android.tools.lint.checks.AnnotationDetectorKt.RESTRICT_TO_ANNOTATION;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -28,17 +26,19 @@ import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
-import com.android.tools.idea.rendering.StudioRenderService;
+import com.android.tools.idea.rendering.RenderServiceUtilsKt;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
+import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.RenderTask;
+import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.rendering.RenderResult;
-import com.android.tools.rendering.RenderService;
-import com.android.tools.rendering.RenderTask;
 import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
@@ -53,7 +53,6 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.Dimension;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -162,7 +161,7 @@ public class ViewEditorImpl extends ViewEditor {
     XmlFile xmlFile = model.getFile();
     Module module = model.getModule();
     RenderService renderService = StudioRenderService.getInstance(module.getProject());
-    final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, model.getFacet(), getConfiguration())
+    final CompletableFuture<RenderTask> taskFuture = RenderServiceUtilsKt.taskBuilderWithHtmlLogger(renderService, model.getFacet(), getConfiguration())
       .withPsiFile(new PsiXmlFile(xmlFile))
       .build();
 
@@ -179,7 +178,7 @@ public class ViewEditorImpl extends ViewEditor {
             return Collections.emptyMap();
           }
 
-          Map<NlComponent, Dimension> unweightedSizes = new HashMap<>();
+          Map<NlComponent, Dimension> unweightedSizes = Maps.newHashMap();
           for (Map.Entry<RenderXmlTag, ViewInfo> entry : map.entrySet()) {
             ViewInfo viewInfo = entry.getValue();
             viewInfo = RenderService.getSafeBounds(viewInfo);
@@ -241,6 +240,6 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public boolean moduleDependsOnAppCompat() {
-    return NlModelHelperKt.moduleDependsOnAppCompat(myModel);
+    return DependencyManagementUtil.dependsOnAppCompat(myModel.getModule());
   }
 }

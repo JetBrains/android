@@ -28,13 +28,13 @@ import com.android.tools.rendering.RenderResult
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import org.junit.Test
-import org.mockito.Mockito
 import java.awt.Point
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
+import org.junit.Test
+import org.mockito.Mockito
 
 class NlVisibilityGutterPanelTest : LayoutTestCase() {
 

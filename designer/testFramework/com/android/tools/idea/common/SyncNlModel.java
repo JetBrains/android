@@ -18,6 +18,7 @@ package com.android.tools.idea.common;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.NlModelBuilder;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -39,7 +40,7 @@ public class SyncNlModel extends NlModel {
   private DesignSurface<? extends SceneManager> mySurface; // for testing purposes
 
   @NotNull
-  public static SyncNlModel create(@Nullable Disposable parent,
+  public static SyncNlModel create(@NotNull Disposable parent,
                                    @NotNull Consumer<NlComponent> componentRegistrar,
                                    @Nullable String tooltip,
                                    @NotNull AndroidFacet facet,
@@ -51,7 +52,7 @@ public class SyncNlModel extends NlModel {
   }
 
   @NotNull
-  public static SyncNlModel create(@Nullable Disposable parent,
+  public static SyncNlModel create(@NotNull Disposable parent,
                                    @NotNull Consumer<NlComponent> componentRegistrar,
                                    @Nullable String tooltip,
                                    @NotNull AndroidFacet facet,
@@ -60,10 +61,10 @@ public class SyncNlModel extends NlModel {
     return new SyncNlModel(parent, componentRegistrar, tooltip, facet, file, configuration);
   }
 
-  private SyncNlModel(@Nullable Disposable parent, @NotNull Consumer<NlComponent> componentRegistrar,
+  private SyncNlModel(@NotNull Disposable parent, @NotNull Consumer<NlComponent> componentRegistrar,
                       @Nullable String tooltip, @NotNull AndroidFacet facet, @NotNull VirtualFile file,
                       @NotNull Configuration configuration) {
-    super(parent, tooltip, facet, file, configuration, componentRegistrar, DataContext.EMPTY_CONTEXT);
+    super(parent, tooltip, facet, file, configuration, componentRegistrar, NlModelBuilder.Companion::getDefaultFile, null, DataContext.EMPTY_CONTEXT);
   }
 
   /**

@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
@@ -34,11 +35,14 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.scale.JBUIScale
+import com.intellij.util.ui.ColorIcon
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.awt.Color
 import java.awt.Rectangle
 
 abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidProjectRule) {
@@ -180,6 +184,20 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
         model!!
       )
     property.helpSupport.browse()
+  }
+
+  protected fun colorPropertyOf(value: String?): InspectorPropertyItem {
+    val nodeId = fakeComposeNode.drawId
+    return InspectorPropertyItem(
+      ANDROID_URI,
+      "color",
+      PropertyType.COLOR,
+      value,
+      PropertySection.DECLARED,
+      null,
+      nodeId,
+      model!!
+    )
   }
 }
 
@@ -383,6 +401,12 @@ class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRu
   fun testBrowseBackgroundInLayout() {
     browseProperty(ATTR_BACKGROUND, PropertyType.DRAWABLE, null)
     fileOpenCaptureRule.checkEditor("demo.xml", 14, "framework:background=\"@drawable/battery\"")
+  }
+
+  @Test
+  fun testColor() {
+    assertThat(colorPropertyOf("#0000FF").colorButton?.actionIcon)
+      .isEqualTo(JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, Color(0x0000FF), false)))
   }
 }
 

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.util;
 
-import static com.intellij.openapi.wm.ToolWindowId.PROJECT_VIEW;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
+
+import static com.intellij.openapi.wm.ToolWindowId.PROJECT_VIEW;
 
 public class ToolWindows {
   public static void activateProjectView(@NotNull Project project) {

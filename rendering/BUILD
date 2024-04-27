@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.rendering",
     srcs = ["src"],
     iml_files = ["intellij.android.rendering.iml"],
+    lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -18,6 +19,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module]",
+        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
     ],
 )
 
@@ -41,16 +43,20 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
         "//tools/adt/idea/.idea/libraries:asm-tools[test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
     ],
 )
 
 # Build target to verify that rendering builds for tools/base
 kotlin_library(
     name = "tools.rendering",
+    # buildifier: disable=bad-recursive-glob
     srcs = glob([
         "src/**/*.java",
         "src/**/*.kt",
     ]),
+    lint_baseline = "lint_baseline_rendering.xml",
     resources = glob(["resources/**"]),
     visibility = ["//visibility:public"],
     deps = [
@@ -70,6 +76,7 @@ kotlin_library(
 # Build target to verify that rendering tests succeed for tools/base
 kotlin_test(
     name = "tools.rendering.tests",
+    # buildifier: disable=bad-recursive-glob
     srcs = glob([
         "testSrc/**/*.kt",
         "testSrc/**/*.java",
@@ -78,6 +85,7 @@ kotlin_test(
         "//tools/adt/idea/rendering/testData",
     ],
     jvm_flags = ["-Dtest.suite.jar=tools.rendering.tests.jar"],
+    lint_baseline = "lint_baseline_tests.xml",
     test_class = "com.android.testutils.JarTestSuite",
     deps = [
         ":tools.rendering",

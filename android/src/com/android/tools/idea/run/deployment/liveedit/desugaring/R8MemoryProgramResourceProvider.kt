@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.desugaring
 
-import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiledClass
 import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
+import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiledClass
 import com.android.tools.r8.ProgramResource
 import com.android.tools.r8.ProgramResourceProvider
 import com.android.tools.r8.origin.Origin

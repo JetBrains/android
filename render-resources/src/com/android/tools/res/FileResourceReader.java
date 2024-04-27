@@ -19,8 +19,12 @@ import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 import static com.intellij.util.io.URLUtil.JAR_PROTOCOL;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
+import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.util.PathString;
+import com.android.tools.apk.analyzer.BinaryXmlParser;
+import com.android.tools.apk.analyzer.ResourceIdResolver;
 import com.android.utils.XmlUtils;
 import com.android.zipflinger.ZipMap;
 import com.android.zipflinger.ZipRepo;
@@ -28,7 +32,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.io.ByteStreams;
+import com.google.common.primitives.Shorts;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -75,7 +81,10 @@ public class FileResourceReader {
    * @throws IOException in case of an I/O error
    */
   @NotNull
-  public static byte[] readBytes(@NotNull PathString resourcePath) throws IOException {
+  public static byte[] readBytes(
+    @NotNull PathString resourcePath,
+    @NonNull ResourceIdResolver resourceIdResolver
+  ) throws IOException {
     String scheme = resourcePath.getFilesystemUri().getScheme();
     switch (scheme) {
       case FILE_PROTOCOL:
@@ -89,12 +98,23 @@ public class FileResourceReader {
         if (separatorPos <= 0 || separatorEnd == path.length()) {
           throw new IllegalArgumentException("Invalid path in \"" + resourcePath + "\"");
         }
-        return readZipEntryBytes(path.substring(0, separatorPos), path.substring(separatorEnd));
+        byte[] rawContent = readZipEntryBytes(path.substring(0, separatorPos), path.substring(separatorEnd));
+        if (isBinaryEncoded(scheme, path, rawContent)) {
+          return BinaryXmlParser.decodeXml(rawContent, resourceIdResolver);
+        }
+        return rawContent;
       }
 
       default:
         throw new IllegalArgumentException("Unknown schema in \"" + resourcePath + "\"");
     }
+  }
+
+  private static boolean isBinaryEncoded(@NotNull String scheme, @NotNull String path, @NotNull byte[] resourceBytes) {
+    return scheme.equals(APK_PROTOCOL) &&
+           path.endsWith(SdkConstants.DOT_XML) &&
+           resourceBytes.length > 2 &&
+           Shorts.fromBytes(resourceBytes[1], resourceBytes[0]) == Chunk.Type.XML.code();
   }
 
   /**
@@ -179,9 +199,12 @@ public class FileResourceReader {
    * @throws IOException in case of an I/O error
    */
   @Nullable
-  public static XmlPullParser createXmlPullParser(@NotNull PathString resourcePath) throws IOException {
+  public static XmlPullParser createXmlPullParser(
+    @NotNull PathString resourcePath,
+    @NonNull ResourceIdResolver resIdResolver
+  ) throws IOException {
     try {
-      byte[] contents = readBytes(resourcePath);
+      byte[] contents = readBytes(resourcePath, resIdResolver);
       return createXmlPullParser(contents);
     }
     catch (FileNotFoundException e) {

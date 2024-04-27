@@ -24,14 +24,14 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 class DatabaseInspectorClientTest : LightPlatformTestCase() {
   private lateinit var openDatabaseFunction: (SqliteDatabaseId, DatabaseConnection) -> Unit
@@ -75,7 +75,7 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
   }
 
   fun testStartTrackingDatabaseConnectionSendsMessage() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val emptyResponse = SqliteInspectorProtocol.Response.newBuilder().build().toByteArray()
 
@@ -265,7 +265,7 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
   }
 
   fun testKeepConnectionOpenError() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val keepDbsOpenResponse =
         SqliteInspectorProtocol.Response.newBuilder()
@@ -354,6 +354,7 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     private val singleRawCommandResponse: ByteArray = ByteArray(0)
   ) : AppInspectorMessenger {
     lateinit var rawDataSent: ByteArray
+
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
       rawDataSent = rawData
       return singleRawCommandResponse

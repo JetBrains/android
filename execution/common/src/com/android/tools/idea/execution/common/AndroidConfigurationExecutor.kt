@@ -33,6 +33,7 @@ interface AndroidConfigurationExecutor {
    * An extension point to provide custom [AndroidConfigurationExecutor]
    */
   interface Provider {
+    @Throws(ExecutionException::class)
     fun createAndroidConfigurationExecutor(env: ExecutionEnvironment): AndroidConfigurationExecutor?
 
     companion object {
@@ -51,10 +52,14 @@ interface AndroidConfigurationExecutor {
   fun debug(indicator: ProgressIndicator): RunContentDescriptor
 
   @Throws(ExecutionException::class)
-  fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor
+  fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor {
+    throw RuntimeException("Unsupported operation")
+  }
 
   @Throws(ExecutionException::class)
-  fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor
+  fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
+    throw RuntimeException("Unsupported operation")
+  }
 }
 
 class AndroidConfigurationExecutorRunProfileState(@VisibleForTesting val executor: AndroidConfigurationExecutor) :

@@ -16,9 +16,10 @@
 package com.android.tools.idea.uibuilder.analytics;
 
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
-import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * No-op tracker used when stats tracking is disabled.

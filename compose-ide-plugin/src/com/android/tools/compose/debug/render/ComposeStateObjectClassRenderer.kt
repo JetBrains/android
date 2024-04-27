@@ -53,27 +53,28 @@ import java.util.concurrent.CompletableFuture
 /**
  * Renderer for a given compose `StateObject` type object.
  *
- * Basically, for a given compose state object, its underlying value (by invoking [DEBUGGER_DISPLAY_VALUE_METHOD_NAME])
- * determines how it's rendered in the "Variables" pane. This is to provide an auto-unboxing experience while debugging,
- * that users can identify the data by a glance at this more readable data view.
+ * Basically, for a given compose state object, its underlying value (by invoking
+ * [DEBUGGER_DISPLAY_VALUE_METHOD_NAME]) determines how it's rendered in the "Variables" pane. This
+ * is to provide an auto-unboxing experience while debugging, that users can identify the data by a
+ * glance at this more readable data view.
  *
  * E.g.
  * 1) if the underlying value is an integer `1`, the label is rendered `1`.
- * 2) if the underlying value is a list, then the given object is rendered by a `List` renderer instead of the
- * original `Kotlin class` renderer. That is, "size = xx" is the label, and the `ArrayRenderer` is the children renderer
- * in this case.
- * 3) if the underlying value is a map, then the given object is rendered by a `Map` renderer instead of the original
- * `Kotlin class` renderer. That is, "size = xx" is the label, and the `ArrayRenderer` is the children renderer in
- * this case. When expanding, each of the entry is rendered by the `Map.Entry` renderer.
+ * 2) if the underlying value is a list, then the given object is rendered by a `List` renderer
+ *    instead of the original `Kotlin class` renderer. That is, "size = xx" is the label, and the
+ *    `ArrayRenderer` is the children renderer in this case.
+ * 3) if the underlying value is a map, then the given object is rendered by a `Map` renderer
+ *    instead of the original `Kotlin class` renderer. That is, "size = xx" is the label, and the
+ *    `ArrayRenderer` is the children renderer in this case. When expanding, each of the entry is
+ *    rendered by the `Map.Entry` renderer.
  *
- * @param fqcn the fully qualified class name of the Compose State Object to apply this custom renderer to.
+ * @param fqcn the fully qualified class name of the Compose State Object to apply this custom
+ *   renderer to.
  */
 class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer() {
   // We fallback to [KotlinClassRenderer] when the following exception is thrown:
   // Unable to evaluate the expression No such instance method: 'getDebuggerDisplayValue',
-  private val fallbackRenderer by lazy {
-    KotlinClassRenderer()
-  }
+  private val fallbackRenderer by lazy { KotlinClassRenderer() }
 
   private val prioritizedCollectionRenderers by lazy {
     NodeRendererSettings.getInstance()
@@ -87,7 +88,8 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
 
   init {
     setIsApplicableChecker { type: Type? ->
-      if (type !is ClassType || !type.isInKotlinSources()) return@setIsApplicableChecker CompletableFuture.completedFuture(false)
+      if (type !is ClassType || !type.isInKotlinSources())
+        return@setIsApplicableChecker CompletableFuture.completedFuture(false)
 
       DebuggerUtilsAsync.instanceOf(type, fqcn)
     }
@@ -96,22 +98,27 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
   companion object {
     private val NODE_RENDERER_KEY = Key.create<NodeRenderer>(this::class.java.simpleName)
 
-    // The name of the method we expect the Compose State Object to implement. We invoke it to retrieve the underlying
+    // The name of the method we expect the Compose State Object to implement. We invoke it to
+    // retrieve the underlying
     // Compose State Object value.
     private const val DEBUGGER_DISPLAY_VALUE_METHOD_NAME = "getDebuggerDisplayValue"
   }
 
-  override fun buildChildren(value: Value, builder: ChildrenBuilder, evaluationContext: EvaluationContext) {
-    val debuggerDisplayValueDescriptor = try {
-      getDebuggerDisplayValueDescriptor(value, evaluationContext, null)
-    }
-    catch (evaluateException: EvaluateException) {
-      if (evaluateException.localizedMessage.startsWith("No such instance method:")) {
-        return fallbackRenderer.buildChildren(value, builder, evaluationContext)
-      }
+  override fun buildChildren(
+    value: Value,
+    builder: ChildrenBuilder,
+    evaluationContext: EvaluationContext
+  ) {
+    val debuggerDisplayValueDescriptor =
+      try {
+        getDebuggerDisplayValueDescriptor(value, evaluationContext, null)
+      } catch (evaluateException: EvaluateException) {
+        if (evaluateException.localizedMessage.startsWith("No such instance method:")) {
+          return fallbackRenderer.buildChildren(value, builder, evaluationContext)
+        }
 
-      throw evaluateException
-    }
+        throw evaluateException
+      }
 
     getDelegatedRendererAsync(evaluationContext.debugProcess, debuggerDisplayValueDescriptor)
       .thenAccept { renderer ->
@@ -120,8 +127,13 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
       }
   }
 
-  override fun getChildValueExpression(node: DebuggerTreeNode, context: DebuggerContext): PsiElement? {
-    return node.parent.descriptor.getUserData(NODE_RENDERER_KEY)?.getChildValueExpression(node, context)
+  override fun getChildValueExpression(
+    node: DebuggerTreeNode,
+    context: DebuggerContext
+  ): PsiElement? {
+    return node.parent.descriptor
+      .getUserData(NODE_RENDERER_KEY)
+      ?.getChildValueExpression(node, context)
   }
 
   override fun isExpandableAsync(
@@ -129,26 +141,31 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
     evaluationContext: EvaluationContext,
     parentDescriptor: NodeDescriptor
   ): CompletableFuture<Boolean> {
-    val debuggerDisplayValueDescriptor = try {
-      getDebuggerDisplayValueDescriptor(value, evaluationContext, null)
-    }
-    catch (evaluateException: EvaluateException) {
-      if (evaluateException.localizedMessage.startsWith("No such instance method:")) {
-        return fallbackRenderer.isExpandableAsync(value, evaluationContext, parentDescriptor)
-      }
+    val debuggerDisplayValueDescriptor =
+      try {
+        getDebuggerDisplayValueDescriptor(value, evaluationContext, null)
+      } catch (evaluateException: EvaluateException) {
+        if (evaluateException.localizedMessage.startsWith("No such instance method:")) {
+          return fallbackRenderer.isExpandableAsync(value, evaluationContext, parentDescriptor)
+        }
 
-      return CompletableFuture.failedFuture(evaluateException)
-    }
+        return CompletableFuture.failedFuture(evaluateException)
+      }
 
     return getDelegatedRendererAsync(evaluationContext.debugProcess, debuggerDisplayValueDescriptor)
       .thenCompose { renderer ->
-        renderer.isExpandableAsync(debuggerDisplayValueDescriptor.value, evaluationContext, debuggerDisplayValueDescriptor)
+        renderer.isExpandableAsync(
+          debuggerDisplayValueDescriptor.value,
+          evaluationContext,
+          debuggerDisplayValueDescriptor
+        )
       }
   }
 
   /**
-   * Returns a [ValueDescriptor] for the underlying "debugger display value", which is evaluated by invoking the
-   * [DEBUGGER_DISPLAY_VALUE_METHOD_NAME] method of the Compose `StateObject` type object: [value].
+   * Returns a [ValueDescriptor] for the underlying "debugger display value", which is evaluated by
+   * invoking the [DEBUGGER_DISPLAY_VALUE_METHOD_NAME] method of the Compose `StateObject` type
+   * object: [value].
    */
   private fun getDebuggerDisplayValueDescriptor(
     value: Value,
@@ -160,11 +177,15 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
     if (!debugProcess.isAttached) throw EvaluateExceptionUtil.PROCESS_EXITED
 
     val thisEvaluationContext = evaluationContext.createEvaluationContext(value)
-    val debuggerDisplayValue = debuggerDisplayValueEvaluator.evaluate(debugProcess.project, thisEvaluationContext)
+    val debuggerDisplayValue =
+      debuggerDisplayValueEvaluator.evaluate(debugProcess.project, thisEvaluationContext)
 
     return object : ValueDescriptorImpl(evaluationContext.project, debuggerDisplayValue) {
       override fun getDescriptorEvaluation(context: DebuggerContext): PsiExpression? = null
-      override fun calcValue(evaluationContext: EvaluationContextImpl?): Value = debuggerDisplayValue
+
+      override fun calcValue(evaluationContext: EvaluationContextImpl?): Value =
+        debuggerDisplayValue
+
       override fun calcValueName(): String = "value"
 
       override fun setValueLabel(label: String) {
@@ -174,26 +195,31 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
   }
 
   /**
-   * Return an ID of this renderer class, used by the IntelliJ platform to identify our renderer among all active
-   * renderers in the system.
+   * Return an ID of this renderer class, used by the IntelliJ platform to identify our renderer
+   * among all active renderers in the system.
    */
   override fun getUniqueId(): String {
     return fqcn
   }
 
-  override fun calcLabel(descriptor: ValueDescriptor, evaluationContext: EvaluationContext, listener: DescriptorLabelListener): String {
-    val debuggerDisplayValueDescriptor: ValueDescriptor = try {
-      getDebuggerDisplayValueDescriptor(descriptor.value, evaluationContext, descriptor)
-    }
-    catch (evaluateException: EvaluateException) {
-      if (evaluateException.localizedMessage.startsWith("No such instance method:")) {
-        return fallbackRenderer.calcLabel(descriptor, evaluationContext, listener)
+  override fun calcLabel(
+    descriptor: ValueDescriptor,
+    evaluationContext: EvaluationContext,
+    listener: DescriptorLabelListener
+  ): String {
+    val debuggerDisplayValueDescriptor: ValueDescriptor =
+      try {
+        getDebuggerDisplayValueDescriptor(descriptor.value, evaluationContext, descriptor)
+      } catch (evaluateException: EvaluateException) {
+        if (evaluateException.localizedMessage.startsWith("No such instance method:")) {
+          return fallbackRenderer.calcLabel(descriptor, evaluationContext, listener)
+        }
+
+        throw evaluateException
       }
 
-      throw evaluateException
-    }
-
-    val renderer = getDelegatedRendererAsync(evaluationContext.debugProcess, debuggerDisplayValueDescriptor)
+    val renderer =
+      getDelegatedRendererAsync(evaluationContext.debugProcess, debuggerDisplayValueDescriptor)
     return calcLabelAsync(renderer, debuggerDisplayValueDescriptor, evaluationContext, listener)
       .getNow(XDebuggerUIConstants.getCollectingDataMessage())
   }
@@ -210,8 +236,7 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
         descriptor.setValueLabel(label)
         listener.labelChanged()
         return@thenApply label
-      }
-      catch (evaluateException: EvaluateException) {
+      } catch (evaluateException: EvaluateException) {
         descriptor.setValueLabelFailed(evaluateException)
         listener.labelChanged()
         return@thenApply ""
@@ -222,29 +247,34 @@ class ComposeStateObjectClassRenderer(private val fqcn: String) : ClassRenderer(
   /**
    * Returns a [CompletableFuture] of the first applicable renderer for the given [valueDescriptor].
    */
-  private fun getDelegatedRendererAsync(debugProcess: DebugProcess, valueDescriptor: ValueDescriptor): CompletableFuture<NodeRenderer> {
+  private fun getDelegatedRendererAsync(
+    debugProcess: DebugProcess,
+    valueDescriptor: ValueDescriptor
+  ): CompletableFuture<NodeRenderer> {
     val type = valueDescriptor.type
     return DebuggerUtilsImpl.getApplicableRenderers(prioritizedCollectionRenderers, type)
       .thenCompose { renderers ->
-        // Return any applicable renderer of [prioritizedCollectionRenderers]. This is to de-prioritize `Kotlin class` renderer.
+        // Return any applicable renderer of [prioritizedCollectionRenderers]. This is to
+        // de-prioritize `Kotlin class` renderer.
         // Or fallback to the default renderer.
-        val found = renderers.firstOrNull() ?: return@thenCompose (debugProcess as DebugProcessImpl).getAutoRendererAsync(type)
+        val found =
+          renderers.firstOrNull()
+            ?: return@thenCompose (debugProcess as DebugProcessImpl).getAutoRendererAsync(type)
 
         CompletableFuture.completedFuture(found)
       }
   }
 
-  /**
-   * [CachedEvaluator] used to invoke the [DEBUGGER_DISPLAY_VALUE_METHOD_NAME] method.
-   */
+  /** [CachedEvaluator] used to invoke the [DEBUGGER_DISPLAY_VALUE_METHOD_NAME] method. */
   private class DebuggerDisplayValueEvaluator(private val fqcn: String) : CachedEvaluator() {
     init {
-      referenceExpression = TextWithImportsImpl(
-        CodeFragmentKind.EXPRESSION,
-        "this.$DEBUGGER_DISPLAY_VALUE_METHOD_NAME()",
-        "",
-        JavaFileType.INSTANCE
-      )
+      referenceExpression =
+        TextWithImportsImpl(
+          CodeFragmentKind.EXPRESSION,
+          "this.$DEBUGGER_DISPLAY_VALUE_METHOD_NAME()",
+          "",
+          JavaFileType.INSTANCE
+        )
     }
 
     override fun getClassName(): String {

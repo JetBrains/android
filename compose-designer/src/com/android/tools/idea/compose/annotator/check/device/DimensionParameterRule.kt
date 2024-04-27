@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.compose.annotator.check.device
 
+import com.android.ide.common.util.enumValueOfOrNull
 import com.android.tools.idea.compose.annotator.check.common.ExpectedValueType
 import com.android.tools.idea.compose.annotator.check.common.ParameterRule
-import com.android.tools.idea.compose.pickers.preview.property.DimUnit
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec
-import com.android.tools.idea.compose.preview.util.device.convertToDeviceSpecDimension
-import com.android.tools.idea.kotlin.enumValueOfOrNull
+import com.android.tools.preview.config.DimUnit
+import com.android.tools.preview.config.Preview.DeviceSpec
+import com.android.tools.preview.config.convertToDeviceSpecDimension
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
 

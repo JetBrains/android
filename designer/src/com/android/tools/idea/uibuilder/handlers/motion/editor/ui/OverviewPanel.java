@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScenePicker;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScenePicker.HitElementListener;
@@ -114,7 +113,6 @@ class OverviewPanel extends JPanel {
   private final ActionGroup myActionGroup;
   private boolean mTransitionHovered = false;
   private JPopupMenu mPopupMenu = new JPopupMenu();
-  private boolean mShowSaveGif = StudioFlags.NELE_MOTION_SAVE_GIF.get();
 
   /**
    * Defines the progress along the selected Transition
@@ -156,7 +154,7 @@ class OverviewPanel extends JPanel {
     addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
-        if (SwingUtilities.isRightMouseButton(e) && e.getClickCount() == 1 && mTransitionHovered && mShowSaveGif){
+        if (SwingUtilities.isRightMouseButton(e) && e.getClickCount() == 1 && mTransitionHovered){
           showPopupMenu(e);
           return;
         }
@@ -418,18 +416,6 @@ class OverviewPanel extends JPanel {
 
   int cs_width, cs_height;
 
-  void debugSize(String str) {
-    int w = getWidth();
-    int h = getHeight();
-    System.out.println(str + " act w,h = " + w + "," + h);
-    Dimension d = getPreferredSize();
-    System.out.println(str + " prf w,h = " + d.width + "," + d.height);
-    d = getMinimumSize();
-    System.out.println(str + " min w,h = " + d.width + "," + d.height);
-    d = getMaximumSize();
-    System.out.println(str + " max w,h = " + d.width + "," + d.height);
-  }
-
   private void calcDimensions() {
     boolean has_strings = false;
     for (int i = 0; i < mTransitions.length; i++) {
@@ -439,10 +425,8 @@ class OverviewPanel extends JPanel {
       }
     }
     int w = getWidth();
-    int h = getHeight();
 
     ///////  calc constraintSet dimensions //////
-    int spaces = CS_GAP * mConstraintSet.length + 3;
     int noc = mConstraintSet.length + 1;
     cs_width = (w - CS_GAP * 2 - 2) / noc - CS_GAP;
     if (cs_width > MAX_CS_WIDTH) {
@@ -509,7 +493,6 @@ class OverviewPanel extends JPanel {
     int csWidth = cs_width;
     Stroke stroke = g2g.getStroke();
     g2g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    int yGap = 24;
     int selectedStart = -1;
     int selectedEnd = -1;
     int constraintSetY = CS_GAP + arrow_spacing + mTransitions.length * arrow_spacing;
@@ -736,7 +719,6 @@ class OverviewPanel extends JPanel {
       g.drawRoundRect(x, y, csWidth, csHeight, space, space);
 
       if (i == 0) {
-        //  g.setColor((hover) ? MEUI.Overview.ourCS_Hover : MEUI.Overview.ourLayoutColor);
         g.setColor(colorBackground);
 
         g.fillRoundRect(x, y, csWidth, csHeight, space, space);
@@ -842,9 +824,6 @@ class OverviewPanel extends JPanel {
     }
 
     // ======================= draw the lines
-    int GAP = 10;
-
-
     for (int i = 0; i < mTotalDerivedLines; i++) {
       g2g.setStroke(mDashStroke);
       g.setColor(Color.LIGHT_GRAY);
@@ -895,33 +874,6 @@ class OverviewPanel extends JPanel {
     }
     return totalSpace;
   }
-
-  //private void calcHighlight(float progress,
-  //                           float stagger) {
-  //  mHighlightEnd = false;
-  //  mHighlightStart = false;
-  //  if (!Float.isNaN(progress)) {
-  //    if (progress > 1) {
-  //      progress = 1;
-  //    }
-  //    if (progress < 0) {
-  //      progress = 0;
-  //    }
-  //    stagger = Math.abs(stagger);
-  //    float scale = 1 / (1 - stagger);
-  //    float startProgress = progress * scale;
-  //    float endProgress = (progress - stagger) * scale;
-  //    float startx = mRectPathX[0] + startProgress * (mRectPathX[3] - mRectPathX[0]) - 4;
-  //    float endx = mRectPathX[0] + endProgress * (mRectPathX[3] - mRectPathX[0]) + 4;
-  //
-  //    if (Math.abs(startx + 4 - mRectPathX[0]) < 2) {
-  //      mHighlightStart = true;
-  //    }
-  //    if (Math.abs(endx - 4 - mRectPathX[3]) < 2) {
-  //      mHighlightEnd = true;
-  //    }
-  //  }
-  //}
 
   private void drawTransition(Graphics2D g, boolean hoverHighlight, int x1, int x2, int y, int constraintSetY, Object tag,
                               float progress,
@@ -1026,28 +978,6 @@ class OverviewPanel extends JPanel {
     g.setColor(originalColor);
   }
 
-  private void drawTransition_orig(Graphics2D g, boolean hoverHighlight, int x1, int x2, int y, int constraintSetY, Object tag) {
-    picker.addLine(tag, 3, x1, y, x2, y, 2);
-
-    int delta = x2 > x1 ? -5 : 5;
-    if (hoverHighlight) {
-      Stroke originalStroke = ((Graphics2D)g).getStroke();
-      Color originalColor = g.getColor();
-      ((Graphics2D)g).setStroke(ourFatStroke);
-      g.setColor(MEUI.Overview.ourCS_HoverBorder);
-      g.drawLine(x1, y, x2, y);
-      g.drawLine(x1, y - delta, x1, y + delta);
-      g.drawLine(x2, y, x2 + delta, y + delta);
-      g.drawLine(x2, y, x2 + delta, y - delta);
-      g.setColor(originalColor);
-      ((Graphics2D)g).setStroke(originalStroke);
-    }
-    g.drawLine(x1, y, x2, y);
-    g.drawLine(x1, y - delta, x1, y + delta);
-    g.drawLine(x2, y, x2 + delta, y + delta);
-    g.drawLine(x2, y, x2 + delta, y - delta);
-  }
-
   @VisibleForTesting
   static void optimizeLines(DerivedSetLine[] lines, int lineCount) {
     int maxLevels = 3;
@@ -1060,7 +990,7 @@ class OverviewPanel extends JPanel {
         lines[j].mPathYOffset = level % maxLevels;
         level /= maxLevels;
       }
-      double cost = lineCost(lines, lineCount, maxLevels);
+      double cost = lineCost(lines, lineCount);
       if (cost < minCost) {
         minCost = cost;
         minPattern = i;
@@ -1091,7 +1021,6 @@ class OverviewPanel extends JPanel {
   @VisibleForTesting
   static void locallyOptimizeLines(DerivedSetLine[] lines, int lineCount, int maxLevels) {
     boolean canReduce = true;
-    DeltaInfo delta = new DeltaInfo(-1, -1, -1);
 
     for (int i = 0; i < lineCount; i++) {
       lines[i].mPathYOffset = 0;
@@ -1198,7 +1127,7 @@ class OverviewPanel extends JPanel {
     return cost;
   }
 
-  private static double lineCost(DerivedSetLine[] lines, int lineCount, int maxLevels) {
+  private static double lineCost(DerivedSetLine[] lines, int lineCount) {
     double ret = 0;
     for (int i = 0; i < lineCount; i++) {
       ret += lines[i].mPathYOffset;
@@ -1232,26 +1161,6 @@ class OverviewPanel extends JPanel {
     mConstraintSetSelected = -1;
     mTransitionSelected = index;
     repaint();
-  }
-
-  void setSelected(MTag tag) {
-    if (DEBUG) {
-      Debug.log("setMTag");
-    }
-    mTransitionSelected = -1;
-    mConstraintSetSelected = -1;
-    for (int i = 0; i < mConstraintSet.length; i++) {
-      if (tag == mConstraintSet[i]) {
-        mConstraintSetSelected = i;
-        return;
-      }
-    }
-    for (int i = 0; i < mTransitions.length; i++) {
-      if (tag == mTransitions[i]) {
-        mTransitionSelected = i;
-        return;
-      }
-    }
   }
 
   public void setMTag(MTag motionScene, MTag layout) {

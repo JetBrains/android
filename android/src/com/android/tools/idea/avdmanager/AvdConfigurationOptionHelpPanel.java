@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.tools.idea.avdmanager.AvdWizardUtils.TITLE_FONT;
-
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import java.awt.CardLayout;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
+import com.intellij.util.ui.JBUI;
+
+import javax.swing.*;
+import java.awt.*;
+
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.TITLE_FONT;
 
 /**
  * A help panel that displays help text and error messaging for AVD options.

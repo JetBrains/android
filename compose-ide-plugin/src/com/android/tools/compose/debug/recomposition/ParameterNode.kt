@@ -36,7 +36,8 @@ internal class ParameterNode(
   private val state: ParamState,
 ) : XNamedValue(name) {
   // Create the child node early because we are known to be on the correct thread.
-  private val valueNode = if (param != null) createValueNode(param) else createOptimizedOutNode(name)
+  private val valueNode =
+    if (param != null) createValueNode(param) else createOptimizedOutNode(name)
 
   override fun computePresentation(node: XValueNode, place: XValuePlace) {
     node.setPresentation(AllIcons.Nodes.Parameter, null, state.getDisplayName(), true)
@@ -47,15 +48,19 @@ internal class ParameterNode(
   }
 
   private fun createValueNode(param: LocalVariableProxyImpl): JavaValue {
-    val nodeManager = context.debugProcess.xdebugProcess?.nodeManager ?: throw IllegalStateException("Missing node manager")
-    val descriptor = object : LocalVariableDescriptorImpl(context.project, param) {
-      override fun getName() = ComposeBundle.message("recomposition.state.value")
-    }
+    val nodeManager =
+      context.debugProcess.xdebugProcess?.nodeManager
+        ?: throw IllegalStateException("Missing node manager")
+    val descriptor =
+      object : LocalVariableDescriptorImpl(context.project, param) {
+        override fun getName() = ComposeBundle.message("recomposition.state.value")
+      }
     return JavaValue.create(null, descriptor, context, nodeManager, false)
   }
 }
 
-private fun createOptimizedOutNode(name: String): XNamedValue = JavaStackFrame.createMessageNode(
-  ComposeBundle.message("recomposition.optimised.variable.message", "\'$name\'"),
-  AllIcons.General.Information
-)
+private fun createOptimizedOutNode(name: String): XNamedValue =
+  JavaStackFrame.createMessageNode(
+    ComposeBundle.message("recomposition.optimised.variable.message", "\'$name\'"),
+    AllIcons.General.Information
+  )

@@ -20,6 +20,7 @@ import static org.jetbrains.kotlin.lexer.KtTokens.BLOCK_COMMENT;
 import static org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes.ML_COMMENT;
 import static org.junit.Assume.assumeTrue;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -39,12 +40,26 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.kotlin.psi.KtFile;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests for {@link DependenciesModelImpl} and {@link ModuleDependencyModelImpl}.
+ * Tests for subclasses of {@link AbstractDependenciesModel} and {@link ModuleDependencyModel}.
  */
 public class ModuleDependencyTest extends GradleFileModelTestCase {
+
+  @Before
+  public void before() throws Exception {
+    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true);
+    super.before();
+  }
+
+  @After
+  public void onAfter() {
+    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride();
+  }
+
   @Test
   public void testParsingWithCompactNotation() throws IOException {
     writeToBuildFile(TestFile.PARSING_WITH_COMPACT_NOTATION);
@@ -522,7 +537,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     modules = buildModel.dependencies().modules();
     assertEquals(modules.size(), 1);
     assertThat(modules.get(0).configurationName()).isEqualTo("testImplementation");
-    assertNotNull(((ModuleDependencyModelImpl)modules.get(0)).getDslElement().getClosureElement());
+    assertNotNull(((DependencyModelImpl)modules.get(0)).getDslElement().getClosureElement());
   }
 
   @Test

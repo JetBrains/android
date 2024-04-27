@@ -1,0 +1,3 @@
+[android]
+dynamicFeatures = [ ":f2" ]
+flavorDimensions = [ "abi" ]

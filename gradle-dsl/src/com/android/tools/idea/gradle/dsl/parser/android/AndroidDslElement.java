@@ -41,6 +41,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanti
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -156,7 +157,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"buildToolsVersion", property, BUILD_TOOLS_VERSION, VAR},
     {"compileSdk", property, COMPILE_SDK_VERSION, VAR},
     {"compileSdkPreview", property, COMPILE_SDK_VERSION, VAR},
-    {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR},
+    {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR, VersionConstraint.agpBefore("8.0.0")},
     {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
     {"dynamicFeatures", property, DYNAMIC_FEATURES, VAR},
     {"flavorDimensions", property, FLAVOR_DIMENSIONS, VAR},
@@ -177,14 +178,20 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   public static final class AndroidGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
     @NotNull
     @Override
-    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
       return CHILD_PROPERTIES_ELEMENTS_MAP;
     }
 
     @NotNull
     @Override
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+    public ExternalToModelMap getPropertiesInfo(Kind kind) {
       return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @NotNull
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.ApplicationExtension";
     }
   }
 

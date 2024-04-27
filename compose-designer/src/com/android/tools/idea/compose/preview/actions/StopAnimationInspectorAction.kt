@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.PreviewMode
-import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.compose.preview.findComposePreviewManagerForContext
+import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.actions.navigateBack
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -37,10 +38,10 @@ class StopAnimationInspectorAction :
   override fun displayTextInToolbar(): Boolean = true
 
   override fun update(e: AnActionEvent) {
-    val composePreviewManagers = findComposePreviewManagersForContext(e.dataContext)
-    e.presentation.isEnabled = !composePreviewManagers.any { it.status().isRefreshing }
+    val composePreviewManagers = findComposePreviewManagerForContext(e.dataContext)
+    e.presentation.isEnabled = composePreviewManagers?.status()?.isRefreshing != true
     e.presentation.isVisible =
-      composePreviewManagers.any { it.mode is PreviewMode.AnimationInspection }
+      composePreviewManagers?.mode?.value is PreviewMode.AnimationInspection
   }
 
   override fun actionPerformed(e: AnActionEvent) {

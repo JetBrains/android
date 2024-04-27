@@ -15,15 +15,16 @@
  */
 package org.jetbrains.android.dom.structure.manifest;
 
-import static com.android.tools.idea.fileTypes.AndroidIconProvider.getModuleIcon;
-
 import com.intellij.ide.presentation.PresentationProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 import icons.StudioIcons;
-import javax.swing.Icon;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+
+import static com.android.tools.idea.fileTypes.AndroidIconProvider.getModuleIcon;
 
 public class ApplicationPresentationProvider extends PresentationProvider<Application> {
   @Nullable

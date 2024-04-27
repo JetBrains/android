@@ -18,12 +18,12 @@
 
   <extensionPoints>
   </extensionPoints>
-  <actions resource-bundle="messages.AndroidGradlePsdBundle">
+  <actions>
     <group id="PsdProjectStructureActions">
       <separator/>
-      <action id="Android.EditBuildTypes" class="com.android.tools.idea.gradle.structure.actions.EditBuildTypesAction"/>
-      <action id="Android.EditFlavors" class="com.android.tools.idea.gradle.structure.actions.EditFlavorsAction"/>
-      <action id="Android.EditLibraryAndDependencies" class="com.android.tools.idea.gradle.structure.actions.EditLibraryAndDependenciesAction"/>
+      <action id="EditBuildTypes" class="com.android.tools.idea.gradle.structure.actions.EditBuildTypesAction"/>
+      <action id="EditFlavors" class="com.android.tools.idea.gradle.structure.actions.EditFlavorsAction"/>
+      <action id="EditLibraryAndDependencies" class="com.android.tools.idea.gradle.structure.actions.EditLibraryAndDependenciesAction"/>
       <add-to-group group-id="BuildMenu" anchor="last"/>
       <separator/>
     </group>

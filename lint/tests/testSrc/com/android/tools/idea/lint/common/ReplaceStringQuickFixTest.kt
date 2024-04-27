@@ -15,20 +15,15 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.android.testutils.TestUtils
 import com.android.tools.lint.detector.api.LintFix
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
-import com.intellij.testFramework.builders.JavaModuleFixtureBuilder
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import com.intellij.util.ThrowableRunnable
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
-class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
-  override fun tuneFixture(builder: JavaModuleFixtureBuilder<*>) {
-    builder.addJdk(TestUtils.getMockJdk().toString())
-  }
+class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
 
   fun testImportsJava() {
     // Unit test for [ReplaceStringQuickFix] import handling of Java files.

@@ -32,9 +32,6 @@ import static com.android.tools.configurations.ConfigurationListener.MASK_FOLDER
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleItemResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
@@ -51,7 +48,6 @@ import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.Density;
 import com.android.resources.LayoutDirection;
 import com.android.resources.NightMode;
-import com.android.resources.ResourceUrl;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.resources.UiMode;
@@ -66,16 +62,17 @@ import com.android.tools.res.ResourceUtils;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.util.text.Strings;
+import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,11 +80,11 @@ import org.jetbrains.annotations.Nullable;
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
  * etc for use when rendering a layout.
  */
-public class Configuration implements Disposable, ModificationTracker {
+public class Configuration extends UserDataHolderBase implements Disposable, ModificationTracker {
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
   // Set of constants from {@link android.content.res.Configuration} to be used in setUiModeFlagValue.
-  private static final int UI_MODE_TYPE_MASK = 0x0000000f;
+  public static final int UI_MODE_TYPE_MASK = 0x0000000f;
   private static final int UI_MODE_TYPE_APPLIANCE = 0x00000005;
   private static final int UI_MODE_TYPE_CAR = 0x00000003;
   private static final int UI_MODE_TYPE_DESK = 0x00000002;
@@ -97,8 +94,8 @@ public class Configuration implements Disposable, ModificationTracker {
   private static final int UI_MODE_TYPE_WATCH = 0x00000006;
 
   private static final int UI_MODE_NIGHT_MASK = 0x00000030;
-  private static final int UI_MODE_NIGHT_YES = 0x00000020;
-  private static final int UI_MODE_NIGHT_NO = 0x00000010;
+  public static final int UI_MODE_NIGHT_YES = 0x00000020;
+  public static final int UI_MODE_NIGHT_NO = 0x00000010;
 
   private static final ResourceReference postSplashAttrReference = ResourceReference.attr(
     ResourceNamespace.RES_AUTO, "postSplashScreenTheme"
@@ -210,7 +207,8 @@ public class Configuration implements Disposable, ModificationTracker {
   private int myUiModeFlagValue;
   @NotNull private AdaptiveIconShape myAdaptiveShape = AdaptiveIconShape.getDefaultShape();
   private boolean myUseThemedIcon = false;
-  private String myWallpaperPath = null;
+  private Wallpaper myWallpaper = null;
+  private Consumer<BufferedImage> myImageTransformation = null;
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -262,7 +260,7 @@ public class Configuration implements Disposable, ModificationTracker {
     myUiModeFlagValue = from.myUiModeFlagValue;
     myAdaptiveShape = from.myAdaptiveShape;
     myUseThemedIcon = from.myUseThemedIcon;
-    myWallpaperPath = from.myWallpaperPath;
+    myWallpaper = from.myWallpaper;
   }
 
   @Override
@@ -453,7 +451,7 @@ public class Configuration implements Disposable, ModificationTracker {
   @NotNull
   public String getTheme() {
     if (myTheme == null) {
-      myTheme = computePreferredTheme();
+      return getPreferredTheme();
     }
 
     return myTheme;
@@ -568,7 +566,7 @@ public class Configuration implements Disposable, ModificationTracker {
    * @param activity the activity
    */
   public void setActivity(@Nullable String activity) {
-    if (!StringUtil.equals(myActivity, activity)) {
+    if (!Objects.equals(myActivity, activity)) {
       myActivity = activity;
 
       updated(CFG_ACTIVITY);
@@ -716,7 +714,7 @@ public class Configuration implements Disposable, ModificationTracker {
       }
     }
 
-    if (!Objects.equal(stateName, myStateName)) {
+    if (!Objects.equals(stateName, myStateName)) {
       myStateName = stateName;
       myState = null;
 
@@ -730,7 +728,7 @@ public class Configuration implements Disposable, ModificationTracker {
    * @param locale the locale
    */
   public void setLocale(@NotNull Locale locale) {
-    if (!Objects.equal(myLocale, locale)) {
+    if (!Objects.equals(myLocale, locale)) {
       myLocale = locale;
 
       updated(CFG_LOCALE);
@@ -755,7 +753,7 @@ public class Configuration implements Disposable, ModificationTracker {
    * @param displayName the new display name
    */
   public void setDisplayName(@Nullable String displayName) {
-    if (!StringUtil.equals(myDisplayName, displayName)) {
+    if (!Objects.equals(myDisplayName, displayName)) {
       myDisplayName = displayName;
       updated(CFG_NAME);
     }
@@ -851,7 +849,7 @@ public class Configuration implements Disposable, ModificationTracker {
    * @param theme the theme
    */
   public void setTheme(@Nullable String theme) {
-    if (!StringUtil.equals(myTheme, theme)) {
+    if (!Objects.equals(myTheme, theme)) {
       myTheme = theme;
       checkThemePrefix();
       updated(CFG_THEME);
@@ -899,9 +897,10 @@ public class Configuration implements Disposable, ModificationTracker {
     return myAdaptiveShape;
   }
 
-  public void setWallpaperPath(@Nullable String wallpaperPath) {
-    if (!Objects.equal(myWallpaperPath, wallpaperPath)) {
-      myWallpaperPath = wallpaperPath;
+  public void setWallpaper(@Nullable Wallpaper wallpaper) {
+    if (!Objects.equals(myWallpaper, wallpaper)) {
+      myWallpaper = wallpaper;
+      myUseThemedIcon = wallpaper != null;
       updated(CFG_THEME);
     }
   }
@@ -911,14 +910,27 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @Nullable
   public String getWallpaperPath() {
-    return myWallpaperPath;
+    return myWallpaper != null ? myWallpaper.getResourcePath() : null;
   }
 
-  public void setUseThemedIcon(boolean useThemedIcon) {
-    if (myUseThemedIcon != useThemedIcon) {
-      myUseThemedIcon = useThemedIcon;
-      updated(CFG_THEME);
-    }
+  /**
+   * Sets the consumer that applies a transformation function to the rendered image.
+   *
+   * @param imageTransformation the consumer containing a transformation function to be applied to the rendered image
+   */
+  public void setImageTransformation(@Nullable Consumer<BufferedImage> imageTransformation) {
+    myImageTransformation = imageTransformation;
+  }
+
+
+  /**
+   * Returns the transformation function to apply to the rendered image
+   *
+   * @return the image transformation consumer
+   */
+  @Nullable
+  public Consumer<BufferedImage> getImageTransformation() {
+    return myImageTransformation;
   }
 
   /**
@@ -1025,7 +1037,7 @@ public class Configuration implements Disposable, ModificationTracker {
   private void checkThemePrefix() {
     if (myTheme != null && !myTheme.startsWith(PREFIX_RESOURCE_REF)) {
       if (myTheme.isEmpty()) {
-        myTheme = computePreferredTheme();
+        myTheme = getPreferredTheme();
         return;
       }
 
@@ -1258,83 +1270,12 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Try to get activity theme from manifest. If no theme is found, We fall back to the app theme. If that isn't found,
-   * we use the default system theme.
+   * Returns a default theme name for this configuration.
+   * This method takes into account the activity name and the device settings. It will also consider the manifest and the post splash
+   * theme, if defined.
    */
   @NotNull
-  public String computePreferredTheme() {
-    // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
-    String activityName = getActivity();
-    ThemeInfoProvider themeInfo = mySettings.getConfigModule().getThemeInfoProvider();
-    if (activityName != null) {
-      String activityFqcn = activityName;
-      if (activityName.startsWith(".")) {
-        String packageName = mySettings.getConfigModule().getResourcePackage();
-        activityFqcn = packageName + activityName;
-      }
-
-      String theme = themeInfo.getThemeNameForActivity(activityFqcn);
-      if (theme != null) {
-        return findPostSplashTheme(theme);
-      }
-    }
-
-    // Returns an app theme if possible
-    return findPostSplashTheme(java.util.Objects.requireNonNullElseGet(
-      themeInfo.getAppThemeName(),
-      () ->
-        // Look up the default/fallback theme to use for this project (which depends on the screen size when no particular
-        // theme is specified in the manifest).
-        themeInfo.getDefaultTheme(getTarget(), getScreenSize(), getCachedDevice())
-    ));
-  }
-
-  /**
-   * Finds the post splash theme if there is any. Themes used in splash screens can have a post splash theme declared.
-   * When a splash screen theme is used in the manifest, the tools should probably not use that one unless the user has explicely selected
-   * it. For "preferred theme" computation purposes, we try to find the post splash screen theme.
-   * See <a href="https://developer.android.com/reference/kotlin/androidx/core/splashscreen/SplashScreen">splash screen documentation.</a>
-   * @param themeStyle the default theme found in the manifest.
-   * @return the post activity splash screen if any or {@code themeStyle} otherwise.
-   */
-  @NotNull
-  private String findPostSplashTheme(@NotNull String themeStyle) {
-    Logger log = Logger.getInstance(Configuration.class);
-    ResourceUrl themeUrl = ResourceUrl.parseStyleParentReference(themeStyle);
-    if (themeUrl == null) {
-      if (log.isDebugEnabled()) log.debug(String.format("Unable to parse theme %s", themeStyle));
-      return themeStyle;
-    }
-
-    ResourceNamespace namespace = ResourceNamespace.fromNamespacePrefix(
-      themeUrl.namespace, ResourceNamespace.RES_AUTO, ResourceNamespace.Resolver.EMPTY_RESOLVER
-    );
-    ResourceReference reference = themeUrl.resolve(
-      namespace != null ? namespace : ResourceNamespace.RES_AUTO,
-      ResourceNamespace.Resolver.EMPTY_RESOLVER
-    );
-    if (reference == null) {
-      if (log.isDebugEnabled()) log.debug(String.format("Unable to resolve reference for theme %s", themeUrl));
-      return themeStyle;
-    }
-
-    ResourceResolverCache resolverCache = mySettings.getResolverCache();
-    ResourceResolver resourceResolver = resolverCache.getResourceResolver(getTarget(), themeUrl.toString(), getFullConfig());
-
-    StyleResourceValue theme = resourceResolver.getStyle(reference);
-    if (theme == null) {
-      if (log.isDebugEnabled()) log.debug(String.format("Unable to resolve theme %s", themeUrl));
-      return themeStyle;
-    }
-
-    StyleItemResourceValue value = resourceResolver.findItemInStyle(theme, postSplashAttrReference);
-    ResourceValue resolvedValue = resourceResolver.resolveResValue(value);
-
-    String postSplashTheme = resolvedValue != null ? resolvedValue.getResourceUrl().toString() : null;
-    String resolveTheme = java.util.Objects.requireNonNullElse(postSplashTheme, themeStyle);
-
-    if (log.isDebugEnabled()) log.debug(String.format("Post splash resolved=%s, original theme=%s", postSplashTheme, themeUrl));
-
-    return resolveTheme;
+  public String getPreferredTheme() {
+    return mySettings.getConfigModule().getThemeInfoProvider().getDefaultTheme(this);
   }
 }

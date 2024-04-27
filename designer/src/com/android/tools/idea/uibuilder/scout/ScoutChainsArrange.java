@@ -15,33 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF;
-import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF;
-import static com.android.SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X;
-import static com.android.SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y;
-import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_END_OF;
-import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_START_OF;
-import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_END_OF;
-import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_START_OF;
-import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF;
-import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF;
-import static com.android.SdkConstants.ATTR_PARENT;
-import static com.android.SdkConstants.NEW_ID_PREFIX;
-import static com.android.SdkConstants.SHERPA_URI;
-import static com.android.SdkConstants.TOOLS_URI;
-
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Class used to implement manipulation of chains

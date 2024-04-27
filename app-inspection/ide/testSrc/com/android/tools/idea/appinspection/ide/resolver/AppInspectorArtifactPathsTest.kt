@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
+import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
 import com.android.tools.idea.io.DiskFileService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -35,21 +36,14 @@ class AppInspectorArtifactPathsTest {
     val jarPaths = AppInspectorArtifactPaths(fileService)
     val basePath = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR)
 
-    val artifact1 =
-      ArtifactCoordinate(
-        "androidx.work",
-        "work-runtime",
-        "2.5.0-alpha01",
-        ArtifactCoordinate.Type.JAR
-      )
+    val artifact1 = mockMinimumArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-alpha01")
     val artifact1Path =
       basePath
         .resolve("androidx.work")
         .resolve("work-runtime")
         .resolve("2.5.0-alpha01")
         .resolve("androidx.work-work-runtime-2.5.0-alpha01-inspector.jar")
-    val artifact2 =
-      ArtifactCoordinate("androidx.sqlite", "sqlite", "2.1.0", ArtifactCoordinate.Type.JAR)
+    val artifact2 = mockMinimumArtifactCoordinate("androidx.sqlite", "sqlite", "2.1.0")
     val artifact2Path =
       basePath
         .resolve("androidx.sqlite")
@@ -57,12 +51,14 @@ class AppInspectorArtifactPathsTest {
         .resolve("2.1.0")
         .resolve("androidx.sqlite-sqlite-2.1.0-inspector.jar")
 
-    assertThat(jarPaths.getInspectorArchive(artifact1)).isEqualTo(artifact1Path)
-    assertThat(jarPaths.getInspectorArchive(artifact2)).isEqualTo(artifact2Path)
+    assertThat(jarPaths.getInspectorArchive(RunningArtifactCoordinate(artifact1, "2.5.0-alpha01")))
+      .isEqualTo(artifact1Path)
+    assertThat(jarPaths.getInspectorArchive(RunningArtifactCoordinate(artifact2, "2.1.0")))
+      .isEqualTo(artifact2Path)
 
     assertThat(
         jarPaths.getInspectorArchive(
-          ArtifactCoordinate("a", "b", "1.0.0", ArtifactCoordinate.Type.JAR)
+          RunningArtifactCoordinate(mockMinimumArtifactCoordinate("a", "b", "1.0.0"), "1.0.0")
         )
       )
       .isNull()

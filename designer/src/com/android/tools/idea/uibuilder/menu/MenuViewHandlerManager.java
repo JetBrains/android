@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

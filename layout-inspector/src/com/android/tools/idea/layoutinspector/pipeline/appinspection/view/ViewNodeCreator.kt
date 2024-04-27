@@ -71,8 +71,7 @@ class ViewNodeCreator(
     val renderBounds =
       view.bounds.render
         .takeIf { it != LayoutInspectorViewProtocol.Quad.getDefaultInstance() }
-        ?.toShape()
-        ?: layoutBounds
+        ?.toShape() ?: layoutBounds
 
     val node =
       ViewNode(

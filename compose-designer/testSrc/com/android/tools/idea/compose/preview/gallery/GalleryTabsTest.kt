@@ -20,13 +20,14 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Ignore
 import org.junit.Rule
@@ -47,34 +48,62 @@ class GalleryTabsTest {
 
   @Test
   fun `first tab is selected`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
+      val selected = TestKey("First Tab")
       val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
-      val tabs = GalleryTabs(rootComponent, { keys }, { _, _ -> })
+      val tabs = GalleryTabs(rootComponent, { selected }, { keys }, { _, _ -> })
       FakeUi(tabs).apply { updateToolbars() }
       runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
-      assertEquals(keys.first(), tabs.selectedKey)
+      assertEquals(TestKey("First Tab"), tabs.selectedKey)
     }
   }
 
   @Test
-  fun `second tab is selected if first removed`() {
-    invokeAndWaitIfNeeded {
+  fun `second tab is selected`() {
+    ApplicationManager.getApplication().invokeAndWait {
+      val selected = TestKey("Second Tab")
+      val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
+      val tabs = GalleryTabs(rootComponent, { selected }, { keys }, { _, _ -> })
+      FakeUi(tabs).apply { updateToolbars() }
+      runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
+      assertEquals(TestKey("Second Tab"), tabs.selectedKey)
+    }
+  }
+
+  @Test
+  fun `update selected tab`() {
+    ApplicationManager.getApplication().invokeAndWait {
+      var selected = TestKey("First Tab")
+      val providedKeys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
+      val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }, { _, _ -> })
+      selected = TestKey("Second Tab")
+      FakeUi(tabs).apply { updateToolbars() }
+      runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
+      assertEquals(TestKey("Second Tab"), tabs.selectedKey)
+    }
+  }
+
+  @Test
+  fun `update provided tabs`() {
+    ApplicationManager.getApplication().invokeAndWait {
       val keys = setOf(TestKey("Second Tab"), TestKey("Third Tab"))
       var providedKeys = setOf(TestKey("First Tab")) + keys
-      val tabs = GalleryTabs(rootComponent, { providedKeys }, { _, _ -> })
+      val tabs =
+        GalleryTabs(rootComponent, { TestKey("Second Tab") }, { providedKeys }, { _, _ -> })
       providedKeys = keys
       FakeUi(tabs).apply { updateToolbars() }
       runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
-      assertEquals(keys.first(), tabs.selectedKey)
+      assertEquals(TestKey("Second Tab"), tabs.selectedKey)
     }
   }
 
   @Test
   fun `new tab is added `() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val newTab = TestKey("newTab")
+      val selected = TestKey("Tab")
       val providedKeys = mutableSetOf(TestKey("Tab"), TestKey("Tab2"), TestKey("Tab3"))
-      val tabs = GalleryTabs(rootComponent, { providedKeys }) { _, _ -> }
+      val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
       // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
       // so the ActionButtonWithText can be found when using TreeWalker.
       tabs.setUpdateToolbarExecutorForTests(MoreExecutors.directExecutor())
@@ -89,12 +118,13 @@ class GalleryTabsTest {
 
   @Test
   fun `order correct after update`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val keyOne = TestKey("First")
       val keyTwo = TestKey("Second")
       val keyThree = TestKey("Third")
       var providedKeys = setOf(keyTwo)
-      val tabs = GalleryTabs(rootComponent, { providedKeys }) { _, _ -> }
+      val selected = TestKey("First")
+      val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
       // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
       // so the ActionButtonWithText can be found when using TreeWalker.
       tabs.setUpdateToolbarExecutorForTests(MoreExecutors.directExecutor())
@@ -111,9 +141,10 @@ class GalleryTabsTest {
 
   @Test
   fun `toolbar is not updated`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
+      val selected = TestKey("First Tab")
       val providedKeys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
-      val tabs = GalleryTabs(rootComponent, { providedKeys }) { _, _ -> }
+      val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
       val ui = FakeUi(tabs).apply { updateToolbars() }
       runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
       val toolbar = findTabs(tabs)
@@ -127,10 +158,11 @@ class GalleryTabsTest {
 
   @Test
   fun `toolbar is updated with new key`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
+      val selected = TestKey("First Tab")
       val providedKeys =
         mutableSetOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
-      val tabs = GalleryTabs(rootComponent, { providedKeys }) { _, _ -> }
+      val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
       val ui = FakeUi(tabs).apply { updateToolbars() }
       runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
       val toolbar = findTabs(tabs)
@@ -145,11 +177,12 @@ class GalleryTabsTest {
 
   @Test
   fun `toolbar is updated with removed key`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val keyToRemove = TestKey("Key to remove")
-      var providedKeys =
+      val selected = TestKey("First Tab")
+      val providedKeys =
         mutableSetOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"), keyToRemove)
-      val tabs = GalleryTabs(rootComponent, { providedKeys }) { _, _ -> }
+      val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
       val ui = FakeUi(tabs)
       ui.updateNestedActions()
       val toolbar = findTabs(tabs)
@@ -162,31 +195,6 @@ class GalleryTabsTest {
     }
   }
 
-  @Test
-  fun `toolbar keeps selection if key is only updated`() {
-    invokeAndWaitIfNeeded {
-      val keyToUpdate = TestKey("Key to update")
-      var providedKeys =
-        mutableSetOf(TestKey("First"), TestKey("Second"), keyToUpdate, TestKey("Fourth"))
-      val tabs = GalleryTabs(rootComponent, { providedKeys }) { _, _ -> }
-      // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
-      // so the ActionButtonWithText can be found when using TreeWalker.
-      tabs.setUpdateToolbarExecutorForTests(MoreExecutors.directExecutor())
-      val root = JPanel(BorderLayout()).apply { size = Dimension(400, 400) }
-      root.add(tabs, BorderLayout.NORTH)
-      val ui = FakeUi(root).apply { updateNestedActions() }
-
-      val buttons = findAllActionButtons(root)
-      ui.clickOn(buttons[2])
-      assertEquals("Key to update", tabs.selectedKey?.title)
-
-      providedKeys =
-        mutableSetOf(TestKey("First"), TestKey("Second"), TestKey("updated"), TestKey("Fourth"))
-      ui.updateNestedActions()
-      assertEquals("updated", tabs.selectedKey?.title)
-    }
-  }
-
   @Ignore
   @Test
   /**
@@ -195,10 +203,12 @@ class GalleryTabsTest {
    * selected.
    */
   fun `preview tabs`() {
-    invokeAndWaitIfNeeded {
+    val selected = TestKey("First Tab")
+    ApplicationManager.getApplication().invokeAndWait {
       val tabs =
         GalleryTabs(
           rootComponent,
+          { selected },
           { setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")) },
         ) { _, _ ->
         }
@@ -213,14 +223,15 @@ class GalleryTabsTest {
 
   @Test
   fun `click on tabs`() {
-    invokeAndWaitIfNeeded {
-      var selectedTab: TestKey? = null
+    ApplicationManager.getApplication().invokeAndWait {
+      var selected = TestKey("First Tab")
       val tabs =
         GalleryTabs(
           rootComponent,
+          { selected },
           { setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")) },
         ) { _, key ->
-          selectedTab = key
+          selected = key!!
         }
       // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
       // so the ActionButtonWithText can be found when using TreeWalker.
@@ -229,34 +240,37 @@ class GalleryTabsTest {
       root.add(tabs, BorderLayout.NORTH)
       val ui = FakeUi(root).apply { updateNestedActions() }
       val buttons = findAllActionButtons(root)
-      assertEquals("First Tab", selectedTab?.title)
+      assertEquals("First Tab", selected.title)
       assertEquals("First Tab", tabs.selectedKey?.title)
       ui.clickOn(buttons[1])
-      assertEquals("Second Tab", selectedTab?.title)
+      assertEquals("Second Tab", selected.title)
       assertEquals("Second Tab", tabs.selectedKey?.title)
       ui.clickOn(buttons[2])
-      assertEquals("Third Tab", selectedTab?.title)
+      assertEquals("Third Tab", selected.title)
       assertEquals("Third Tab", tabs.selectedKey?.title)
       ui.clickOn(buttons[0])
-      assertEquals("First Tab", selectedTab?.title)
+      assertEquals("First Tab", selected.title)
       assertEquals("First Tab", tabs.selectedKey?.title)
     }
   }
 
   @Test
   fun `selected tab is always visible`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
+      var selected = TestKey("First Tab")
       val tabs =
         GalleryTabs(
           rootComponent,
+          { selected },
           { setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")) },
-        ) { _, _ ->
+        ) { _, key ->
+          selected = key!!
         }
       // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
       // so the ActionButtonWithText can be found when using TreeWalker.
       tabs.setUpdateToolbarExecutorForTests(MoreExecutors.directExecutor())
       // Width is 100, so only first tab is actually visible.
-      val root = JPanel(BorderLayout()).apply { size = Dimension(150, 400) }
+      val root = JPanel(BorderLayout()).apply { size = Dimension(100, 400) }
       root.add(tabs, BorderLayout.NORTH)
 
       FakeUi(root).apply { updateNestedActions() }
@@ -281,6 +295,22 @@ class GalleryTabsTest {
       assertTrue(scrollPane.bounds.contains(buttons[0].relativeBounds()))
       assertFalse(scrollPane.bounds.contains(buttons[1].relativeBounds()))
       assertFalse(scrollPane.bounds.contains(buttons[2].relativeBounds()))
+    }
+  }
+
+  @Test
+  fun `empty gallery`() {
+    ApplicationManager.getApplication().invokeAndWait {
+      var selected: TestKey? = null
+      val tabs =
+        GalleryTabs<TestKey>(rootComponent, { null }, { emptySet() }) { _, key -> selected = key }
+      // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
+      // so the ActionButtonWithText can be found when using TreeWalker.
+      tabs.setUpdateToolbarExecutorForTests(MoreExecutors.directExecutor())
+      val ui = FakeUi(tabs)
+      ui.updateNestedActions()
+      assertEquals(0, findAllActionButtons(tabs).size)
+      assertNull(selected)
     }
   }
 

@@ -16,21 +16,29 @@
 package com.android.tools.idea.gradle.navigation
 
 import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.SearchScope
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.usageView.UsageInfo
-import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.psi.KtFile
+import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
-class VersionCatalogFindKtsUsagesTest: AndroidTestCase()  {
+@RunsInEdt
+class VersionCatalogFindKtsUsagesTest {
 
+  @get:Rule
+  val projectRule = AndroidProjectRule.onDisk().onEdt()
+  private val project get() = projectRule.project
+  private val fixture get() = projectRule.fixture
   @Test
   fun testHasUsages(){
     testVersionCatalogFindUsages("""
@@ -42,7 +50,7 @@ class VersionCatalogFindKtsUsagesTest: AndroidTestCase()  {
       }
     """.trimIndent(), { null }) {
       assertThat(it).hasSize(1)
-      assertThat(it.first().file ).isInstanceOf(KtFile::class.java)
+      assertThat(it.first().file).isInstanceOf(KtFile::class.java)
     }
   }
 
@@ -89,26 +97,27 @@ class VersionCatalogFindKtsUsagesTest: AndroidTestCase()  {
                                            buildGradleText: String,
                                            getScope: () -> SearchScope?, // null is a default global scope
                                            checker: (Collection<UsageInfo>) -> Unit) {
-    val buildFile = myFixture.addFileToProject("build.gradle.kts", buildGradleText)
-    myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
+    fixture.run {
+      val buildFile = addFileToProject("build.gradle.kts", buildGradleText)
+      configureFromExistingVirtualFile(buildFile.virtualFile)
 
-    myFixture.addFileToProject("settings.gradle.kts", "")
+      addFileToProject("settings.gradle.kts", "")
 
-    val psiFile = myFixture.addFileToProject("gradle/libs.versions.toml", versionCatalogText)
-    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+      val psiFile = addFileToProject("gradle/libs.versions.toml", versionCatalogText)
+      configureFromExistingVirtualFile(psiFile.virtualFile)
 
-    myFixture.openFileInEditor(psiFile.virtualFile)
-    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+      openFileInEditor(psiFile.virtualFile)
+      AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
 
-    val scope: SearchScope? = getScope()
-    val usages =
-      if (scope == null) {
-        // global scope
-        myFixture.findUsages(myFixture.elementAtCaret)
-      }
-      else {
-        (myFixture as CodeInsightTestFixtureImpl).findUsages(myFixture.elementAtCaret, scope)
-      }
-    checker(usages)
+      val scope: SearchScope? = getScope()
+      val usages =
+        if (scope == null) {
+          // global scope
+          findUsages(elementAtCaret)
+        } else {
+          (this as CodeInsightTestFixtureImpl).findUsages(fixture.elementAtCaret, scope)
+        }
+      checker(usages)
+    }
   }
 }

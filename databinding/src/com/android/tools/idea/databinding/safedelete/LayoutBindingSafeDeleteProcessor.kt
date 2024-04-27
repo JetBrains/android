@@ -31,14 +31,17 @@ import org.jetbrains.android.facet.AndroidFacet
 class LayoutBindingSafeDeleteProcessor : SafeDeleteProcessorDelegate {
   // Our safe delete processor should act like a regular android layout safe delete processor with
   // a bit of extra handling for binding references. We can delegate most of the work.
-  private val delegateProcessor = SafeDeleteProcessorDelegate.EP_NAME.findExtensionOrFail(
-    AndroidResourceFileSafeDeleteProcessor::class.java)
+  private val delegateProcessor =
+    SafeDeleteProcessorDelegate.EP_NAME.findExtensionOrFail(
+      AndroidResourceFileSafeDeleteProcessor::class.java
+    )
 
   override fun handlesElement(element: PsiElement): Boolean {
     if (!delegateProcessor.handlesElement(element)) return false
 
     // If AndroidResourceFileSafeDeleteProcessor handles this, it should imply that `element` is a
-    // file like "layout/xyz.xml" or "values/strings.xml". In other words, a PsiFile inside a resource
+    // file like "layout/xyz.xml" or "values/strings.xml". In other words, a PsiFile inside a
+    // resource
     // directory inside an Android module.
     val resourceFile = element as? PsiFile ?: return false
     if (getFolderType(resourceFile) != ResourceFolderType.LAYOUT) return false
@@ -46,14 +49,17 @@ class LayoutBindingSafeDeleteProcessor : SafeDeleteProcessorDelegate {
     val facet = AndroidFacet.getInstance(element) ?: return false
     val cache = LayoutBindingModuleCache.getInstance(facet)
 
-    return cache.bindingLayoutGroups.asSequence()
+    return cache.bindingLayoutGroups
+      .asSequence()
       .flatMap { it.layouts.asSequence() }
       .any { layout -> layout.file == resourceFile.virtualFile }
   }
 
-  override fun findUsages(element: PsiElement,
-                          allElementsToDelete: Array<PsiElement>,
-                          result: MutableList<in UsageInfo>): NonCodeUsageSearchInfo? {
+  override fun findUsages(
+    element: PsiElement,
+    allElementsToDelete: Array<PsiElement>,
+    result: MutableList<in UsageInfo>
+  ): NonCodeUsageSearchInfo? {
     val resourceFile = element as PsiFile
     val facet = AndroidFacet.getInstance(element)!!
     val cache = LayoutBindingModuleCache.getInstance(facet)
@@ -61,23 +67,32 @@ class LayoutBindingSafeDeleteProcessor : SafeDeleteProcessorDelegate {
     cache.bindingLayoutGroups
       .filter { group -> group.layouts.any { layout -> layout.file == resourceFile.virtualFile } }
       .flatMap { group -> cache.getLightBindingClasses(group) }
-      .forEach { bindingClass -> SafeDeleteProcessor.findGenericElementUsages(bindingClass, result, allElementsToDelete) }
+      .forEach { bindingClass ->
+        SafeDeleteProcessor.findGenericElementUsages(bindingClass, result, allElementsToDelete)
+      }
 
     return delegateProcessor.findUsages(element, allElementsToDelete, result)
   }
 
-  override fun getElementsToSearch(element: PsiElement,
-                                   allElementsToDelete: Collection<PsiElement>): Collection<PsiElement>? {
+  override fun getElementsToSearch(
+    element: PsiElement,
+    allElementsToDelete: Collection<PsiElement>
+  ): Collection<PsiElement>? {
     return delegateProcessor.getElementsToSearch(element, allElementsToDelete)
   }
 
-  override fun getAdditionalElementsToDelete(element: PsiElement,
-                                             allElementsToDelete: Collection<PsiElement>,
-                                             askUser: Boolean): Collection<PsiElement>? {
+  override fun getAdditionalElementsToDelete(
+    element: PsiElement,
+    allElementsToDelete: Collection<PsiElement>,
+    askUser: Boolean
+  ): Collection<PsiElement>? {
     return delegateProcessor.getAdditionalElementsToDelete(element, allElementsToDelete, askUser)
   }
 
-  override fun findConflicts(element: PsiElement, allElementsToDelete: Array<PsiElement>): Collection<String>? {
+  override fun findConflicts(
+    element: PsiElement,
+    allElementsToDelete: Array<PsiElement>
+  ): Collection<String>? {
     return delegateProcessor.findConflicts(element, allElementsToDelete)
   }
 

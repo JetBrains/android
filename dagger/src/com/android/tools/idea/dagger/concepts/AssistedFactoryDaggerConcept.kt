@@ -19,10 +19,13 @@ import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
+import com.android.tools.idea.dagger.index.psiwrappers.DaggerAnnotation
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexClassWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
+import com.android.tools.idea.dagger.index.psiwrappers.hasAnnotation
+import com.android.tools.idea.dagger.index.readClassId
+import com.android.tools.idea.dagger.index.writeClassId
 import com.android.tools.idea.dagger.localization.DaggerBundle
-import com.android.tools.idea.kotlin.hasAnnotation
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
@@ -35,6 +38,7 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.utils.printer.parentOfType
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import java.io.DataInput
@@ -75,10 +79,10 @@ object AssistedFactoryDaggerConcept : DaggerConcept {
 
 private object AssistedFactoryIndexer : DaggerConceptIndexer<DaggerIndexClassWrapper> {
   override fun addIndexEntries(wrapper: DaggerIndexClassWrapper, indexEntries: IndexEntries) {
-    if (!wrapper.getIsAnnotatedWith(DaggerAnnotations.ASSISTED_FACTORY)) return
+    if (!wrapper.getIsAnnotatedWith(DaggerAnnotation.ASSISTED_FACTORY)) return
 
-    val classFqName = wrapper.getFqName()
-    indexEntries.addIndexValue(classFqName, AssistedFactoryClassIndexValue(classFqName))
+    val classId = wrapper.getClassId()
+    indexEntries.addIndexValue(classId.asFqNameString(), AssistedFactoryClassIndexValue(classId))
   }
 }
 
@@ -87,46 +91,47 @@ private object AssistedFactoryMethodIndexer : DaggerConceptIndexer<DaggerIndexMe
     if (wrapper.getIsConstructor()) return
 
     val containingClass = wrapper.getContainingClass() ?: return
-    if (!containingClass.getIsAnnotatedWith(DaggerAnnotations.ASSISTED_FACTORY)) return
+    if (!containingClass.getIsAnnotatedWith(DaggerAnnotation.ASSISTED_FACTORY)) return
 
     // If the method doesn't have a defined return type, then we don't need to index it - the
     // function is abstract so type inference can't be used to figure out the intended type, and
     // this won't actually build.
     val methodReturnTypeSimpleName = wrapper.getReturnType()?.getSimpleName() ?: return
 
-    val classFqName = containingClass.getFqName()
+    val classId = containingClass.getClassId()
     val methodSimpleName = wrapper.getSimpleName()
 
     indexEntries.addIndexValue(
       methodReturnTypeSimpleName,
-      AssistedFactoryMethodIndexValue(classFqName, methodSimpleName)
+      AssistedFactoryMethodIndexValue(classId, methodSimpleName)
     )
   }
 }
 
 @VisibleForTesting
-internal data class AssistedFactoryClassIndexValue(val classFqName: String) : IndexValue() {
+internal data class AssistedFactoryClassIndexValue(val classId: ClassId) : IndexValue() {
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
-    output.writeString(classFqName)
+    output.writeClassId(classId)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.ASSISTED_FACTORY_CLASS
-    override fun read(input: DataInput) = AssistedFactoryClassIndexValue(input.readString())
+
+    override fun read(input: DataInput) = AssistedFactoryClassIndexValue(input.readClassId())
   }
 
   companion object {
     private fun identify(psiElement: KtClassOrObject): DaggerElement? =
-      if (psiElement.hasAnnotation(DaggerAnnotations.ASSISTED_FACTORY)) {
+      if (psiElement.hasAnnotation(DaggerAnnotation.ASSISTED_FACTORY)) {
         ProviderDaggerElement(psiElement)
       } else {
         null
       }
 
     private fun identify(psiElement: PsiClass): DaggerElement? =
-      if (psiElement.hasAnnotation(DaggerAnnotations.ASSISTED_FACTORY)) {
+      if (psiElement.hasAnnotation(DaggerAnnotation.ASSISTED_FACTORY)) {
         ProviderDaggerElement(psiElement)
       } else {
         null
@@ -140,28 +145,28 @@ internal data class AssistedFactoryClassIndexValue(val classFqName: String) : In
   }
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> =
-    JavaPsiFacade.getInstance(project).findClass(classFqName, scope)?.let { listOf(it) }
-      ?: emptyList()
+    listOfNotNull(JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope))
 
   override val daggerElementIdentifiers = identifiers
 }
 
 @VisibleForTesting
 internal data class AssistedFactoryMethodIndexValue(
-  val classFqName: String,
+  val classId: ClassId,
   val methodSimpleName: String,
 ) : IndexValue() {
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
-    output.writeString(classFqName)
+    output.writeClassId(classId)
     output.writeString(methodSimpleName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.ASSISTED_FACTORY_METHOD
+
     override fun read(input: DataInput) =
-      AssistedFactoryMethodIndexValue(input.readString(), input.readString())
+      AssistedFactoryMethodIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
@@ -169,7 +174,7 @@ internal data class AssistedFactoryMethodIndexValue(
       if (
         psiElement
           .parentOfType<KtClassOrObject>()
-          ?.hasAnnotation(DaggerAnnotations.ASSISTED_FACTORY) != true
+          ?.hasAnnotation(DaggerAnnotation.ASSISTED_FACTORY) != true
       )
         return null
 
@@ -178,7 +183,7 @@ internal data class AssistedFactoryMethodIndexValue(
 
     private fun identify(psiElement: PsiMethod): DaggerElement? {
       if (
-        psiElement.parentOfType<PsiClass>()?.hasAnnotation(DaggerAnnotations.ASSISTED_FACTORY) !=
+        psiElement.parentOfType<PsiClass>()?.hasAnnotation(DaggerAnnotation.ASSISTED_FACTORY) !=
           true
       )
         return null
@@ -195,7 +200,8 @@ internal data class AssistedFactoryMethodIndexValue(
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
     val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
+      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
+        ?: return emptyList()
     return psiClass.methods.filter { it.name == methodSimpleName }
   }
 
@@ -211,6 +217,7 @@ internal data class AssistedFactoryMethodDaggerElement(
   internal constructor(
     psiElement: KtFunction
   ) : this(psiElement, psiElement.getReturnedPsiType(), psiElement.name)
+
   internal constructor(
     psiElement: PsiMethod
   ) : this(psiElement, psiElement.getReturnedPsiType(), psiElement.name)

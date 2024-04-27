@@ -15,50 +15,52 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import static com.android.SdkConstants.ADS_ARTIFACT;
-import static com.android.SdkConstants.ANDROIDX_APPCOMPAT_LIB_ARTIFACT;
 import static com.android.SdkConstants.ANDROIDX_APPCOMPAT_PKG;
-import static com.android.SdkConstants.ANDROIDX_CARD_VIEW_ARTIFACT;
 import static com.android.SdkConstants.ANDROIDX_CARD_VIEW_PKG;
-import static com.android.SdkConstants.ANDROIDX_CONSTRAINT_LAYOUT_LIB_ARTIFACT;
 import static com.android.SdkConstants.ANDROIDX_CONSTRAINT_LAYOUT_PKG;
-import static com.android.SdkConstants.ANDROIDX_COORDINATOR_LAYOUT_LIB_ARTIFACT;
 import static com.android.SdkConstants.ANDROIDX_COORDINATOR_LAYOUT_PKG;
 import static com.android.SdkConstants.ANDROIDX_CORE_PKG;
-import static com.android.SdkConstants.ANDROIDX_GRID_LAYOUT_ARTIFACT;
 import static com.android.SdkConstants.ANDROIDX_GRID_LAYOUT_PKG;
-import static com.android.SdkConstants.ANDROIDX_LEANBACK_ARTIFACT;
 import static com.android.SdkConstants.ANDROIDX_LEANBACK_PKG;
-import static com.android.SdkConstants.ANDROIDX_MATERIAL_ARTIFACT;
-import static com.android.SdkConstants.ANDROIDX_RECYCLER_VIEW_ARTIFACT;
 import static com.android.SdkConstants.ANDROIDX_RECYCLER_VIEW_PKG;
-import static com.android.SdkConstants.ANDROIDX_SUPPORT_LIB_ARTIFACT;
 import static com.android.SdkConstants.ANDROIDX_VIEWPAGER_PKG;
-import static com.android.SdkConstants.ANDROIDX_VIEW_PAGER_LIB_ARTIFACT;
 import static com.android.SdkConstants.ANDROID_MATERIAL_PKG;
 import static com.android.SdkConstants.ANDROID_SUPPORT_DESIGN_PKG;
 import static com.android.SdkConstants.ANDROID_SUPPORT_LEANBACK_V17_PKG;
 import static com.android.SdkConstants.ANDROID_SUPPORT_V4_PKG;
 import static com.android.SdkConstants.ANDROID_SUPPORT_V7_PKG;
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT_PKG;
-import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
 import static com.android.SdkConstants.GOOGLE_PLAY_SERVICES_ADS_PKG;
 import static com.android.SdkConstants.GOOGLE_PLAY_SERVICES_MAPS_PKG;
-import static com.android.SdkConstants.LEANBACK_V17_ARTIFACT;
-import static com.android.SdkConstants.MAPS_ARTIFACT;
-import static com.android.SdkConstants.SUPPORT_LIB_ARTIFACT;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_CARDVIEW_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_COORDINATOR_LAYOUT;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_DESIGN;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_GRID_LAYOUT_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_LEANBACK_V17;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_RECYCLERVIEW_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_SUPPORT_V4;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_VIEWPAGER;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.APP_COMPAT_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.DESIGN;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.LEANBACK_V17;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.PLAY_SERVICES_ADS;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.PLAY_SERVICES_MAPS;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_V4;
 
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.xml.XmlBuilder;
 import icons.StudioIcons;
 import javax.swing.Icon;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A handler for a component on the component Palette.
@@ -72,12 +74,6 @@ public abstract class PaletteComponentHandler {
    */
   @Language("XML")
   public static final String NO_PREVIEW = "";
-
-  /**
-   * A special value returned from {@link #getGradleCoordinateId} to indicate that this
-   * component is included in the SDK platform.
-   */
-  public static final String IN_PLATFORM = "";
 
   /**
    * Returns the title used to identify this component type on the palette.<br>
@@ -104,68 +100,67 @@ public abstract class PaletteComponentHandler {
   }
 
   /**
-   * Returns the Gradle coordinate ID (ex. "com.android.support:support-v4") of the library
+   * Returns the {@link GoogleMavenArtifactId} of the library
    * this component belongs to. The palette will use this information to provide a download
    * link if the library is not present in the project dependencies.<br>
    *
-   * The value {@link #IN_PLATFORM} means the component is included in the SDK platform.
-   *
-   * @return the Gradle Coordinate ID of the library this component belongs to
+   * @return the Gradle Coordinate ID of the library this component belongs to, or null if
+   *         the component is included in the SDK platform.
    */
-  @NotNull
-  public String getGradleCoordinateId(@NotNull String tagName) {
+  @Nullable
+  public GoogleMavenArtifactId getGradleCoordinateId(@NotNull String tagName) {
     if (tagName.startsWith(ANDROID_SUPPORT_V4_PKG)) {
-      return SUPPORT_LIB_ARTIFACT;
+      return SUPPORT_V4;
     }
     else if (tagName.startsWith(ANDROID_SUPPORT_V7_PKG)) {
-      return APPCOMPAT_LIB_ARTIFACT;
+      return APP_COMPAT_V7;
     }
     else if (tagName.startsWith(ANDROID_SUPPORT_DESIGN_PKG)) {
-      return DESIGN_LIB_ARTIFACT;
+      return DESIGN;
     }
     else if (tagName.startsWith(ANDROID_MATERIAL_PKG)) {
-      return ANDROIDX_MATERIAL_ARTIFACT;
+      return ANDROIDX_DESIGN;
     }
     else if (tagName.startsWith(ANDROID_SUPPORT_LEANBACK_V17_PKG)) {
-      return LEANBACK_V17_ARTIFACT;
+      return LEANBACK_V17;
     }
     else if (tagName.startsWith(GOOGLE_PLAY_SERVICES_ADS_PKG)) {
-      return ADS_ARTIFACT;
+      return PLAY_SERVICES_ADS;
     }
     else if (tagName.startsWith(GOOGLE_PLAY_SERVICES_MAPS_PKG)) {
-      return MAPS_ARTIFACT;
+      return PLAY_SERVICES_MAPS;
     }
     else if (tagName.startsWith(CONSTRAINT_LAYOUT_PKG)) {
-      return CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+      return CONSTRAINT_LAYOUT;
     }
     else if (tagName.startsWith(ANDROIDX_CONSTRAINT_LAYOUT_PKG)) {
-      return ANDROIDX_CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+      return ANDROIDX_CONSTRAINT_LAYOUT;
     }
     else if (tagName.startsWith(ANDROIDX_RECYCLER_VIEW_PKG)) {
-      return ANDROIDX_RECYCLER_VIEW_ARTIFACT;
+      return ANDROIDX_RECYCLERVIEW_V7;
     }
     else if (tagName.startsWith(ANDROIDX_CARD_VIEW_PKG)) {
-      return ANDROIDX_CARD_VIEW_ARTIFACT;
+      return ANDROIDX_CARDVIEW_V7;
     }
     else if (tagName.startsWith(ANDROIDX_GRID_LAYOUT_PKG)) {
-      return ANDROIDX_GRID_LAYOUT_ARTIFACT;
+      return ANDROIDX_GRID_LAYOUT_V7;
     }
     else if (tagName.startsWith(ANDROIDX_LEANBACK_PKG)) {
-      return ANDROIDX_LEANBACK_ARTIFACT;
+      return ANDROIDX_LEANBACK_V17;
     }
     else if (tagName.startsWith(ANDROIDX_CORE_PKG)) {
-      return ANDROIDX_SUPPORT_LIB_ARTIFACT;
+      return ANDROIDX_SUPPORT_V4;
     }
     else if (tagName.startsWith(ANDROIDX_VIEWPAGER_PKG)) {
-      return ANDROIDX_VIEW_PAGER_LIB_ARTIFACT;
+      return ANDROIDX_VIEWPAGER;
     }
     else if (tagName.startsWith(ANDROIDX_APPCOMPAT_PKG)) {
-      return ANDROIDX_APPCOMPAT_LIB_ARTIFACT;
+      return ANDROIDX_APP_COMPAT_V7;
     }
     else if (tagName.startsWith(ANDROIDX_COORDINATOR_LAYOUT_PKG)) {
-      return ANDROIDX_COORDINATOR_LAYOUT_LIB_ARTIFACT;
+      return ANDROIDX_COORDINATOR_LAYOUT;
     }
-    return IN_PLATFORM;
+    return null;
   }
 
   /**

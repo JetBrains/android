@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.model;
 
 import static com.android.tools.idea.common.model.NlComponentUtil.isDescendant;
-import static com.google.common.base.Verify.verifyNotNull;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
 import android.view.View;
@@ -24,11 +23,11 @@ import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
@@ -44,10 +43,10 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.util.ListenerCollection;
 import com.android.tools.rendering.parsers.TagSnapshot;
-import com.android.tools.res.LocalResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -106,7 +105,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
 
   public static final int DELAY_AFTER_TYPING_MS = 250;
 
-  private final Set<String> myPendingIds = new HashSet<>();
+  private final Set<String> myPendingIds = Sets.newHashSet();
 
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final VirtualFile myFile;
@@ -163,8 +162,11 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   private String myGroupId = null;
 
   @NotNull
-  public static NlModelBuilder builder(@NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
-    return new NlModelBuilder(facet, file, configuration);
+  public static NlModelBuilder builder(@NotNull Disposable parent,
+                                       @NotNull AndroidFacet facet,
+                                       @NotNull VirtualFile file,
+                                       @NotNull Configuration configuration) {
+    return new NlModelBuilder(parent, facet, file, configuration);
   }
 
   /**
@@ -172,7 +174,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
    */
   @Slow
   @NotNull
-  static NlModel create(@Nullable Disposable parent,
+  static NlModel create(@NotNull Disposable parent,
                         @Nullable String modelTooltip,
                         @NotNull AndroidFacet facet,
                         @NotNull VirtualFile file,
@@ -184,18 +186,8 @@ public class NlModel implements ModificationTracker, DataContextHolder {
     return new NlModel(parent, modelTooltip, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
   }
 
-  protected NlModel(@Nullable Disposable parent,
-                    @Nullable String modelTooltip,
-                    @NotNull AndroidFacet facet,
-                    @NotNull VirtualFile file,
-                    @NotNull Configuration configuration,
-                    @NotNull Consumer<NlComponent> componentRegistrar,
-                    @NotNull DataContext dataContext) {
-    this(parent, modelTooltip, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null, dataContext);
-  }
-
   @VisibleForTesting
-  protected NlModel(@Nullable Disposable parent,
+  protected NlModel(@NotNull Disposable parent,
                     @Nullable String modelTooltip,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
@@ -302,7 +294,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
         themeUrl.isFramework() ? ResourceNamespace.ANDROID : ResourceNamespace.RES_AUTO,
         themeUrl.name);
       if (resolver.getStyle(themeReference) == null) {
-        String theme = myConfiguration.computePreferredTheme();
+        String theme = myConfiguration.getPreferredTheme();
         if (myThemeUpdateComputation.get() != computationToken) {
           return; // A new update has already been scheduled.
         }
@@ -347,16 +339,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @NotNull
   public VirtualFile getVirtualFile() {
     return myFile;
-  }
-
-  /**
-   * Returns the {@code XmlFile} PSI representation of {@code virtualFile} in {@code project}.
-   * @deprecated Use {@link NlModelBuilder} and do not use this method.
-   */
-  @NotNull
-  private static XmlFile getDefaultXmlFile(Project project, VirtualFile virtualFile) {
-    XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
-    return verifyNotNull(file);
   }
 
   @NotNull
@@ -805,7 +787,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
    */
   @NotNull
   public Set<String> getIds() {
-    LocalResourceRepository resources = StudioResourceRepositoryManager.getAppResources(getFacet());
+    ResourceRepository resources = StudioResourceRepositoryManager.getAppResources(getFacet());
     Set<String> ids = new HashSet<>(resources.getResources(ResourceNamespace.TODO(), ResourceType.ID).keySet());
     Set<String> pendingIds = getPendingIds();
     if (!pendingIds.isEmpty()) {
@@ -1001,11 +983,11 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   }
 
   @Nullable
-  public final String getGroupId() {
+  public final String getOrganizationGroup() {
     return myGroupId;
   }
 
-  public final void setGroupId(@Nullable String groupId) {
+  public final void setOrganizationGroup(@Nullable String groupId) {
     myGroupId = groupId;
   }
 

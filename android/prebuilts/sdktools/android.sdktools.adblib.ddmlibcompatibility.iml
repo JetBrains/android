@@ -4,45 +4,44 @@
     <exclude-output />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.adblib" />
-    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
-    <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-adblib.ddmlibcompatibility" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.adblib.ddmlibcompatibility:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.adblib.ddmlibcompatibility:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.ddmlibcompatibility/231.0.26.0/studio.android.sdktools.adblib.ddmlibcompatibility-231.0.26.0.jar">
-              <sha256sum>c115b9b1c197db5d1d563207692980309c4eaa7ef0b6ea0e0ad2037fb8a270f0</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.ddmlibcompatibility/232.1.23.0/studio.android.sdktools.adblib.ddmlibcompatibility-232.1.23.0.jar">
+              <sha256sum>c99f147155c6222bc771f90885737da09f54901bc57641a782da54e12fc42f60</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.ddmlibcompatibility/231.0.26.0/studio.android.sdktools.adblib.ddmlibcompatibility-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.ddmlibcompatibility/232.1.23.0/studio.android.sdktools.adblib.ddmlibcompatibility-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.ddmlibcompatibility/231.0.26.0/studio.android.sdktools.adblib.ddmlibcompatibility-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-adblib.ddmlibcompatibility-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.adblib.ddmlibcompatibility_test:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.adblib.ddmlibcompatibility_test:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.ddmlibcompatibility_test/231.0.26.0/studio.android.sdktools.adblib.ddmlibcompatibility_test-231.0.26.0.jar">
-              <sha256sum>1e46e3749659bca70a030530956ee7186c8d6ad8c8cf324b487f2b252cd5ca8b</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.ddmlibcompatibility_test/232.1.23.0/studio.android.sdktools.adblib.ddmlibcompatibility_test-232.1.23.0.jar">
+              <sha256sum>19d827699d4a1e631734ac0d55cdb150f7e1096daa52ede87de30d0e8ba92e4b</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.ddmlibcompatibility_test/231.0.26.0/studio.android.sdktools.adblib.ddmlibcompatibility_test-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.ddmlibcompatibility_test/232.1.23.0/studio.android.sdktools.adblib.ddmlibcompatibility_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.ddmlibcompatibility_test/231.0.26.0/studio.android.sdktools.adblib.ddmlibcompatibility_test-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.adblib" />
+    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
+    <orderEntry type="module" module-name="android.sdktools.ddmlib" />
+    <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
   </component>
 </module>

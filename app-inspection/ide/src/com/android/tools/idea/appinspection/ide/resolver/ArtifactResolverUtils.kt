@@ -15,16 +15,10 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
-import com.android.tools.idea.appinspection.api.toGradleCoordinate
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
-import com.android.tools.idea.projectsystem.getProjectSystem
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.modules
 import com.intellij.util.io.ZipUtil
 import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
 import java.nio.file.Path
 import java.util.UUID
 import kotlin.io.path.exists
@@ -39,8 +33,7 @@ suspend fun extractZipIfNeeded(targetDir: Path, libraryPath: Path) =
   withContext(AndroidDispatchers.diskIoThread) {
     if (libraryPath.isDirectory()) {
       libraryPath
-    }
-    else {
+    } else {
       ZipUtil.extract(libraryPath, targetDir) { _, name -> name == INSPECTOR_JAR }
       targetDir
     }
@@ -49,27 +42,3 @@ suspend fun extractZipIfNeeded(targetDir: Path, libraryPath: Path) =
 fun Path.resolveExistsOrNull(path: String) = resolve(path).takeIf { it.exists() }
 
 fun FileService.createRandomTempDir() = getOrCreateTempDir(UUID.randomUUID().toString())
-
-class ModuleSystemArtifactFinder(
-  project: Project,
-  @TestOnly
-  private val findArtifact: (ArtifactCoordinate) -> Path? = { artifactCoordinate ->
-    project.findLibrary(artifactCoordinate)
-  }
-) {
-  /**
-   * Finds the location of the library's aar specified by [artifactCoordinate].
-   *
-   * The resulting location could point to a zip (JAR or AAR) or an unzipped directory.
-   */
-  fun findLibrary(artifactCoordinate: ArtifactCoordinate) = findArtifact(artifactCoordinate)
-
-  companion object {
-    private fun Project.findLibrary(artifactCoordinate: ArtifactCoordinate) =
-      modules.asList().firstNotNullOfOrNull { module ->
-        getProjectSystem()
-          .getModuleSystem(module)
-          .getDependencyPath(artifactCoordinate.toGradleCoordinate())
-      }
-  }
-}

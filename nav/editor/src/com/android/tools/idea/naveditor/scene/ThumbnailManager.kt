@@ -20,14 +20,16 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
+import com.android.tools.idea.res.MemoryTrackingMultiResourceRepository
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderTask
-import com.android.tools.res.LocalResourceRepository
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.scale.ScaleContext
@@ -61,7 +63,9 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   private val myScaledImages = HashBasedTable.create<VirtualFile, Configuration, HashBasedTable<Dimension, ScaleContext, SoftReference<Image>?>?>()
   private val myRenderVersions = HashBasedTable.create<VirtualFile, Configuration, Long>()
   private val myRenderModStamps = HashBasedTable.create<VirtualFile, Configuration, Long>()
-  private var myResourceRepository: LocalResourceRepository? = StudioResourceRepositoryManager.getAppResources(facet)
+  private var myResourceRepository: ModificationTracker? = StudioResourceRepositoryManager.getAppResources(facet).apply {
+    (this as? MemoryTrackingMultiResourceRepository)?.let { Disposer.register(it, { myResourceRepository = null }) }
+  }
 
   @GuardedBy("disposalLock")
   private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<RefinableImage?>>()

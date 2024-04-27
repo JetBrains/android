@@ -89,27 +89,22 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
 
     issues.add(NlAtfIssue(result, IssueSource.fromNlComponent(component), model, eventListener))
   }
-
-  /** Handles case where we have ATF issues and include tags. */
-  fun handleInclude(layoutParser: NlScannerLayoutParser) {
-    layoutParser.includeComponents.forEach {
-      if (it.getAttribute(TOOLS_URI, ATTR_IGNORE_A11Y_LINTS) == null) {
-        issues.add(NlATFIncludeIssue(it))
-      }
-    }
-  }
 }
 
 /** Issue created for <include> */
 class NlATFIncludeIssue(private val include: NlComponent) : Issue() {
   override val summary: String
     get() = "Included layout may contain accessibility issues."
+
   override val description: String
     get() = "We found some potential accessibility issues that may have came from included layout."
+
   override val severity: HighlightSeverity
     get() = HighlightSeverity.WARNING
+
   override val source: IssueSource
     get() = IssueSource.fromNlComponent(include)
+
   override val category: String
     get() = Category.A11Y.name
 
@@ -167,6 +162,12 @@ open class NlAtfIssue(
     private const val CONTENT_LABELING = "CONTENT_LABELING"
     private const val TOUCH_TARGET_SIZE = "TOUCH_TARGET_SIZE"
     private const val LOW_CONTRAST = "LOW_CONTRAST"
+  }
+
+  fun isLowContrast(): Boolean {
+    return result.mSourceClass == "TextContrastCheck" ||
+      result.mSourceClass == "ImageContrastCheck" ||
+      result.mCategory == LOW_CONTRAST
   }
 
   override val summary: String

@@ -1,4 +1,18 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.jetbrains.android;
 
@@ -17,6 +31,7 @@ import static com.android.SdkConstants.XLIFF_PREFIX;
 import static com.android.SdkConstants.XLIFF_URI;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -31,12 +46,12 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.XmlSchemaProvider;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
-import org.jetbrains.android.dom.xml.PreferenceClassDomFileDescription;
-import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -65,11 +80,9 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
 
   @Override
   public boolean isAvailable(@NotNull final XmlFile file) {
-    PsiFile f = file.getOriginalFile();
-    if (!(f instanceof XmlFile)) {
+    if (!(file.getOriginalFile() instanceof XmlFile originalFile)) {
       return false;
     }
-    final XmlFile originalFile = (XmlFile)f;
 
     return ReadAction.compute(() -> {
       if (IdeResourcesUtil.isInResourceSubdirectoryInAnyVariant(originalFile, null)) {
@@ -78,12 +91,12 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
           return false;
         }
 
-        ResourceFolderType resType = ResourceFolderType.getFolderType(parent.getName());
-
         // Don't run on custom XML files with defined namespaces. Users may want to validate them.
-        return resType != ResourceFolderType.XML ||
-               XmlResourceDomFileDescription.isXmlResourceFile(originalFile) ||
-               PreferenceClassDomFileDescription.Companion.isPreferenceClassFile(originalFile);
+        if (ResourceFolderType.getFolderType(parent.getName()) != ResourceFolderType.XML) return true;
+
+        XmlTag rootTag = originalFile.getRootTag();
+        return rootTag == null ||
+               Arrays.stream(rootTag.getAttributes()).noneMatch((attr) -> attr.getName().equals(SdkConstants.XMLNS));
       }
 
       return ManifestDomFileDescription.isManifestFile(originalFile);
@@ -150,8 +163,8 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
   @NotNull
   private static ImmutableSet<String> getResourceNamespaces(@NotNull AndroidFacet facet) {
     return StudioResourceRepositoryManager.getAppResources(facet).getNamespaces()
-                                    .stream()
-                                    .map(ResourceNamespace::getXmlNamespaceUri)
-                                    .collect(toImmutableSet());
+      .stream()
+      .map(ResourceNamespace::getXmlNamespaceUri)
+      .collect(toImmutableSet());
   }
 }

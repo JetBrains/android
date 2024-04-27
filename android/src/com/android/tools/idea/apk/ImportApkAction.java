@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk;
 
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getManager;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 import com.android.tools.idea.apk.debugging.ApkDebugging;
 import com.android.tools.idea.project.CustomProjectTypeImporter;
@@ -23,13 +24,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.externalSystem.ExternalSystemManager;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NonNls;
@@ -82,7 +83,7 @@ public class ImportApkAction extends DumbAwareAction {
       return;
     }
     VirtualFile file = files[0];
-    myPropertiesComponent.setValue(LAST_IMPORTED_LOCATION, FileUtilRt.toSystemDependentName(file.getPath()));
+    myPropertiesComponent.setValue(LAST_IMPORTED_LOCATION, toSystemDependentName(file.getPath()));
     String lastProjectCreation = myRecentProjectsManager.getLastProjectCreationLocation();
 
     myProjectTypeImporter.importFileAsProject(file);
@@ -95,6 +96,11 @@ public class ImportApkAction extends DumbAwareAction {
   public void update(@NotNull AnActionEvent e) {
     boolean enabled = myExternalSystemManager != null && ApkDebugging.isEnabled();
     e.getPresentation().setEnabledAndVisible(enabled);
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @VisibleForTesting

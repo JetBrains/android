@@ -56,7 +56,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
@@ -123,7 +122,7 @@ fun LegacyClientProvider(
   getDisposable: () -> Disposable,
   treeLoaderOverride: LegacyTreeLoader? =
     Mockito.mock(LegacyTreeLoader::class.java).also {
-      whenever(it.getAllWindowIds(ArgumentMatchers.any())).thenReturn(listOf("1"))
+      whenever(it.getAllWindowIds(Mockito.any())).thenReturn(listOf("1"))
     }
 ) = InspectorClientProvider { params, inspector ->
   LegacyClient(
@@ -162,6 +161,7 @@ class LayoutInspectorRule(
 
   lateinit var launcher: InspectorClientLauncher
     private set
+
   private val launcherDisposable = Disposer.newDisposable()
 
   private var runningThreadCount = AtomicInteger(0)
@@ -227,12 +227,16 @@ class LayoutInspectorRule(
 
   lateinit var inspector: LayoutInspector
     private set
+
   lateinit var fakeForegroundProcessDetection: FakeForegroundProcessDetection
     private set
+
   lateinit var inspectorClient: InspectorClient
     private set
+
   lateinit var inspectorModel: InspectorModel
     private set
+
   lateinit var notificationModel: NotificationModel
     private set
 

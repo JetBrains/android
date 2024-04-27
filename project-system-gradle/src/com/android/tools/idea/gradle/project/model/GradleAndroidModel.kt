@@ -47,7 +47,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.jetbrains.rd.util.getOrCreate
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.EnumSet
@@ -116,8 +115,6 @@ class GradleAndroidModel(
            ?: "connected${selectedVariantName.usLocaleCapitalize()}AndroidTest" // fallback for v1 models
   }
 
-  val selectedMainCompileDependencies: IdeDependencies get() = this.mainArtifact.compileClasspath
-  val selectedMainRuntimeDependencies: IdeDependencies get() = this.mainArtifact.runtimeClasspath
   val selectedAndroidTestCompileDependencies: IdeDependencies? get() = selectedVariant.androidTestArtifact?.compileClasspath
 
   val mainArtifact: IdeAndroidArtifact get() = selectedVariant.mainArtifact

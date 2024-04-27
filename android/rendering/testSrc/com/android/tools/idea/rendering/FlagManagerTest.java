@@ -119,7 +119,7 @@ public class FlagManagerTest {
     }
 
     Set<String> unused = Sets.newHashSet(LocaleManager.getRegionCodes(false));
-    Set<String> reachable = new HashSet<>();
+    Set<String> reachable = Sets.newHashSet();
     Multimap<String,String> regionToLanguages = ArrayListMultimap.create();
     for (String language : LocaleManager.getLanguageCodes(false)) {
       for (String region : LocaleManager.getRelevantRegions(language)) {

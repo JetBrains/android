@@ -19,24 +19,6 @@ public class AndroidBuildTestingManager {
     return ourTestingManager;
   }
 
-  public static void startBuildTesting(@NotNull MyCommandExecutor commandExecutor) {
-    ourTestingManager = new AndroidBuildTestingManager(commandExecutor);
-  }
-
-  @NotNull
-  public static String arrayToString(@NotNull String[] array) {
-    final StringBuilder builder = new StringBuilder("[");
-
-    for (String s : array) {
-      builder.append('\n').append(s);
-    }
-    if (array.length > 0) {
-      builder.append('\n');
-    }
-    builder.append("]");
-    return builder.toString();
-  }
-
   @NotNull
   public MyCommandExecutor getCommandExecutor() {
     return myCommandExecutor;
@@ -47,7 +29,5 @@ public class AndroidBuildTestingManager {
     Process createProcess(@NotNull String[] args, @NotNull Map<? extends String, ? extends String> environment);
 
     void log(@NotNull String s);
-
-    void checkJarContent(@NotNull String jarId, @NotNull String jarPath);
   }
 }

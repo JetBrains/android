@@ -95,7 +95,7 @@ class DeviceAdapterTest {
   private var launchSuccess = true
   private var uninstallCalls = 0
   private var onReadyCalls = 0
-  private var frameNumber = 0
+  private var frameNumber = 0u
 
   private lateinit var view: TestDisplayView
   private lateinit var adapter: DeviceAdapter

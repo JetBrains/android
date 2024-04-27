@@ -70,7 +70,6 @@ public class OpenCloseVisualizationToolTest {
    *   </pre>
    * </p>
    */
-  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testDisplayContentsInVisualizationWindow() {
     editor.open(activity_myFile);
@@ -128,7 +127,6 @@ public class OpenCloseVisualizationToolTest {
    *   </pre>
    * </p>
    */
-  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void testZoomInZoomOut() {
     editor.open(activity_myFile);

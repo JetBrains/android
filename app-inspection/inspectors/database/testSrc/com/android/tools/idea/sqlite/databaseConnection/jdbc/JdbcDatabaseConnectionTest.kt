@@ -882,8 +882,7 @@ class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
     return pumpEventsAndWaitForFuture(this.columns)
       .find { it.name == name }
       ?.affinity
-      ?.equals(affinity)
-      ?: false
+      ?.equals(affinity) ?: false
   }
 
   private fun SqliteTable.hasColumn(name: String, affinity: SqliteAffinity): Boolean {

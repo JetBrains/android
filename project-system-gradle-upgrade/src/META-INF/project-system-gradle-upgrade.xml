@@ -2,8 +2,9 @@
   <depends>com.intellij.gradle</depends>
   <actions>
     <action id="AgpUpgrade" class="com.android.tools.idea.gradle.project.upgrade.AgpUpgradeAction"
+            icon="StudioIcons.Shell.ToolWindows.AGP_UPGRADE_ASSISTANT"
             text="AGP Upgrade Assistant..." description="Upgrade the project's Android Gradle Plugin (AGP) dependency">
-      <add-to-group group-id="ToolsMenu"/>
+      <add-to-group group-id="AndroidToolsGroupExtension" anchor="first"/>
     </action>
   </actions>
 

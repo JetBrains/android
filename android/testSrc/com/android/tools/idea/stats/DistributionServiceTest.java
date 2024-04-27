@@ -17,7 +17,7 @@ package com.android.tools.idea.stats;
 
 import static org.junit.Assert.assertEquals;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.Pair;
@@ -25,14 +25,14 @@ import com.intellij.testFramework.ApplicationRule;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.FileDownloader;
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl;
-import java.io.File;
-import java.net.URL;
 import java.nio.file.Path;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+
+import java.io.File;
+import java.net.URL;
 
 /**
  * Tests for {@link DistributionService}
@@ -73,7 +73,7 @@ public class DistributionServiceTest {
   @Test
   public void testSimpleCase() throws Exception {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
-    Mockito.when(downloader.download(ArgumentMatchers.any(File.class)))
+    Mockito.when(downloader.download(Mockito.any(File.class)))
       .thenReturn(ImmutableList.of(Pair.create(myDistributionFile.toFile(), myDescription)));
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     assertEquals(0.7, service.getSupportedDistributionForApiLevel(16), 0.0001);
@@ -85,11 +85,11 @@ public class DistributionServiceTest {
   @Test
   public void testCache() throws Exception {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
-    Mockito.when(downloader.download(ArgumentMatchers.any(File.class)))
+    Mockito.when(downloader.download(Mockito.any(File.class)))
       .thenReturn(ImmutableList.of(Pair.create(myDistributionFile.toFile(), myDescription)));
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     service.getSupportedDistributionForApiLevel(19);
     service.getDistributionForApiLevel(21);
-    Mockito.verify(downloader).download(ArgumentMatchers.any(File.class));
+    Mockito.verify(downloader).download(Mockito.any(File.class));
   }
 }

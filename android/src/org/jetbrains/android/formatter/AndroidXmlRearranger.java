@@ -60,8 +60,7 @@ public final class AndroidXmlRearranger extends XmlRearranger {
 
   @Override
   public @NotNull Collection<ArrangementTabInfo> getArrangementTabInfos() {
-    // No need to duplicate what's already returned by XmlRearranger/ArrangementStandardSettingsAware.
-    // Otherwise, there will be two identical 'XML' items in the popup on the Actions on Save page.
+    // No need to duplicate what's already returned by XmlRearranger. Otherwise, there will be two identical 'XML' items in the popup on the Actions on Save page.
     return Collections.emptyList();
   }
 

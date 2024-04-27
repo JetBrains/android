@@ -32,7 +32,7 @@ class LabelCard(override val state: ElementState) : Card, JPanel(TabularLayout("
 
   private val firstRow =
     JPanel(TabularLayout("30px,*,Fit", "30px")).apply {
-      border = JBUI.Borders.empty(0, 0, 0, 8)
+      border = JBUI.Borders.emptyRight(8)
       add(JBLabel(state.title ?: "_"), TabularLayout.Constraint(0, 1))
     }
 
@@ -44,6 +44,8 @@ class LabelCard(override val state: ElementState) : Card, JPanel(TabularLayout("
   }
 
   override fun getCurrentHeight() = InspectorLayout.UNSUPPORTED_ROW_HEIGHT
+
   override var expandedSize: Int = InspectorLayout.UNSUPPORTED_ROW_HEIGHT
+
   override fun setDuration(durationMillis: Int?) {}
 }

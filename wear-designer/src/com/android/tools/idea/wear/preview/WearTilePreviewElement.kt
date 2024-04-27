@@ -15,14 +15,34 @@
  */
 package com.android.tools.idea.wear.preview
 
-import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.ide.common.resources.Locale
+import com.android.tools.preview.MethodPreviewElement
+import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
+import kotlin.math.max
 
 /** Preview elements implementation for a wear tile. */
 open class WearTilePreviewElement(
   override val displaySettings: PreviewDisplaySettings,
   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-  override val fqcn: String
-) : ClassPreviewElement
+  override val methodFqn: String,
+  val configuration: WearTilePreviewConfiguration
+) : MethodPreviewElement
+
+data class WearTilePreviewConfiguration
+internal constructor(
+  val device: String,
+  val locale: Locale?,
+  val fontScale: Float,
+) {
+  companion object {
+    fun forValues(device: String? = null, locale: Locale? = null, fontScale: Float? = null) =
+      WearTilePreviewConfiguration(
+        device = device ?: "",
+        locale = locale,
+        fontScale = max(0f, fontScale ?: 1f)
+      )
+  }
+}

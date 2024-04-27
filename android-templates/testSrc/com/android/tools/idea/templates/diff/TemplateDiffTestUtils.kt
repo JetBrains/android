@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates.diff
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import java.nio.file.Path
 

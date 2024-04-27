@@ -26,10 +26,10 @@ import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNav
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.JavaThread
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModel
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.JavaThread
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.createFakeHttpData
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -37,6 +37,11 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Component
+import java.awt.Dimension
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
+import javax.swing.JTable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -44,11 +49,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Component
-import java.awt.Dimension
-import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
-import javax.swing.JTable
 
 private val FAKE_DATA: ImmutableList<HttpData> =
   ImmutableList.Builder<HttpData>()
@@ -109,8 +109,9 @@ class ThreadsViewTest {
         services,
         FakeNetworkInspectorDataSource(),
         scope,
-        object : HttpDataModel {
+        object : ConnectionDataModel {
           private val dataList = FAKE_DATA
+
           override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
             return dataList.filter {
               it.requestStartTimeUs >= timeCurrentRangeUs.min &&
@@ -144,7 +145,7 @@ class ThreadsViewTest {
     table.setUI(HeadlessTableUI())
     // Normally, when ThreadsView changes size, it updates the size of its table which in turn
     // fires an event that updates the preferred size of its columns. This requires multiple layout
-    // passes, as well as firing a event that happens on another thread, so the timing is not
+    // passes, as well as firing an event that happens on another thread, so the timing is not
     // deterministic. For testing, we short-circuit the process and set the size of the table
     // directly, so when the FakeUi is created below (which performs a layout pass), the table will
     // already be in its final size.
@@ -171,7 +172,7 @@ class ThreadsViewTest {
 
   @Test
   fun shouldHandleEmptySelection() {
-    model.timeline.reset(0, TimeUnit.SECONDS.toNanos(150))
+    model.timeline.dataRange.set(0.0, TimeUnit.SECONDS.toMicros(1000).toDouble())
     val selection = model.timeline.selectionRange
     assertThat(table.model.rowCount).isEqualTo(4)
     selection[0.0] = TimeUnit.SECONDS.toMicros(22).toDouble()

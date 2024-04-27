@@ -20,8 +20,7 @@ import com.intellij.util.xml.DefinesXml
 
 @DefinesXml
 interface PreferenceElement : PreferenceElementBase {
-  @CustomChildren
-  fun getSubPreferences(): List<PreferenceElement>
+  @CustomChildren fun getSubPreferences(): List<PreferenceElement>
 }
 
 interface PreferenceElementBase : XmlResourceElement {

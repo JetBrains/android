@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
-import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.nativeSymbolizer.getLlvmSymbolizerPath
 import com.android.tools.profilers.analytics.FeatureTracker
@@ -62,7 +61,6 @@ class TraceProcessorDaemonManager(
 
     private val TPD_DEV_PATH: String by lazy {
       when {
-        IdeInfo.getInstance().isAndroidStudio -> TPD_RELEASE_PATH
         SystemInfo.isWindows -> {
           "prebuilts/tools/common/trace-processor-daemon/windows"
         }
@@ -78,21 +76,7 @@ class TraceProcessorDaemonManager(
         }
       }
     }
-    private val TPD_RELEASE_PATH: String by lazy {
-      if (IdeInfo.getInstance().isAndroidStudio) {
-        "plugins/android/resources/trace_processor_daemon"
-      }
-      else {
-        val os = when {
-          SystemInfo.isWindows -> "windows"
-          SystemInfo.isLinux -> "linux"
-          SystemInfo.isMac -> "darwin"
-          else -> throw IllegalStateException("Unknown Operating System.")
-        }
-
-        "plugins/android/resources/trace_processor_daemon/$os"
-      }
-    }
+    private val TPD_RELEASE_PATH = "plugins/android/resources/trace_processor_daemon"
     private val TPD_EXECUTABLE: String by lazy {
       when {
         SystemInfo.isWindows -> {
@@ -111,12 +95,7 @@ class TraceProcessorDaemonManager(
       .build()
 
     private fun getExecutablePath(): String {
-      val tpdExecutable = File(TPD_BINARY.dir, TPD_BINARY.fileName)
-
-      if (!(tpdExecutable.setExecutable(true))) {
-        LOGGER.warn("Unable to make trace_processor_daemon executable.")
-      }
-      return tpdExecutable.absolutePath
+      return File(TPD_BINARY.dir, TPD_BINARY.fileName).absolutePath
     }
   }
 

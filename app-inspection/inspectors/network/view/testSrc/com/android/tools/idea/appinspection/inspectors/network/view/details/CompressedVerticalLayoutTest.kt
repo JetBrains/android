@@ -16,11 +16,11 @@
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.awt.Dimension
 import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.junit.Test
 
 class CompressedVerticalLayoutTest {
   @Test
@@ -37,9 +37,13 @@ class CompressedVerticalLayoutTest {
 
   private class FixedComponent : JComponent() {
     override fun getMaximumSize() = Dimension(30, 10)
+
     override fun isMaximumSizeSet() = true
+
     override fun getPreferredSize() = Dimension(30, 10)
+
     override fun isPreferredSizeSet() = true
+
     override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
       assertThat(x).isEqualTo(0)
       assertThat(y).isEqualTo(0)
@@ -60,11 +64,13 @@ class CompressedVerticalLayoutTest {
         field = value
         assertThat(maxWidth).isAtLeast(field)
       }
+
     private var _preferredHeight = preferredHeight
       set(value) {
         field = value
         assertThat(maxHeight).isAtLeast(_preferredHeight)
       }
+
     private var resizeCalls = 0
 
     override fun getPreferredSize() = Dimension(_preferredWidth, _preferredHeight)

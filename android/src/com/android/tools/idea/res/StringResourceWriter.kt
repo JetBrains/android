@@ -27,6 +27,7 @@ import com.intellij.ide.util.DeleteHandler
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -51,18 +52,18 @@ interface StringResourceWriter {
    * string resource file do not exist, this method will create those first.
    *
    * @return the string resource file for the default [Locale], or `null` if the directory or file
-   * could not be created
+   *   could not be created
    */
   fun getStringResourceFile(
-      project: Project,
-      resourceDirectory: VirtualFile,
+    project: Project,
+    resourceDirectory: VirtualFile,
   ): XmlFile?
 
   /**
    * Adds a new resource string default with the given [value].
    *
    * @param key A [StringResourceKey] specifying the name of the resource and the directory in which
-   * it will be created
+   *   it will be created
    * @param value the default value of the resource
    * @param translatable whether the resource is translatable
    * @return true iff the resource was successfully created
@@ -80,7 +81,7 @@ interface StringResourceWriter {
    * The [insertBefore] key cannot be in a different directory than the [key] being inserted.
    *
    * @param key A [StringResourceKey] specifying the name of the resource and the directory in which
-   * it will be created
+   *   it will be created
    * @param locale The [Locale] for which the translation applies
    * @param resourceFileName The preferred file name for the resource
    * @param insertBefore A [StringResourceKey] before which the new resource should be added.
@@ -101,7 +102,7 @@ interface StringResourceWriter {
    * The [insertBefore] key cannot be in a different directory than the [key] being inserted.
    *
    * @param key A [StringResourceKey] specifying the name of the resource and the directory in which
-   * it will be created
+   *   it will be created
    * @param xmlFile An [XmlFile] to which the resource string translation should be added
    * @param insertBefore A [StringResourceKey] before which the new resource should be added.
    * @return true iff the resource was successfully created
@@ -124,36 +125,40 @@ interface StringResourceWriter {
    * @return `true` iff the attribute was modified successfully
    */
   fun setAttribute(
-      project: Project,
-      attribute: String,
-      value: String?,
-      item: ResourceItem,
+    project: Project,
+    attribute: String,
+    value: String?,
+    item: ResourceItem,
   ): Boolean = setAttribute(project, attribute, value, listOf(item))
   /**
    * Sets the value of the given [attribute] on each of the given [items] to be [value]. If [value]
    * is `null`, the attribute will be removed from each item entirely.
+   *
    * @return `true` iff the attribute was modified successfully and [items] was not empty
    */
   fun setAttribute(
-      project: Project,
-      attribute: String,
-      value: String?,
-      items: Collection<ResourceItem>,
+    project: Project,
+    attribute: String,
+    value: String?,
+    items: Collection<ResourceItem>,
   ): Boolean
 
   /**
    * Deletes the given [item] from the string resource file.
+   *
    * @return `true` iff the [item] was successfully deleted
    */
   fun delete(project: Project, item: ResourceItem): Boolean = delete(project, listOf(item))
   /**
    * Deletes all the given [items] from the string resource files.
+   *
    * @return `true` iff the [items] were successfully deleted and [items] was not empty
    */
   fun delete(project: Project, items: Collection<ResourceItem>): Boolean
 
   /**
    * Attempts to safely delete the given [item] from the string resource file.
+   *
    * @param successCallback callback invoked iff the delete operation completes successfully
    */
   fun safeDelete(project: Project, item: ResourceItem, successCallback: Runnable) {
@@ -161,12 +166,14 @@ interface StringResourceWriter {
   }
   /**
    * Attempts to safely delete the given [items] from the string resource files.
+   *
    * @param successCallback callback invoked iff the delete operation completes successfully
    */
   fun safeDelete(project: Project, items: Collection<ResourceItem>, successCallback: Runnable)
 
   /**
    * Sets the text of the given [item] to be [value].
+   *
    * @return `true` iff the text was set successfully
    */
   fun setItemText(project: Project, item: ResourceItem, value: String): Boolean
@@ -180,16 +187,21 @@ interface StringResourceWriter {
 private object StringResourceWriterImpl : StringResourceWriter {
 
   override fun getStringResourceFile(project: Project, resourceDirectory: VirtualFile): XmlFile? =
-    getStringResourceFile(project, resourceDirectory, locale = null, DEFAULT_STRING_RESOURCE_FILE_NAME)
+    getStringResourceFile(
+      project,
+      resourceDirectory,
+      locale = null,
+      DEFAULT_STRING_RESOURCE_FILE_NAME
+    )
 
   private fun getStringResourceFile(
-      project: Project,
-      resourceDirectory: VirtualFile,
-      locale: Locale?,
-      resourceFileName: String,
+    project: Project,
+    resourceDirectory: VirtualFile,
+    locale: Locale?,
+    resourceFileName: String,
   ): XmlFile? {
     val valuesDirectory =
-        findOrCreateValuesDirectory(project, resourceDirectory, locale) ?: return null
+      findOrCreateValuesDirectory(project, resourceDirectory, locale) ?: return null
     return findOrCreateStringResourceFile(project, valuesDirectory, resourceFileName)
   }
 
@@ -199,9 +211,9 @@ private object StringResourceWriterImpl : StringResourceWriter {
    * @return the directory, or `null` if it could not be created
    */
   private fun findOrCreateValuesDirectory(
-      project: Project,
-      resourceDirectory: VirtualFile,
-      locale: Locale?
+    project: Project,
+    resourceDirectory: VirtualFile,
+    locale: Locale?
   ): VirtualFile? {
     val config = FolderConfiguration()
     if (locale != null) config.localeQualifier = locale.qualifier
@@ -210,12 +222,13 @@ private object StringResourceWriterImpl : StringResourceWriter {
 
     return try {
       resourceDirectory.findChild(valuesDirectoryName)
-          ?: WriteCommandAction.writeCommandAction(project, psiManager.findFile(resourceDirectory))
-              .withName("Creating directory $valuesDirectoryName")
-              .compute<VirtualFile?, IOException> {
-                resourceDirectory.createChildDirectory(this, valuesDirectoryName)
-              }
+        ?: WriteCommandAction.writeCommandAction(project, psiManager.findFile(resourceDirectory))
+          .withName("Creating directory $valuesDirectoryName")
+          .compute<VirtualFile?, IOException> {
+            resourceDirectory.createChildDirectory(this, valuesDirectoryName)
+          }
     } catch (e: IOException) {
+      thisLogger().error("Could not create values directory", e)
       null
     }
   }
@@ -226,9 +239,9 @@ private object StringResourceWriterImpl : StringResourceWriter {
    * @return the file, or `null` if it could not be created
    */
   private fun findOrCreateStringResourceFile(
-      project: Project,
-      valuesDirectory: VirtualFile,
-      resourceFileName: String,
+    project: Project,
+    valuesDirectory: VirtualFile,
+    resourceFileName: String,
   ): XmlFile? {
     val psiManager = PsiManager.getInstance(project)
     valuesDirectory.findChild(resourceFileName)?.let {
@@ -238,17 +251,24 @@ private object StringResourceWriterImpl : StringResourceWriter {
     val valuesDir = psiManager.findDirectory(valuesDirectory) ?: return null
     return try {
       createFileResource(
-          resourceFileName,
-          valuesDir,
-          rootTagName = "",
-          ResourceType.STRING.name,
-          valuesResourceFile = true)
+        resourceFileName,
+        valuesDir,
+        rootTagName = "",
+        ResourceType.STRING.name,
+        valuesResourceFile = true
+      )
     } catch (e: Exception) {
+      thisLogger().error("Could not create string resource file", e)
       null
     }
   }
 
-  override fun addDefault(project: Project, key: StringResourceKey, value: String, translatable: Boolean): Boolean =
+  override fun addDefault(
+    project: Project,
+    key: StringResourceKey,
+    value: String,
+    translatable: Boolean
+  ): Boolean =
     add(project, key, value, DEFAULT_STRING_RESOURCE_FILE_NAME, translatable = translatable)
 
   override fun addTranslation(
@@ -293,17 +313,19 @@ private object StringResourceWriterImpl : StringResourceWriter {
           SdkConstants.TAG_STRING,
           resources.namespace,
           escapeIfValid(value),
-          /* enforceNamespacesDeep= */ false)
+          /* enforceNamespacesDeep= */ false
+        )
         .apply {
           setAttribute(SdkConstants.ATTR_NAME, key.name)
           if (!translatable) setAttribute(SdkConstants.ATTR_TRANSLATABLE, false.toString())
         }
     val beforeTag: XmlTag? = resources.findSubtagForKey(insertBefore)
-    WriteCommandAction.writeCommandAction(project).withName("Add string resource ${key.name}").run<Nothing> {
+    WriteCommandAction.writeCommandAction(project).withName("Add string resource ${key.name}").run<
+      Nothing
+    > {
       if (beforeTag == null) {
         resources.addSubTag(resource, /* first= */ false)
-      }
-      else {
+      } else {
         resources.addBefore(resource, beforeTag)
       }
     }
@@ -338,53 +360,55 @@ private object StringResourceWriterImpl : StringResourceWriter {
 
   override fun removeLocale(locale: Locale, facet: AndroidFacet, requestor: Any) {
     WriteCommandAction.writeCommandAction(facet.module.project)
-        .withName("Remove $locale Locale")
-        .withGlobalUndo()
-        .run<Nothing> {
-          val name: String =
-              FolderConfiguration()
-                  .apply { localeQualifier = locale.qualifier }
-                  .getFolderName(ResourceFolderType.VALUES)
+      .withName("Remove $locale Locale")
+      .withGlobalUndo()
+      .run<Nothing> {
+        val name: String =
+          FolderConfiguration()
+            .apply { localeQualifier = locale.qualifier }
+            .getFolderName(ResourceFolderType.VALUES)
 
-          ResourceFolderManager.getInstance(facet)
-              .folders
-              .mapNotNull { it.findChild(name) }
-              .forEach {
-                try {
-                  it.delete(requestor)
-                } catch (e: IOException) {
-                  Logger.getInstance(this.javaClass).warn(e)
-                }
-              }
-        }
+        ResourceFolderManager.getInstance(facet)
+          .folders
+          .mapNotNull { it.findChild(name) }
+          .forEach {
+            try {
+              it.delete(requestor)
+            } catch (e: IOException) {
+              Logger.getInstance(this.javaClass).warn(e)
+            }
+          }
+      }
   }
 
   override fun setAttribute(
-      project: Project,
-      attribute: String,
-      value: String?,
-      items: Collection<ResourceItem>
+    project: Project,
+    attribute: String,
+    value: String?,
+    items: Collection<ResourceItem>
   ): Boolean =
-      items.modify(project, "Setting attribute $attribute") { it.setAttribute(attribute, value) }
+    items.modify(project, "Setting attribute $attribute") { it.setAttribute(attribute, value) }
 
   override fun delete(project: Project, items: Collection<ResourceItem>): Boolean =
-      items.modify(project, "Deleting resources", XmlTag::delete)
+    items.modify(project, "Deleting resources", XmlTag::delete)
 
   /**
    * Runs the given [modification] on the [XmlTag] for each [ResourceItem] in `this` [Collection].
+   *
    * @return true iff the modification changed anything
    */
   private fun Collection<ResourceItem>.modify(
-      project: Project,
-      operationName: String,
-      modification: (XmlTag) -> Unit
+    project: Project,
+    operationName: String,
+    modification: (XmlTag) -> Unit
   ): Boolean {
     if (isEmpty()) return false
     // Figure out which files they are in because we will need to make them writable.
     val fileToTagMap = map { getItemTag(project, it) ?: return false }.groupBy { it.containingFile }
 
     WriteCommandAction.writeCommandAction(project, fileToTagMap.keys).withName(operationName).run<
-        IncorrectOperationException> {
+      IncorrectOperationException
+    > {
       CommandProcessor.getInstance().markCurrentCommandAsGlobal(project)
       fileToTagMap.values.forEach { tagList -> tagList.forEach(modification) }
     }
@@ -393,9 +417,9 @@ private object StringResourceWriterImpl : StringResourceWriter {
   }
 
   override fun safeDelete(
-      project: Project,
-      items: Collection<ResourceItem>,
-      successCallback: Runnable
+    project: Project,
+    items: Collection<ResourceItem>,
+    successCallback: Runnable
   ) {
     // TODO(b/232444069): Long term this probably shouldn't be showing dialogs, etc. But right now
     //  it's too difficult to separate out the confirmation dialog for the first dumb delete.
@@ -403,8 +427,13 @@ private object StringResourceWriterImpl : StringResourceWriter {
     val xmlTags = items.mapNotNull { item -> getItemTag(project, item) }
     if (xmlTags.isEmpty()) return
 
-    if (!CommonRefactoringUtil.checkReadOnlyStatusRecursively(
-        project, xmlTags, /* notifyOnFail= */ true)) {
+    if (
+      !CommonRefactoringUtil.checkReadOnlyStatusRecursively(
+        project,
+        xmlTags,
+        /* notifyOnFail= */ true
+      )
+    ) {
       return
     }
 
@@ -418,25 +447,26 @@ private object StringResourceWriterImpl : StringResourceWriter {
 
     var safeDeleteSelected = false
     val dialog =
-        object : SafeDeleteDialog(project, xmlTags.toTypedArray(), { safeDeleteSelected = true }) {
-          init {
-            title = RefactoringBundle.message(/* key= */ "delete.title")
-          }
-
-          override fun isDelete() = true
+      object : SafeDeleteDialog(project, xmlTags.toTypedArray(), { safeDeleteSelected = true }) {
+        init {
+          title = RefactoringBundle.message(/* key= */ "delete.title")
         }
+
+        override fun isDelete() = true
+      }
 
     if (!dialog.showAndGet()) return
 
     if (safeDeleteSelected) {
       SafeDeleteProcessor.createInstance(
-              project,
-              successCallback,
-              xmlTags.toTypedArray(),
-              dialog.isSearchInComments,
-              dialog.isSearchForTextOccurences,
-              /* askForAccessors= */ true)
-          .run()
+          project,
+          successCallback,
+          xmlTags.toTypedArray(),
+          dialog.isSearchInComments,
+          dialog.isSearchForTextOccurences,
+          /* askForAccessors= */ true
+        )
+        .run()
     } else {
       delete(project, items)
       successCallback.run()
@@ -448,26 +478,25 @@ private object StringResourceWriterImpl : StringResourceWriter {
     val tag = getItemTag(project, item) ?: return false
 
     WriteCommandAction.writeCommandAction(project, tag.containingFile)
-        .withName("Setting value of ${tag.name}")
-        .run<IncorrectOperationException> {
-          // Makes the command global even if only one xml file is modified.
-          // That way, the Undo is always available from the translation editor.
-          CommandProcessor.getInstance().markCurrentCommandAsGlobal(project)
-          // First remove the existing value of the tag (any text and possibly other XML nested
-          // tags - like xliff:g).
-          tag.value.children.forEach(XmlTagChild::delete)
-          val escapedXml =
-              try {
-                CharacterDataEscaper.escape(value)
-              } catch (e: IllegalArgumentException) {
-                Logger.getInstance(this.javaClass).warn(e)
-                value
-              }
-          val text: XmlTag =
-              XmlElementFactory.getInstance(project)
-                  .createTagFromText("<String>$escapedXml</string")
-          text.value.children.forEach(tag::add)
-        }
+      .withName("Setting value of ${tag.name}")
+      .run<IncorrectOperationException> {
+        // Makes the command global even if only one xml file is modified.
+        // That way, the Undo is always available from the translation editor.
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project)
+        // First remove the existing value of the tag (any text and possibly other XML nested
+        // tags - like xliff:g).
+        tag.value.children.forEach(XmlTagChild::delete)
+        val escapedXml =
+          try {
+            CharacterDataEscaper.escape(value)
+          } catch (e: IllegalArgumentException) {
+            Logger.getInstance(this.javaClass).warn(e)
+            value
+          }
+        val text: XmlTag =
+          XmlElementFactory.getInstance(project).createTagFromText("<String>$escapedXml</string")
+        text.value.children.forEach(tag::add)
+      }
     return true
   }
 
@@ -476,10 +505,10 @@ private object StringResourceWriterImpl : StringResourceWriter {
    * unmodified.
    */
   private fun escapeIfValid(xml: String) =
-      try {
-        CharacterDataEscaper.escape(xml)
-      } catch (e: IllegalArgumentException) {
-        Logger.getInstance(this.javaClass).warn(e)
-        xml
-      }
+    try {
+      CharacterDataEscaper.escape(xml)
+    } catch (e: IllegalArgumentException) {
+      Logger.getInstance(this.javaClass).warn(e)
+      xml
+    }
 }

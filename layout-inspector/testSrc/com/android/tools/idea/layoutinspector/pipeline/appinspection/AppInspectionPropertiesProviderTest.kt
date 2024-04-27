@@ -23,7 +23,7 @@ import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -130,7 +130,7 @@ class AppInspectionPropertiesProviderTest {
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
@@ -220,7 +220,7 @@ class AppInspectionPropertiesProviderTest {
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
@@ -271,7 +271,7 @@ class AppInspectionPropertiesProviderTest {
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener() { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
@@ -339,7 +339,7 @@ class AppInspectionPropertiesProviderTest {
 
     val modelUpdatedSignal =
       ArrayBlockingQueue<Unit>(2) // We should get no more than two updates before continuing
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedSignal.offer(Unit)
     }
 
@@ -397,7 +397,7 @@ class AppInspectionPropertiesProviderTest {
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
@@ -434,7 +434,7 @@ class AppInspectionPropertiesProviderTest {
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
@@ -629,7 +629,7 @@ class AppInspectionPropertiesProviderTest {
 
     val modelUpdatedSignal =
       ArrayBlockingQueue<Unit>(2) // We should get no more than two updates before continuing
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedSignal.offer(Unit)
     }
 
@@ -678,7 +678,7 @@ class AppInspectionPropertiesProviderTest {
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 

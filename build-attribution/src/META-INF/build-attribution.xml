@@ -35,7 +35,6 @@
     <projectService serviceInterface="com.android.tools.idea.gradle.project.sync.SyncAnalyzerManager"
                     serviceImplementation="com.android.sync.analyzer.SyncAnalyzerManagerImpl"/>
 
-    <fileEditorProvider implementation="com.android.build.attribution.ui.BuildReportEditorProvider"/>
     <notificationGroup id="Build Analyzer" displayType="TOOL_WINDOW" toolWindowId="Build"/>
     <backgroundPostStartupActivity implementation="com.android.build.diagnostic.StudioWindowsDefenderCheckerActivity" os="windows"/>
     <applicationService serviceImplementation="com.android.build.diagnostic.WindowsDefenderChecker"/>

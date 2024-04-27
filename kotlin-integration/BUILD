@@ -1,50 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/adt/idea/kotlin-integration:version.bzl", "KOTLIN_IDE_VERSION")
-
-# The maven artifact aliases below exist in order to simplify Kotlin plugin updates.
-# If a test requires Kotlin maven artifacts with a version matching the Kotlin
-# IDE plugin, then the test should use these aliases.
-
-alias(
-    name = "kotlin-android-extensions-runtime-for-ide-plugin",
-    actual = "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_" + KOTLIN_IDE_VERSION,
-    visibility = ["//visibility:public"],
-)
-
-alias(
-    name = "kotlin-gradle-plugin-for-ide-plugin",
-    actual = "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_" + KOTLIN_IDE_VERSION,
-    visibility = ["//visibility:public"],
-)
-
-# This would normally be a dependency of kotlin-gradle-plugin above. However, there is a defect
-# in the POM file for kotlin-gradle-plugin 1.8.0 in which kotlin-gradle-plugin-api is listed
-# multiple times, sometimes as an optional dependency. As a result, we must include
-# kotlin-gradle-plugin-api manually.
-alias(
-    name = "kotlin-gradle-plugin-api-for-ide-plugin",
-    actual = "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_" + KOTLIN_IDE_VERSION,
-    visibility = ["//visibility:public"],
-)
-
-alias(
-    name = "kotlin-reflect-for-ide-plugin",
-    actual = "@maven//:org.jetbrains.kotlin.kotlin-reflect_" + KOTLIN_IDE_VERSION,
-    visibility = ["//visibility:public"],
-)
-
-alias(
-    name = "kotlin-script-runtime-for-ide-plugin",
-    actual = "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_" + KOTLIN_IDE_VERSION,
-    visibility = ["//visibility:public"],
-)
-
-alias(
-    name = "kotlin-stdlib-jdk8-for-ide-plugin",
-    actual = "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_" + KOTLIN_IDE_VERSION,
-    visibility = ["//visibility:public"],
-)
 
 # managed by go/iml_to_build
 iml_module(
@@ -107,6 +62,6 @@ maven_repository(
         "@maven//:org.hamcrest.hamcrest-integration_1.3",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.intellij.deps.trove4j_1.0.20181211",
-        "@maven//:org.mockito.mockito-core_4.8.0",
+        "@maven//:org.mockito.mockito-core_5.6.0",
     ],
 )

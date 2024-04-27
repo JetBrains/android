@@ -114,14 +114,14 @@ class AndroidDeviceSpecUtilTest {
 
   @Test
   fun languageFetchingCanBeDisabled() {
-    val api21Device = mockDevice(AndroidVersion(21), Density.DPI_340, listOf(Abi.ARMEABI))
+    val api21Device = mockDevice(AndroidVersion(21), Density.create(340), listOf(Abi.ARMEABI))
     myFile = createJsonFile(false, api21Device)
     assertThat(myFile!!.readText()).isEqualTo("{\"sdk_version\":21,\"screen_density\":340,\"supported_abis\":[\"armeabi\"]}")
   }
 
   @Test
   fun jsonFileFromPostLDoesContainLanguages() {
-    val api21Device = mockDevice(AndroidVersion(21), Density.DPI_340, listOf(Abi.ARMEABI))
+    val api21Device = mockDevice(AndroidVersion(21), Density.create(340), listOf(Abi.ARMEABI))
     myFile = createJsonFile(true, api21Device)
     assertThat(myFile!!.readText())
       .isEqualTo("{\"sdk_version\":21,\"screen_density\":340,\"supported_abis\":[\"armeabi\"],\"supported_locales\":[\"es\",\"fr\"]}")
@@ -130,15 +130,15 @@ class AndroidDeviceSpecUtilTest {
   @Test
   fun combiningDisjointDevicePropertiesGivesEmpty() {
     val api20Device = mockDevice(AndroidVersion(20), Density.XXHIGH, listOf(Abi.X86, Abi.X86_64))
-    val deviceThatDiffersInEveryWay = mockDevice(AndroidVersion(22), Density.DPI_340, listOf(Abi.ARMEABI))
+    val deviceThatDiffersInEveryWay = mockDevice(AndroidVersion(22), Density.create(340), listOf(Abi.ARMEABI))
     myFile = createJsonFile(true, api20Device, deviceThatDiffersInEveryWay)
     assertThat(myFile!!.readText()).isEqualTo("{}")
   }
 
   @Test
   fun combiningDevicesThatOnlyMatchBySdkVersionGivesJustThat() {
-    val api22Device = mockDevice(AndroidVersion(22), Density.DPI_340, listOf(Abi.ARMEABI))
-    val deviceThatOnlySharesSdkVersion = mockDevice(AndroidVersion(22), Density.DPI_260, listOf(Abi.MIPS), config = "")
+    val api22Device = mockDevice(AndroidVersion(22), Density.create(340), listOf(Abi.ARMEABI))
+    val deviceThatOnlySharesSdkVersion = mockDevice(AndroidVersion(22), Density.create(260), listOf(Abi.MIPS), config = "")
 
     myFile = createJsonFile(true, api22Device, deviceThatOnlySharesSdkVersion)
     assertThat(myFile!!.readText()).isEqualTo("{\"sdk_version\":22}")
@@ -160,7 +160,7 @@ class AndroidDeviceSpecUtilTest {
     assertThat(myFile!!.readText()).isEqualTo(
       "{\"sdk_version\":33,\"screen_density\":640,\"supported_abis\":[\"x86_64\"],\"sdk_runtime\":{\"supported\":true},\"supported_locales\":[\"es\",\"fr\"]}")
     val privacySandboxSupportedDeviceSpec = createSpec(listOf(privacySandboxSupportedDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
-    assertThat(privacySandboxSupportedDeviceSpec!!.supportsPrivacySandbox).isTrue()
+    assertThat(privacySandboxSupportedDeviceSpec!!.supportsSdkRuntime).isTrue()
   }
 
   @Test
@@ -172,7 +172,7 @@ class AndroidDeviceSpecUtilTest {
     val unSupportedPrivacySandboxDevice = mockDevice(version33, Density.XXXHIGH, listOf(Abi.X86_64), supportsPrivacySandbox = false)
 
     val deviceSpec = createSpec(listOf(supportedPrivacySandboxDevice, unSupportedPrivacySandboxDevice))
-    assertThat(deviceSpec!!.supportsPrivacySandbox).isFalse()
+    assertThat(deviceSpec!!.supportsSdkRuntime).isFalse()
   }
 
   @Test
@@ -216,7 +216,7 @@ class AndroidDeviceSpecUtilTest {
     version: AndroidVersion,
     name: String = "name",
     displayName: String = "device",
-    density: Density = Density.DPI_260
+    density: Density = Density.create(260)
   ): AvdInfo {
     val avdInfo = mock(AvdInfo::class.java)
     whenever(avdInfo.androidVersion).thenReturn(version)
@@ -234,7 +234,7 @@ class AndroidDeviceSpecUtilTest {
 
   private fun mockDevice(
     version: AndroidVersion,
-    density: Density = Density.DPI_260,
+    density: Density = Density.create(260),
     abis: List<Abi> = listOf(Abi.MIPS),
     config: String = EXAMPLE_DEVICE_CONFIG,
     resizeable: Boolean = false,
@@ -245,7 +245,7 @@ class AndroidDeviceSpecUtilTest {
     whenever(device.density).thenReturn(density.dpiValue)
     whenever(device.abis).thenReturn(abis)
     whenever(device.supportsMultipleScreenFormats()).thenReturn(resizeable)
-    whenever(device.supportsPrivacySandbox).thenReturn(supportsPrivacySandbox)
+    whenever(device.supportsSdkRuntime).thenReturn(supportsPrivacySandbox)
     val launchedDevice = mock(IDevice::class.java)
     whenever(launchedDevice.version).thenReturn(version)
     if (config.isNotEmpty()) {

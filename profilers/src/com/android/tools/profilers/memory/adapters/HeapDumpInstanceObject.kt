@@ -15,15 +15,16 @@
  */
 package com.android.tools.profilers.memory.adapters
 
-import com.android.tools.perflib.heap.ArrayInstance
 import com.android.tools.perflib.heap.ClassInstance
+import java.lang.StringBuilder
+import com.android.tools.perflib.heap.ArrayInstance
 import com.android.tools.perflib.heap.ClassObj
 import com.android.tools.perflib.heap.Field
 import com.android.tools.perflib.heap.Instance
-import com.android.tools.perflib.heap.RootObj
-import com.android.tools.perflib.heap.Type
 import com.android.tools.profiler.proto.Memory.AllocationStack
 import com.android.tools.profiler.proto.Memory.AllocationStack.StackFrameWrapper
+import com.android.tools.perflib.heap.RootObj
+import com.android.tools.perflib.heap.Type
 import com.google.common.annotations.VisibleForTesting
 import java.util.Locale
 

@@ -68,12 +68,11 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
                                                  && GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES,
     studioFlagSupportFutureAgpVersions = StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get(),
     studioFlagUseNewDependencyGraphModel = StudioFlags.USE_NEW_DEPENDENCY_GRAPH_MODEL.get(),
-    studioFlagFetchKotlinModelsInParallel = StudioFlags.GRADLE_SYNC_FETCH_KOTLIN_MODELS_IN_PARALLEL.get(),
+    studioFlagFetchKotlinModelsInParallel = StudioFlags.GRADLE_SYNC_FETCH_KOTLIN_MODELS_IN_PARALLEL.get()
   )
 
   fun getAdditionalArtifactsAction() = AdditionalClassifierArtifactsActionOptions(
     LibraryFilePaths.getInstance(project).retrieveCachedLibs(),
-    StudioFlags.SAMPLES_SUPPORT_ENABLED.get()
   )
 
   val syncOptions = when (projectResolutionMode) {

@@ -9,7 +9,7 @@
     <option name="MAIN_CLASS_NAME" value="" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
-    <option name="VM_PARAMETERS" value="@$PROJECT_DIR$/../../../bazel-bin/tools/adt/idea/studio/default_user_jvm_args.txt @$PROJECT_DIR$/../../../bazel-bin/tools/adt/idea/studio/required_jvm_args.txt -ea -Duser.home=$PROJECT_DIR$/test-temp/user/home -Didea.config.path=$PROJECT_DIR$/test-temp/config -Didea.force.use.core.classloader=true -Didea.system.path=$PROJECT_DIR$/test-temp/system -Didea.plugins.path=$PROJECT_DIR$/test-temp/plugins -Didea.log.config.file=$PROJECT_DIR$/adt-testutils/test-log.xml -Dkotlin.script.classpath=" />
+    <option name="VM_PARAMETERS" value="@$PROJECT_DIR$/../../../bazel-bin/tools/adt/idea/studio/default_user_jvm_args.txt @$PROJECT_DIR$/../../../bazel-bin/tools/adt/idea/studio/required_jvm_args.txt -ea -Dkotlinx.coroutines.debug=on -Duser.home=$PROJECT_DIR$/test-temp/user/home -Didea.config.path=$PROJECT_DIR$/test-temp/config -Didea.force.use.core.classloader=true -Didea.system.path=$PROJECT_DIR$/test-temp/system -Didea.plugins.path=$PROJECT_DIR$/test-temp/plugins -Didea.log.config.properties.file=$PROJECT_DIR$/adt-testutils/test-log.properties -Dkotlin.script.classpath=" />
     <option name="PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../../.." />
     <option name="PASS_PARENT_ENVS" value="false" />

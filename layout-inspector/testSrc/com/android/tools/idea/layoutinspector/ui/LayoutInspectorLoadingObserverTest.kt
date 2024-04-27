@@ -25,10 +25,10 @@ import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutI
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -114,21 +114,19 @@ class LayoutInspectorLoadingObserverTest {
     layoutInspectorLoadingObserver.listeners.add(
       object : LayoutInspectorLoadingObserver.Listener {
         override fun onStartLoading() {}
+
         override fun onStopLoading() {}
       }
     )
 
-    var modificationListeners1 = 0
-    inspectorRule.inspectorModel.modificationListeners.forEach { modificationListeners1 += 1 }
-    assertThat(modificationListeners1).isEqualTo(3)
+    assertThat(inspectorRule.inspectorModel.modificationListeners.size()).isEqualTo(3)
 
     Disposer.dispose(layoutInspectorLoadingObserver)
 
-    var modificationListeners2 = 0
-    inspectorRule.inspectorModel.modificationListeners.forEach { modificationListeners2 += 1 }
-    assertThat(modificationListeners2).isEqualTo(2)
+    assertThat(inspectorRule.inspectorModel.modificationListeners.size()).isEqualTo(2)
+    assertThat(inspectorRule.processes.selectedProcessListeners).hasSize(2)
 
-    assertThat(layoutInspectorLoadingObserver.listeners).isEmpty()
+    assertThat(layoutInspectorLoadingObserver.listeners.size()).isEqualTo(0)
     assertThat(inspectorRule.inspector.stopInspectorListeners).isEmpty()
   }
 }

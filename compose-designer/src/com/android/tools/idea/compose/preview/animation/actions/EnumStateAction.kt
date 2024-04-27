@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation.actions
 
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
 import com.intellij.ide.ui.laf.darcula.ui.ComboBoxButtonUI
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction

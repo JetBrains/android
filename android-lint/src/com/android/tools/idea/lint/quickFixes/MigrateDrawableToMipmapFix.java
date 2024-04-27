@@ -21,6 +21,7 @@ import static com.android.SdkConstants.FD_RES_VALUES;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -29,10 +30,9 @@ import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
-import com.android.tools.res.LocalResourceRepository;
+import com.google.common.collect.Sets;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
@@ -51,7 +51,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.psi.SearchUtils;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -79,10 +78,10 @@ public class MigrateDrawableToMipmapFix extends DefaultLintQuickFix {
     }
 
     final List<PsiFile> bitmaps = new ArrayList<>();
-    final Set<PsiElement> references = new HashSet<>();
+    final Set<PsiElement> references = Sets.newHashSet();
 
     GlobalSearchScope useScope = GlobalSearchScope.projectScope(project);
-    LocalResourceRepository projectResources = StudioResourceRepositoryManager.getProjectResources(facet);
+    ResourceRepository projectResources = StudioResourceRepositoryManager.getProjectResources(facet);
     List<ResourceItem> resourceItems = projectResources.getResources(ResourceNamespace.TODO(), myUrl.type, myUrl.name);
     for (ResourceItem item : resourceItems) {
       PsiFile file = IdeResourcesUtil.getItemPsiFile(project, item);
@@ -100,7 +99,7 @@ public class MigrateDrawableToMipmapFix extends DefaultLintQuickFix {
       }
     }
 
-    PsiField[] resourceFields = IdeResourcesUtil.findResourceFields(facet, ResourceType.DRAWABLE.getName(), myUrl.name, true);
+    PsiField[] resourceFields = IdeResourcesUtil.findResourceFields(facet, ResourceType.DRAWABLE.getName(), myUrl.name);
     if (resourceFields.length == 1) {
       Iterable<PsiReference> allReferences = SearchUtils.findAllReferences(resourceFields[0], useScope);
       for (PsiReference next : allReferences) {
@@ -111,7 +110,7 @@ public class MigrateDrawableToMipmapFix extends DefaultLintQuickFix {
       }
     }
 
-    Set<PsiFile> applicableFiles = new HashSet<>();
+    Set<PsiFile> applicableFiles = Sets.newHashSet();
     applicableFiles.addAll(bitmaps);
     for (PsiElement element : references) {
       PsiFile containingFile = element.getContainingFile();
@@ -133,7 +132,7 @@ public class MigrateDrawableToMipmapFix extends DefaultLintQuickFix {
             continue;
           }
 
-          if (FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE) && parent.getName().startsWith(FD_RES_VALUES)) {
+          if (file.getFileType() == XmlFileType.INSTANCE && parent.getName().startsWith(FD_RES_VALUES)) {
             // Resource alias rather than an actual drawable XML file: update the type reference instead
             XmlFile xmlFile = (XmlFile)bitmap;
             XmlTag root = xmlFile.getRootTag();

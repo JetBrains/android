@@ -20,8 +20,8 @@ import com.android.annotations.Nullable;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.crash.CrashReport;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ui.ExperimentalUI;
 import java.util.Map;
+import com.intellij.ui.ExperimentalUI;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 

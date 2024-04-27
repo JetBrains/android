@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.android.quickfix;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.intellij.codeInsight.ImportFilter;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;

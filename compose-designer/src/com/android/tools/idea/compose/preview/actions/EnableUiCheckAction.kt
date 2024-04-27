@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.PreviewMode
+import com.android.ide.common.rendering.HardwareConfigHelper
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
+import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.wm.ToolWindowManager
 import icons.StudioIcons
 
-class EnableUiCheckAction(private val dataContextProvider: () -> DataContext) :
+class EnableUiCheckAction :
   DumbAwareAction(
     message("action.uicheck.title"),
     message("action.uicheck.description"),
@@ -39,19 +40,23 @@ class EnableUiCheckAction(private val dataContextProvider: () -> DataContext) :
   override fun update(e: AnActionEvent) {
     val isUiCheckModeEnabled = StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()
     val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+    val isWearPreview =
+      HardwareConfigHelper.isWear(e.getData(SCENE_VIEW)?.sceneManager?.model?.configuration?.device)
     e.presentation.isVisible = isUiCheckModeEnabled
-    e.presentation.isEnabled = isUiCheckModeEnabled && !isEssentialsModeEnabled
-    e.presentation.text = if (isEssentialsModeEnabled) null else message("action.uicheck.title")
+    e.presentation.isEnabled = isUiCheckModeEnabled && !isEssentialsModeEnabled && !isWearPreview
+    e.presentation.text =
+      if (isEssentialsModeEnabled || isWearPreview) null else message("action.uicheck.title")
     e.presentation.description =
       if (isEssentialsModeEnabled) message("action.uicheck.essentials.mode.description")
+      else if (isWearPreview) message("action.uicheck.wear.description")
       else message("action.uicheck.description")
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val modelDataContext = dataContextProvider()
-    val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
-    val instanceId = modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) ?: return
-    manager.setMode(PreviewMode.UiCheck(selected = instanceId))
+    val modelDataContext = e.dataContext
+    val manager = modelDataContext.getData(PreviewModeManager.KEY) ?: return
+    val instanceId = modelDataContext.previewElement() ?: return
+    manager.setMode(PreviewMode.UiCheck(baseElement = instanceId))
 
     val problemsWindow =
       e.project?.let { ToolWindowManager.getInstance(it).getToolWindow(ProblemsView.ID) } ?: return

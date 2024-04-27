@@ -1,0 +1,63 @@
+<!--
+  ~ Copyright (C) 2023 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="/META-INF/android-kotlin-extensions.xml" xpointer="xpointer(/idea-plugin/*)" />
+  <extensions defaultExtensionNs="com.intellij">
+    <intentionAction>
+      <language>kotlin</language>
+      <className>org.jetbrains.kotlin.android.intention.ImplementParcelableAction</className>
+      <category>Kotlin Android</category>
+    </intentionAction>
+
+    <intentionAction>
+      <language>kotlin</language>
+      <className>org.jetbrains.kotlin.android.intention.RemoveParcelableAction</className>
+      <category>Kotlin Android</category>
+    </intentionAction>
+
+    <intentionAction>
+      <language>kotlin</language>
+      <className>org.jetbrains.kotlin.android.intention.RedoParcelableAction</className>
+      <category>Kotlin Android</category>
+    </intentionAction>
+
+    <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.K1TypeParameterFindViewByIdInspection"
+                     displayName="Cast can be converted to findViewById with type parameter"
+                     groupName="Kotlin Android"
+                     enabledByDefault="true"
+                     cleanupTool="true"
+                     level="WEAK WARNING"
+                     language="kotlin" />
+
+    <intentionAction>
+      <language>kotlin</language>
+      <className>org.jetbrains.kotlin.android.intention.K1KotlinAndroidAddStringResourceIntention</className>
+      <category>Kotlin Android</category>
+    </intentionAction>
+
+    <codeInsight.unresolvedReferenceQuickFixProvider
+        implementation="org.jetbrains.kotlin.android.quickfix.K1CreateResourceQuickFixProvider"/>
+    <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.K1AndroidKotlinResourceExternalAnnotator" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
+    <lintQuickFixProvider implementation="org.jetbrains.kotlin.android.quickfix.KotlinAndroidQuickFixProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <quickFixContributor implementation="org.jetbrains.kotlin.android.quickfix.K1AndroidViewConstructorFixRegistrar"/>
+  </extensions>
+</idea-plugin>

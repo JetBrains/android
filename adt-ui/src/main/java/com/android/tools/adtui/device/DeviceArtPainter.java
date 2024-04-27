@@ -29,10 +29,11 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.tools.adtui.ImageUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.Gray;
-import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.util.PathUtil;
+import com.intellij.util.ui.UIUtil;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Composite;
@@ -47,7 +48,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
@@ -70,7 +70,7 @@ import org.jetbrains.annotations.Nullable;
 public class DeviceArtPainter {
   @NotNull private static final DeviceArtPainter ourInstance = new DeviceArtPainter();
   @Nullable private static volatile String ourSystemPath;
-  @NotNull private Map<Device,DeviceData> myDeviceData = new HashMap<>();
+  @NotNull private Map<Device,DeviceData> myDeviceData = Maps.newHashMap();
   @Nullable private List<DeviceArtDescriptor> myDescriptors;
 
   /** Use {@link #getInstance()} */
@@ -316,7 +316,7 @@ public class DeviceArtPainter {
 
     if (withRetina) {
       //noinspection ConstantConditions
-      StartupUiUtil.drawImage(g, image, x, y, null);
+      UIUtil.drawImage(g, image, x, y, null);
     } else {
       g.drawImage(image, x, y, null);
     }
@@ -720,7 +720,7 @@ public class DeviceArtPainter {
     }
 
     private static File getThumbnailCacheDir() {
-      final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = FileUtil.toCanonicalPath(PathManager.getSystemPath()));
+      final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = PathUtil.getCanonicalPath(PathManager.getSystemPath()));
       //noinspection HardCodedStringLiteral
       return new File(path, "android-devices" + File.separator + "v4");
     }

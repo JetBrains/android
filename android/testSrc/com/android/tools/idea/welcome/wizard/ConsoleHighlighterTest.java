@@ -16,11 +16,7 @@
 package com.android.tools.idea.welcome.wizard;
 
 import com.intellij.openapi.editor.highlighter.HighlighterIterator;
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.testFramework.fixtures.*;
 import org.jetbrains.android.AndroidTestBase;
 
 public class ConsoleHighlighterTest extends AndroidTestBase {

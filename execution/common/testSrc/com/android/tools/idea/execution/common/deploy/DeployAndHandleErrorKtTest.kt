@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.execution.common.deploy
 
-import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.execution.common.AndroidExecutionException
@@ -31,14 +30,12 @@ import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assume.assumeThat
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
 
 class DeployAndHandleErrorKtTest {
   private val ACTIVITY_NAME = "com.example.Activity"
   private val APPLICATION_ID = "com.example"
-  private val device = mock(IDevice::class.java)
   private val deployerResult = Deployer.Result(false, false, false,
-                                               createApp(device, APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
+                                               createApp(APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
 
   val projectRule = AndroidProjectRule.inMemory()
   val notificationRule = NotificationRule(projectRule)

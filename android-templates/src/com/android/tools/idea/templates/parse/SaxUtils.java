@@ -16,7 +16,7 @@
 package com.android.tools.idea.templates.parse;
 
 import com.android.utils.XmlUtils;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +39,7 @@ public final class SaxUtils {
       return null;
     }
     String unescapedString = XmlUtils.fromXmlAttributeValue(value);
-    return new File(FileUtilRt.toSystemDependentName(unescapedString));
+    return new File(FileUtil.toSystemDependentName(unescapedString));
   }
 
   /**

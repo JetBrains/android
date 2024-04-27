@@ -1,756 +1,466 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.2.0-dev">
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/configurations/AdditionalDeviceService.kt"
-            line="43"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/stats/AndroidStudioStatisticsEventLoggerProvider.kt"
-            line="25"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/dom/converters/AndroidUsesFeatureNameConverter.kt"
-            line="28"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
-            line="53"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
-            line="56"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
-            line="59"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
-            line="62"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
-            line="65"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
-            line="69"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
-            line="72"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/rendering/AssetPreviewManager.kt"
-            line="75"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/rendering/ImageCache.kt"
-            line="52"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/importer/ImportersProvider.kt"
-            line="21"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/dom/layout/LayoutElementDescriptors.kt"
-            line="64"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
-            line="59"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
-            line="60"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerListViewModelImpl.kt"
-            line="135"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/plugin/ResourceImporter.kt"
-            line="27"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="277"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="280"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/testartifacts/instrumented/testsuite/adapter/UtpTestResultAdapter.kt"
-            line="62"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/org/jetbrains/android/dom/xml/XmlResourceDescriptors.kt"
-            line="55"/>
-    </issue>
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val DEFAULT_PREVIEW_SIZE = JBUI.scale(50)"
+        errorLine2="                                        ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/AssetListView.kt"
-            line="31"/>
+            line="31"
+            column="41"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    private val scaledCellSize = JBUIScale.scale(cellSize)"
+        errorLine2="                                           ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/widget/ChessBoardPanel.kt"
-            line="67"/>
+            line="67"
+            column="44"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="616"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="755"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="920"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="921"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="1385"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/ColorResourcePicker.kt"
-            line="299"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int FIGURE_PADDING = JBUI.scale(3);"
+        errorLine2="                                                 ~~~~~">
         <location
             file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="61"/>
+            line="62"
+            column="50"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int DIMENSION_LINE_WIDTH = JBUI.scale(1); // px"
+        errorLine2="                                                      ~~~~~">
         <location
             file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="63"/>
+            line="64"
+            column="55"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int OUTLINE_LINE_WIDTH = JBUI.scale(5);   // px"
+        errorLine2="                                                    ~~~~~">
         <location
             file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="64"/>
+            line="65"
+            column="53"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int PADDING = JBUI.scale(20);"
+        errorLine2="                                          ~~~~~">
         <location
             file="src/com/android/tools/idea/avdmanager/DeviceDefinitionPreview.java"
-            line="68"/>
+            line="69"
+            column="43"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final int INTER_SECTION_SPACING = JBUIScale.scale(1);"
+        errorLine2="                                                      ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-            line="51"/>
+            line="51"
+            column="55"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final int HEADER_TO_BODY_SPACING = JBUIScale.scale(4);"
+        errorLine2="                                                       ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-            line="52"/>
+            line="52"
+            column="56"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final int TOP_PADDING = JBUIScale.scale(40);"
+        errorLine2="                                            ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-            line="65"/>
+            line="65"
+            column="45"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final int NAME_OFFSET = JBUIScale.scale(50);"
+        errorLine2="                                            ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-            line="66"/>
+            line="66"
+            column="45"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final int MIN_API_FONT_SIZE = JBUIScale.scale(18);"
+        errorLine2="                                                  ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-            line="67"/>
+            line="67"
+            column="51"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final int MAX_API_FONT_SIZE = JBUIScale.scale(45);"
+        errorLine2="                                                  ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-            line="68"/>
+            line="68"
+            column="51"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final int API_OFFSET = JBUIScale.scale(120);"
+        errorLine2="                                           ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-            line="69"/>
+            line="69"
+            column="44"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final int NUMBER_OFFSET = JBUIScale.scale(10);"
+        errorLine2="                                              ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/DistributionChartComponent.java"
-            line="70"/>
+            line="70"
+            column="47"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val DEFAULT_IMAGE_SIZE = JBUI.scale(48)"
+        errorLine2="                                      ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/DrawableGrid.kt"
-            line="48"/>
+            line="48"
+            column="39"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/rendering/GutterIconCache.java"
-            line="39"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/rendering/GutterIconCache.java"
-            line="40"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int DEFAULT_HEIGHT = JBUI.scale(400);"
+        errorLine2="                                                 ~~~~~">
         <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
-            line="79"/>
+            line="79"
+            column="50"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int DEFAULT_WIDTH = JBUI.scale(600);"
+        errorLine2="                                                ~~~~~">
         <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
-            line="80"/>
+            line="80"
+            column="49"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int MIN_FONT_LIST_HEIGHT = JBUI.scale(200);"
+        errorLine2="                                                       ~~~~~">
         <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
-            line="81"/>
+            line="81"
+            column="56"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int MIN_FONT_LIST_WIDTH = JBUI.scale(250);"
+        errorLine2="                                                      ~~~~~">
         <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
-            line="82"/>
+            line="82"
+            column="55"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int MIN_FONT_PREVIEW_HEIGHT = JBUI.scale(200);"
+        errorLine2="                                                          ~~~~~">
         <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
-            line="83"/>
+            line="83"
+            column="59"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int MIN_FONT_PREVIEW_WIDTH = JBUI.scale(150);"
+        errorLine2="                                                         ~~~~~">
         <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
-            line="84"/>
+            line="84"
+            column="58"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int DESCENDER_SPACE = JBUI.scale(4);"
+        errorLine2="                                                  ~~~~~">
         <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
-            line="85"/>
+            line="85"
+            column="51"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val FLOW_LAYOUT_GAP = JBUI.scale(4)"
+        errorLine2="                                   ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/qualifiers/QualifierConfigurationPanel.kt"
-            line="53"/>
+            line="53"
+            column="36"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val MIN_FIELD_SIZE = JBUI.scale(40)"
+        errorLine2="                                  ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerToolbar.kt"
-            line="62"/>
+            line="62"
+            column="35"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val PREF_FIELD_SIZE = JBUI.scale(125)"
+        errorLine2="                                   ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerToolbar.kt"
-            line="63"/>
+            line="63"
+            column="36"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val MAX_FIELD_SIZE = JBUI.scale(150)"
+        errorLine2="                                  ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerToolbar.kt"
-            line="64"/>
+            line="64"
+            column="35"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val GAP_SIZE = JBUI.scale(10)"
+        errorLine2="                            ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerToolbar.kt"
-            line="66"/>
+            line="66"
+            column="29"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val listsGap = JBUI.scale(16)"
+        errorLine2="                              ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/widget/SectionList.kt"
-            line="69"/>
+            line="69"
+            column="31"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val lineWidth = JBUI.scale(1)"
+        errorLine2="                               ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/widget/Separator.kt"
-            line="34"/>
+            line="34"
+            column="32"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val ASSET_FIXED_WIDTH = JBUI.scale(150)"
+        errorLine2="                                     ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/sketchImporter/ui/SketchImporterView.kt"
-            line="51"/>
+            line="51"
+            column="38"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val ASSET_FIXED_HEIGHT = JBUI.scale(150)"
+        errorLine2="                                      ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/sketchImporter/ui/SketchImporterView.kt"
-            line="52"/>
+            line="52"
+            column="39"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        AnalyticsSettings.setInstanceForTest(analyticsSettings);"
+        errorLine2="                          ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/startup/AndroidStudioAnalyticsImpl.java"
-            line="55"/>
+            line="55"
+            column="27"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      !androidTestSources.containsFile(virtualFile) &amp;&amp; !androidTestSources.isContainedBy(virtualFile) &amp;&amp;"
+        errorLine2="                                                                           ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/testartifacts/instrumented/AndroidTestConfigurationProducer.kt"
-            line="173"/>
+            line="203"
+            column="76"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      !generatedAndroidTestSources.containsFile(virtualFile) &amp;&amp; !generatedAndroidTestSources.isContainedBy(virtualFile)"
+        errorLine2="                                                                                             ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/testartifacts/instrumented/AndroidTestConfigurationProducer.kt"
-            line="174"/>
+            line="204"
+            column="94"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
+        message="This class should only be accessed from tests or within package private scope"
+        errorLine1="    fun fromClass(loadClass: Class&lt;*>, classLocator: PseudoClassLocatorForLoader) ="
+        errorLine2="                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="137"/>
+            file="src/com/android/tools/idea/rendering/classloading/ClassWriterWithPseudoClassLocator.kt"
+            line="164"
+            column="54"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="151"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="151"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="309"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="573"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="576"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="579"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
-            line="582"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
-            line="54"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
-            line="60"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
-            line="60"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
-            line="84"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/rendering/classloading/loaders/ProjectSystemClassLoader.kt"
-            line="81"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/rendering/classloading/loaders/ProjectSystemClassLoader.kt"
-            line="81"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
-            line="64"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
-            line="64"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
-            line="64"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
-            line="73"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
-            line="73"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
-            line="73"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
-            line="73"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
-            line="73"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
-            line="73"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
+        message="This method should only be accessed from tests or within package private scope"
+        errorLine1="      if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl()"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="449"/>
+            line="441"
+            column="31"/>
     </issue>
 
     <issue
         id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`."
+        errorLine1="    if (file == mainManifestFile) {"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/model/MergedManifestInfo.java"
-            line="399"/>
+            line="403"
+            column="9"/>
     </issue>
 
     <issue
         id="CommonForkJoinPool"
-        message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`.">
+        message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`."
+        errorLine1="        ForkJoinPool.commonPool().execute(() -> {"
+        errorLine2="                     ~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
-            line="431"/>
+            line="431"
+            column="22"/>
     </issue>
 
     <issue
         id="ImplicitExecutor"
-        message="Use `runAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        message="Use `runAsync` overload with an explicit Executor instead. See `go/do-not-freeze`."
+        errorLine1="      CompletableFuture.runAsync { Files.deleteIfExists(report.hprofPath) }"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/diagnostics/hprof/action/AnalysisRunnable.kt"
-            line="103"/>
+            line="103"
+            column="7"/>
     </issue>
 
     <issue
         id="ImplicitExecutor"
-        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`."
+        errorLine1="    return CompletableFuture.supplyAsync(this::getLicenseTextSync);"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/actions/license/LicenseTextCollector.java"
-            line="38"/>
+            line="38"
+            column="12"/>
     </issue>
 
     <issue
         id="ImplicitExecutor"
-        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`."
+        errorLine1="    CompletableFuture.supplyAsync {"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/plugin/RasterAssetRenderer.kt"
-            line="36"/>
+            line="36"
+            column="5"/>
     </issue>
 
     <issue
         id="ImplicitExecutor"
-        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`."
+        errorLine1="    return CompletableFuture.supplyAsync {"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/plugin/SVGAssetRenderer.kt"
-            line="45"/>
+            line="37"
+            column="12"/>
     </issue>
 
 </issues>

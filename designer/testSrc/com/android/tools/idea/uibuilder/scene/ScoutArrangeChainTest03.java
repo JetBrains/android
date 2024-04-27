@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
-
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
+
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
 
 /**
  * Check Chain Minipulation APIs.

@@ -17,15 +17,10 @@ package com.android.tools.idea.run.editor;
 
 import static org.junit.Assert.assertEquals;
 
-import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
-import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.run.TargetSelectionMode;
-import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import java.util.Arrays;
 import java.util.List;
-import javax.swing.JLabel;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -33,41 +28,24 @@ import org.mockito.Mockito;
 public final class AndroidRunConfigurationEditorForCloudTestMatrixTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
+  private AndroidRunConfigurationEditor<AndroidTestRunConfiguration> androidRunConfigurationEditor;
 
   @Test
   public void applyEditorTo() {
     // Arrange
-    AndroidDebuggerContext androidDebuggerContext = Mockito.mock(AndroidDebuggerContext.class);
     DeployTargetProvider provider = new CloudTestMatrixTargetProvider();
-    List<DeployTargetProvider> providers = Arrays.asList(new DeviceAndSnapshotComboBoxTargetProvider(), provider);
+    AndroidRunConfigurationEditorTest runConfigEditorTest = new AndroidRunConfigurationEditorTest();
+    List<DeployTargetProvider> providers = runConfigEditorTest.getTargetProviders(provider);
 
-    AndroidTestRunConfiguration configuration1 = Mockito.mock(AndroidTestRunConfiguration.class);
-    Mockito.when(configuration1.getAndroidDebuggerContext()).thenReturn(androidDebuggerContext);
-    Mockito.when(configuration1.getApplicableDeployTargetProviders()).thenReturn(providers);
-    Mockito.when(configuration1.getProfilerState()).thenReturn(new ProfilerState());
-
-    @SuppressWarnings("unchecked")
-    ConfigurationSpecificEditor<AndroidTestRunConfiguration> configurationSpecificEditor = Mockito.mock(ConfigurationSpecificEditor.class);
-    Mockito.when(configurationSpecificEditor.getComponent()).thenReturn(new JLabel());
-
-    AndroidRunConfigurationEditor<AndroidTestRunConfiguration> androidRunConfigurationEditor =
-      new AndroidRunConfigurationEditor<>(
-        myRule.getProject(),
-        facet -> false,
-        configuration1,
-        true,
-        false,
-        moduleSelector -> configurationSpecificEditor);
-
+    androidRunConfigurationEditor = runConfigEditorTest.getAndroidRunConfigurationEditor(provider, myRule.getProject());
     DeployTargetContext deployTargetContext = new DeployTargetContext(providers);
-
-    AndroidTestRunConfiguration configuration2 = Mockito.mock(AndroidTestRunConfiguration.class);
-    Mockito.when(configuration2.getDeployTargetContext()).thenReturn(deployTargetContext);
-    Mockito.when(configuration2.getProfilerState()).thenReturn(new ProfilerState());
+    AndroidTestRunConfiguration configuration = Mockito.mock(AndroidTestRunConfiguration.class);
+    Mockito.when(configuration.getDeployTargetContext()).thenReturn(deployTargetContext);
+    Mockito.when(configuration.getProfilerState()).thenReturn(new ProfilerState());
 
     // Act
     androidRunConfigurationEditor.getDeploymentTargetOptions().getTargetComboBox().setSelectedItem(provider);
-    androidRunConfigurationEditor.applyEditorTo(configuration2);
+    androidRunConfigurationEditor.applyEditorTo(configuration);
 
     // Assert
     assertEquals(TargetSelectionMode.FIREBASE_DEVICE_MATRIX, deployTargetContext.getTargetSelectionMode());

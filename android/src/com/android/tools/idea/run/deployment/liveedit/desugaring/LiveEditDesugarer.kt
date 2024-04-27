@@ -20,8 +20,8 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiledClass
 import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.buildLibraryDesugarFailure
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.desugarFailure
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.buildLibraryDesugarFailure
 import com.android.tools.r8.ClassFileResourceProvider
 import com.android.tools.r8.CompilationFailedException
 import com.android.tools.r8.D8

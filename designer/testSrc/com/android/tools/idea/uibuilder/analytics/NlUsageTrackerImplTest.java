@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.analytics;
 
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER;
 import static com.android.SdkConstants.ATTR_ELEVATION;
 import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
 import static com.android.SdkConstants.EDIT_TEXT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
@@ -58,13 +58,11 @@ import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.tools.configurations.Configuration;
-import com.android.tools.dom.attrs.AttributeDefinition;
-import com.android.tools.dom.attrs.AttributeDefinitions;
 import com.android.tools.idea.common.analytics.BaseUsageTrackerImplTest;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
@@ -83,6 +81,8 @@ import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import org.intellij.lang.annotations.Language;
+import com.android.tools.dom.attrs.AttributeDefinition;
+import com.android.tools.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;

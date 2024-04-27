@@ -1,4 +1,4 @@
-// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.android.tools.analytics.AnalyticsSettings;
@@ -13,6 +13,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.ApplicationInitializedListenerJavaShim;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Anchor;
@@ -64,7 +65,7 @@ public final class AndroidPlugin {
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
   }
 
-  private static void setUpActionsUnderFlag(@NotNull ActionManager actionManager) {
+  private static void setUpActionsUnderFlag(ActionManager actionManager) {
     // TODO: Once the StudioFlag is removed, the configuration type registration should move to the
     // android-plugin.xml file.
     if (StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get()) {
@@ -77,6 +78,11 @@ public final class AndroidPlugin {
           public void update(@NotNull AnActionEvent e) {
             Project project = e.getProject();
             e.getPresentation().setEnabledAndVisible(project != null && ProjectSystemUtil.requiresAndroidModel(project));
+          }
+          @NotNull
+          @Override
+          public ActionUpdateThread getActionUpdateThread() {
+            return ActionUpdateThread.BGT;
           }
         };
         actionManager.registerAction(groupId, group);

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.naveditor;
 
-import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
+import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -27,8 +29,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,32 +42,36 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class NavigateToLayoutFromNavGraphTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
-  private IdeFrameFixture ideFrame = null;
-  private NlEditorFixture editorFixture = null;
+  private IdeFrameFixture ideFrame;
+  private NlEditorFixture myNlEditorFixture;
+  private EditorFixture myEditorFixture;
 
   protected static final String BASIC_ACTIVITY_TEMPLATE = "Basic Views Activity";
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
-  protected static final int MIN_SDK_API = 30;
+  protected static final int MIN_SDK_API = SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION;
 
   private static final String FRAGMENT_FILE_NAME = "fragment_first.xml";
   private static final String FRAGMENT_FILE_PATH = "app/src/main/res/layout/fragment_first.xml";
 
+  private static final String NAVGRAPH_FILE_PATH = "app/src/main/res/navigation/nav_graph.xml";
 
   @Before
   public void setUp() throws Exception{
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
+    WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Kotlin);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    ideFrame = guiTest.ideFrame();
+    myEditorFixture = ideFrame.getEditor();
     ideFrame.clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    ideFrame.getProjectView().assertFilesExist(
-      "app/src/main/res/navigation/nav_graph.xml"
-    );
+    myEditorFixture.open(NAVGRAPH_FILE_PATH, EditorFixture.Tab.DESIGN);
+    BuildStatus result = ideFrame.invokeProjectMake(Wait.seconds(240));
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    assertTrue(result.isBuildSuccessful());
   }
 
   /**
@@ -91,18 +100,18 @@ public class NavigateToLayoutFromNavGraphTest {
   @Test
   public void navigateToLayoutFromDesignTab() throws Exception{
 
+    ideFrame.requestFocusIfLost();
     //Loading the navigation layout from Design View
-    editorFixture  = guiTest.ideFrame()
-      .getEditor()
-      .open("app/src/main/res/navigation/nav_graph.xml", EditorFixture.Tab.DESIGN)
+    myNlEditorFixture  = myEditorFixture
       .getLayoutEditor()
       .waitForSurfaceToLoad()
       .waitForRenderToFinish();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    assertThat(editorFixture.canInteractWithSurface()).isTrue();
+    assertThat(myNlEditorFixture.canInteractWithSurface()).isTrue();
 
     // Modify "Set Start Destination" in right click menu
-    ((NavDesignSurfaceFixture)editorFixture.getSurface()).findDestination("FirstFragment").doubleClick();
+    ((NavDesignSurfaceFixture)myNlEditorFixture.getSurface()).findDestination("FirstFragment").click();
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
 
     //Wait for fragment file to open
     waitForFragmentFile();
@@ -110,26 +119,28 @@ public class NavigateToLayoutFromNavGraphTest {
     assertEquals(FRAGMENT_FILE_NAME, guiTest.ideFrame().getEditor().getCurrentFileName());
 
     guiTest.ideFrame().getEditor().closeFile(FRAGMENT_FILE_PATH);
-    guiTest.robot().focusAndWaitForFocusGain(editorFixture.target());
+    guiTest.robot().focusAndWaitForFocusGain(myNlEditorFixture.target());
 
     //Loading the navigation layout from Split View
     guiTest.ideFrame().getEditor().selectEditorTab(EditorFixture.Tab.SPLIT);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Modify "Set Start Destination" in right click menu
-    ((NavDesignSurfaceFixture)editorFixture.getSurface()).findDestination("FirstFragment").doubleClick();
+    ((NavDesignSurfaceFixture)myNlEditorFixture.getSurface()).findDestination("FirstFragment").click();
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
 
     //Wait for fragment file to open
     waitForFragmentFile();
 
     assertEquals(FRAGMENT_FILE_NAME, guiTest.ideFrame().getEditor().getCurrentFileName());
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
   private void waitForFragmentFile() {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     guiTest.robot().waitForIdle();
 
-    guiTest.ideFrame().getEditor()
+    myEditorFixture
       .selectEditorTab(EditorFixture.Tab.EDITOR);
 
     guiTest.ideFrame().requestFocusIfLost();

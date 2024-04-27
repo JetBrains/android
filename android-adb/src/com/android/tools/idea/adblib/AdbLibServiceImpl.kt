@@ -36,6 +36,11 @@ import java.time.Duration
  * The production implementation of [AdbLibService]
  */
 internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposable {
+  /**
+   * Take a snapshot of the flag in case the value changes (during tests for example)
+   */
+  private val oneSessionPerProject = StudioFlags.ADBLIB_ONE_SESSION_PER_PROJECT.get()
+
   init {
     AdbLibApplicationService.instance.registerProject(project)
   }
@@ -55,9 +60,6 @@ internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposab
   }
 
   companion object {
-    private val oneSessionPerProject: Boolean
-      get() = StudioFlags.ADBLIB_ONE_SESSION_PER_PROJECT.get()
-
     private fun createProjectSession(project: Project): AdbSession {
       // re-use host from application service
       val host = AdbLibApplicationService.instance.session.host

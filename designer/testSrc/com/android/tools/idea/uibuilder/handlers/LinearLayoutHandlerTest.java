@@ -15,27 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
-import static com.android.tools.idea.uibuilder.model.SegmentType.BOTTOM;
-import static com.android.tools.idea.uibuilder.model.SegmentType.LEFT;
-import static com.android.tools.idea.uibuilder.model.SegmentType.RIGHT;
-import static com.android.tools.idea.uibuilder.model.SegmentType.TOP;
-
-import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.util.NlTreeDumper;
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.EmptyStackException;
-import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.model.SegmentType.*;
 
 public class LinearLayoutHandlerTest extends LayoutTestCase {
 

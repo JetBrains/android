@@ -23,16 +23,15 @@ import com.android.manifmerger.Actions;
 import com.android.manifmerger.ManifestMerger2;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlDocument;
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.project.SyncTimestampUtil;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ManifestOverrides;
 import com.android.tools.idea.projectsystem.MergedManifestContributors;
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
-import com.android.utils.Pair;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
@@ -53,7 +52,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -83,7 +82,7 @@ final class MergedManifestInfo {
    */
   @Nullable private final Document myDomDocument;
   @NotNull private final ModificationStamps myModificationStamps;
-  private final long mySyncTimestamp;
+  private final long mySyncModificationCount;
   @Nullable private final ImmutableList<MergingReport.Record> myLoggingRecords;
   @Nullable private final Actions myActions;
 
@@ -183,13 +182,13 @@ final class MergedManifestInfo {
   private MergedManifestInfo(@NotNull AndroidFacet facet,
                              @Nullable Document domDocument,
                              @NotNull ModificationStamps modificationStamps,
-                             long syncTimestamp,
+                             long syncModificationCount,
                              @Nullable ImmutableList<MergingReport.Record> loggingRecords,
                              @Nullable Actions actions) {
     myFacet = facet;
     myDomDocument = domDocument;
     myModificationStamps = modificationStamps;
-    mySyncTimestamp = syncTimestamp;
+    mySyncModificationCount = syncModificationCount;
     myLoggingRecords = loggingRecords;
     myActions = actions;
   }
@@ -201,10 +200,10 @@ final class MergedManifestInfo {
   @NotNull
   public static MergedManifestInfo create(@NotNull AndroidFacet facet) {
     Project project = facet.getModule().getProject();
-    long syncTimestamp = SyncTimestampUtil.getLastSyncTimestamp(project);
 
     MergedManifestContributors contributors = ProjectSystemUtil.getModuleSystem(facet).getMergedManifestContributors();
     ModificationStamps modificationStamps = ModificationStamps.forFiles(project, contributors.allFiles);
+    long syncModificationCount = ProjectSyncModificationTracker.getInstance(project).getModificationCount();
 
     Document document = null;
     ImmutableList<MergingReport.Record> loggingRecords = null;
@@ -217,7 +216,7 @@ final class MergedManifestInfo {
       actions = result.actions;
     }
 
-    return new MergedManifestInfo(facet, document, modificationStamps, syncTimestamp, loggingRecords, actions);
+    return new MergedManifestInfo(facet, document, modificationStamps, syncModificationCount, loggingRecords, actions);
   }
 
   @Slow
@@ -267,8 +266,8 @@ final class MergedManifestInfo {
     if (manifests.primaryManifest == null) {
       return true;
     }
-    long lastSyncTimestamp = SyncTimestampUtil.getLastSyncTimestamp(myFacet.getModule().getProject());
-    if (myDomDocument == null || mySyncTimestamp != lastSyncTimestamp) {
+    long modificationCount = ProjectSyncModificationTracker.getInstance(myFacet.getModule().getProject()).getModificationCount();
+    if (myDomDocument == null || modificationCount != mySyncModificationCount) {
       return false;
     }
     return myModificationStamps.isCurrent(myFacet.getModule().getProject(), manifests.allFiles);
@@ -321,17 +320,13 @@ final class MergedManifestInfo {
 
     ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);
     manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.SKIP_BLAME, ManifestMerger2.Invoker.Feature.SKIP_XML_STRING, ManifestMerger2.Invoker.Feature.KEEP_GOING_AFTER_ERRORS);
-    if(!isVersionAtLeast7_4_0(facet.getModule().getProject()))
-      manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.DISABLE_STRIP_LIBRARY_TARGET_SDK);
     manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[0]));
     manifestMergerInvoker.addNavigationFiles(VfsUtilCore.virtualToIoFiles(navigationFiles));
     manifestMergerInvoker.withProcessCancellationChecker(ProgressManager::checkCanceled);
 
-    List<Pair<String, File>> libraryManifests = new ArrayList<>();
     for (VirtualFile file : libManifests) {
-      libraryManifests.add(Pair.of(file.getName(), VfsUtilCore.virtualToIoFile(file)));
+      manifestMergerInvoker.addLibraryManifest(file.getName(), VfsUtilCore.virtualToIoFile(file));
     }
-    manifestMergerInvoker.addBundleManifests(libraryManifests);
 
     AndroidModuleSystem androidModuleSystem = ProjectSystemUtil.getModuleSystem(facet.getModule());
     String packageName = androidModuleSystem.getPackageName();
@@ -390,6 +385,14 @@ final class MergedManifestInfo {
       }
     });
 
+    Project project = facet.getModule().getProject();
+    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+    Optional<MergedManifestInfoToken<AndroidProjectSystem>> maybeToken =
+      Arrays.stream(MergedManifestInfoToken.EP_NAME.getExtensions(project))
+        .filter(t -> t.isApplicable(projectSystem))
+        .findFirst();
+    maybeToken.ifPresent(token -> token.withProjectSystemFeatures(projectSystem, manifestMergerInvoker));
+
     return manifestMergerInvoker.merge();
   }
 
@@ -419,12 +422,5 @@ final class MergedManifestInfo {
       return androidFacet.getMainModule();
     }
     return null;
-  }
-
-  private static boolean isVersionAtLeast7_4_0(Project project) {
-    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromModel(project);
-    return androidPluginInfo != null &&
-           androidPluginInfo.getPluginVersion() != null &&
-           androidPluginInfo.getPluginVersion().isAtLeast(7, 4, 0);
   }
 }

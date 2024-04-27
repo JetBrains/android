@@ -15,20 +15,14 @@
  */
 package com.android.tools.idea.gradle.service.notification
 
-import com.android.tools.idea.gradle.project.extensions.externalProjectFile
 import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkValidationManager
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.FileUtils
 import com.intellij.openapi.externalSystem.service.notification.NotificationData
-import com.intellij.openapi.externalSystem.util.ExternalSystemBundle
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.service.notification.GradleNotificationExtension
-import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleBundle
-import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.nio.file.Paths
 
@@ -58,16 +52,16 @@ import java.nio.file.Paths
  */
 class GradleJvmNotificationExtension: GradleNotificationExtension() {
 
-  override fun customize(notificationData: NotificationData, project: Project, error: Throwable?) {
-    super.customize(notificationData, project, error)
-    val expectedPrefix = GradleBundle.message("gradle.jvm.is.invalid")
-    if (notificationData.message.startsWith(expectedPrefix)) {
+  override fun customize(notificationData: NotificationData, project: Project, externalProjectPath: String, error: Throwable?) {
+    super.customize(notificationData, project, externalProjectPath, error)
+    val expectedJvmInvalidPrefix = GradleBundle.message("gradle.jvm.is.invalid")
+    val expectedJvmIsJrePrefix = GradleBundle.message("gradle.jvm.is.jre")
+    if (notificationData.message.startsWith(expectedJvmInvalidPrefix) || notificationData.message.startsWith(expectedJvmIsJrePrefix)) {
       val ideSdks = IdeSdks.getInstance()
       val messageBuilder = StringBuilder()
-      messageBuilder.appendLine(expectedPrefix)
+      messageBuilder.appendLine(expectedJvmInvalidPrefix)
       // Add more information on why it is not valid
-      val gradleRootPath = getGradleProjectRootFromNotification(notificationData, project)
-      GradleJdkValidationManager.getInstance(project).validateProjectGradleJvmPath(project, gradleRootPath)?.let { exception ->
+      GradleJdkValidationManager.getInstance(project).validateProjectGradleJvmPath(project, externalProjectPath)?.let { exception ->
         messageBuilder.appendLine(exception.message)
         notificationData.filePath = exception.jdkPathLocationFile?.absolutePath
       }
@@ -101,7 +95,7 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
       }
       // Add change JDK location link
       if ((registeredListeners != null) && (!registeredListeners.contains(OpenProjectJdkLocationListener.ID))) {
-        OpenProjectJdkLocationListener.create(project, gradleRootPath)?.let { listener ->
+        OpenProjectJdkLocationListener.create(project, externalProjectPath)?.let { listener ->
           messageBuilder.appendLine("<a href=\"${OpenProjectJdkLocationListener.ID}\">Change Gradle JDK location</a>")
           notificationData.setListener(OpenProjectJdkLocationListener.ID, listener)
         }
@@ -109,19 +103,5 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
 
       notificationData.message = messageBuilder.toString().trim()
     }
-  }
-
-  /**
-   * Obtain the gradle project root path from notification. This is a workaround added to be able to extract the path from the
-   * notification title given that IntelliJ doesn't forward it from [ExternalSystemUtil.createFailureResult] b/271082369
-   */
-  private fun getGradleProjectRootFromNotification(notificationData: NotificationData, project: Project): @SystemIndependent String {
-    val gradleRootPattern = Regex(ExternalSystemBundle.message("notification.project.refresh.fail.title", GradleConstants.GRADLE_NAME, "(.+)"))
-    gradleRootPattern.find(notificationData.title)?.groupValues?.get(1)?.let { gradleRootName ->
-      GradleSettings.getInstance(project).linkedProjectsSettings
-        .firstOrNull { it.externalProjectFile.endsWith(gradleRootName) }
-        ?.let { return it.externalProjectPath }
-    }
-    return project.basePath.orEmpty()
   }
 }

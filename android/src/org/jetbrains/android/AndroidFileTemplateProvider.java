@@ -16,13 +16,7 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.lang.aidl.AidlFileType;
-import com.intellij.ide.fileTemplates.FileTemplate;
-import com.intellij.ide.fileTemplates.FileTemplateDescriptor;
-import com.intellij.ide.fileTemplates.FileTemplateGroupDescriptor;
-import com.intellij.ide.fileTemplates.FileTemplateGroupDescriptorFactory;
-import com.intellij.ide.fileTemplates.FileTemplateManager;
-import com.intellij.ide.fileTemplates.FileTemplateUtil;
+import com.intellij.ide.fileTemplates.*;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.project.Project;
@@ -31,11 +25,13 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
+import com.android.tools.idea.lang.aidl.AidlFileType;
 import icons.StudioIcons;
-import java.util.Properties;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Properties;
 
 public class AndroidFileTemplateProvider implements FileTemplateGroupDescriptorFactory {
   @NonNls public static final String REMOTE_INTERFACE_TEMPLATE = "Remote_Interface.aidl";

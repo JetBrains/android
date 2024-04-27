@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-sdk" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-Groovy" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-c-clangd-plugin" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-c-clangdBridge-plugin" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-c-plugin" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-cidr-base-plugin" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-cidr-clangConfig-plugin" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-cidr-clangFormat-plugin" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-cidr-debugger-plugin" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-completionMlRanking" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-configurationScript" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-copyright" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-dev" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-devkit" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-editorconfig" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-gradle" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-gradle-java" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-html-tools" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-java-coverage" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-java-debugger-streams" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-java-decompiler" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-java-i18n" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-java-ide-customization" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-junit" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-keymap-eclipse" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-keymap-netbeans" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-keymap-visualStudio" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-markdown" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-maven-model" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-maven-server" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-performanceTesting" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-platform-images" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-platform-langInjection" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-properties" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-repository-search" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-sh" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-tasks" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-terminal" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-testng" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-textmate" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-toml" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-vcs-git" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-vcs-github" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-vcs-gitlab" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-vcs-hg" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-vcs-svn" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-webp" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-yaml" level="project" />
+  </component>
+</module>

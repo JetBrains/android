@@ -1,0 +1,47 @@
+<HTML>
+<code>
+  public
+  class
+  AccessibilityNodeInfo
+</code>
+<br>
+<code class="api-signature" translate="no" dir="ltr">
+    extends <a href="/reference/java/lang/Object">Object</a>
+</code>
+<code class="api-signature" translate="no" dir="ltr">
+      implements
+        <a href="/reference/android/os/Parcelable">Parcelable</a>
+</code>
+</code>
+<hr><div>
+  <p>This class represents a node of the window content as well as actions that
+ can be requested from its source. From the point of view of an
+ <code translate="no" dir="ltr"><a href="/reference/android/accessibilityservice/AccessibilityService">AccessibilityService</a></code> a window's content is
+ presented as a tree of accessibility node infos, which may or may not map one-to-one
+ to the view hierarchy. In other words, a custom view is free to report itself as
+ a tree of accessibility node info.
+ </p>
+ <p>
+ Once an accessibility node info is delivered to an accessibility service it is
+ made immutable and calling a state mutation method generates an error. See
+ <code translate="no" dir="ltr"><a href="/reference/android/view/accessibility/AccessibilityNodeInfo#setQueryFromAppProcessEnabled(android.view.View,%20boolean)">setQueryFromAppProcessEnabled(View, boolean)</a></code> if you would like to inspect the
+ node tree from the app process for testing or debugging tools.
+ </p>
+ <p>
+ Please refer to <code translate="no" dir="ltr"><a href="/reference/android/accessibilityservice/AccessibilityService">AccessibilityService</a></code> for
+ details about how to obtain a handle to window content as a tree of accessibility
+ node info as well as details about the security model.
+ </p>
+ <div class="special reference">
+ <h3 id="developer-guides" data-text="Developer Guides">Developer Guides</h3>
+ <p>For more information about making applications accessible, read the
+ <a href="/guide/topics/ui/accessibility">Accessibility</a>
+ developer guide.</p>
+ </div></p>
+  <div>
+      <p><b>See also:</b></p>
+      <ul class="nolist"><li><code translate="no" dir="ltr"><a href="/reference/android/accessibilityservice/AccessibilityService">AccessibilityService</a></code></li><li><code translate="no" dir="ltr"><a href="/reference/android/view/accessibility/AccessibilityEvent">AccessibilityEvent</a></code></li><li><code translate="no" dir="ltr"><a href="/reference/android/view/accessibility/AccessibilityManager">AccessibilityManager</a></code></li>
+      </ul>
+  </div>
+</div>
+</HTML>

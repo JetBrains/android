@@ -32,6 +32,7 @@ import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
 import com.android.tools.proguard.ProguardUsagesMap;
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
+import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
@@ -79,7 +80,6 @@ import java.awt.BorderLayout;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
@@ -250,7 +250,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
       ProguardMap proguardMap = new ProguardMap();
       if (mappingFile != null) {
         try {
-          proguardMap.readFromReader(new InputStreamReader(Files.newInputStream(mappingFile), StandardCharsets.UTF_8));
+          proguardMap.readFromReader(new InputStreamReader(Files.newInputStream(mappingFile), Charsets.UTF_8));
           loaded.add(mappingFile.getFileName().toString());
         }
         catch (IOException | ParseException e) {
@@ -263,7 +263,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
       ProguardSeedsMap seeds = null;
       if (seedsFile != null) {
         try {
-          seeds = ProguardSeedsMap.parse(new InputStreamReader(Files.newInputStream(seedsFile), StandardCharsets.UTF_8));
+          seeds = ProguardSeedsMap.parse(new InputStreamReader(Files.newInputStream(seedsFile), Charsets.UTF_8));
           loaded.add(seedsFile.getFileName().toString());
         }
         catch (IOException e) {
@@ -280,7 +280,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
       ProguardUsagesMap usage = null;
       if (usageFile != null) {
         try {
-          usage = ProguardUsagesMap.parse(new InputStreamReader(Files.newInputStream(usageFile), StandardCharsets.UTF_8));
+          usage = ProguardUsagesMap.parse(new InputStreamReader(Files.newInputStream(usageFile), Charsets.UTF_8));
           loaded.add(usageFile.getFileName().toString());
         }
         catch (IOException e) {
@@ -449,6 +449,16 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
       }
     }
     return true;
+  }
+
+  @Override
+  public void selectNotify() {
+
+  }
+
+  @Override
+  public void deselectNotify() {
+
   }
 
   @Override

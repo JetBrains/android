@@ -1,4 +1,4 @@
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
 import java.io.File
 

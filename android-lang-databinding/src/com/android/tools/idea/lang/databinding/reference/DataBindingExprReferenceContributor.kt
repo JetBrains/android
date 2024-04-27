@@ -464,14 +464,14 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
        * Example: `text` in `@text/zero` -> `string` in `<string name="zero">there are <b>zero</b></string>`
        */
       private val DATA_BINDING_RESOURCE_TO_XML_DECLARATION = mutableMapOf<String, String>().apply {
-        put("colorStateList", "color")
-        put("dimenOffset", "dimen")
-        put("dimenSize", "dimen")
-        put("intArray", "array")
-        put("stateListAnimator", "animator")
-        put("stringArray", "array")
-        put("text", "string")
-        put("typedArray", "array")
+        put("colorStateList", "color");
+        put("dimenOffset", "dimen");
+        put("dimenSize", "dimen");
+        put("intArray", "array");
+        put("stateListAnimator", "animator");
+        put("stringArray", "array");
+        put("text", "string");
+        put("typedArray", "array");
       }
     }
 

@@ -22,9 +22,7 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.Flow
 import java.time.Duration
 
-/**
- * Reads and clears a logcat from a device
- */
+/** Reads and clears a logcat from a device */
 interface LogcatService {
   suspend fun readLogcat(
     serialNumber: String,

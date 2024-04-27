@@ -19,7 +19,7 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
@@ -166,11 +166,8 @@ class DeviceFileDropHandlerTest {
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
-    val panel = EmulatorToolWindowPanel(projectRule.project, emulatorController)
+    val panel = EmulatorToolWindowPanel(testRootDisposable, projectRule.project, emulatorController)
     Disposer.register(testRootDisposable) {
-      if (panel.primaryEmulatorView != null) {
-        panel.destroyContent()
-      }
       emulator.stop()
     }
     panel.zoomToolbarVisible = true

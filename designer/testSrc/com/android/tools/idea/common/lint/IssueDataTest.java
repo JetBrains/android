@@ -24,6 +24,7 @@ import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;

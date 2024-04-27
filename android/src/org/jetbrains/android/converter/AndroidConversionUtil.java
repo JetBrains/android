@@ -1,13 +1,14 @@
 package org.jetbrains.android.converter;
 
 import com.intellij.conversion.ModuleSettings;
-import java.util.Collection;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 class AndroidConversionUtil {
   @NonNls static final String OPTION_VALUE_ATTRIBUTE = "value";

@@ -22,7 +22,9 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
+import com.android.tools.idea.uibuilder.scene.hasValidImage
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
@@ -68,10 +70,14 @@ internal class SceneViewPanel(
       }
     }
 
-  /** Returns the components of this panel that are [PositionableContent] */
+  /** Returns the components of this panel that are visible [PositionableContent] */
   val positionableContent: Collection<PositionableContent>
     get() =
-      components.filterIsInstance<SceneViewPeerPanel>().map { it.positionableAdapter }.toList()
+      components
+        .filterIsInstance<SceneViewPeerPanel>()
+        .filter { it.isVisible }
+        .map { it.positionableAdapter }
+        .toList()
 
   /** Remove any components associated to the given model. */
   fun removeSceneViewForModel(modelToRemove: NlModel) {
@@ -85,9 +91,6 @@ internal class SceneViewPanel(
     invalidate()
   }
 
-  /** Invoked when label in [SceneViewPeerPanel] is clicked. */
-  var onLabelClicked: (suspend (SceneView, Boolean) -> Boolean) = { _, _ -> true }
-
   @UiThread
   private fun revalidateSceneViews() {
     // Check if the SceneViews are still valid
@@ -99,30 +102,40 @@ internal class SceneViewPanel(
     // Invalidate the current components
     removeAll()
     designSurfaceSceneViews.forEachIndexed { index, sceneView ->
-      val toolbar = actionManagerProvider().getSceneViewContextToolbar(sceneView)
+      val toolbarActions = actionManagerProvider().sceneViewContextToolbarActions
       val bottomBar = actionManagerProvider().getSceneViewBottomBar(sceneView)
-      val statusIcon = actionManagerProvider().getSceneViewStatusIcon(sceneView)
-      statusIcon?.isVisible = false
+      val statusIconAction = actionManagerProvider().sceneViewStatusIconAction
 
       // The left bar is only added for the first panel
       val leftBar = if (index == 0) actionManagerProvider().getSceneViewLeftBar(sceneView) else null
       val rightBar = actionManagerProvider().getSceneViewRightBar(sceneView)
 
       val errorsPanel =
-        if (shouldRenderErrorsPanel()) SceneViewErrorsPanel { sceneView.hasRenderErrors() }
+        if (shouldRenderErrorsPanel())
+          SceneViewErrorsPanel {
+            when {
+              // If the flag COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR is enabled and  there is a valid
+              // image, never display the error panel.
+              sceneView.hasValidImage() && StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.get() ->
+                SceneViewErrorsPanel.Style.HIDDEN
+              sceneView.hasRenderErrors() -> SceneViewErrorsPanel.Style.SOLID
+              else -> SceneViewErrorsPanel.Style.HIDDEN
+            }
+          }
         else null
+
+      val labelPanel = actionManagerProvider().createSceneViewLabel(sceneView)
 
       add(
         SceneViewPeerPanel(
             sceneView,
-            disposable,
-            statusIcon,
-            toolbar,
+            labelPanel,
+            statusIconAction,
+            toolbarActions,
             bottomBar,
             leftBar,
             rightBar,
             errorsPanel,
-            onLabelClicked
           )
           .also { it.alignmentX = sceneViewAlignment }
       )
@@ -165,7 +178,9 @@ internal class SceneViewPanel(
         val positionable = sceneViewPeerPanel.positionableAdapter
         val size = positionable.getScaledContentSize(reusableDimension)
         val renderErrorPanel =
-          shouldRenderErrorsPanel() && sceneViewPeerPanel.sceneView.hasRenderErrors()
+          shouldRenderErrorsPanel() &&
+            sceneViewPeerPanel.sceneView.hasRenderErrors() &&
+            !sceneViewPeerPanel.sceneView.hasValidImage()
 
         @SwingCoordinate
         val right =

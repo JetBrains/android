@@ -16,8 +16,8 @@
 package com.android.tools.profilers
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
-import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreModel

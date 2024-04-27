@@ -15,25 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ORIENTATION;
-import static com.android.SdkConstants.ATTR_PADDING;
-import static com.android.SdkConstants.ATTR_PADDING_BOTTOM;
-import static com.android.SdkConstants.ATTR_PADDING_END;
-import static com.android.SdkConstants.ATTR_PADDING_LEFT;
-import static com.android.SdkConstants.ATTR_PADDING_RIGHT;
-import static com.android.SdkConstants.ATTR_PADDING_START;
-import static com.android.SdkConstants.ATTR_PADDING_TOP;
-
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import java.awt.Rectangle;
+import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Main entry for the Scout Inference engine.

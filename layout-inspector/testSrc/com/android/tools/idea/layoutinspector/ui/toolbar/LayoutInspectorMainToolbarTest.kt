@@ -40,6 +40,7 @@ import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.impl.model.util.FakeAction
 import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
@@ -51,7 +52,6 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -417,7 +417,12 @@ class LayoutInspectorMainToolbarTest {
 
   private fun createToolbar(): ActionToolbar {
     val fakeAction = FakeAction("fake action")
-    return createLayoutInspectorMainToolbar(JPanel(), layoutInspectorRule.inspector, fakeAction)
+    return createStandaloneLayoutInspectorToolbar(
+      androidProjectRule.testRootDisposable,
+      JPanel(),
+      layoutInspectorRule.inspector,
+      fakeAction
+    )
   }
 
   private fun getPresentation(action: AnAction): Presentation {

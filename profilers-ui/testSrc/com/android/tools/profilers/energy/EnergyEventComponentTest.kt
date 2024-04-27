@@ -56,7 +56,7 @@ class EnergyEventComponentTest {
     dataSeries.add(10, EventAction(10, 20, locationChanged))
     dataSeries.add(20, EventAction(20, 30, locationRequestRemoved))
     val component = EnergyEventComponent(EventModel(RangedSeries(range, dataSeries)), Color.WHITE)
-    val fakeGraphics = mock(Graphics2D::class.java)
+    val fakeGraphics = mock<Graphics2D>(Graphics2D::class.java)
     val dimension = Dimension(100, 20)
 
     range.set(5.0, 20.0)

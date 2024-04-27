@@ -171,9 +171,19 @@ class ImportUtpResultActionTest {
     projectRule.module.rootManager.contentRoots[0]
       .writeChild(
         "build/outputs/androidTest-results/managedDevice/test-result.pb",
-        createTestResultsProto().toByteArray()
+        createTestResultsProto("UnwantedTestResult").toByteArray()
       )
 
+    projectRule.module.rootManager.contentRoots[0]
+      .writeChild(
+        "build/outputs/androidTest-results/managedDevice/testDevice1/test-result.pb",
+        createTestResultsProto().toByteArray()
+      )
+    projectRule.module.rootManager.contentRoots[0]
+      .writeChild(
+        "build/outputs/androidTest-results/managedDevice/testDevice1/device-info.pb",
+        ""
+      )
     val importActions = createImportGradleManagedDeviceUtpResults(projectRule.project)
 
     assertThat(importActions).hasSize(1)
@@ -184,8 +194,18 @@ class ImportUtpResultActionTest {
   fun createImportGradleManagedDeviceUtpResultActionWithFlavor() {
     projectRule.module.rootManager.contentRoots[0]
       .writeChild(
-        "build/outputs/androidTest-results/managedDevice/flavors/demo/test-result.pb",
+        "build/outputs/androidTest-results/managedDevice/debug/flavors/demo/testDevice1/test-result.pb",
         createTestResultsProto().toByteArray()
+      )
+    projectRule.module.rootManager.contentRoots[0]
+      .writeChild(
+        "build/outputs/androidTest-results/managedDevice/debug/flavors/demo/testDevice1/device-info.pb",
+        ""
+      )
+    projectRule.module.rootManager.contentRoots[0]
+      .writeChild(
+        "build/outputs/androidTest-results/managedDevice/debug/flavors/demo/test-result.pb",
+        createTestResultsProto("UnwantedTestResult").toByteArray()
       )
 
     val importActions = createImportGradleManagedDeviceUtpResults(projectRule.project)

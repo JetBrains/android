@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
+
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
@@ -23,26 +24,36 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DefaultConfigDslElement extends AbstractProductFlavorDslElement {
   public static final PropertiesElementDescription<DefaultConfigDslElement> DEFAULT_CONFIG =
-    new PropertiesElementDescription<>("defaultConfig", DefaultConfigDslElement.class, DefaultConfigDslElement::new, DefaultConfigDslElementSchema::new);
+    new PropertiesElementDescription<>("defaultConfig",
+                                       DefaultConfigDslElement.class,
+                                       DefaultConfigDslElement::new,
+                                       DefaultConfigDslElementSchema::new);
 
   public DefaultConfigDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
 
   public static final class DefaultConfigDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
     @NotNull
-    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+    @Override
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
       return CHILD_PROPERTIES_ELEMENTS_MAP;
     }
 
     @Override
     @NotNull
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+    public ExternalToModelMap getPropertiesInfo(Kind kind) {
       return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @Nullable
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.DefaultConfig";
     }
   }
 }

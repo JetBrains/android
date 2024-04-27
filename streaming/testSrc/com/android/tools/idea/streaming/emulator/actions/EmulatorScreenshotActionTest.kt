@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.emulator.control.Posture.PostureValue
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.swing.FakeUi
@@ -104,9 +105,8 @@ class EmulatorScreenshotActionTest {
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
 
-    // Pixel Fold does not have a device frame, so this drop down box should not have a "Show Device Frame" option.
     val clipComboBox = ui.getComponent<JComboBox<*>>()
-    assertThat(clipComboBox.optionsAsString()).doesNotContain("Show Device Frame")
+    assertThat(clipComboBox.optionsAsString()).contains("Show Device Frame")
 
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -118,7 +118,7 @@ class EmulatorScreenshotActionTest {
   fun testActionFoldableClosed() {
     emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
-    emulator.setFolded(true)
+    emulator.setPosture(PostureValue.POSTURE_CLOSED)
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
@@ -127,9 +127,8 @@ class EmulatorScreenshotActionTest {
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
 
-    // Pixel Fold does not have a device frame, so this drop down box should not have a "Show Device Frame" option.
     val clipComboBox = ui.getComponent<JComboBox<*>>()
-    assertThat(clipComboBox.optionsAsString()).doesNotContain("Show Device Frame")
+    assertThat(clipComboBox.optionsAsString()).contains("Show Device Frame")
 
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -149,7 +148,7 @@ class EmulatorScreenshotActionTest {
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
 
-    // This emulator has no skin definition, so the combo box should not have a "Show Device Frame" option.
+    // This AVD has no skin definition, so the combo box should not have a "Show Device Frame" option.
     // It should have a "Play compatible" option.
     val clipComboBox = ui.getComponent<JComboBox<*>>()
     assertThat(clipComboBox.optionsAsString()).doesNotContain("Show Device Frame")

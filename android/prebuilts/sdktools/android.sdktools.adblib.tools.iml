@@ -4,43 +4,40 @@
     <exclude-output />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.adblib" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-adblib.tools" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.adblib.tools:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.adblib.tools:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools/231.0.26.0/studio.android.sdktools.adblib.tools-231.0.26.0.jar">
-              <sha256sum>92fbe9100c3cd325d2b32a091e64cf8b853141445997c4e38cb058437e1671b0</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools/232.1.23.0/studio.android.sdktools.adblib.tools-232.1.23.0.jar">
+              <sha256sum>b7e1c92966d3979dd0df4f47c72d7a5699817e115cedd5f411c651fe8e7fd4c1</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools/231.0.26.0/studio.android.sdktools.adblib.tools-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools/232.1.23.0/studio.android.sdktools.adblib.tools-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools/231.0.26.0/studio.android.sdktools.adblib.tools-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-adblib.tools-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.adblib.tools_test:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.adblib.tools_test:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools_test/231.0.26.0/studio.android.sdktools.adblib.tools_test-231.0.26.0.jar">
-              <sha256sum>4cb32d868427094dcb3fc0c2b10c0564b11eaecced8940bcff7ef4ce5f55fa49</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools_test/232.1.23.0/studio.android.sdktools.adblib.tools_test-232.1.23.0.jar">
+              <sha256sum>811d178e3894b3443126029ee50c7097f634d2329611a19219ee707db3e2040d</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools_test/231.0.26.0/studio.android.sdktools.adblib.tools_test-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools_test/232.1.23.0/studio.android.sdktools.adblib.tools_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools_test/231.0.26.0/studio.android.sdktools.adblib.tools_test-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.adblib" />
+    <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
   </component>
 </module>

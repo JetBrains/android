@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.performance
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
@@ -68,7 +68,7 @@ class DataSeriesPerformanceTest {
   @Before
   fun setup() {
     service = DataStoreService("TestService", TestUtils.createTempDirDeletedOnExit().toString(),
-                               Consumer { ticker.run(it) }, FakeLogService())
+                               Consumer<Runnable> { ticker.run(it) }, FakeLogService())
     for (namespace in service.databases.keys) {
       val db = service.databases[namespace]!!
       val performantDatabase = namespace.myCharacteristic == DataStoreDatabase.Characteristic.PERFORMANT

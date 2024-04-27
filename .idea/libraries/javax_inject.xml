@@ -1,6 +1,12 @@
 <component name="libraryTable">
   <library name="javax-inject" type="repository">
-    <properties include-transitive-deps="false" maven-id="javax.inject:javax.inject:1" />
+    <properties include-transitive-deps="false" maven-id="javax.inject:javax.inject:1">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/javax/inject/javax.inject/1/javax.inject-1.jar">
+          <sha256sum>7c101fd8994a6c8f2f4f8c9bc4ff4eee01c02f00434d4e89caa7ea5f01fb8640</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/javax/inject/javax.inject/1/javax.inject-1.jar!/" />
     </CLASSES>

@@ -3,19 +3,13 @@ package org.jetbrains.android.formatter;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.intellij.formatting.Alignment;
-import com.intellij.formatting.Block;
-import com.intellij.formatting.CustomFormattingModelBuilder;
-import com.intellij.formatting.DelegatingFormattingModel;
-import com.intellij.formatting.FormattingContext;
-import com.intellij.formatting.FormattingModel;
-import com.intellij.formatting.Indent;
-import com.intellij.formatting.Wrap;
+import com.intellij.formatting.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.xml.XmlFormattingModelBuilder;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.formatter.xml.XmlBlock;
 import com.intellij.psi.formatter.xml.XmlPolicy;
@@ -33,13 +27,10 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
 
   @Override
   public boolean isEngagedToFormat(@NotNull PsiElement context) {
-    Object psiFile = context.getContainingFile();
-
-    if (!(psiFile instanceof XmlFile)) {
+    XmlFile xmlFile = getOriginalContainingXmlFile(context);
+    if (xmlFile == null) {
       return false;
     }
-
-    XmlFile xmlFile = (XmlFile)psiFile;
 
     return new ColorStateListDomFileDescription().isMyFile(xmlFile, null) ||
            new DrawableStateListDomFileDescription().isMyFile(xmlFile, null) ||
@@ -74,7 +65,7 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
       final XmlPolicy policy = customSettings.createXmlPolicy(settings, model.getDocumentModel());
       return new XmlBlock(b.getNode(), b.getWrap(), b.getAlignment(), policy, b.getIndent(), b.getTextRange()) {
         @Override
-        protected XmlTagBlock createTagBlock(@NotNull ASTNode child, Indent indent, Wrap wrap, Alignment alignment) {
+        protected XmlTagBlock createTagBlock(ASTNode child, Indent indent, Wrap wrap, Alignment alignment) {
           return new XmlTagBlock(child, wrap, alignment, myXmlFormattingPolicy,
                                  indent != null ? indent : Indent.getNoneIndent(),
                                  isPreserveSpace());
@@ -94,16 +85,12 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
 
   @Nullable
   private static MySettings getContextSpecificSettings(@NotNull PsiElement context, @NotNull AndroidXmlCodeStyleSettings settings) {
-    Object psiFile = context.getContainingFile();
-
-    if (!(psiFile instanceof XmlFile)) {
+    XmlFile xmlFile = getOriginalContainingXmlFile(context);
+    if (xmlFile == null) {
       return null;
     }
 
-    XmlFile xmlFile = (XmlFile)psiFile;
-
-    if (new ColorStateListDomFileDescription().isMyFile(xmlFile, null) ||
-        new DrawableStateListDomFileDescription().isMyFile(xmlFile, null)) {
+    if (new ColorStateListDomFileDescription().isMyFile(xmlFile, null) || new DrawableStateListDomFileDescription().isMyFile(xmlFile, null)) {
       return settings.VALUE_RESOURCE_FILE_SETTINGS;
     }
 
@@ -140,5 +127,23 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
       default:
         return null;
     }
+  }
+
+  @Nullable
+  private static XmlFile getOriginalContainingXmlFile(PsiElement context) {
+    Object psiFile = context.getContainingFile();
+    if (!(psiFile instanceof XmlFile xmlFile)) {
+      return null;
+    }
+
+    // In some cases (eg, calls originating from FormattingChanges.detectFormattingChanges), the given context is in a virtual file that's a
+    // copy of an actual source file. That copy doesn't have a parent directory, which is needed to determine which files are layout files.
+    // Redirecting to use the original source file allows this builder to correctly determine if it should run on the given file.
+    PsiFile originalFile = xmlFile.getUserData(PsiFileFactory.ORIGINAL_FILE);
+    if (originalFile instanceof XmlFile originalXmlFile) {
+      return originalXmlFile;
+    }
+
+    return xmlFile;
   }
 }

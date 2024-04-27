@@ -78,7 +78,7 @@ class MemoryClassifierViewFindSuperSetNodeTest {
   fun `find node in deep hierarchical view`() = benchmark("Deep", ClassGrouping.ARRANGE_BY_PACKAGE, makeInstances(19, 2, 1))
 
   @Test
-  fun `find many instances in deep stack`() = benchmark("XDeep", ClassGrouping.ARRANGE_BY_PACKAGE, makeInstances(200, 1, 1) { (200-it) * 10 })
+  fun `find many instances in deep stack`() = benchmark("XDeep", ClassGrouping.ARRANGE_BY_PACKAGE, makeInstances(200, 1, 1) { (200-it) * 10 });
 
   private fun benchmark(tag: String, grouping: ClassGrouping, instances: List<InstanceObject>) {
     capture.addInstanceObjects(instances.toSet())
@@ -108,7 +108,7 @@ class MemoryClassifierViewFindSuperSetNodeTest {
 
   private fun makeInstances(depth: Int, packagesPerNode: Int, classesPerNode: Int, instancesPerClass: (Int) -> Int = {1}): List<InstanceObject> {
     val nodes = mutableListOf<InstanceObject>()
-    var id = 0L
+    var id = 0L;
     fun makeInstancesAt(prefix: String, depth: Int) {
       (0 until classesPerNode).forEach {
         val className = "$prefix.c$it"

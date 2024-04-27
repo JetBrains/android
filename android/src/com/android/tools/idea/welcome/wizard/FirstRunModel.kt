@@ -20,18 +20,18 @@ import com.android.repository.api.RepoManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.observable.core.ObjectValueProperty
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
-import com.android.tools.idea.welcome.install.Aehd
 import com.android.tools.idea.welcome.install.AndroidSdk
 import com.android.tools.idea.welcome.install.AndroidVirtualDevice
 import com.android.tools.idea.welcome.install.ComponentCategory
 import com.android.tools.idea.welcome.install.ComponentTreeNode
+import com.android.tools.idea.welcome.install.Aehd
 import com.android.tools.idea.welcome.install.Haxm
-import com.android.tools.idea.welcome.install.InstallationIntention
+import com.android.tools.idea.welcome.install.VmInstallationIntention
 import com.android.tools.idea.welcome.install.Platform
 import com.android.tools.idea.welcome.install.getInitialSdkLocation
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizard
@@ -97,7 +97,9 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
     if (platforms != null) {
       components.add(platforms)
     }
-    val installationIntention = if (installUpdates) InstallationIntention.INSTALL_WITH_UPDATES else InstallationIntention.INSTALL_WITHOUT_UPDATES
+    val installationIntention =
+      if (installUpdates) VmInstallationIntention.INSTALL_WITH_UPDATES
+      else VmInstallationIntention.INSTALL_WITHOUT_UPDATES
     if (mode === FirstRunWizardMode.NEW_INSTALL && Haxm.canRun()) {
       components.add(Haxm(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL))
     }

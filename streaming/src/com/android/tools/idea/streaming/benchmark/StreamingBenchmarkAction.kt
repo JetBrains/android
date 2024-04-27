@@ -17,7 +17,8 @@ package com.android.tools.idea.streaming.benchmark
 
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.AbstractDisplayView
-import com.android.tools.idea.streaming.core.RunningDevicePanel
+import com.android.tools.idea.streaming.core.StreamingDevicePanel
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
@@ -26,9 +27,12 @@ import com.intellij.openapi.wm.ToolWindowManager
 
 /** Action to bring up a dialog that controls device mirroring benchmarking. */
 class StreamingBenchmarkAction : AnAction() {
+
   override fun update(event: AnActionEvent) {
     event.presentation.isEnabled = getTarget(event.project) != null
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun actionPerformed(event: AnActionEvent) {
     getTarget(event.project)?.let {
@@ -41,11 +45,11 @@ class StreamingBenchmarkAction : AnAction() {
                   ?.getEmulatorToolWindow()
                   ?.contentManager
                   ?.selectedContent
-                  ?.component as? RunningDevicePanel ?: return null
+                  ?.component as? StreamingDevicePanel ?: return null
     val view = panel.preferredFocusableComponent as? AbstractDisplayView ?: return null
     return StreamingBenchmarkTarget(panel.title, panel.id.serialNumber, view)
   }
 
   private fun Project.getEmulatorToolWindow(): ToolWindow? =
-    ToolWindowManager.getInstance(this).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
+      ToolWindowManager.getInstance(this).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
 }

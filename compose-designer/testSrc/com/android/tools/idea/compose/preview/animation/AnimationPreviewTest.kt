@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -35,7 +34,7 @@ class AnimationPreviewTest : InspectorTests() {
    */
   @Test
   fun directExecutorIsNotDispatchThread() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       MoreExecutors.directExecutor().execute {
         // isDispatchThread was false before IDEA 231.4840.387 update
         // isDispatchThread is true now after IDEA 231.4840.387 update

@@ -15,27 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
-import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP
-import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.BOTTOM
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.LEFT
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.LEFT_BOTTOM
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.LEFT_TOP
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.RIGHT
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.RIGHT_BOTTOM
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.RIGHT_TOP
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.TOP
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.*
 import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget
 
 /**

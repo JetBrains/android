@@ -95,7 +95,7 @@ public final class VfsDensityBasedFileResourceItem extends VfsFileResourceItem i
 
   @Override
   protected int getEncodedDensityForSerialization() {
-    return myDensity.ordinal() + 1;
+    return myDensity.getDpiValue();
   }
 
   @Override

@@ -16,6 +16,8 @@
 package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.idea.insights.ui.Timestamp
+import com.android.tools.idea.insights.ui.TimestampState
+import com.android.tools.idea.insights.ui.offlineModeIcon
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -68,6 +70,12 @@ class AppInsightsDisplayRefreshTimestampAction(
     e.presentation.apply {
       isEnabled = false
       text = displayText
+      disabledIcon =
+        if (lastModifiedTimestamp.get().state == TimestampState.OFFLINE) {
+          offlineModeIcon
+        } else {
+          null
+        }
     }
   }
 

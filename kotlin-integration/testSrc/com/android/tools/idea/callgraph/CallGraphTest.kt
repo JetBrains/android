@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.callgraph
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.lint.detector.api.interprocedural.CallGraph
 import com.android.tools.lint.detector.api.interprocedural.CallGraphVisitor
 import com.android.tools.lint.detector.api.interprocedural.ClassHierarchy

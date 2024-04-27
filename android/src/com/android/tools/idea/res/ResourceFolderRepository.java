@@ -72,6 +72,8 @@ import com.android.tools.sdk.AndroidTargetData;
 import com.android.utils.Base128InputStream;
 import com.android.utils.SdkUtils;
 import com.android.utils.TraceUtils;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -144,6 +146,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.Contract;
@@ -172,7 +175,7 @@ import org.jetbrains.annotations.VisibleForTesting;
  * <li>Register the PSI project listener as a project service instead.</li>
  * </ul>
  */
-public final class ResourceFolderRepository extends LocalResourceRepository implements LoadableResourceRepository {
+public final class ResourceFolderRepository extends LocalResourceRepository<VirtualFile> implements LoadableResourceRepository {
   /**
    * Increment when making changes that may affect content of repository cache files.
    * Used together with CachingData.codeVersion. Important for developer builds.
@@ -243,6 +246,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @GuardedBy("ITEM_MAP_LOCK")
   private long myResourceTypeToFolderConfigsGeneration = 0;
 
+  private final Loader myLoader;
+
   /**
    * Creates a ResourceFolderRepository and loads its contents.
    * <p>
@@ -290,13 +295,17 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                     ? new LoggingPsiTreeChangeListener(psiListener, LOG)
                     : psiListener;
 
-    Loader loader = new Loader(this, cachingData);
-    loader.load();
+    myLoader = new Loader(this, cachingData);
 
     Disposer.register(myFacet, updateExecutor::shutdownNow);
     ResourceUpdateTracer.logDirect(() ->
       TraceUtils.getSimpleId(this) + " " + pathForLogging(resourceDir) + " created for module " + facet.getModule().getName()
     );
+  }
+
+  public ResourceFolderRepository ensureLoaded() {
+    myLoader.ensureLoaded();
+    return this;
   }
 
   @NotNull
@@ -1492,11 +1501,26 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               // However, we only need to do this scan if the change appears to be related to ids; this can
               // only happen if the attribute value is changed.
               PsiElement parent = event.getParent();
-              PsiElement child = event.getChild();
-              if (parent instanceof XmlText || child instanceof XmlText || parent instanceof XmlComment || child instanceof XmlComment) {
+              PsiElement child = event.getChild();  // Same as event.getNewChild() for a childReplaced event.
+              if (parent instanceof XmlText || child instanceof XmlText || parent instanceof XmlComment) {
+                return;
+              }
+              PsiElement oldChild = event.getOldChild();
+              if (child instanceof XmlComment && oldChild instanceof XmlComment) {
+                // Checking for child to be a comment is not sufficient, because the old child may
+                // have been an XmlElement with an ID that's been removed. This can happen is the
+                // user selects an XML tag and uses an action to comment out the whole thing.
+                // Only if both the old and new child are comments can a scan be skipped.
                 return;
               }
               if (parent instanceof XmlElement && child instanceof XmlElement) {
+                if (child instanceof XmlComment || oldChild instanceof XmlComment) {
+                  // We know from the check above that not both of these children are comments; so
+                  // the child has either been commented or uncommented. Since the non-comment
+                  // element may include IDs, schedule a rescan.
+                  scheduleScan(virtualFile, folderType);
+                  return;
+                }
                 if (event.getOldChild() == event.getNewChild()) {
                   // We're not getting accurate PSI information: we have to do a full file scan.
                   scheduleScan(virtualFile, folderType);
@@ -1506,7 +1530,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                   assert parent instanceof XmlAttribute : parent;
                   XmlAttribute attribute = (XmlAttribute)parent;
 
-                  PsiElement oldChild = event.getOldChild();
                   PsiElement newChild = event.getNewChild();
                   if (oldChild instanceof XmlAttributeValue && newChild instanceof XmlAttributeValue) {
                     String oldText = ((XmlAttributeValue)oldChild).getValue().trim();
@@ -2236,7 +2259,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         return new VfsFileResourceItem(resourceType, name, configuration, visibility, relativePath, virtualFile);
       }
 
-      Density density = Density.values()[encodedDensity - 1];
+      Density density = Density.create(encodedDensity);
       return new VfsDensityBasedFileResourceItem(resourceType, name, configuration, visibility, relativePath, virtualFile, density);
     }
     else {
@@ -2247,7 +2270,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         return new BasicFileResourceItem(resourceType, name, configuration, visibility, relativePath);
       }
 
-      Density density = Density.values()[encodedDensity - 1];
+      Density density = Density.create(encodedDensity);
       return new BasicDensityBasedFileResourceItem(resourceType, name, configuration, visibility, relativePath, density);
     }
   }
@@ -2270,7 +2293,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * Tracks state used by the initial scan, which may be used to save the state to a cache.
    * The file cache omits non-XML single-file items, since those are easily derived from the file path.
    */
-  private static class Loader extends RepositoryLoader<ResourceFolderRepository> {
+  static class Loader extends RepositoryLoader<ResourceFolderRepository> {
     @NotNull private final ResourceFolderRepository myRepository;
     @NotNull private final VirtualFile myResourceDir;
     @NotNull private final PsiManager myPsiManager;
@@ -2285,6 +2308,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     @NotNull Set<VirtualFile> myFilesToReparseAsPsi = new HashSet<>();
     private final FileDocumentManager myFileDocumentManager;
 
+    private volatile boolean myLoaded = false;
+
     Loader(@NotNull ResourceFolderRepository repository, @Nullable ResourceFolderRepositoryCachingData cachingData) {
       super(VfsUtilCore.virtualToIoFile(repository.myResourceDir).toPath(), null, repository.getNamespace());
       myRepository = repository;
@@ -2296,27 +2321,48 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       myFileDocumentManager = FileDocumentManager.getInstance();
     }
 
-    public void load() {
-      if (!myResourceDir.isValid()) {
+    private final List<Runnable> initializers = ImmutableList.of(
+      new RunOnceInitializer(this::loadFromPersistentCache),
+      new RunOnceWithReadLockInitializer(this::getPsiDirsForListener),
+      new RunOnceInitializer(this::scanResFolder),
+      new RunOnceInitializer(this::populateRepository),
+      new RunOnceWithReadLockInitializer(this::scanQueuedPsiResources),
+      new RunOnceInitializer(this::createCacheFileIfNeeded)
+    );
+
+    /**
+     * The repository is loaded after construction to ensure that read locks are not held for
+     * longer than necessary. But this means that multiple threads may concurrently try to
+     * initialize the class. This method runs a series of initializer methods, each of which holds
+     * its own lock to ensure it runs only once. This allows multiple threads to participate in
+     * initialization at the same time.
+     * <p>
+     * Doing this is necessary because some callers already hold read locks, but some do not. So in
+     * order to avoid deadlock, the read lock always has to be obtained before any "local" lock is
+     * obtained. The need for this method could be avoided if there could be a read lock obtained
+     * around all the initialization methods; but doing so means that there would be a read lock
+     * around file I/O operations, which can lead to freezes like b/299983428.
+     * <p>
+     * Instead, each initializer will obtain the lock (or locks) it needs in the correct order, to
+     * ensure both that it is only run once and that it has a read lock when necessary. Logic has
+     * been added also to short-circuit any initialization if the entire process is already
+     * complete.
+     */
+    public void ensureLoaded() {
+      if (myLoaded) {
         return;
       }
 
-      loadFromPersistentCache();
-
-      ApplicationManager.getApplication().runReadAction(this::getPsiDirsForListener);
-
-      scanResFolder();
-
-      populateRepository();
-
-      ApplicationManager.getApplication().runReadAction(this::scanQueuedPsiResources);
-
-      if (myCachingData != null && !myRepository.hasFreshFileCache()) {
-        Executor executor = myCachingData.getCacheCreationExecutor();
-        if (executor != null) {
-          executor.execute(this::createCacheFile);
-        }
+      if (!myResourceDir.isValid()) {
+        myLoaded = true;
+        return;
       }
+
+      for (Runnable initializer : initializers) {
+        initializer.run();
+      }
+
+      myLoaded = true;
     }
 
     private void loadFromPersistentCache() {
@@ -2347,7 +2393,16 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
     }
 
-    protected byte[] getCacheFileHeader(@NotNull ResourceFolderRepositoryCachingData cachingData) {
+    private void createCacheFileIfNeeded() {
+      if (myCachingData != null && !myRepository.hasFreshFileCache()) {
+        Executor executor = myCachingData.getCacheCreationExecutor();
+        if (executor != null) {
+          executor.execute(this::createCacheFile);
+        }
+      }
+    }
+
+    private byte[] getCacheFileHeader(@NotNull ResourceFolderRepositoryCachingData cachingData) {
       return ResourceSerializationUtil.getCacheFileHeader(stream -> {
         stream.write(CACHE_FILE_HEADER);
         stream.writeString(CACHE_FILE_FORMAT_VERSION);
@@ -2592,6 +2647,63 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     private void countCacheMiss() {
       ++myRepository.myNumXmlFilesLoadedInitially;
       ++myRepository.myNumXmlFilesLoadedInitiallyFromSources;
+    }
+  }
+
+  /**
+   * Runnable for an initialization method, which can be called multiple times but will only
+   * execute once. A lock is used, such that a second call made while a first call is still
+   * running will block until the first call is complete.
+   */
+  @VisibleForTesting
+  static class RunOnceInitializer implements Runnable {
+    private final Supplier<Void> myInitializer;
+
+    public RunOnceInitializer(Runnable initializer) {
+      myInitializer = Suppliers.memoize(() -> {
+        initializer.run();
+        return null;
+      });
+    }
+
+    @Override
+    public void run() {
+      myInitializer.get();
+    }
+  }
+
+  /**
+   * Runnable for an initialization method, which can be called multiple times but will only
+   * execute once. A lock is used, such that a second call made while a first call is still
+   * running will block until the first call is complete. The read lock is obtained around
+   * (outside) this initializer's "local" lock in order to avoid deadlock, since some external
+   * callers already hold the read lock.
+   */
+  @VisibleForTesting
+  static class RunOnceWithReadLockInitializer implements Runnable {
+    private final Supplier<Void> myInitializer;
+
+    private volatile boolean myIsInitialized = false;
+
+    public RunOnceWithReadLockInitializer(Runnable initializer) {
+      myInitializer = Suppliers.memoize(() -> {
+        initializer.run();
+        myIsInitialized = true;
+        return null;
+      });
+    }
+
+    @Override
+    public void run() {
+      if (myIsInitialized) {
+        // Short circuit - no need to obtain a lock if initialization is complete.
+        return;
+      }
+
+      // In some cases, callers higher up the stack already have a read lock when this code
+      // executed. Obtaining the read lock here in those cases is a no-op. But doing so before
+      // obtaining the initialization lock ensures there is no deadlock.
+      ReadAction.nonBlocking(myInitializer::get).executeSynchronously();
     }
   }
 

@@ -146,8 +146,8 @@ class MockDeviceFileEntry(
 
   companion object {
     @JvmStatic
-    fun createRoot(fileSystem: MockDeviceFileSystem): MockDeviceFileEntry {
-      return MockDeviceFileEntry(fileSystem, null, "", isDirectory = true, isSymbolicLink = false, symbolicLinkTarget = null)
+    fun createRoot(fileSystem: MockDeviceFileSystem, name: String): MockDeviceFileEntry {
+      return MockDeviceFileEntry(fileSystem, null, name, isDirectory = true, isSymbolicLink = false, symbolicLinkTarget = null)
     }
   }
 }

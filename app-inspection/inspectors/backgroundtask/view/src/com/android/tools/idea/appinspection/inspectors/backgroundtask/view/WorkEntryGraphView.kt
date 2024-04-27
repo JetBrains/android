@@ -25,12 +25,9 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.Backg
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorColors.SELECTED_WORK_BORDER_COLOR
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.plugins.newui.VerticalLayout
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.event.ActionEvent
@@ -43,8 +40,10 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.KeyStroke
 import javax.swing.SwingConstants
-import javax.swing.border.EmptyBorder
 import kotlin.math.max
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 const val MIN_GAP_BETWEEN_LABELS = 50
 
@@ -61,7 +60,7 @@ class WorkDependencyGraphView(
   private var labelMap = mapOf<String, JLabel>()
 
   init {
-    border = EmptyBorder(JBUI.scale(50), JBUI.scale(100), JBUI.scale(50), 0)
+    border = JBUI.Borders.empty(JBUI.scale(50), JBUI.scale(100), JBUI.scale(50), 0)
 
     client.addEntryUpdateEventListener { _, _ -> scope.launch(uiDispatcher) { updateWorks() } }
     selectionModel.registerEntrySelectionListener { updateWorks() }
@@ -171,7 +170,8 @@ class WorkDependencyGraphView(
     label.background = GRAPH_LABEL_BACKGROUND_COLOR
     label.isOpaque = true
 
-    val defaultBorder = EmptyBorder(JBUI.scale(6), JBUI.scale(10), JBUI.scale(6), JBUI.scale(10))
+    val defaultBorder =
+      JBUI.Borders.empty(JBUI.scale(6), JBUI.scale(10), JBUI.scale(6), JBUI.scale(10))
     label.border =
       if (work == selectionModel.selectedWork) {
         BorderFactory.createCompoundBorder(
@@ -194,7 +194,7 @@ class WorkDependencyGraphView(
             DEFAULT_WORK_BORDER_COLOR
           ),
           BorderFactory.createCompoundBorder(
-            EmptyBorder(JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), JBUI.scale(1)),
+            JBUI.Borders.empty(JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), JBUI.scale(1)),
             defaultBorder
           ),
         )
@@ -222,7 +222,7 @@ class WorkDependencyGraphView(
     // Draw lines for dependencies between works.
     for (work in works) {
       val fromLabel = labelMap[work.id] ?: continue
-      g2d.color = if (work.state.isFinished()) Color.LIGHT_GRAY else Color.WHITE
+      g2d.color = if (work.state.isFinished()) JBColor.LIGHT_GRAY else JBColor.WHITE
       val fx = fromLabel.parent.x + fromLabel.bounds.x + fromLabel.bounds.width / 2
       val fy = fromLabel.parent.y + fromLabel.bounds.y + fromLabel.bounds.height
       for (toLabel in work.dependentsList.mapNotNull { labelMap[it] }) {

@@ -17,7 +17,9 @@ package com.android.tools.idea.gradle.project.sync.setup.post
 
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.analytics.withProjectId
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel.Companion.get
@@ -114,6 +116,9 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
     var libModel: GradleAndroidModel? = null
     var appCount = 0
     var libCount = 0
+    var dynamicFeatureCount = 0
+    var testCount = 0
+    var kmpCount = 0
     val gradleLibraries: MutableList<GradleLibrary> = ArrayList()
     for (facet in myProject.getAndroidFacets()) {
       val androidModel = get(facet)
@@ -131,12 +136,12 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
             gradleLibraries.add(gradleLibrary)
           }
 
+          IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> dynamicFeatureCount++
+          IdeAndroidProjectType.PROJECT_TYPE_TEST -> testCount++
+          IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> kmpCount++
           IdeAndroidProjectType.PROJECT_TYPE_ATOM -> Unit
-          IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> Unit
           IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> Unit
           IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> Unit
-          IdeAndroidProjectType.PROJECT_TYPE_TEST -> Unit
-          IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> Unit
         }
       }
     }
@@ -157,6 +162,9 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
       .setTotalModuleCount(countHolderModules())
       .setAppModuleCount(appCount.toLong())
       .setLibModuleCount(libCount.toLong())
+      .setDynamicFeatureModuleCount(dynamicFeatureCount.toLong())
+      .setTestModuleCount(testCount.toLong())
+      .setKotlinMultiplatformModuleCount(kmpCount.toLong())
       .build()
 
     for (facet in myProject.getAndroidFacets()) {
@@ -265,8 +273,9 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
         chosenVariant.set(model.selectedVariant)
       }
       val dependencies = chosenVariant.get()!!.mainArtifact.compileClasspath
-      return GradleLibrary.newBuilder().setAarDependencyCount(dependencies.androidLibraries.size.toLong())
-        .setJarDependencyCount(dependencies.javaLibraries.size.toLong())
+      return GradleLibrary.newBuilder()
+        .setAarDependencyCount(dependencies.libraries.count { it is IdeAndroidLibrary }.toLong())
+        .setJarDependencyCount(dependencies.libraries.count { it is IdeJavaLibrary }.toLong())
         .build()
     }
   }

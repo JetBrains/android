@@ -59,13 +59,13 @@ object ModuleUtil {
    * @param dataToModuleMap a map of external system [ModuleData] to modules required in order to lookup a modules children
    */
   @JvmStatic
-  fun DataNode<out ModuleData>.linkAndroidModuleGroup(dataToModuleMap: (ModuleData) -> Module?): LinkedAndroidModuleGroup? {
-    val holderModule = dataToModuleMap(data) ?: return null
+  fun DataNode<out ModuleData>.linkAndroidModuleGroup(dataToModuleMap: (ModuleData) -> Module?) {
+    val holderModule = dataToModuleMap(data) ?: return
 
     // check if it's a kotlin multiplatform module
     if (ExternalSystemApiUtil.find(this, KotlinTargetData.KEY)?.data?.externalName == "android") {
       linkKmpAndroidModuleGroup(dataToModuleMap, holderModule)
-      return null
+      return
     }
     // Clear the links, this prevents old links from being used
     holderModule.putUserData(LINKED_ANDROID_MODULE_GROUP, null)
@@ -84,13 +84,12 @@ object ModuleUtil {
     }
     if (mainModule == null) {
       logger<ModuleUtil>().error("Unexpected - Android module (${holderModule.name}) is missing a main source set")
-      return null
+      return
     }
     val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule!!, unitTestModule, androidTestModule, testFixturesModule)
     androidModuleGroup.getModules().forEach { module ->
       module?.putUserData(LINKED_ANDROID_MODULE_GROUP, androidModuleGroup)
     }
-    return androidModuleGroup
   }
 
   @JvmStatic
@@ -150,10 +149,6 @@ object ModuleUtil {
   @JvmStatic
   fun GradleSourceSetData.getIdeModuleSourceSet(): IdeModuleSourceSet = IdeModuleSourceSetImpl.wellKnownOrCreate(moduleName)
 }
-
-fun String.removeSourceSetSuffixFromExternalProjectID() : String = removeSourceSetSuffix(":")
-
-fun String.removeSourceSetSuffixFromModuleName() : String = removeSourceSetSuffix(".")
 
 private fun String.removeSourceSetSuffix(delimiter: String) : String = IdeArtifactName.values().firstNotNullOfOrNull { artifactName ->
   val moduleName = getModuleName(artifactName)

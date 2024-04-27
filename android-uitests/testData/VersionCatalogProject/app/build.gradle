@@ -39,5 +39,8 @@ dependencies {
     implementation libs.constraintlayout
     implementation libs.navfragment
     implementation libs.navui
+    implementation libs.monitor
+    implementation libs.ext.junit
     testImplementation libs.junittest
+    androidTestImplementation libs.junittest
 }

@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_ICON;
-import static com.android.SdkConstants.ATTR_TEXT;
-
 import com.android.AndroidXConstants;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 public class TabItemHandler extends ViewHandler {
 

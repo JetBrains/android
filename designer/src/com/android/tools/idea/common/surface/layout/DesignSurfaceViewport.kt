@@ -56,17 +56,22 @@ interface DesignSurfaceViewport {
 class ScrollableDesignSurfaceViewport(val viewport: JViewport) : DesignSurfaceViewport {
   override val viewRect: Rectangle
     get() = viewport.viewRect
+
   override val viewportComponent: Component
     get() = viewport
+
   override val viewComponent: Component
     get() = viewport.view
+
   override var viewPosition: Point
     get() = viewport.viewPosition
     set(value) {
       viewport.viewPosition = value
     }
+
   override val extentSize: Dimension
     get() = viewport.extentSize
+
   override val viewSize: Dimension
     get() = viewport.viewSize
 
@@ -81,17 +86,22 @@ class ScrollableDesignSurfaceViewport(val viewport: JViewport) : DesignSurfaceVi
 class NonScrollableDesignSurfaceViewport(val viewport: JComponent) : DesignSurfaceViewport {
   override val viewRect: Rectangle
     get() = viewport.bounds
+
   override val viewportComponent: Component
     get() = viewport
+
   override val viewComponent: Component
     get() = viewport
+
   override var viewPosition: Point
     get() = Point(0, 0)
     set(_) {}
+
   override val extentSize: Dimension
     get() =
       viewport.visibleRect
         .size // The extent size in this case is just the visible part of the design surface
+
   override val viewSize: Dimension
     get() = viewport.size
 

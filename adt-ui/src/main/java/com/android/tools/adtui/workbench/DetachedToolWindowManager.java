@@ -18,6 +18,7 @@ package com.android.tools.adtui.workbench;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.DistractionFreeModeController;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -26,6 +27,10 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
+import com.intellij.util.messages.MessageBusConnection;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
 import java.util.HashMap;
@@ -45,6 +50,7 @@ import org.jetbrains.annotations.Nullable;
  * active {@link WorkBench}.
  */
 public class DetachedToolWindowManager implements Disposable {
+  private final Application myApplication;
   private final Project myProject;
   private final MyFileEditorManagerListener myEditorManagerListener;
   private final Map<FileEditor, WorkBench<?>> myWorkBenchMap;
@@ -58,13 +64,16 @@ public class DetachedToolWindowManager implements Disposable {
   }
 
   @VisibleForTesting
-  DetachedToolWindowManager(@NotNull Project project) {
-    myProject = project;
+  DetachedToolWindowManager(@NotNull Project currentProject) {
+    myApplication = ApplicationManager.getApplication();
+    myProject = currentProject;
     myEditorManagerListener = new MyFileEditorManagerListener();
     myWorkBenchMap = new IdentityHashMap<>(13);
     myToolWindowMap = new HashMap<>(8);
     myDetachedToolWindowFactory = DetachedToolWindow::new;
-    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myEditorManagerListener);
+    MessageBusConnection connection = myProject.getMessageBus().connect(this);
+    connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myEditorManagerListener);
+    connection.subscribe(ToolWindowManagerListener.TOPIC, new MyToolWindowManagerListener());
   }
 
   @VisibleForTesting
@@ -135,20 +144,19 @@ public class DetachedToolWindowManager implements Disposable {
     }
     Set<String> ids = new HashSet<>(myToolWindowMap.keySet());
     if (workBench != null) {
-      String workBenchPrefix = workBench.getName() + ".";
       //noinspection unchecked
       List<AttachedToolWindow> detachedToolWindows = workBench.getDetachedToolWindows();
       for (AttachedToolWindow tool : detachedToolWindows) {
         ToolWindowDefinition definition = tool.getDefinition();
-        String id = workBenchPrefix + definition.getName();
+        String workBenchName = getWorkBenchTitleName(workBench);
+        String id = DetachedToolWindow.idOf(workBenchName, definition);
         DetachedToolWindow detachedToolWindow = myToolWindowMap.get(id);
         if (detachedToolWindow == null) {
-          String workBenchName = getWorkBenchTitleName(workBench);
           detachedToolWindow = myDetachedToolWindowFactory.create(myProject, workBenchName, definition);
-          Disposer.register(myProject, detachedToolWindow);
+          Disposer.register(this, detachedToolWindow);
           myToolWindowMap.put(id, detachedToolWindow);
         }
-        if (!DistractionFreeModeController.isDistractionFreeModeEnabled()) {
+        if (!DistractionFreeModeController.isDistractionFreeModeEnabled() && !detachedToolWindow.isMinimized()) {
           //noinspection unchecked
           detachedToolWindow.show(tool);
         }
@@ -159,7 +167,7 @@ public class DetachedToolWindowManager implements Disposable {
   }
 
   public void restoreDefaultLayout() {
-    ApplicationManager.getApplication().invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
+    myApplication.invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
   }
 
   @NotNull
@@ -175,18 +183,49 @@ public class DetachedToolWindowManager implements Disposable {
 
     @Override
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      ApplicationManager.getApplication().invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
+      myApplication.invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
     }
 
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      ApplicationManager.getApplication().invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
+      myApplication.invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
     }
 
     @Override
     public void selectionChanged(@NotNull FileEditorManagerEvent event) {
       myLastSelectedEditor = event.getNewEditor();
       updateToolWindowsForWorkBench(myWorkBenchMap.get(myLastSelectedEditor));
+    }
+  }
+
+  private class MyToolWindowManagerListener implements ToolWindowManagerListener {
+
+    @SuppressWarnings("UnstableApiUsage")
+    @Override
+    public void stateChanged(
+      @NotNull ToolWindowManager toolWindowManager,
+      @NotNull ToolWindow toolWindow,
+      @NotNull ToolWindowManagerListener.ToolWindowManagerEventType changeType
+    ) {
+      switch (changeType) {
+        case HideToolWindow -> setMinimized(toolWindow, true);
+        case MovedOrResized -> setMinimized(toolWindow, false);
+        case SetToolWindowType -> updateSettings(toolWindow);
+      }
+    }
+
+    private void setMinimized(@NotNull ToolWindow toolWindow, boolean minimized) {
+      DetachedToolWindow<?> detachedToolWindow = myToolWindowMap.get(toolWindow.getId());
+      if (detachedToolWindow != null) {
+        detachedToolWindow.setMinimized(minimized);
+      }
+    }
+
+    private void updateSettings(@NotNull ToolWindow toolWindow) {
+      DetachedToolWindow<?> detachedToolWindow = myToolWindowMap.get(toolWindow.getId());
+      if (detachedToolWindow != null) {
+        detachedToolWindow.updateSettingsInAttachedToolWindow();
+      }
     }
   }
 

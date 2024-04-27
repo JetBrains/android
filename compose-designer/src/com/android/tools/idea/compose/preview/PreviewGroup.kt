@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import javax.swing.Icon
 
 /** Class representing groups available for selection in the [ComposePreviewManager]. */

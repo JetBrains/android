@@ -15,43 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector
 
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION
-import com.android.SdkConstants.ATTR_FONT_FAMILY
-import com.android.SdkConstants.ATTR_LINE_SPACING_EXTRA
-import com.android.SdkConstants.ATTR_TEXT
-import com.android.SdkConstants.ATTR_TEXT_ALIGNMENT
-import com.android.SdkConstants.ATTR_TEXT_ALL_CAPS
-import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
-import com.android.SdkConstants.ATTR_TEXT_COLOR
-import com.android.SdkConstants.ATTR_TEXT_SIZE
-import com.android.SdkConstants.ATTR_TEXT_STYLE
-import com.android.SdkConstants.ATTR_TYPEFACE
-import com.android.SdkConstants.AUTO_URI
-import com.android.SdkConstants.TOOLS_URI
-import com.android.SdkConstants.TextAlignment
-import com.android.SdkConstants.TextStyle
+import com.android.SdkConstants.*
 import com.android.tools.idea.uibuilder.property.NlFlagsPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
-import com.android.tools.idea.uibuilder.property.inspector.TextViewInspectorBuilder.Companion.REQUIRED_PROPERTIES
 import com.android.tools.idea.uibuilder.property.model.HorizontalEditorPanelModel
 import com.android.tools.idea.uibuilder.property.model.ToggleButtonPropertyEditorModel
 import com.android.tools.idea.uibuilder.property.ui.HorizontalEditorPanel
 import com.android.tools.idea.uibuilder.property.ui.ToggleButtonPropertyEditor
-import com.android.tools.property.panel.api.EditorProvider
-import com.android.tools.property.panel.api.InspectorBuilder
-import com.android.tools.property.panel.api.InspectorLineModel
-import com.android.tools.property.panel.api.InspectorPanel
-import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.property.panel.api.PropertyEditorModel
-import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_CENTER
-import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_LAYOUT_LEFT
-import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_LAYOUT_RIGHT
-import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_LEFT
-import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_RIGHT
-import icons.StudioIcons.LayoutEditor.Properties.TEXT_STYLE_BOLD
-import icons.StudioIcons.LayoutEditor.Properties.TEXT_STYLE_ITALIC
-import icons.StudioIcons.LayoutEditor.Properties.TEXT_STYLE_UPPERCASE
+import com.android.tools.property.panel.api.*
+import icons.StudioIcons.LayoutEditor.Properties.*
 import javax.swing.Icon
 import javax.swing.JComponent
 

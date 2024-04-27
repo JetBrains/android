@@ -17,7 +17,7 @@ package trebuchet.model
 
 import trebuchet.model.fragments.CpuModelFragment
 
-class CpuModel(val model: Model, fragment: CpuModelFragment) {
+class CpuModel constructor(val model: Model, fragment: CpuModelFragment) {
   val id: Int = fragment.id
   val slices = fragment.slices
   val hasContent = slices.isNotEmpty()

@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.events
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.Filters
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -32,7 +33,8 @@ data class ConnectionsChanged(
 
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
     val activeConnection = findActiveConnection(state)
     val activeConnectionChanged = activeConnection != state.connections.selected
@@ -42,6 +44,7 @@ data class ConnectionsChanged(
         state.copy(
           connections = Selection(activeConnection, connections),
           issues = LoadingState.Loading,
+          currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null),
           filters = defaultFilters

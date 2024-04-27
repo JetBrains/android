@@ -21,7 +21,7 @@ import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import kotlin.test.assertNotNull
@@ -29,54 +29,55 @@ import kotlin.test.assertNotNull
 class PropertyCurveTest {
 
   @Test
-  fun `create property curves`(): Unit = invokeAndWaitIfNeeded {
-    val slider = TestUtils.createTestSlider()
-    // Call layoutAndDispatchEvents() so positionProxy returns correct values
-    val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
+  fun `create property curves`(): Unit =
+    ApplicationManager.getApplication().invokeAndWait {
+      val slider = TestUtils.createTestSlider()
+      // Call layoutAndDispatchEvents() so positionProxy returns correct values
+      val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
 
-    val property =
-      AnimatedProperty.Builder()
-        .add(0, ComposeUnit.IntSize(0, 0))
-        .add(50, ComposeUnit.IntSize(10, 10))
-        .add(100, ComposeUnit.IntSize(20, -20))
-        .build()!!
+      val property =
+        AnimatedProperty.Builder()
+          .add(0, ComposeUnit.IntSize(0, 0))
+          .add(50, ComposeUnit.IntSize(10, 10))
+          .add(100, ComposeUnit.IntSize(20, -20))
+          .build()!!
 
-    val propertyCurveOne =
-      PropertyCurve.create(
+      val propertyCurveOne =
+        PropertyCurve.create(
+            ElementState(),
+            property,
+            InspectorLayout.timelineHeaderHeightScaled(),
+            0,
+            slider.sliderUI.positionProxy
+          )
+          .also { it.timelineUnit = ComposeUnit.TimelineUnit("UnitOne", ComposeUnit.IntSize(1, 2)) }
+
+      val propertyCurveTwo =
+        PropertyCurve.create(
           ElementState(),
           property,
-          InspectorLayout.timelineHeaderHeightScaled(),
-          0,
+          InspectorLayout.timelineHeaderHeightScaled() + propertyCurveOne.height,
+          1,
           slider.sliderUI.positionProxy
         )
-        .also { it.timelineUnit = ComposeUnit.TimelineUnit("UnitOne", ComposeUnit.IntSize(1, 2)) }
 
-    val propertyCurveTwo =
-      PropertyCurve.create(
-        ElementState(),
-        property,
-        InspectorLayout.timelineHeaderHeightScaled() + propertyCurveOne.height,
-        1,
-        slider.sliderUI.positionProxy
-      )
+      slider.sliderUI.elements.add(propertyCurveOne)
+      slider.sliderUI.elements.add(propertyCurveTwo)
 
-    slider.sliderUI.elements.add(propertyCurveOne)
-    slider.sliderUI.elements.add(propertyCurveTwo)
+      // Component has tooltips.
+      ui.render() // paint() method within render() should be called to update BoxedLabel positions.
+      slider.scanForTooltips().also { tooltip ->
+        val widthTooltip = tooltip.firstOrNull { it.description.startsWith("width") }
+        val heightTooltip = tooltip.firstOrNull { it.description.startsWith("height") }
+        assertNotNull(widthTooltip)
+        assertNotNull(heightTooltip)
+        assertEquals("UnitOne", widthTooltip.header)
+        assertEquals("UnitOne", heightTooltip.header)
+        assertEquals("width ( 1 , _ )", widthTooltip.description)
+        assertEquals("height ( _ , 2 )", heightTooltip.description)
+      }
 
-    // Component has tooltips.
-    ui.render() // paint() method within render() should be called to update BoxedLabel positions.
-    slider.scanForTooltips().also { tooltip ->
-      val widthTooltip = tooltip.firstOrNull { it.description.startsWith("width") }
-      val heightTooltip = tooltip.firstOrNull { it.description.startsWith("height") }
-      assertNotNull(widthTooltip)
-      assertNotNull(heightTooltip)
-      assertEquals("UnitOne", widthTooltip.header)
-      assertEquals("UnitOne", heightTooltip.header)
-      assertEquals("width ( 1 , _ )", widthTooltip.description)
-      assertEquals("height ( _ , 2 )", heightTooltip.description)
+      // Uncomment to preview ui.
+      // ui.render()
     }
-
-    // Uncomment to preview ui.
-    // ui.render()
-  }
 }

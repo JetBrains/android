@@ -15,6 +15,12 @@
  */
 package org.jetbrains.android.dom.navigation;
 
+import com.intellij.util.xml.DefinesXml;
+import com.intellij.util.xml.SubTag;
+import org.jetbrains.android.dom.AndroidDomElement;
+
+import java.util.List;
+
 /**
  * An element representing an destination (fragment, navigation, ...) tag in a navigation graph.
  *

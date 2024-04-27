@@ -16,11 +16,10 @@
 package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.intellij.ui.components.JBLabel;
-import java.awt.BorderLayout;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * Step to show a message that the SDK is missing.

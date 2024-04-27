@@ -22,7 +22,6 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.util.concurrent.TimeUnit;
@@ -78,7 +77,7 @@ public class StatusPanel extends JComponent {
     // entire panel area.
     JPanel mainPanel = new JPanel(new TabularLayout("*,300px,*", "*,150px,*"));
     // TODO(b/109661512): Move vgap scale into TabularLayout
-    JPanel statusPanel = new JPanel(new TabularLayout("*,Fit,20px,Fit,*", "28px,Fit,Fit,Fit,Fit,*").setVGap(JBUIScale.scale(5)));
+    JPanel statusPanel = new JPanel(new TabularLayout("*,Fit,20px,Fit,*", "28px,Fit,Fit,Fit,Fit,*").setVGap(JBUI.scale(5)));
     statusPanel.setBorder(new LineBorder(ProfilerColors.CPU_CAPTURE_STATUS, 1));
 
     JLabel status = createLabel("Status", true);

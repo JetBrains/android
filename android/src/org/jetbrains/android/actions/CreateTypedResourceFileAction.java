@@ -16,13 +16,15 @@
 
 package org.jetbrains.android.actions;
 
+import com.android.AndroidXConstants;
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectView;
+import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.tools.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.res.IdeResourceNameValidator;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.rendering.parsers.LayoutPullParsers;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -60,6 +62,7 @@ import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,7 +71,6 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
   protected final ResourceFolderType myResourceFolderType;
   protected final String myResourcePresentableName;
-  String myDefaultRootTag;
   private final boolean myValuesResourceFile;
   private boolean myChooseTagName;
 
@@ -76,11 +78,10 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
                                        @NotNull ResourceFolderType resourceFolderType,
                                        boolean valuesResourceFile,
                                        boolean chooseTagName) {
-    super(AndroidBundle.messagePointer("new.typed.resource.action.title", resourcePresentableName),
-          AndroidBundle.messagePointer("new.typed.resource.action.description", resourcePresentableName), XmlFileType.INSTANCE.getIcon());
+    super(AndroidBundle.message("new.typed.resource.action.title", resourcePresentableName),
+          AndroidBundle.message("new.typed.resource.action.description", resourcePresentableName), XmlFileType.INSTANCE.getIcon());
     myResourceFolderType = resourceFolderType;
     myResourcePresentableName = resourcePresentableName;
-    myDefaultRootTag = getDefaultRootTagByResourceType(resourceFolderType);
     myValuesResourceFile = valuesResourceFile;
     myChooseTagName = chooseTagName;
   }
@@ -183,7 +184,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
   }
 
   public String getDefaultRootTag(@Nullable Module module) {
-    return myDefaultRootTag;
+    return getDefaultRootTagByResourceType(module, myResourceFolderType);
   }
 
   static boolean doIsAvailable(DataContext context, final String resourceType) {
@@ -228,33 +229,51 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
   }
 
   @NotNull
-  public static String getDefaultRootTagByResourceType(@NotNull ResourceFolderType resourceType) {
+  public static String getDefaultRootTagByResourceType(@Nullable Module module, @NotNull ResourceFolderType resourceType) {
     switch (resourceType) {
-      case XML:
+      case XML -> {
+        if (module != null) {
+          if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_PREFERENCE)) {
+            return AndroidXConstants.PreferenceAndroidX.CLASS_PREFERENCE_SCREEN_ANDROIDX.newName();
+          }
+        }
         return "PreferenceScreen";
-      case DRAWABLE:
+      }
+      case DRAWABLE, COLOR -> {
         return "selector";
-      case COLOR:
-        return "selector";
-      case VALUES:
+      }
+      case VALUES -> {
         return "resources";
-      case MENU:
+      }
+      case MENU -> {
         return "menu";
-      case ANIM:
+      }
+      case ANIM, ANIMATOR -> {
         return "set";
-      case ANIMATOR:
-        return "set";
-      case LAYOUT:
+      }
+      case LAYOUT -> {
+        if (module != null) {
+          if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
+            return AndroidXConstants.CONSTRAINT_LAYOUT.oldName();
+          }
+          else if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT)) {
+            return AndroidXConstants.CONSTRAINT_LAYOUT.newName();
+          }
+        }
         return AndroidUtils.TAG_LINEAR_LAYOUT;
-      case TRANSITION:
+      }
+      case TRANSITION -> {
         return TransitionDomUtil.DEFAULT_ROOT;
-      case FONT:
+      }
+      case FONT -> {
         return FontFamilyDomFileDescription.TAG_NAME;
-      case NAVIGATION:
+      }
+      case NAVIGATION -> {
         return NavigationDomFileDescription.DEFAULT_ROOT_TAG;
-      default:
+      }
+      default -> throw new IllegalArgumentException("Incorrect resource folder type");
+
     }
-    throw new IllegalArgumentException("Incorrect resource folder type");
   }
 
   private class MyValidator extends MyInputValidator implements InputValidatorEx {

@@ -11,31 +11,31 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
       <library name="libstudio.android-test-plugin-result-listener-gradle-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libstudio.android-test-plugin-result-listener-gradle-proto:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:libstudio.android-test-plugin-result-listener-gradle-proto:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-result-listener-gradle-proto/231.0.26.0/libstudio.android-test-plugin-result-listener-gradle-proto-231.0.26.0.jar">
-              <sha256sum>66ef739fbba469adaf5a156521ad31299f409e536fe45a19f6b4b48a015e9a43</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-result-listener-gradle-proto/232.1.23.0/libstudio.android-test-plugin-result-listener-gradle-proto-232.1.23.0.jar">
+              <sha256sum>0ea7ed3fca90124ef1c85058ee21c588a4dbe3dea9fff976cb386194d6ce48ab</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-result-listener-gradle-proto/231.0.26.0/libstudio.android-test-plugin-result-listener-gradle-proto-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-result-listener-gradle-proto/232.1.23.0/libstudio.android-test-plugin-result-listener-gradle-proto-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="library" name="utp-core-proto-jarjar" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.externalSystem" />
+    <orderEntry type="library" name="studio-proto" level="project" />
+    <orderEntry type="library" name="utp-core-proto-jarjar" level="project" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.gradle.common" />
+    <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.platform.util.ex" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
   </component>
 </module>

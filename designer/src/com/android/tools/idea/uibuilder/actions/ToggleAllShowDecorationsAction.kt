@@ -38,8 +38,7 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
       surface.models
         .firstOrNull()
         ?.let { surface.getSceneManager(it) as? LayoutlibSceneManager }
-        ?.isShowingDecorations
-        ?: false
+        ?.isShowingDecorations ?: false
     // A selected state could need to change to unselected due to changing to a wear device.
     // Make sure to update the selection here in such scenario
     if (isSelected && editor.configuration.device.isWear()) {

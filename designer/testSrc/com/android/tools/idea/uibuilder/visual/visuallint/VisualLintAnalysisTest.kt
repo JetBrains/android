@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel.TagSnapshotTreeNode
@@ -39,6 +39,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.profile.codeInspection.InspectionProfileManager
 import com.intellij.psi.xml.XmlFile
+import kotlin.test.assertNotNull
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -47,7 +48,6 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertNotNull
 
 class VisualLintAnalysisTest {
 
@@ -55,7 +55,7 @@ class VisualLintAnalysisTest {
 
   private val issueProvider by
     lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-      VisualLintIssueProvider(projectRule.fixture.testRootDisposable)
+      ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
     }
 
   @Before
@@ -330,7 +330,7 @@ class VisualLintAnalysisTest {
     files.forEach { file ->
       val nlModel =
         SyncNlModel.create(
-          projectRule.project,
+          projectRule.fixture.testRootDisposable,
           NlComponentRegistrar,
           null,
           facet,

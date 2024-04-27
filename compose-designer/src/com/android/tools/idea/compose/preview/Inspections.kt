@@ -19,13 +19,20 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.kotlin.evaluateConstant
 import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
+import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.layoutlib.isLayoutLibTarget
+import com.android.tools.preview.MAX_HEIGHT
+import com.android.tools.preview.MAX_WIDTH
+import com.android.tools.preview.config.PARAMETER_API_LEVEL
+import com.android.tools.preview.config.PARAMETER_FONT_SCALE
+import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
+import com.android.tools.preview.config.PARAMETER_WIDTH_DP
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
@@ -33,6 +40,10 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.calls.symbol
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.util.module
@@ -231,8 +242,7 @@ class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspect
           }
         }
         .drop(1)
-        .firstOrNull()
-        ?: return
+        .firstOrNull() ?: return
 
     // Flag the second annotation as the error
     holder.registerProblem(
@@ -461,8 +471,7 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
           ?.filter { it.isLayoutLibTarget }
           ?.map { it.version.apiLevel }
           ?.takeIf { it.isNotEmpty() }
-      }
-        ?: listOf(SdkVersionInfo.LOWEST_COMPILE_SDK_VERSION, SdkVersionInfo.HIGHEST_SUPPORTED_API)
+      } ?: listOf(SdkVersionInfo.LOWEST_COMPILE_SDK_VERSION, SdkVersionInfo.HIGHEST_SUPPORTED_API)
 
     val (min, max) = supportedApiLevels.minOrNull()!! to supportedApiLevels.maxOrNull()!!
 
@@ -482,6 +491,9 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
 
   override fun getStaticDescription() = message("inspection.preview.api.level.static.description")
 }
+
+private fun KtNamedFunction.isInUnitTestFile() =
+  isUnitTestFile(this.project, this.containingFile.virtualFile)
 
 /**
  * Inspection that checks that functions annotated with `@Preview`, or with a MultiPreview, are not
@@ -532,14 +544,8 @@ class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
           val parentFunction = expression.psiOrParent.parentOfType<KtNamedFunction>() ?: return
-          val resolvedExpression = expression.resolveToCall()
-          if (
-            resolvedExpression?.resultingDescriptor?.name?.asString() == parentFunction.name &&
-              parentFunction.annotationEntries.any {
-                it.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN) ||
-                  (it.toUElement() as? UAnnotation).isMultiPreviewAnnotation()
-              }
-          ) {
+          if (!parentFunction.isComposablePreviewFunction()) return
+          if (expression.calleeFunctionName()?.asString() == parentFunction.name) {
             holder.registerProblem(
               expression.psiOrParent as PsiElement,
               message("inspection.preview.recursive.description"),
@@ -547,6 +553,23 @@ class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
             )
           }
         }
+
+        private fun KtNamedFunction.isComposablePreviewFunction() =
+          annotationEntries.any {
+            it.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN) ||
+              (it.toUElement() as? UAnnotation).isMultiPreviewAnnotation()
+          }
+
+        private fun KtCallExpression.calleeFunctionName() =
+          if (KotlinPluginModeProvider.isK2Mode()) {
+            analyze(this) {
+              val functionSymbol = resolveCall()?.singleFunctionCallOrNull()?.symbol
+              functionSymbol?.callableIdIfNonLocal?.callableName
+            }
+          } else {
+            val resolvedExpression = resolveToCall()
+            resolvedExpression?.resultingDescriptor?.name
+          }
       }
     } else {
       PsiElementVisitor.EMPTY_VISITOR

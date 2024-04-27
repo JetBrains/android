@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.visual.ConfigurationSet
 import com.android.tools.idea.uibuilder.visual.TestVisualizationContentProvider
 import com.android.tools.idea.uibuilder.visual.VisualizationTestToolWindowManager
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
+import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
@@ -36,11 +37,12 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.assertInstanceOf
+import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import kotlin.test.assertNotNull
 
 class VisualLintIssueNodeTest {
   @JvmField @Rule val rule = AndroidProjectRule.withSdk().onEdt()
@@ -75,8 +77,13 @@ class VisualLintIssueNodeTest {
         )
         .build()
 
+    val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
     val issue =
-      createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model.components.first().children)
+      createTestVisualLintRenderIssue(
+        VisualLintErrorType.BOUNDS,
+        model.components.first().children,
+        issueProvider
+      )
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     val navigation = node.getNavigatable()
     assertNotNull(navigation)
@@ -126,7 +133,9 @@ class VisualLintIssueNodeTest {
         )
         .build()
 
-    val issue = createTestVisualLintRenderIssue(errorType, model.components.first().children)
+    val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
+    val issue =
+      createTestVisualLintRenderIssue(errorType, model.components.first().children, issueProvider)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWindowSizeDevicesNavigatable>(node.getNavigatable())
   }
@@ -149,10 +158,12 @@ class VisualLintIssueNodeTest {
         .setDevice(RenderTestUtil.findDeviceById(configurationManager, "wearos_rect"))
         .build()
 
+    val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
     val issue =
       createTestVisualLintRenderIssue(
         VisualLintErrorType.WEAR_MARGIN,
-        model.components.first().children
+        model.components.first().children,
+        issueProvider
       )
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     val navigation = node.getNavigatable()
@@ -204,7 +215,9 @@ class VisualLintIssueNodeTest {
         .setDevice(RenderTestUtil.findDeviceById(configurationManager, "wearos_rect"))
         .build()
 
-    val issue = createTestVisualLintRenderIssue(errorType, model.components.first().children)
+    val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
+    val issue =
+      createTestVisualLintRenderIssue(errorType, model.components.first().children, issueProvider)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWearDevicesNavigatable>(node.getNavigatable())
   }
@@ -226,9 +239,39 @@ class VisualLintIssueNodeTest {
         .type(VisualLintErrorType.BOUNDS)
         .build()
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
-    assertEquals(1, node.getChildren().size)
-    val child = node.getChildren()[0]
-    assertInstanceOf<NavigatableFileNode>(child)
-    assertEquals(navigatable, child.getNavigatable())
+    assertEquals(0, node.getChildren().size)
+    assertEquals(0, navigatable.compareTo(node.getNavigatable() as OpenFileDescriptor))
+  }
+
+  @Test
+  fun testEquality() {
+    val file = rule.fixture.createFile("Compose.kt", "Compose file")
+    val model = mock(NlModel::class.java)
+    val navigatable1 = OpenFileDescriptor(rule.project, file, 100)
+    val navigatable2 = OpenFileDescriptor(rule.project, file, 100)
+    val component1 = NlComponent(model, 651L).apply { setNavigatable(navigatable1) }
+    val component2 = NlComponent(model, 651L).apply { setNavigatable(navigatable2) }
+    val issue1 =
+      VisualLintRenderIssue.builder()
+        .summary("")
+        .severity(HighlightSeverity.WARNING)
+        .contentDescriptionProvider { HtmlBuilder() }
+        .model(model)
+        .components(mutableListOf(component1))
+        .type(VisualLintErrorType.BOUNDS)
+        .build()
+    val issue2 =
+      VisualLintRenderIssue.builder()
+        .summary("")
+        .severity(HighlightSeverity.WARNING)
+        .contentDescriptionProvider { HtmlBuilder() }
+        .model(model)
+        .components(mutableListOf(component2))
+        .type(VisualLintErrorType.BOUNDS)
+        .build()
+    val parentNode = CommonIssueTestParentNode(rule.projectRule.project)
+    val node1 = VisualLintIssueNode(issue1, parentNode)
+    val node2 = VisualLintIssueNode(issue2, parentNode)
+    assertTrue(node1 == node2)
   }
 }

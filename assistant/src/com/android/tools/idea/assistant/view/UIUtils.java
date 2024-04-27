@@ -23,7 +23,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.HTMLEditorKitBuilder;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -82,7 +82,6 @@ public class UIUtils {
   /**
    * Panel background color. Patterned after tree text background.
    */
-  @NotNull
   private static final Color BACKGROUND_COLOR = JBUI.CurrentTheme.ToolWindow.background();
 
   /**
@@ -99,9 +98,8 @@ public class UIUtils {
    * "Normal" background color as is found on a new JPanel background.
    */
   private static final Color AS_STANDARD_BACKGROUND_COLOR =
-    new JBColor(StartupUiUtil.isUnderDarcula() ? 0xFFE8E8E8 : CURRENT_BG_COLOR.getRGB(), 0xFF3D3F41);
+    new JBColor(UIUtil.isUnderDarcula() ? 0xFFE8E8E8 : CURRENT_BG_COLOR.getRGB(), 0xFF3D3F41);
 
-  @NotNull
   public static Color getBackgroundColor() {
     return BACKGROUND_COLOR;
   }

@@ -18,6 +18,7 @@ package com.android.tools.idea.apk;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.apk.ImportApkAction.LAST_IMPORTED_LOCATION;
 import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -33,9 +34,8 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.externalSystem.ExternalSystemManager;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -49,7 +49,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link ImportApkAction}.
  */
-public class ImportApkActionTest extends HeavyPlatformTestCase {
+public class ImportApkActionTest extends PlatformTestCase {
   @Mock private ImportApkAction.FileChooserDialogFactory myFileChooserDialogFactory;
   @Mock private FileChooserDialog myFileChooserDialog;
   @Mock private ExternalSystemManager<?, ?, ?, ?, ?> myExternalSystemManager;
@@ -108,7 +108,7 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
     myAction.actionPerformed(mock(AnActionEvent.class));
 
     assertSame(myApkToImport, myProjectTypeImporter.importedApkFile); // Verify that the APK file was imported.
-    assertEquals(FileUtilRt.toSystemDependentName(myApkToImport.getPath()), myPropertiesComponent.getValue(LAST_IMPORTED_LOCATION));
+    assertEquals(toSystemDependentName(myApkToImport.getPath()), myPropertiesComponent.getValue(LAST_IMPORTED_LOCATION));
 
     // See: https://issuetracker.google.com/67708415
     assertEquals(myRecentProjectLocation.getPath(), myRecentProjectsManager.getLastProjectCreationLocation());
@@ -130,15 +130,16 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
     }
   }
 
-  private static final class RecentProjectsManagerStub implements RecentProjectsManager {
-    private @NotNull String myLastProjectLocation;
+  private static class RecentProjectsManagerStub implements RecentProjectsManager {
+    @NotNull private String myLastProjectLocation;
 
     RecentProjectsManagerStub(@NotNull String lastProjectLocation) {
       myLastProjectLocation = lastProjectLocation;
     }
 
     @Override
-    public @NotNull String getLastProjectCreationLocation() {
+    @Nullable
+    public String getLastProjectCreationLocation() {
       return myLastProjectLocation;
     }
 
@@ -157,13 +158,18 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
 
     @NotNull
     @Override
-    public AnAction [] getRecentProjectsActions(boolean addClearListItem) {
+    public AnAction[] getRecentProjectsActions(boolean addClearListItem) {
       return AnAction.EMPTY_ARRAY;
     }
 
     @Override
     public boolean willReopenProjectOnStart() {
       return false;
+    }
+
+    @Override
+    public Object reopenLastProjectsOnStart(@NotNull Continuation<? super Boolean> $completion) {
+      return null;
     }
 
     @NotNull
@@ -204,13 +210,7 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
     }
 
     @Override
-    public @Nullable Object reopenLastProjectsOnStart(@NotNull Continuation<? super Boolean> $completion) {
-      return null;
-    }
-
-    @Override
     public void setActivationTimestamp(@NotNull Project project, long timestamp) {
     }
-
   }
 }

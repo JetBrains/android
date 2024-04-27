@@ -68,6 +68,7 @@ class TwoLineLabel : JBPanel<TwoLineLabel>(null), TableComponent {
       )
     )
   }
+
   companion object {
     val LINE2_COLOR = JBColor(0x818594, 0x6F737A)
   }

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post
 
+import com.intellij.notification.NotificationDisplayType
+import com.intellij.notification.NotificationsConfiguration
+import com.intellij.notification.impl.NotificationsConfigurationImpl
 import com.intellij.testFramework.PlatformTestCase
 import java.util.Calendar
 import java.util.GregorianCalendar
@@ -22,6 +25,7 @@ import java.util.GregorianCalendar
 class TimeBasedReminderTest : PlatformTestCase() {
   private lateinit var calendar: Calendar
   private lateinit var reminder: TimeBasedReminder
+  private val NOTIFICATION_ID = "testTimeBasedReminderGroupId"
 
   @Throws(Exception::class)
   override fun setUp() {
@@ -74,5 +78,30 @@ class TimeBasedReminderTest : PlatformTestCase() {
     assertEquals(777, reminder.lastTimeStamp)
     assertTrue(reminder.doNotAskForApplication)
     assertTrue(reminder.doNotAskForProject)
+  }
+
+  fun testNotificationSettingsChange() {
+    NotificationsConfiguration.getNotificationsConfiguration().changeSettings(NOTIFICATION_ID, NotificationDisplayType.BALLOON, true, true)
+    val reminderNotification = TimeBasedReminder(project, "test.property", notificationGroupId = NOTIFICATION_ID, defaultShouldLog = true,
+                                                 defaultShouldRead = true, defaultNotificationType = NotificationDisplayType.BALLOON)
+    // Check notifications are disabled
+    reminderNotification.doNotAskForApplication = true
+    var notificationSettings = NotificationsConfigurationImpl.getSettings(NOTIFICATION_ID)
+    assertEquals(NotificationDisplayType.NONE, notificationSettings.displayType)
+    assertFalse(notificationSettings.isShouldLog)
+    assertFalse(notificationSettings.isShouldReadAloud)
+    assertTrue(reminderNotification.doNotAskForApplication)
+    // Check they can be re-enabled by changing the reminder
+    reminderNotification.doNotAskForApplication = false
+    notificationSettings = NotificationsConfigurationImpl.getSettings(NOTIFICATION_ID)
+    assertEquals(NotificationDisplayType.BALLOON, notificationSettings.displayType)
+    assertTrue(notificationSettings.isShouldLog)
+    assertTrue(notificationSettings.isShouldReadAloud)
+    assertFalse(reminderNotification.doNotAskForApplication)
+    // Check that enabling the notification also enables the reminder
+    reminderNotification.doNotAskForApplication = true
+    assertTrue(reminderNotification.doNotAskForApplication)
+    NotificationsConfiguration.getNotificationsConfiguration().changeSettings(NOTIFICATION_ID, NotificationDisplayType.STICKY_BALLOON, true, true)
+    assertFalse(reminderNotification.doNotAskForApplication)
   }
 }

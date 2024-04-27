@@ -23,7 +23,7 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDropHandler
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget
 import com.android.tools.idea.uibuilder.model.x
 import com.android.tools.idea.uibuilder.model.y
@@ -63,8 +63,7 @@ class ConstraintPlaceholder(host: SceneComponent) : Placeholder(host) {
       GuidelineTarget.GuidelineDropHandler(sceneComponent, horizontal)
         .updateAttributes(attributes, x, y)
     } else if (sceneComponent !is TemporarySceneComponent) {
-      ConstraintDragTarget.ConstraintDropHandler(sceneComponent)
-        .updateAttributes(attributes, host, x, y)
+      ConstraintDropHandler(sceneComponent).updateAttributes(attributes, host, x, y)
     } else {
       val nlComponent = sceneComponent.authoritativeNlComponent
       var horizontalMatchParent = false

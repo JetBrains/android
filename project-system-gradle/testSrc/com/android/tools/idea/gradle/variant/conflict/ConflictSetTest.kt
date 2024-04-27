@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModul
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
+import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
 import java.io.File
 
@@ -60,7 +61,7 @@ class ConflictSetTest : ConflictsTestCase() {
     assertThat(conflict.selectedVariant).isEqualTo("debug")
     val affectedModules = conflict.affectedModules
     assertThat(affectedModules).hasSize(1)
-    val affectedModule = affectedModules[0]
+    val affectedModule = Iterables.getOnlyElement(affectedModules)
     assertThat(affectedModule.target).isSameAs(project.findAppModule())
     assertThat(affectedModule.expectedVariant).isEqualTo("release")
   }

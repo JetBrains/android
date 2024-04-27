@@ -77,5 +77,16 @@ public interface IdeProfilerComponents {
    *                       that was selected on the configurations list when the dialog was closed.
    */
   void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel profilerModel, int deviceLevel,
-                                            @NotNull Consumer<ProfilingConfiguration> dialogCallback);
+                                            @NotNull Consumer<ProfilingConfiguration> dialogCallback,
+                                            @NotNull IdeProfilerServices ideProfilerServices);
+
+  /**
+   * Open the dialog for managing the Profiler task configurations. Functionally a wrapper of `openCpuProfilingConfigurationsDialog`.
+   * The "cpu"-based naming used in the `openCpuProfilingConfigurationsDialog` method name is masked via this wrapper method as the renaming
+   * of the {@link CpuProfilerConfigModel} has been delayed due to a serialization complication. See b/308708753 for context.
+   *
+   * @param profilerModel {@link CpuProfilerConfigModel} corresponding to the {@link ProfilingConfiguration} to be selected when opening
+   *                      the dialog.
+   */
+  void openTaskConfigurationsDialog(@NotNull CpuProfilerConfigModel profilerModel, @NotNull IdeProfilerServices ideProfilerServices);
 }

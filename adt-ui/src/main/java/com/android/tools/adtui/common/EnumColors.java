@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui.common;
 
+import com.google.common.collect.Maps;
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +42,7 @@ public final class EnumColors<E extends Enum<E>> {
    * per type, use a {@link Builder} instead.
    */
   public EnumColors(@NotNull Map<E, Color> colors) {
-    myColors = new HashMap<>();
+    myColors = Maps.newHashMap();
     colors.forEach((e, c) -> myColors.put(e, Collections.singletonList(c)));
   }
 
@@ -73,7 +73,7 @@ public final class EnumColors<E extends Enum<E>> {
    */
   public static final class Builder<E extends Enum<E>> {
     private final int myNumColorsPerType;
-    private Map<E, List<Color>> myColors = new HashMap<>();
+    private Map<E, List<Color>> myColors = Maps.newHashMap();
 
     public Builder(int numColorsPerType) {
       myNumColorsPerType = numColorsPerType;

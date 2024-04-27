@@ -31,9 +31,10 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import java.util.concurrent.Executor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 /**
  * Class used to receive asynchronous events from the on-device inspector.
@@ -46,7 +47,8 @@ import java.util.concurrent.Executor
  * @param scope the coroutine scoped used to send messages to inspector. The job in this scope must
  *   be created using SupervisorJob, to avoid the parent Job from failing when child Jobs fail.
  */
-class DatabaseInspectorClient(
+class DatabaseInspectorClient
+constructor(
   private val messenger: AppInspectorMessenger,
   private val parentDisposable: Disposable,
   private val onErrorEventListener: (errorMessage: String) -> Unit,

@@ -67,6 +67,7 @@ object ZoomLabelAction : AnAction(), CustomComponentAction {
         super.addNotify()
         presentation.addPropertyChangeListener(presentationSyncer)
         text = presentation.text
+        parent.parent.validate()
       }
 
       override fun removeNotify() {

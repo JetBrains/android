@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.compose.preview.util.device
 
-import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.tryEvaluateConstant
+import com.android.tools.preview.config.PARAMETER_DEVICE
 import com.intellij.lang.injection.MultiHostRegistrar
 import com.intellij.lang.injection.general.Injection
 import com.intellij.lang.injection.general.LanguageInjectionContributor
 import com.intellij.lang.injection.general.LanguageInjectionPerformer
 import com.intellij.lang.injection.general.SimpleInjection
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiLanguageInjectionHost
@@ -48,9 +48,32 @@ import org.jetbrains.uast.toUElement
  */
 class DeviceSpecInjectionContributor : LanguageInjectionContributor {
   override fun getInjection(context: PsiElement): Injection? {
+    val application = ApplicationManager.getApplication()
+    if (!application.isUnitTestMode && application.isDispatchThread) {
+      // We need this contributor to provide a DeviceSpecLanguage Injection when getInjection
+      // is called from IntelliJ editor workflows, such as EditorMouseHoverPopupManager, or
+      // BackgroundHighlightingUtil. The goal is to inject the device spec custom language support
+      // on the String value that represents a device in Compose Preview. These editor workflows
+      // are not triggered from EDT. Instead, they can be triggered from the ActionUpdateThread or
+      // a pooled thread.
+      //
+      // There is nothing preventing getInjection to also be called from EDT. In Android Studio, we
+      // do that through ReformatUtil.reformatRearrangeAndSave(), which is called by
+      // NewTemplateRenderer when creating a new project. At that point, we don't need the Injection
+      // to be provided, because getInjection will be called again from an appropriate thread when
+      // the editor is ready.
+      //
+      // Since this is not needed on EDT and considering that context.isInPreviewAnnotation() below
+      // relies on a slow operation (getting the FQN of an annotation), we return a null Injection
+      // when running from EDT.
+      //
+      // Note: unit tests using CodeInsightTestFixture trigger the editor operations mentioned above
+      // from the UI thread, so we don't return early when running tests
+      return null
+    }
+
     if (
-      !StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get() ||
-        context.containingFile.fileType != KotlinFileType.INSTANCE ||
+      context.containingFile.fileType != KotlinFileType.INSTANCE ||
         context !is KtStringTemplateExpression ||
         !context.isInPreviewAnnotation()
     ) {

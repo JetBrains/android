@@ -15,12 +15,12 @@
  */
 package org.jetbrains.android.dom.resources;
 
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.DomFileDescription;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.openapi.module.Module;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

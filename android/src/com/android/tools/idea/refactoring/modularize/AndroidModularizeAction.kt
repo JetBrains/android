@@ -17,6 +17,9 @@ package com.android.tools.idea.refactoring.modularize
 
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.lang.Language
+import com.intellij.lang.java.JavaLanguage
+import org.jetbrains.kotlin.idea.KotlinFileType
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
@@ -24,14 +27,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.actions.BaseJavaRefactoringAction
+import com.intellij.refactoring.actions.BaseRefactoringAction
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.KotlinLanguage
 
 // open for testing
-
-// TODO: do we actually want to extend BaseJavaRefactoringAction? Do we want to support starting from any piece of code?
-// and how would this work in Kotlin?
-open class AndroidModularizeAction : BaseJavaRefactoringAction() {
+open class AndroidModularizeAction : BaseRefactoringAction() {
+  override fun isAvailableForLanguage(language: Language?): Boolean =
+    language is KotlinLanguage || language is JavaLanguage
 
   override fun isAvailableInEditorOnly() = false
 

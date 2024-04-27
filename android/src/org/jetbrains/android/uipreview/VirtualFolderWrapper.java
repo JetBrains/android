@@ -3,7 +3,7 @@ package org.jetbrains.android.uipreview;
 import com.android.io.IAbstractFile;
 import com.android.io.IAbstractFolder;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +28,7 @@ public class VirtualFolderWrapper implements IAbstractFolder {
 
   @Override
   public String getOsLocation() {
-    return FileUtilRt.toSystemDependentName(myFolder.getPath());
+    return FileUtil.toSystemDependentName(myFolder.getPath());
   }
 
   @Override

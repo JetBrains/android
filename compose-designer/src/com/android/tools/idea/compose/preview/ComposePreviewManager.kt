@@ -15,38 +15,19 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.ApiStatus
 
 /** Interface that provides access to the Compose Preview logic. */
 interface ComposePreviewManager : Disposable, PreviewModeManager {
-  /**
-   * Enum that determines the current status of the interactive preview.
-   *
-   * The transitions are like:
-   *
-   * DISABLED -> STARTED -> READY -> STOPPING
-   *
-   * ```
-   *    ^                               +
-   *    |                               |
-   *    +-------------------------------+
-   * ```
-   */
-  enum class InteractiveMode {
-    DISABLED,
-    /** Status when interactive has been started but the first render has not happened yet. */
-    STARTING,
-    /** Interactive is ready and running. */
-    READY,
-    /** The interactive preview is stopping but it has not been fully disposed yet. */
-    STOPPING;
 
-    fun isStartingOrStopping() = this == STARTING || this == STOPPING
-  }
   /**
    * Status of the preview.
    *
@@ -58,7 +39,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
    * @param areResourcesOutOfDate true if the preview needs a build to be up to date because
    *   resources are out of date.
    * @param isRefreshing true if the view is currently refreshing.
-   * @param interactiveMode represents current state of preview interactivity.
    */
   data class Status(
     val hasRuntimeErrors: Boolean,
@@ -66,16 +46,12 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
     val isOutOfDate: Boolean,
     val areResourcesOutOfDate: Boolean,
     val isRefreshing: Boolean,
-    val interactiveMode: InteractiveMode
   ) {
     /** True if the preview has errors that will need a refresh */
     val hasErrors = hasRuntimeErrors || hasSyntaxErrors
   }
 
   fun status(): Status
-
-  /** Return to previously selected [PreviewMode]. */
-  fun back()
 
   /**
    * [StateFlow] of available named groups in this preview. The editor can contain multiple groups
@@ -92,12 +68,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
   var groupFilter: PreviewGroup
 
   /**
-   * When true, the ComposeViewAdapter will search for Composables that can return a DesignInfo
-   * object.
-   */
-  val hasDesignInfoProviders: Boolean
-
-  /**
    * The [PsiFile] that this preview is representing, if any. For cases where the preview is
    * rendering synthetic previews or elements from multiple files, this can be null.
    */
@@ -109,24 +79,16 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
   /** Flag to indicate if the preview filter is enabled or not. */
   var isFilterEnabled: Boolean
 
+  /** Flag to indicate if the UI Check filter is enabled or not. */
+  var isUiCheckFilterEnabled: Boolean
+
   /** Flag to indicate whether ATF checks should be run on the preview. */
   val atfChecksEnabled: Boolean
-    get() = (currentOrNextMode as? PreviewMode.UiCheck)?.atfChecksEnabled ?: false
+    get() = (mode.value as? PreviewMode.UiCheck)?.atfChecksEnabled ?: false
 
   /** Flag to indicate whether Visual Lint checks should be run on the preview. */
   val visualLintingEnabled: Boolean
-    get() = (currentOrNextMode as? PreviewMode.UiCheck)?.visualLintingEnabled ?: false
-
-  /**
-   * Indicates whether the preview is in its default mode by opposition to one of the special modes
-   * (interactive, animation, UI check). Both [PreviewMode.Default] and [PreviewMode.Gallery] are
-   * normal modes.
-   */
-  val isInNormalMode: Boolean
-    get() = mode is PreviewMode.Default || mode is PreviewMode.Gallery
-
-  val isUiCheckPreview: Boolean
-    get() = mode is PreviewMode.UiCheck
+    get() = (mode.value as? PreviewMode.UiCheck)?.visualLintingEnabled ?: false
 
   /**
    * Invalidates the cached preview status. This ensures that the @Preview annotations lookup
@@ -143,7 +105,6 @@ class NopComposePreviewManager : ComposePreviewManager {
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
-      ComposePreviewManager.InteractiveMode.DISABLED
     )
 
   override val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>> =
@@ -151,18 +112,22 @@ class NopComposePreviewManager : ComposePreviewManager {
   override val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>> =
     MutableStateFlow(emptySet())
   override var groupFilter: PreviewGroup = PreviewGroup.All
-  override val hasDesignInfoProviders: Boolean = false
   override val previewedFile: PsiFile? = null
   override var isInspectionTooltipEnabled: Boolean = false
   override var isFilterEnabled: Boolean = false
-  override var mode: PreviewMode = PreviewMode.Default
-  override fun setMode(newMode: PreviewMode.Settable) {
-    mode = newMode
-  }
+  override var isUiCheckFilterEnabled: Boolean = false
+  private val _mode = MutableStateFlow<PreviewMode>(PreviewMode.Default())
+  override val mode = _mode.asStateFlow()
 
   override fun invalidate() {}
-  override fun back() {}
+
+  override fun restorePrevious() {}
+
   override fun dispose() {}
+
+  override fun setMode(mode: PreviewMode) {
+    _mode.value = mode
+  }
 }
 
 /**

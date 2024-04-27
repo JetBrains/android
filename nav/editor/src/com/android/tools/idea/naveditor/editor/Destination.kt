@@ -60,8 +60,8 @@ private const val THUMBNAIL_BORDER_THICKNESS = 1f
 private const val THUMBNAIL_OUTER_RADIUS = 5f
 private const val THUMBNAIL_INNER_RADIUS = 3f
 private val THUMBNAIL_BORDER_STROKE = BasicStroke(THUMBNAIL_BORDER_THICKNESS)
-private const val INCLUDE_ICON_WIDTH = 45
-private const val INCLUDE_ICON_HEIGHT = 60
+private val INCLUDE_ICON_WIDTH = 45
+private val INCLUDE_ICON_HEIGHT = 60
 
 sealed class Destination(protected open val parent: NlComponent) : Comparable<Destination> {
   /**
@@ -133,8 +133,8 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
       graphics.clip = oldClip
       graphics.color = PLACEHOLDER_BORDER
       graphics.stroke = THUMBNAIL_BORDER_STROKE
-      roundRect.width += THUMBNAIL_BORDER_THICKNESS
-      roundRect.height += THUMBNAIL_BORDER_THICKNESS
+      roundRect.width = roundRect.width + THUMBNAIL_BORDER_THICKNESS
+      roundRect.height = roundRect.height + THUMBNAIL_BORDER_THICKNESS
       roundRect.x = 0.5f
       roundRect.y = 0.5f
       roundRect.archeight = THUMBNAIL_OUTER_RADIUS

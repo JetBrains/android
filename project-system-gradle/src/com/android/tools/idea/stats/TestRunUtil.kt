@@ -19,8 +19,8 @@ package com.android.tools.idea.stats
 
 import com.android.tools.analytics.recordTestLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
-import com.google.common.collect.Iterables
 import com.google.wireless.android.sdk.stats.TestLibraries
 
 /**
@@ -38,8 +38,8 @@ fun findTestLibrariesVersions(artifact: IdeBaseArtifact): TestLibraries {
 fun recordTestLibraries(builder: TestLibraries.Builder, artifact: IdeBaseArtifact) {
   val dependencies = artifact.compileClasspath
 
-  for (lib in Iterables.concat(dependencies.androidLibraries, dependencies.javaLibraries)) {
-    lib.target.component?.run {
+  for (lib in dependencies.libraries.filterIsInstance(IdeArtifactLibrary::class.java)) {
+    lib.component?.run {
       builder.recordTestLibrary(group, name, version.toString())
     }
   }

@@ -105,7 +105,9 @@ data class StacktraceGroup(
 
 data class DeviceType(val name: String) : GroupAware<DeviceType> {
   override fun compareTo(other: DeviceType) = name.compareTo(other.name)
+
   override val groupName = name
+
   companion object {
     val UNKNOWN = DeviceType("Unknown")
   }
@@ -169,6 +171,14 @@ data class Version(
   }
 }
 
+/** A series of keyed analytic events recorded by an app. */
+data class Log(val eventTime: Instant, val title: String, val params: Map<String, String>)
+
+/**
+ * An optional key-value pair set by the developer and recorded by the app at the time of a crash.
+ */
+data class CustomKey(val key: String, val value: String)
+
 /** Event metadata captured at the time of the event, plus additional analysis. */
 data class EventData(
   // Metadata about the device.
@@ -183,13 +193,18 @@ data class EventData(
 
 /** Representation of an App crash or logged error, having been processed by Crashlytics. */
 data class Event(
+  // ID of the event
+  val name: String = "",
+
   // Event metadata
   val eventData: EventData = EventData(),
 
   // Describes the crash or non-fatal error / exception, and potentially the
   // state of the other threads in the process at time of the Event.
   val stacktraceGroup: StacktraceGroup = StacktraceGroup(),
-  val appVcsInfo: AppVcsInfo = AppVcsInfo.NONE
+  val appVcsInfo: AppVcsInfo = AppVcsInfo.NONE,
+  val customKeys: List<CustomKey> = emptyList(),
+  val logs: List<Log> = emptyList()
 ) {
   companion object {
     val EMPTY = Event()

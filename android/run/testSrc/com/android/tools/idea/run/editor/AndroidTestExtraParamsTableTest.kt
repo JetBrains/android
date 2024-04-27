@@ -52,7 +52,7 @@ class AndroidTestExtraParamsTableTest {
     assertThat(addButton.isVisible).isTrue()
     assertThat(addButton.isEnabled).isTrue()
     addButton.actionPerformed(createEmptyEvent())
-    dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue();
     assertThat(table.tableView.tableViewModel.items).containsExactly(AndroidTestExtraParam())
 
     // Make sure delete button is displayed and tapping the button deletes the element.
@@ -61,7 +61,7 @@ class AndroidTestExtraParamsTableTest {
     assertThat(deleteButton.isVisible).isTrue()
     assertThat(deleteButton.isEnabled).isTrue()
     deleteButton.actionPerformed(createEmptyEvent())
-    dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue();
     assertThat(table.tableView.tableViewModel.items).isEmpty()
   }
 
@@ -97,7 +97,7 @@ class AndroidTestExtraParamsTableTest {
       action.templatePresentation.icon == AllIcons.Actions.Rollback
     }
     revertAction.actionPerformed(createEmptyEvent())
-    dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue();
 
     // Make sure only first two items are reverted.
     assertThat(table.tableView.tableViewModel.items).containsExactly(

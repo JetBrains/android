@@ -19,9 +19,9 @@ import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.sdklib.AndroidCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
@@ -124,7 +124,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
    */
   protected void createSceneView() {
     if (mySceneView != null) {
-      mySceneView.dispose();
+      Disposer.dispose(mySceneView);
     }
     mySceneView = doCreateSceneView();
   }
@@ -164,9 +164,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   @Override
   public void dispose() {
     deactivate(this);
-    for (SceneView sceneView : getSceneViews()) {
-      sceneView.dispose();
-    }
   }
 
   /**

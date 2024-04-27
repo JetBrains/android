@@ -8,7 +8,7 @@ iml_module(
     split_test_targets = {
         "perfgateCompose": {
             "tags": ["perfgate"],
-            "shard_count": 2,
+            "shard_count": 5,
             "test_filter": "com.android.tools.idea.rendering.PerfgateComposeTest",
         },
         "perfgateComplex": {
@@ -18,7 +18,7 @@ iml_module(
         },
         "perfgateVisualLint": {
             "tags": ["perfgate"],
-            "shard_count": 2,
+            "shard_count": 5,
             "test_filter": "com.android.tools.idea.uibuilder.visual.visuallint",
         },
         "perfgateJarManager": {
@@ -27,8 +27,13 @@ iml_module(
         },
         "perfgateComposeGradle": {
             "tags": ["perfgate"],
-            "shard_count": 2,
+            "shard_count": 5,
             "test_filter": "com.android.tools.idea.rendering.PerfgateComposeGradleTest",
+        },
+        "perfgateUiCheck": {
+            "tags": ["perfgate"],
+            "shard_count": 5,
+            "test_filter": "com.android.tools.idea.uicheck",
         },
         "non-perfgate": {
         },
@@ -49,8 +54,8 @@ iml_module(
         "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native:libjni_object_tagger.prebuilt",
         "//tools/adt/idea/android/testData",
-        "//tools/adt/idea/compose-designer:kotlin-compiler-daemon-libs",
         "//tools/adt/idea/designer-perf-tests/testData",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -90,6 +95,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer.tests[module, test]",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
     ],
 )
 

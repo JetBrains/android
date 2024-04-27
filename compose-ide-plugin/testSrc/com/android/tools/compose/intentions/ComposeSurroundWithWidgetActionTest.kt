@@ -21,13 +21,11 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 
-/**
- * Test for [ComposeSurroundWithWidgetActionGroup] and [ComposeSurroundWithWidgetAction]
- */
-class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
+/** Test for [ComposeSurroundWithWidgetActionGroup] and [ComposeSurroundWithWidgetAction] */
+class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() {
   public override fun setUp() {
     super.setUp()
     myFixture.stubComposableAnnotation()
@@ -43,7 +41,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
     inline fun Row(content: @Composable () -> Unit) {}
     inline fun Column(content: @Composable () -> Unit) {}
     inline fun Box(content: @Composable () -> Unit) {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
   }
 
@@ -55,7 +54,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
     myFixture.loadNewFile("src/com/example/Test.kt", inputFileContent)
     val action = actionProvider()
     WriteCommandAction.runWriteCommandAction(myFixture.project) {
-      // Within unit tests ListPopupImpl.showInBestPositionFor doesn't open popup and acts like fist item was selected.
+      // Within unit tests ListPopupImpl.showInBestPositionFor doesn't open popup and acts like fist
+      // item was selected.
       // In our case wrap in Box will be selected.
       action.invoke(myFixture.project, myFixture.editor, myFixture.file)
     }
@@ -68,11 +68,15 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
     inputFileContent: String,
     expectedResult: String
   ) {
-    invokeActionAndAssertResult({
-                                  val action = myFixture.availableIntentions.find { it.text == actionName }
-                                  assertThat(action).isNotNull()
-                                  action!!
-                                }, inputFileContent, expectedResult)
+    invokeActionAndAssertResult(
+      {
+        val action = myFixture.availableIntentions.find { it.text == actionName }
+        assertThat(action).isNotNull()
+        action!!
+      },
+      inputFileContent,
+      expectedResult
+    )
   }
 
   private fun invokeActionAndAssertResult(
@@ -102,7 +106,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
 
           </selection><caret>
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       // language=kotlin
       """
       package com.example
@@ -122,7 +127,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
 
           
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
   }
 
@@ -141,7 +147,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       // language=kotlin
       """
       package com.example
@@ -157,7 +164,9 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     invokeActionAndAssertResult(
       "Surround with widget",
@@ -173,7 +182,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           <caret>Text("Davenport, California")
           Text("December 2018")
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       // language=kotlin
       """
       package com.example
@@ -189,7 +199,9 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           }
           Text("December 2018")
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     invokeActionAndAssertResult(
       "Surround with widget",
@@ -205,7 +217,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")<caret>
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       // language=kotlin
       """
       package com.example
@@ -221,7 +234,9 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
               Text("December 2018")
           }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     invokeActionAndAssertResult(
       "Surround with widget",
@@ -237,7 +252,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
               Text("Davenport, California")
           }
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       // language=kotlin
       """
       package com.example
@@ -253,16 +269,17 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
               }
           }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
   }
 
-  /**
-   * Checks the cases where the intention should not be available.
-   */
+  /** Checks the cases where the intention should not be available. */
   fun testSurroundWithWidgetWithoutSelectionNotAvailable() {
-    val cases = listOf(
-      // language=kotlin
-      """
+    val cases =
+      listOf(
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -276,9 +293,10 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
               Text("December 2018")
           }
       }
-    """.trimIndent(),
-      // language=kotlin
-      """
+    """
+          .trimIndent(),
+        // language=kotlin
+        """
     package com.example
 
     import $COMPOSABLE_ANNOTATION_FQ_NAME
@@ -292,9 +310,10 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
             Text("December 2018")
         }
     }
-    """.trimIndent(),
-      // language=kotlin
-      """
+    """
+          .trimIndent(),
+        // language=kotlin
+        """
     package com.example
 
     import $COMPOSABLE_ANNOTATION_FQ_NAME
@@ -310,9 +329,10 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
             Text("December 2018")
         }
     }
-    """.trimIndent(),
-      // language=kotlin
-      """
+    """
+          .trimIndent(),
+        // language=kotlin
+        """
     package com.example
 
     import $COMPOSABLE_ANNOTATION_FQ_NAME
@@ -322,8 +342,9 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
     fun NewsStory() {<caret>
         Text("A day in Shark Fin Cove")
     }
-    """.trimIndent()
-    )
+    """
+          .trimIndent()
+      )
 
     cases.forEachIndexed { index, content ->
       myFixture.loadNewFile("src/com/example/Test${index}.kt", content)
@@ -333,8 +354,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
   }
 
   /**
-   * Checks surround with widget when the selection starts and/or stops in the middle or an element and not
-   * in empty space.
+   * Checks surround with widget when the selection starts and/or stops in the middle or an element
+   * and not in empty space.
    */
   fun testSurroundWithWidgetWithPartialSelection() {
     invokeActionAndAssertResult(
@@ -351,7 +372,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, Cali</selection>fornia")
           Text("December 2018")
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       // language=kotlin
       """
       package com.example
@@ -367,7 +389,9 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           }
           Text("December 2018")
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     invokeActionAndAssertResult(
       "Surround with widget",
@@ -385,7 +409,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           // A comment
           </selection>
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       // language=kotlin
       """
       package com.example
@@ -403,7 +428,9 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           }
           
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     invokeActionAndAssertResult(
       "Surround with widget",
@@ -423,7 +450,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
             Text("December 2018")</selection>
         }
     }
-    """.trimIndent(),
+    """
+        .trimIndent(),
       // language=kotlin
       """
         package com.example
@@ -442,7 +470,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
                 }
             }
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     invokeActionAndAssertResult(
@@ -464,7 +493,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
             Text("December 2018")
         }</selection>
     }
-    """.trimIndent(),
+    """
+        .trimIndent(),
       // language=kotlin
       """
         package com.example
@@ -484,17 +514,17 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
                 }
             }
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
-  /**
-   * Checks the cases where the intention should not be available.
-   */
+  /** Checks the cases where the intention should not be available. */
   fun testSurroundWithWidgetWithPartialSelectionNotAvailable() {
-    val cases = listOf(
-      // language=kotlin
-      """
+    val cases =
+      listOf(
+        // language=kotlin
+        """
     package com.example
 
     import $COMPOSABLE_ANNOTATION_FQ_NAME
@@ -508,9 +538,10 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
             Text("December 2018")
         }
     }
-    """.trimIndent(),
-      // language=kotlin
-      """
+    """
+          .trimIndent(),
+        // language=kotlin
+        """
     package com.example
 
     import $COMPOSABLE_ANNOTATION_FQ_NAME
@@ -533,9 +564,10 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
             Text("December 2018")
         }
     }
-    """.trimIndent(),
-      // language=kotlin
-      """
+    """
+          .trimIndent(),
+        // language=kotlin
+        """
     package com.example
 
     import $COMPOSABLE_ANNOTATION_FQ_NAME
@@ -560,9 +592,10 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
         }
     }
     </selection>
-    """.trimIndent(),
-      // language=kotlin
-      """
+    """
+          .trimIndent(),
+        // language=kotlin
+        """
     package com.example
 
     import $COMPOSABLE_ANNOTATION_FQ_NAME
@@ -578,8 +611,9 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
             Text("December 2018")
         }
     }
-    """.trimIndent()
-    )
+    """
+          .trimIndent()
+      )
 
     cases.forEachIndexed { index, content ->
       myFixture.loadNewFile("src/com/example/Test${index}.kt", content)
@@ -604,7 +638,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")</selection><caret>
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       // language=kotlin
       """
       package com.example
@@ -620,7 +655,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
               Text("December 2018")
           }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
   }
 
@@ -639,7 +675,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")</selection><caret>
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       // language=kotlin
       """
       package com.example
@@ -655,7 +692,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
               Text("December 2018")
           }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
   }
 
@@ -674,7 +712,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")</selection><caret>
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       // language=kotlin
       """
       package com.example
@@ -690,7 +729,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
               Text("December 2018")
           }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
   }
 }

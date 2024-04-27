@@ -38,9 +38,11 @@ class FakeUiComponentsProvider : UiComponentsProvider {
       object : ImageDataViewer {
         private val SAMPLE_IMAGE = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
         private val SAMPLE_COMPONENT: JComponent = JLabel(ImageIcon(SAMPLE_IMAGE))
+
         override fun getImage(): BufferedImage {
           return SAMPLE_IMAGE
         }
+
         override fun getComponent(): JComponent {
           return SAMPLE_COMPONENT
         }
@@ -48,9 +50,11 @@ class FakeUiComponentsProvider : UiComponentsProvider {
     } else {
       object : DataViewer {
         private val SAMPLE_COMPONENT: JComponent = JPanel()
+
         override fun getComponent(): JComponent {
           return SAMPLE_COMPONENT
         }
+
         override fun getStyle(): DataViewer.Style {
           return DataViewer.Style.RAW
         }
@@ -69,6 +73,7 @@ class StackTraceGroupStub : StackTraceGroup {
 
 class StackTraceViewStub(private val model: StackTraceModel) : StackTraceView {
   private val component = JPanel()
+
   override fun getModel(): StackTraceModel {
     return model
   }

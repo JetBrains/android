@@ -1,5 +1,6 @@
 package com.android.tools.idea.util;
 
+import com.android.tools.idea.IdeInfo;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
@@ -125,7 +126,7 @@ public class StudioPathManager {
    * Returns true if running inside a Bazel test environment.
    */
   private static boolean isRunningInBazelTest() {
-    return false;
+    return IdeInfo.getInstance().isAndroidStudio() && System.getenv().containsKey("TEST_WORKSPACE");
   }
 
   /**

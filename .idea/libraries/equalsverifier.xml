@@ -1,6 +1,12 @@
 <component name="libraryTable">
   <library name="equalsverifier" type="repository">
-    <properties include-transitive-deps="false" maven-id="nl.jqno.equalsverifier:equalsverifier:3.8.3" />
+    <properties include-transitive-deps="false" maven-id="nl.jqno.equalsverifier:equalsverifier:3.8.3">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/nl/jqno/equalsverifier/equalsverifier/3.8.3/equalsverifier-3.8.3.jar">
+          <sha256sum>7aeeb87767ea1c7060c913a27e5a7899f2050803d4805287e9a6a562a314f128</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/nl/jqno/equalsverifier/equalsverifier/3.8.3/equalsverifier-3.8.3.jar!/" />
     </CLASSES>

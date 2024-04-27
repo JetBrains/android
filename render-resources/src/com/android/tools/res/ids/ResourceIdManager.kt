@@ -17,7 +17,6 @@ package com.android.tools.res.ids
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.intellij.openapi.module.Module
-import java.util.Arrays
 import java.util.function.Consumer
 
 /**

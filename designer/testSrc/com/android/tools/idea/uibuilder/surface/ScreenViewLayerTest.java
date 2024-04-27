@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import com.android.ide.common.rendering.api.Result;
 import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.imagepool.ImagePoolFactory;
@@ -124,6 +125,8 @@ public class ScreenViewLayerTest {
     when(screenView.getResult()).thenReturn(firstResult, otherResults);
 
     Disposer.register(myDisposable, screenView.getSurface());
+    Disposer.register(myDisposable, sceneManager);
+    Disposer.register(sceneManager, screenView);
 
     return screenView;
   }
@@ -136,7 +139,7 @@ public class ScreenViewLayerTest {
     // Create a high quality image bigger than the screenView that will be scaled.
     ImagePool.Image imageHQ = getTestImage(IMAGE_WIDTH, IMAGE_HEIGHT);
     ScreenView screenView = createScreenViewMock(screenViewSize, createRenderResultMock(imageHQ));
-    ScreenViewLayer layer = new ScreenViewLayer(screenView, screenView.getSurface(), screenView.getSurface()::getRotateSurfaceDegree);
+    ScreenViewLayer layer = new ScreenViewLayer(screenView, ColorBlindMode.NONE, screenView.getSurface(), screenView.getSurface()::getRotateSurfaceDegree);
 
     // First, we expect the low quality scaling in the first call.
     BufferedImage unscaled = new BufferedImage(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT, BufferedImage.TYPE_INT_ARGB);

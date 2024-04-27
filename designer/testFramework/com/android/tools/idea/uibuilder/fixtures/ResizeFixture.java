@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.fixtures.ComponentFixture;
 import com.android.tools.idea.common.fixtures.KeyEventBuilder;
 import com.android.tools.idea.common.fixtures.MouseEventBuilder;
-import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;

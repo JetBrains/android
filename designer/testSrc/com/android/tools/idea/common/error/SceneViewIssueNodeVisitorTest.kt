@@ -64,10 +64,9 @@ class SceneViewIssueNodeVisitorTest {
         rule.project,
         model,
         { LayoutValidationNodeFactory },
-        provider
-      ) {
-        ""
-      }
+        provider,
+        { "" }
+      )
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 
@@ -105,10 +104,9 @@ class SceneViewIssueNodeVisitorTest {
         rule.project,
         model,
         { LayoutValidationNodeFactory },
-        provider
-      ) {
-        ""
-      }
+        provider,
+        { "" }
+      )
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 
@@ -146,10 +144,9 @@ class SceneViewIssueNodeVisitorTest {
         rule.project,
         model,
         { LayoutValidationNodeFactory },
-        provider
-      ) {
-        ""
-      }
+        provider,
+        { "" }
+      )
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 
@@ -188,10 +185,9 @@ class SceneViewIssueNodeVisitorTest {
         rule.project,
         model,
         { LayoutValidationNodeFactory },
-        provider
-      ) {
-        ""
-      }
+        provider,
+        { "" }
+      )
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 

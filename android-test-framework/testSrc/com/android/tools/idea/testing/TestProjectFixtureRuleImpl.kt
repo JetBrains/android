@@ -17,12 +17,14 @@
 
 package com.android.tools.idea.testing
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.Jdks
+import com.android.tools.tests.AdtTestProjectDescriptor
+import com.android.tools.tests.AdtTestProjectDescriptors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runWriteAction
@@ -56,6 +58,9 @@ internal class TestProjectFixtureRuleImpl(
     }
 
   override var fixtureName: String? = null
+  override var projectDescriptor: AdtTestProjectDescriptor
+    get() = AdtTestProjectDescriptors.default()
+    set(_) { error("Not supported") }
 
   override val testRootDisposable: Disposable = projectBuilder.fixture.testRootDisposable
 
@@ -122,12 +127,9 @@ private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(testRootDisposa
   }
 
   val jdk = IdeSdks.getInstance().jdk ?: error("Failed to set JDK")
-  if (jdk.homePath != jdkPath.toAbsolutePath().toString()) {
-    Disposer.register(testRootDisposable) {
-      runWriteAction { runCatchingAndRecord { ProjectJdkTable.getInstance().removeJdk(jdk) } }
-    }
+  Disposer.register(testRootDisposable) {
+    runWriteAction { runCatchingAndRecord { ProjectJdkTable.getInstance().removeJdk(jdk) } }
   }
-
   val oldAndroidSdkPath = IdeSdks.getInstance().androidSdkPath
   Disposer.register(testRootDisposable) {
     runWriteAction { runCatchingAndRecord { AndroidSdkPathStore.getInstance().androidSdkPath = oldAndroidSdkPath?.absolutePath } }

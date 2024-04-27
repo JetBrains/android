@@ -1,6 +1,28 @@
 <component name="libraryTable">
   <library name="truth" type="repository">
-    <properties include-transitive-deps="false" maven-id="com.google.truth:truth:0.42" />
+    <properties include-transitive-deps="false" maven-id="com.google.truth:truth:0.42">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/com/google/truth/truth/0.42/truth-0.42.jar">
+          <sha256sum>93a5673b6a15f77400531b1006f870680d1a925bbc6620de1d55b56825b65985</sha256sum>
+        </artifact>
+        <artifact url="file://$MAVEN_REPOSITORY$/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar">
+          <sha256sum>a7b5c169e57abd4d1b737bcc589ce0c08108e56f4221fc1eaea15cea690c6f0f</sha256sum>
+        </artifact>
+      </verification>
+      <exclude>
+        <dependency maven-id="com.google.guava:guava" />
+        <dependency maven-id="org.checkerframework:checker-compat-qual" />
+        <dependency maven-id="org.checkerframework:checker-qual" />
+        <dependency maven-id="junit:junit" />
+        <dependency maven-id="com.google.gwt:gwt-user" />
+        <dependency maven-id="com.google.auto.value:auto-value-annotations" />
+        <dependency maven-id="com.google.auto.value:auto-value" />
+        <dependency maven-id="com.google.guava:guava-gwt" />
+        <dependency maven-id="com.google.guava:guava-testlib" />
+        <dependency maven-id="com.google.testing.compile:compile-testing" />
+        <dependency maven-id="com.google.errorprone:error_prone_annotations" />
+      </exclude>
+    </properties>
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/com/google/truth/truth/0.42/truth-0.42.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar!/" />

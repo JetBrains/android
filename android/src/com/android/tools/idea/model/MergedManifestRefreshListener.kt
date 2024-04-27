@@ -26,8 +26,6 @@ import com.android.tools.idea.projectsystem.isManifestFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
@@ -120,20 +118,14 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
    */
   private class SubscriptionStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
+      val subscriber = object : LazyFileListenerSubscriber<MergedManifestRefreshListener>(MergedManifestRefreshListener(project), project) {
+        override fun subscribe() {
+          VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
+        }
+      }
       project.listenUntilNextSync(listener = object : SyncResultListener {
-        override fun syncEnded(result: SyncResult) = project.getService(Subscriber::class.java).ensureSubscribed()
+        override fun syncEnded(result: SyncResult) = subscriber.ensureSubscribed()
       })
-    }
-  }
-
-  @Service
-  private class Subscriber(project: Project) : Disposable,
-                                               LazyFileListenerSubscriber<MergedManifestRefreshListener>(MergedManifestRefreshListener(project)) {
-    override fun subscribe() {
-      VirtualFileManager.getInstance().addVirtualFileListener(listener, this)
-    }
-
-    override fun dispose() {
     }
   }
 }

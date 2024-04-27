@@ -98,7 +98,7 @@ public class UpgradeBuildToolsTest extends DebuggerTestBase {
    *   6. Build the project and check build is successful.
    *   </pre>
    */
-  @Ignore("It is broken, may affect following tests.")
+  @Ignore("b/303107721")
   @RunIn(TestGroup.QA)
   @Test
   public void upgradeBuildTools() throws Exception {

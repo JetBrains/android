@@ -29,12 +29,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
+import javax.swing.ComboBoxModel
+import javax.swing.JCheckBox
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import javax.swing.ComboBoxModel
-import javax.swing.JCheckBox
 
 @RunsInEdt
 class InputTypeEditorTest {

@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanagerv2.details
 
 import com.android.adblib.utils.createChildScope
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -100,6 +101,7 @@ class PairedDevicesPanelTest {
 
     assertThat(pairingTable.values).isEmpty()
   }
+
   @Test
   fun pairingGoesAway() = runTestWithFixture {
     val handle2 = createHandle("2")
@@ -166,10 +168,11 @@ class PairedDevicesPanelTest {
     override val scope: CoroutineScope,
     val name: String,
   ) : DeviceHandle {
+    override val id = DeviceId("Fake", false, name)
     override val stateFlow =
       MutableStateFlow<DeviceState>(
         DeviceState.Disconnected(
-          DeviceProperties.build {
+          DeviceProperties.buildForTest {
             wearPairingId = name
             model = name
             icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
@@ -180,6 +183,7 @@ class PairedDevicesPanelTest {
 
   private fun FakeDeviceHandle.pairingStatus(state: WearPairingManager.PairingState) =
     PairingStatus(name, name, state)
+
   private fun FakeDeviceHandle.pairedDeviceData(state: WearPairingManager.PairingState) =
     PairedDeviceData(this, name, null, null, state)
 

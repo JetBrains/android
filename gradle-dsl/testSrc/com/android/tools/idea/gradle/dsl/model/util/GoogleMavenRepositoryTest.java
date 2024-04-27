@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl;
+import com.android.tools.idea.gradle.dsl.model.repositories.MavenRepositoryModelImpl;
 import java.io.IOException;
 import java.util.List;
 import org.junit.Test;

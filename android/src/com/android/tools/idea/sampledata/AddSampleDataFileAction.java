@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.sampledata;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
+
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.project.Project;
-import java.util.Arrays;
-import java.util.Objects;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
+import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,22 +38,29 @@ public class AddSampleDataFileAction extends AnAction {
 
   @Nullable
   private static AndroidFacet getFacetFromAction(@NotNull AnActionEvent e) {
-    Project project = e.getProject();
-    if (project == null) {
-      return null;
+    DataContext dataContext = e.getDataContext();
+
+    Module[] modules = MODULE_CONTEXT_ARRAY.getData(dataContext);
+    if (modules != null && modules.length > 0) {
+      AndroidFacet facet = AndroidFacet.getInstance(modules[0]);
+      if (facet != null) return facet;
     }
 
-    return Arrays.stream(GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(e.getDataContext()))
-      .map(AndroidFacet::getInstance)
-      .filter(Objects::nonNull)
-      .findFirst()
-      .orElse(null);
+    Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
+    if (module != null) return AndroidFacet.getInstance(module);
+
+    return null;
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-
     e.getPresentation().setEnabledAndVisible(getFacetFromAction(e) != null);
+  }
+
+  @Override
+  @NotNull
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

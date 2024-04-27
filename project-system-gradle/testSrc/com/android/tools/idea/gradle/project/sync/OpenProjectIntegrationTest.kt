@@ -84,6 +84,28 @@ class OpenProjectIntegrationTest {
   }
 
   @Test
+  fun testReopenProject_kmpWithJs() {
+    val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_MULTIPLATFORM_WITHJS)
+    val before = preparedProject.open { project -> project.saveAndDump() }
+    val after = preparedProject.open { project ->
+      verifySyncSkipped(project, projectRule.testRootDisposable)
+      project.saveAndDump()
+    }
+    assertThat(after).isEqualTo(before)
+  }
+
+  @Test
+  fun testReopenProject_kmpWithAndroid() {
+    val preparedProject = projectRule.prepareTestProject(TestProject.ANDROID_KOTLIN_MULTIPLATFORM)
+    val before = preparedProject.open { project -> project.saveAndDump() }
+    val after = preparedProject.open { project ->
+      verifySyncSkipped(project, projectRule.testRootDisposable)
+      project.saveAndDump()
+    }
+    assertThat(after).isEqualTo(before)
+  }
+
+  @Test
   fun testReopenProject_withCustomEntry() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val before = preparedProject.open { project ->
@@ -188,7 +210,6 @@ class OpenProjectIntegrationTest {
     assertThat(after).isEqualTo(before)
   }
 
-  @org.junit.Ignore("b/263923608")
   @Test
   fun testOpen36Project() {
     addJdk8ToTableButUseCurrent()

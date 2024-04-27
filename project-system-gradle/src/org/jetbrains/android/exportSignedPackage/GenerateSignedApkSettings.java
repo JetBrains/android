@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
   }
 )
 public class GenerateSignedApkSettings implements PersistentStateComponent<GenerateSignedApkSettings> {
-  public boolean EXPORT_PRIVATE_KEY = true;
   public String KEY_STORE_PATH = "";
   public String KEY_ALIAS = "";
   public boolean REMEMBER_PASSWORDS = false;

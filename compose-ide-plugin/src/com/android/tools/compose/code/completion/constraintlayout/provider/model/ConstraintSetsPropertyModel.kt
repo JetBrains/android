@@ -21,31 +21,29 @@ import com.intellij.json.psi.JsonProperty
 /**
  * Model for the `ConstraintSets` Json block.
  *
- * The `ConstraintSets` Json block, is a collection of different ConstraintSets, each of which describes a state of the layout by defining
- * properties of each of its widgets such as width, height or their layout constraints.
+ * The `ConstraintSets` Json block, is a collection of different ConstraintSets, each of which
+ * describes a state of the layout by defining properties of each of its widgets such as width,
+ * height or their layout constraints.
  *
  * @param constraintSetsElement The PSI element of the `ConstraintSets` Json property
  */
-internal class ConstraintSetsPropertyModel(
-  constraintSetsElement: JsonProperty
-) : JsonPropertyModel(constraintSetsElement) {
-  // TODO(b/209839226): Explore how we could use these models to validate the syntax or structure of the JSON as well as to check logic
+internal class ConstraintSetsPropertyModel(constraintSetsElement: JsonProperty) :
+  JsonPropertyModel(constraintSetsElement) {
+  // TODO(b/209839226): Explore how we could use these models to validate the syntax or structure of
+  // the JSON as well as to check logic
   //  correctness through Inspections/Lint
-  /**
-   * List of all ConstraintSet elements in the Json block.
-   */
+  /** List of all ConstraintSet elements in the Json block. */
   val constraintSets: List<ConstraintSetModel> = innerProperties.map { ConstraintSetModel(it) }
 
-  /**
-   * The names of all ConstraintSets in this block.
-   */
+  /** The names of all ConstraintSets in this block. */
   fun getConstraintSetNames(): Collection<String> {
     return declaredFieldNamesSet
   }
 
   /**
-   * Returns the remaining possible fields for the given [constraintSetName], this is done by reading all fields in all ConstraintSets and
-   * subtracting the fields already present in [constraintSetName]. Most of these should be the IDs that represent constrained widgets.
+   * Returns the remaining possible fields for the given [constraintSetName], this is done by
+   * reading all fields in all ConstraintSets and subtracting the fields already present in
+   * [constraintSetName]. Most of these should be the IDs that represent constrained widgets.
    */
   fun getRemainingFieldsForConstraintSet(constraintSetName: String): List<String> {
     val availableNames = mutableSetOf(KeyWords.Extends)
@@ -54,8 +52,7 @@ internal class ConstraintSetsPropertyModel(
       constraintSet.declaredFieldNamesSet.forEach { propertyName ->
         if (constraintSet.name == constraintSetName) {
           usedNames.add(propertyName)
-        }
-        else {
+        } else {
           availableNames.add(propertyName)
         }
       }

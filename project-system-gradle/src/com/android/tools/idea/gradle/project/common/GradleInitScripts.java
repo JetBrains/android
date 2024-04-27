@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.common;
 
 import static com.android.SdkConstants.DOT_GRADLE;
-import static com.android.tools.idea.gradle.util.ImportUtil.escapeGroovyStringLiteral;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_OPTION;
@@ -40,6 +39,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import kotlin.reflect.KType;
@@ -49,6 +50,12 @@ import org.jetbrains.annotations.Nullable;
 public class GradleInitScripts {
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   @NotNull private final ContentCreator myContentCreator;
+  @NotNull private static final String STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY = "studio.project.sync.debug.mode";
+  @NotNull private static final String STUDIO_PROJECT_EXCLUDED_JARS_KEY = "studio.project.sync.excluded.jars";
+  @NotNull private static final Set<String> EXCLUDED_JARS = Set.of(
+    Optional.ofNullable(System.getProperty(STUDIO_PROJECT_EXCLUDED_JARS_KEY))
+      .map(env -> env.split("\\s*,\\s*"))
+      .orElse(new String[]{}));
 
   @NotNull
   public static GradleInitScripts getInstance() {
@@ -136,6 +143,15 @@ public class GradleInitScripts {
     return file;
   }
 
+  private static void warnOnExcludedJarInclusion(List<String> paths) {
+      var foundExcludedJars = paths.stream()
+        .filter(EXCLUDED_JARS::contains)
+        .collect(Collectors.joining());
+      if (!foundExcludedJars.isEmpty()) {
+        getLogger().warn("Unexpected Jars were added as dependencies in init script: " + foundExcludedJars);
+      }
+  }
+
   @NotNull
   private static Logger getLogger() {
     return Logger.getInstance(GradleInitScripts.class);
@@ -215,6 +231,10 @@ public class GradleInitScripts {
     @NotNull
     String createAndroidStudioToolingPluginInitScriptContent() {
       List<String> paths = myAndroidStudioToolingPluginJars.getJarPaths();
+      if (Boolean.getBoolean(STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY)) {
+        warnOnExcludedJarInclusion(paths);
+      }
+
       return "initscript {\n" +
              "    dependencies {\n" +
              "        " + createClassPathString(paths) + "\n" +
@@ -239,6 +259,19 @@ public class GradleInitScripts {
       }
       classpath.append("])");
       return classpath.toString();
+    }
+
+    @NotNull
+    private String escapeGroovyStringLiteral(@NotNull String s) {
+      StringBuilder sb = new StringBuilder(s.length() + 5);
+      for (int i = 0, n = s.length(); i < n; i++) {
+        char c = s.charAt(i);
+        if (c == '\\' || c == '\'') {
+          sb.append('\\');
+        }
+        sb.append(c);
+      }
+      return sb.toString();
     }
   }
 

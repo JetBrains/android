@@ -21,9 +21,10 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Step to show installation progress for long running operations contributed by other paths.

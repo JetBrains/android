@@ -41,7 +41,9 @@ object TypeResolver {
     componentClass: PsiClass?
   ): NlPropertyType {
     return lookupByName(name, componentClass)
-      ?: bySpecialType(name) ?: fromAttributeDefinition(attribute) ?: fallbackByName(name)
+      ?: bySpecialType(name)
+      ?: fromAttributeDefinition(attribute)
+      ?: fallbackByName(name)
   }
 
   private fun bySpecialType(name: String): NlPropertyType? {

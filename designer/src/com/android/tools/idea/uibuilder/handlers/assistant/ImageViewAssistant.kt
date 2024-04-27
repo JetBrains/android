@@ -37,16 +37,14 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.JBUI.scale
-import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.util.EnumSet
 import java.util.concurrent.CompletableFuture
-import java.util.function.BiConsumer
-import java.util.function.Supplier
 import javax.swing.Box
 import javax.swing.DefaultListModel
 import javax.swing.JComboBox
 import javax.swing.JPanel
+import org.jetbrains.annotations.TestOnly
 
 private const val ITEM_COUNT = 12
 private val IMAGE_SIZE = scale(48)
@@ -168,7 +166,7 @@ class ImageViewAssistant(
   private fun createDrawableGrid() =
     DrawableGrid(
         nlComponent.model.facet.module,
-        DefaultListModel(),
+        DefaultListModel<ResourceValue>(),
         IMAGE_SIZE,
         ITEM_COUNT.toLong()
       )

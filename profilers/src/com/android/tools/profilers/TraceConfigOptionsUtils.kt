@@ -43,9 +43,8 @@ object TraceConfigOptionsUtils {
       TraceType.PERFETTO -> {
         configBuilder.perfettoOptions = PerfettoConfig.TraceConfig.getDefaultInstance()
       }
-      TraceType.UNSPECIFIED -> {
-        //no-op
-      }
+
+      TraceType.UNSPECIFIED -> {}
     }
   }
 }

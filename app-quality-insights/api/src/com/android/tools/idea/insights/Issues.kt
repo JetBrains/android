@@ -32,14 +32,13 @@ enum class IssueState {
 data class AppInsightsIssue(
   val issueDetails: IssueDetails,
   val sampleEvent: Event,
-  val state: IssueState = IssueState.OPEN,
-  val pendingRequests: Int = 0
+  val state: IssueState = IssueState.OPEN
 ) {
   val id: IssueId = issueDetails.id
-  fun incrementPendingRequests() = copy(pendingRequests = pendingRequests.inc())
-  fun decrementPendingRequests() = copy(pendingRequests = pendingRequests.dec().coerceAtLeast(0))
+
   fun incrementNotesCount() =
     copy(issueDetails = issueDetails.copy(notesCount = issueDetails.notesCount.inc()))
+
   fun decrementNotesCount() =
     copy(
       issueDetails = issueDetails.copy(notesCount = issueDetails.notesCount.dec().coerceAtLeast(0))
@@ -113,3 +112,16 @@ data class IssueAnnotation(
 ) {
   companion object
 }
+
+data class IssueVariant(
+  // Distinct identifier for the variant.
+  val id: String,
+  // The resource name for a sample event in this variant.
+  val sampleEvent: String,
+  // A link to the variants on the firebase console.
+  val uri: String,
+  // Number of unique devices.
+  val impactedDevicesCount: Long,
+  // number of unique events that occur for this issue
+  val eventsCount: Long
+)

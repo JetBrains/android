@@ -12,13 +12,6 @@
     <option name="repository" path="ActionManager" hit="Easily use Google as a source repository." />
     <option name="source" path="ActionManager" hit="Easily use Google as a source repository." />
     <option name="use" path="ActionManager" hit="Easily use Google as a source repository." />
-    <option name="import" path="ActionManager" hit="Import Sample..." />
-    <option name="sample" path="ActionManager" hit="Import Sample..." />
-    <option name="an" path="ActionManager" hit="Import an Android Code Sample" />
-    <option name="android" path="ActionManager" hit="Import an Android Code Sample" />
-    <option name="code" path="ActionManager" hit="Import an Android Code Sample" />
-    <option name="import" path="ActionManager" hit="Import an Android Code Sample" />
-    <option name="sample" path="ActionManager" hit="Import an Android Code Sample" />
     <option name="cloud" path="ActionManager" hit="Setup on Google Cloud Source Repositories..." />
     <option name="google" path="ActionManager" hit="Setup on Google Cloud Source Repositories..." />
     <option name="on" path="ActionManager" hit="Setup on Google Cloud Source Repositories..." />

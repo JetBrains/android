@@ -21,9 +21,10 @@ import static com.android.tools.idea.rendering.RenderTestUtil.DEFAULT_DEVICE_ID;
 import static com.android.tools.idea.rendering.RenderTestUtil.createRenderTask;
 import static com.android.tools.idea.rendering.RenderTestUtil.getHighPriorityRenderingTopicForTest;
 import static com.android.tools.idea.rendering.RenderTestUtil.getLowPriorityRenderingTopicForTest;
+import static com.android.tools.idea.testing.JavacUtil.getJavac;
 import static com.intellij.util.TimeoutUtil.sleep;
 import static org.junit.Assert.assertNotEquals;
-import static org.mockito.ArgumentMatchers.isNotNull;
+import static org.mockito.Mockito.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -38,7 +39,7 @@ import com.android.testutils.ImageDiffUtil;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.configurations.Wallpaper;
+import com.android.tools.configurations.Wallpaper;
 import com.android.tools.rendering.RenderExecutor;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderResult;
@@ -56,7 +57,6 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PsiTestUtil;
-import com.sun.tools.javac.api.JavacTool;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -74,8 +74,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.imageio.ImageIO;
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -141,6 +139,33 @@ public class RenderTaskTest extends AndroidTestCase {
 
       verify(mockCrashReporter, times(1)).submit((CrashReport)isNotNull());
     });
+  }
+
+  public void testRenderCrash() {
+    VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTask.TestEventListener eventListener = new RenderTask.TestEventListener() {
+      @Override
+      public void onAfterRender() {
+        // Inject an exception during rendering.
+        // Inflation will work fine without errors.
+        throw new IllegalStateException();
+      }
+    };
+    RenderTestUtil.withRenderTask(myFacet, layoutFile, configuration, logger, task -> {
+      // Make sure we throw an exception during the inflate call
+      try {
+        RenderResult result = task.render().get();
+        assertEquals(Result.Status.ERROR_RENDER, result.getRenderResult().getStatus());
+        assertTrue(result.getRenderResult().getException() instanceof IllegalStateException);
+        assertEquals("Render error", result.getRenderResult().getErrorMessage());
+      }
+      catch (ExecutionException | InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }, false, eventListener);
   }
 
 
@@ -270,9 +295,7 @@ public class RenderTaskTest extends AndroidTestCase {
 
         // Drop PSI cache
         ApplicationManager.getApplication().invokeAndWait(() -> PsiManager.getInstance(getProject()).dropPsiCaches());
-        getJavac().run(null, null, null, customView.getAbsolutePath());
-        FileUtil.copy(new File(srcDir, "com/google/test/CustomView.class"), outputFile);
-        VfsUtil.findFileByIoFile(outputFile, true);
+        assertTrue("Simulation of file change", outputFile.setLastModified(outputFile.lastModified() + 1));
 
         result = task.render().get();
         assertTrue(result.hasRequestedCustomViews());
@@ -371,11 +394,12 @@ public class RenderTaskTest extends AndroidTestCase {
       assertEquals(expectedWidth / 2, result.getRenderedImage().getWidth());
 
       // Using 0% quality doesn't make much sense, but the image should
-      // be of size 1x1 in such unexpected cases
+      // be of size 0x0 in such unexpected cases
       task.setQuality(0f);
       result = checkSimpleLayoutResult(task.render());
-      assertEquals(1, result.getRenderedImage().getHeight());
-      assertEquals(1, result.getRenderedImage().getWidth());
+      assertFalse(result.getRenderedImage().isValid());
+      assertEquals(0, result.getRenderedImage().getHeight());
+      assertEquals(0, result.getRenderedImage().getWidth());
 
       // Setting the quality back to 100%
       task.setQuality(1f);
@@ -775,7 +799,7 @@ public class RenderTaskTest extends AndroidTestCase {
       }
     });
 
-    configuration.setWallpaperPath(Wallpaper.RED.getResourcePath());
+    configuration.setWallpaper(Wallpaper.RED);
     RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
       task.setDecorations(false);
       try {
@@ -787,7 +811,7 @@ public class RenderTaskTest extends AndroidTestCase {
       }
     });
 
-    configuration.setWallpaperPath(Wallpaper.GREEN.getResourcePath());
+    configuration.setWallpaper(Wallpaper.GREEN);
     RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
       task.setDecorations(false);
       try {
@@ -799,7 +823,7 @@ public class RenderTaskTest extends AndroidTestCase {
       }
     });
 
-    configuration.setWallpaperPath(null);
+    configuration.setWallpaper(null);
     RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
       task.setDecorations(false);
       try {
@@ -959,9 +983,9 @@ public class RenderTaskTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task1 = createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest());
-    RenderTask task2 = createRenderTask(myFacet, file, configuration, logger, getHighPriorityRenderingTopicForTest());
-    RenderTask task3 = createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest());
+    RenderTask task1 = createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest(), RenderTask.NOP_TEST_EVENT_LISTENER);
+    RenderTask task2 = createRenderTask(myFacet, file, configuration, logger, getHighPriorityRenderingTopicForTest(), RenderTask.NOP_TEST_EVENT_LISTENER);
+    RenderTask task3 = createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest(), RenderTask.NOP_TEST_EVENT_LISTENER);
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -994,16 +1018,5 @@ public class RenderTaskTest extends AndroidTestCase {
     catch (Exception e) {
       fail("RenderTask dispose not happening before low priority render tasks.");
     }
-  }
-
-  @NotNull
-  private static JavaCompiler getJavac() {
-    JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
-    if (javac == null) {
-      // http://b/285585692
-      // PathClassLoader does not support modules yet so ToolProvider will not be able to locate the JavaCompiler.
-      javac = JavacTool.create();
-    }
-    return javac;
   }
 }

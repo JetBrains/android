@@ -29,8 +29,14 @@ import com.intellij.openapi.vfs.VirtualFile
 
 interface DesignerCommonIssueProvider<T> : Disposable {
   var viewOptionFilter: Filter
+
   fun getFilteredIssues(): List<Issue>
+
   fun registerUpdateListener(listener: Runnable)
+
+  fun removeUpdateListener(listener: Runnable)
+
+  fun update()
 
   fun interface Filter : (Issue) -> Boolean
 }
@@ -48,18 +54,10 @@ object NotSuppressedFilter : DesignerCommonIssueProvider.Filter {
 class SelectedEditorFilter(project: Project) : DesignerCommonIssueProvider.Filter {
   private val editorManager: FileEditorManager = FileEditorManager.getInstance(project)
 
-  @Suppress("UnstableApiUsage")
   override fun invoke(issue: Issue): Boolean {
-    return if (issue is VisualLintRenderIssue) {
-      val files =
-        issue.source.models
-          .map { BackedVirtualFile.getOriginFileIfBacked(it.virtualFile).name }
-          .distinct()
-      editorManager.selectedEditor?.file?.let { files.contains(it.name) } ?: false
-    } else {
-      val issuedFile = issue.source.file?.let { BackedVirtualFile.getOriginFileIfBacked(it) }
-      editorManager.selectedEditor?.file?.let { it == issuedFile } ?: false
-    }
+    return editorManager.selectedEditor?.file?.let { file ->
+      issue.source.files.map { BackedVirtualFile.getOriginFileIfBacked(it) }.contains(file)
+    } ?: false
   }
 }
 
@@ -143,6 +141,14 @@ class DesignToolsIssueProvider(
 
   override fun registerUpdateListener(listener: Runnable) {
     listeners.add(listener)
+  }
+
+  override fun removeUpdateListener(listener: Runnable) {
+    listeners.remove(listener)
+  }
+
+  override fun update() {
+    listeners.forEach { it.run() }
   }
 
   override fun dispose() {

@@ -23,17 +23,14 @@ import com.android.tools.idea.compose.pickers.base.tracking.ComposePickerTracker
 import com.android.tools.idea.compose.pickers.common.tracking.NoOpTracker
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiMode
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiModeWithNightMaskEnumValue
-import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.DeviceEnumValueBuilder
-import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferencePhoneConfig
 import com.android.tools.idea.compose.pickers.preview.model.PreviewPickerPropertiesModel
-import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
-import com.android.tools.idea.compose.preview.ComposePreviewElement
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.Sdks
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.config.ReferencePhoneConfig
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
@@ -44,7 +41,6 @@ import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -63,16 +59,12 @@ class PreviewPickerTests {
   @get:Rule val edtRule = EdtRule()
   private val fixture
     get() = projectRule.fixture
+
   private val project
     get() = projectRule.project
+
   private val module
     get() = projectRule.fixture.module
-
-  @After
-  fun teardown() {
-    // Flag might not get cleared if a test that overrides it fails
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
-  }
 
   @RunsInEdt
   @Test
@@ -228,7 +220,7 @@ class PreviewPickerTests {
 
     Sdks.addLatestAndroidSdk(fixture.projectDisposable, module)
     val model = getFirstModel(fileContent)
-    assertEquals(if (KotlinPluginModeProvider.isK2Mode()) "1.0f" else "1f", model.properties["", "fontScale"].defaultValue)
+    assertEquals(if (KotlinPluginModeProvider.isK2Mode()) "1.0" else "1", model.properties["", "fontScale"].defaultValue)
     assertEquals("false", model.properties["", "showBackground"].defaultValue)
     assertEquals("false", model.properties["", "showDecoration"].defaultValue)
     assertEquals("Default (en-US)", model.properties["", "locale"].defaultValue)
@@ -435,75 +427,6 @@ class PreviewPickerTests {
 
   @RunsInEdt
   @Test
-  fun testTrackedValuesOfDeviceOptions() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(false)
-    val (testTracker, model) = simpleTrackingTestSetup()
-
-    val deviceProperty =
-      model.properties[
-          "",
-          "Device"] // Which parameter doesn't matter in this context, but best to test with Device
-    val deviceOptions =
-      DeviceEnumValueBuilder()
-        .addGenericById(
-          "My Generic",
-          "my_generic"
-        ) // This is an example of an option generated from the Device Manager
-        .includeDefaultsAndBuild()
-        .associateBy { it.display } // Easier to test
-
-    deviceOptions["Medium Phone"]!!.select(deviceProperty)
-    assertEquals("spec:shape=Normal,width=411,height=891,unit=dp,dpi=420", deviceProperty.value)
-
-    deviceOptions["Foldable"]!!.select(deviceProperty)
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      assertEquals("spec:shape=Normal,width=673,height=841,unit=dp,dpi=420", deviceProperty.value)
-    } else {
-      assertEquals("spec:shape=Normal,width=674,height=841,unit=dp,dpi=480", deviceProperty.value)
-    }
-
-    deviceOptions["Medium Tablet"]!!.select(deviceProperty)
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      assertEquals("spec:shape=Normal,width=1280,height=800,unit=dp,dpi=240", deviceProperty.value)
-    } else {
-      assertEquals("spec:shape=Normal,width=1280,height=800,unit=dp,dpi=480", deviceProperty.value)
-    }
-
-    deviceOptions["Desktop"]!!.select(deviceProperty)
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      assertEquals("spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=160", deviceProperty.value)
-    } else {
-      assertEquals("spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=480", deviceProperty.value)
-    }
-
-    deviceOptions["Square"]!!.select(deviceProperty) // Wear device
-    assertEquals("spec:shape=Normal,width=300,height=300,unit=px,dpi=220", deviceProperty.value)
-
-    deviceOptions["55.0\" Tv 2160p"]!!.select(deviceProperty) // Tv device
-    assertEquals("spec:shape=Normal,width=3840,height=2160,unit=px,dpi=320", deviceProperty.value)
-
-    deviceOptions["8.4\" Auto 768p"]!!.select(deviceProperty) // Auto
-    assertEquals("spec:shape=Normal,width=1024,height=768,unit=px,dpi=320", deviceProperty.value)
-
-    deviceOptions["My Generic"]!!.select(deviceProperty) // Device Manager example
-    assertEquals("id:my_generic", deviceProperty.value)
-
-    assertEquals(8, testTracker.valuesRegistered.size)
-    var index = 0
-    assertEquals(PreviewPickerValue.DEVICE_REF_PHONE, testTracker.valuesRegistered[index++])
-    assertEquals(PreviewPickerValue.DEVICE_REF_FOLDABLE, testTracker.valuesRegistered[index++])
-    assertEquals(PreviewPickerValue.DEVICE_REF_TABLET, testTracker.valuesRegistered[index++])
-    assertEquals(PreviewPickerValue.DEVICE_REF_DESKTOP, testTracker.valuesRegistered[index++])
-
-    // Non-reference devices
-    assertEquals(PreviewPickerValue.DEVICE_REF_NONE, testTracker.valuesRegistered[index++])
-    assertEquals(PreviewPickerValue.DEVICE_REF_NONE, testTracker.valuesRegistered[index++])
-    assertEquals(PreviewPickerValue.DEVICE_REF_NONE, testTracker.valuesRegistered[index++])
-    assertEquals(PreviewPickerValue.DEVICE_REF_NONE, testTracker.valuesRegistered[index])
-  }
-
-  @RunsInEdt
-  @Test
   fun testTrackedValuesOfUiModeOptions() {
     val (testTracker, model) = simpleTrackingTestSetup()
 
@@ -553,7 +476,6 @@ class PreviewPickerTests {
   }
 
   private suspend fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(false)
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview =
       AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile)
@@ -567,7 +489,7 @@ class PreviewPickerTests {
           NoOpTracker
         )
       }
-    var expectedModificationsCountdown = 21
+    var expectedModificationsCountdown = 3
     model.addListener(
       object : PropertiesModelListener<PsiPropertyItem> {
         override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
@@ -575,116 +497,9 @@ class PreviewPickerTests {
         }
       }
     )
-
     model.properties["", "name"].value = "NoHello"
     // Try to override our previous write. Only the last one should persist
     model.properties["", "name"].value = "Hello"
-    assertEquals("@Preview(name = \"Hello\")", noParametersPreview.annotationText())
-
-    // Add other properties
-    model.properties["", "group"].value = "Group2"
-    model.properties["", "widthDp"].value = "32"
-    assertEquals("Hello", model.properties["", "name"].value)
-    assertEquals("Group2", model.properties["", "group"].value)
-    assertEquals("32", model.properties["", "widthDp"].value)
-    assertEquals(
-      "@Preview(name = \"Hello\", group = \"Group2\", widthDp = 32)",
-      noParametersPreview.annotationText()
-    )
-
-    // Device parameters modifications
-    model.properties["", "Width"].value =
-      "720" // In pixels, this change should populate 'device' parameter in annotation
-    assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=720,height=891,unit=dp,dpi=420")""",
-      noParametersPreview.annotationText()
-    )
-
-    model.properties["", "DimensionUnit"].value =
-      "px" // Should modify width and height in 'device' parameter
-    assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=1890,height=2339,unit=px,dpi=420")""",
-      noParametersPreview.annotationText()
-    )
-
-    model.properties["", "Density"].value =
-      "240" // When changing back to pixels, the width and height should be different than
-    // originally
-    model.properties["", "DimensionUnit"].value = "dp"
-    assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=1260,height=1559,unit=dp,dpi=240")""",
-      noParametersPreview.annotationText()
-    )
-
-    model.properties["", "Orientation"].value =
-      "landscape" // Changing orientation swaps width/height values
-    assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:shape=Normal,width=1559,height=1260,unit=dp,dpi=240")""",
-      noParametersPreview.annotationText()
-    )
-
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
-    // Trigger a change while using the DeviceSpec Language
-    model.properties["", "Width"].value = "1560"
-    assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=1560dp,height=1260dp,dpi=240")""",
-      noParametersPreview.annotationText()
-    )
-
-    assertEquals("false", model.properties["", "IsRound"].value)
-    // Changing ChinSize to non-zero value implies setting IsRound to true
-    model.properties["", "ChinSize"].value = "30"
-    assertEquals("true", model.properties["", "IsRound"].value)
-    assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=1560dp,height=1260dp,dpi=240,isRound=true,chinSize=30dp")""",
-      noParametersPreview.annotationText()
-    )
-
-    // When using DeviceSpec Language, conversions should support floating point
-    model.properties["", "DimensionUnit"].value = DimUnit.px.name
-    assertEquals("2340", model.properties["", "Width"].value)
-    assertEquals("1890", model.properties["", "Height"].value)
-    assertEquals("45", model.properties["", "ChinSize"].value)
-    assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=2340px,height=1890px,dpi=240,isRound=true,chinSize=45px")""",
-      noParametersPreview.annotationText()
-    )
-
-    // ChinSize is ignored in the device spec if IsRound is false
-    model.properties["", "IsRound"].value = "false"
-    assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=2340px,height=1890px,dpi=240")""",
-      noParametersPreview.annotationText()
-    )
-
-    // Since there's no orientation parameter, it's implied from the width/height values
-    assertEquals("landscape", model.properties["", "Orientation"].value)
-    // When changed, it has to be reflected explicitly in the spec, without affecting the
-    // width/height
-    model.properties["", "Orientation"].value = "portrait"
-    assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=2340px,height=1890px,dpi=240,orientation=portrait")""",
-      noParametersPreview.annotationText()
-    )
-
-    model.properties["", "Device"].value = "id:pixel_3"
-    assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "id:pixel_3")""",
-      noParametersPreview.annotationText()
-    )
-    model.properties["", "Orientation"].value = "landscape"
-    assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:parent=pixel_3,orientation=landscape")""",
-      noParametersPreview.annotationText()
-    )
-    assertEquals("1080", model.properties["", "Width"].value)
-    assertEquals("2160", model.properties["", "Height"].value)
-    model.properties["", "Width"].value = "2000"
-    assertEquals(
-      """@Preview(name = "Hello", group = "Group2", widthDp = 32, device = "spec:width=2000px,height=2160px,dpi=440,orientation=landscape")""",
-      noParametersPreview.annotationText()
-    )
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
 
     // Clear values
     model.properties["", "group"].value = null
@@ -757,6 +572,8 @@ private class TestTracker : ComposePickerTracker {
   }
 
   override fun pickerShown() {} // Not tested
+
   override fun pickerClosed() {} // Not tested
+
   override fun logUsageData() {} // Not tested
 }

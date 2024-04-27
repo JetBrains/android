@@ -16,18 +16,16 @@
 package com.android.tools.rendering.security
 
 import com.intellij.openapi.diagnostic.DelegatingLogger
-import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 
 /**
  * A [Logger] that is used for testing sandboxing. This will simulate a property access during error
  * logging that does not happen in the unit test logging but does happen in production.
  */
-class TestLoggerWithPropertyAccess(private val delegate: Logger) : DelegatingLogger<Logger>(delegate) {
+class TestLoggerWithPropertyAccess(delegate: Logger) : DelegatingLogger<Logger>(delegate) {
   override fun error(message: String?, t: Throwable?, vararg details: String?) {
     // Simulate a properties access as the IdeaLogger does.
     System.getProperties()
     super.error(message, t, *details)
   }
-  @Suppress("UnstableApiUsage") override fun setLevel(level: LogLevel) = delegate.setLevel(level)
 }

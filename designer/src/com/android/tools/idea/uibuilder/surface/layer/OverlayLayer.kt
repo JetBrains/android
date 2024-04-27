@@ -20,13 +20,13 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.AlphaComposite
 import java.awt.Dimension
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
+import org.jetbrains.annotations.VisibleForTesting
 
 @VisibleForTesting const val PLACEHOLDER_TEXT = "Loading Overlay..."
 
@@ -38,6 +38,7 @@ class OverlayLayer(
   private val overlayConfiguration: () -> OverlayConfiguration
 ) : Layer() {
   private var screenViewSize = Dimension()
+
   private fun paintPlaceholder(g: Graphics2D) {
     g.composite = AlphaComposite.SrcOver.derive(PLACEHOLDER_ALPHA)
     g.paint = JBColor.WHITE

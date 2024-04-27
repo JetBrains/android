@@ -23,16 +23,17 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_PREVIOUS_OCCURENCE
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 
 /**
- * A replacement for CommonActionsManager.createPrevOccurenceAction() that doesn't have a keyboard shortcut.
+ * A replacement for CommonActionsManager.createPrevOccurenceAction() that doesn't have a keyboard
+ * shortcut.
  *
- * TODO(aalbert): Remove and use CommonActionsManager.createPrevOccurenceAction() when we figure out how to properly register the shortcut.
- *  I tried to register with
- *     action.registerCustomShortcutSet(action.shortcutSet, editor.contentComponent)
- *  But that works just one time and stops because the focus moves to the file editor and the shortcut is only registered on the Logcat
- *  editor
- *
+ * TODO(aalbert): Remove and use CommonActionsManager.createPrevOccurenceAction() when we figure out
+ *   how to properly register the shortcut. I tried to register with
+ *   action.registerCustomShortcutSet(action.shortcutSet, editor.contentComponent) But that works
+ *   just one time and stops because the focus moves to the file editor and the shortcut is only
+ *   registered on the Logcat editor
  */
-internal class PreviousOccurrenceToolbarAction(private val navigator: OccurenceNavigator) : PreviousOccurenceAction() {
+internal class PreviousOccurrenceToolbarAction(private val navigator: OccurenceNavigator) :
+  PreviousOccurenceAction() {
   init {
     ActionUtil.copyFrom(this, ACTION_PREVIOUS_OCCURENCE)
     shortcutSet = EMPTY

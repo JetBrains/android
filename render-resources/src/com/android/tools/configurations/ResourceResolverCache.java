@@ -35,7 +35,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.res.CacheableResourceRepository;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.android.tools.sdk.AndroidPlatform;
-import com.android.tools.sdk.AndroidTargetData;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
@@ -46,6 +45,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -297,7 +297,7 @@ class AppInsightsIssuesTableView(
     override fun updateUI() {
       super.updateUI()
       renderer.updateRenderer()
-      tableEmptyText?.setFont(StartupUiUtil.getLabelFont())
+      tableEmptyText?.setFont(StartupUiUtil.labelFont)
     }
 
     @TestOnly fun isLoading() = loadingPanel.isLoading

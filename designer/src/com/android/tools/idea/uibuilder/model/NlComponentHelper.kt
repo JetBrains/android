@@ -39,16 +39,16 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.resources.ResourceType
+import com.android.sdklib.AndroidCoordinate
 import com.android.support.AndroidxName
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
-import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.DnDTransferComponent
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.uibuilder.api.DragHandler
-import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
@@ -563,12 +563,12 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
     return handler != null && handler.acceptsParent(receiver, component)
   }
 
-  /** Find the Gradle dependency for the given component and return them as a list of String */
-  override fun getDependencies(): Set<String> {
-    val artifacts = mutableSetOf<String>()
+  /** Finds the Google Maven dependencies for the component and returns them as a set. */
+  override fun getDependencies(): Set<GoogleMavenArtifactId> {
+    val artifacts = mutableSetOf<GoogleMavenArtifactId>()
     val handler = component.getViewHandler {} ?: return emptySet()
     val artifactId = handler.getGradleCoordinateId(component.tagDeprecated.name)
-    if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
+    if (artifactId != null) {
       artifacts.add(artifactId)
     }
     component.children.flatMap { it.dependencies }.toCollection(artifacts)

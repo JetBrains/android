@@ -15,43 +15,38 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.view.details.HttpDataComponentFactory.ConnectionType.REQUEST
-import com.google.common.annotations.VisibleForTesting
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
+import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.REQUEST
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 // Use Application Headers as title because the infrastructure added headers of HttpURLConnection
 // may be missed if users do not set.
 private const val HEADERS_TITLE = "Application Headers"
 
 /** Tab which shows a request's headers and payload. */
-class RequestTabContent : TabContent() {
-  private lateinit var contentPanel: JPanel
+internal class RequestTabContent : TabContent() {
+  private val contentPanel = createVerticalPanel(TAB_SECTION_VGAP)
+
   override val title = "Request"
 
   override fun createComponent(): JComponent {
-    contentPanel = createVerticalPanel(TAB_SECTION_VGAP)
     contentPanel.border = JBUI.Borders.empty(0, HORIZONTAL_PADDING)
     return createVerticalScrollPane(contentPanel)
   }
 
-  override fun populateFor(data: HttpData?, httpDataComponentFactory: HttpDataComponentFactory) {
+  override fun populateFor(data: ConnectionData?, dataComponentFactory: DataComponentFactory) {
     contentPanel.removeAll()
     if (data == null) {
       return
     }
-    val headersComponent = httpDataComponentFactory.createHeaderComponent(REQUEST)
-    contentPanel.add(createHideablePanel(HEADERS_TITLE, headersComponent, null))
-    contentPanel.add(httpDataComponentFactory.createBodyComponent(REQUEST))
-  }
-
-  @VisibleForTesting
-  fun findPayloadBody(): JComponent? {
-    return findComponentWithUniqueName(
-      contentPanel,
-      HttpDataComponentFactory.ConnectionType.REQUEST.bodyComponentId
-    )
+    val headersComponent = dataComponentFactory.createHeaderComponent(REQUEST)
+    if (headersComponent != null) {
+      contentPanel.add(createHideablePanel(HEADERS_TITLE, headersComponent, null))
+    }
+    val bodyComponent = dataComponentFactory.createBodyComponent(REQUEST)
+    if (bodyComponent != null) {
+      contentPanel.add(bodyComponent)
+    }
   }
 }

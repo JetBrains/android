@@ -21,13 +21,15 @@ import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunCo
 import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.TEST_CLASS;
 import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.TEST_METHOD;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpressions;
 import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.Token;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.testartifacts.instrumented.AndroidInheritingClassBrowser;
 import com.android.tools.idea.testartifacts.instrumented.AndroidInheritingClassVisibilityChecker;
@@ -40,6 +42,7 @@ import com.intellij.execution.configuration.BrowseModuleValueActionListener;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.ide.util.PackageChooserDialog;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
@@ -53,10 +56,10 @@ import com.intellij.ui.EditorTextField;
 import com.intellij.ui.EditorTextFieldWithBrowseButton;
 import com.intellij.ui.TextAccessor;
 import com.intellij.ui.UserActivityProviderComponent;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.JPanel;
@@ -70,10 +73,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunConfiguration> {
-  private static final String RETENTION_ENABLE_TOOLTIP = "Enabling this feature instructs virtual devices to capture an Emulator " +
-                                                        "snapshot when a test encounters a Java assertion failure. Snapshots are then " +
-                                                        "available for you to load onto the device from the test results panel.";
-  private static final String RETENTION_ENABLE_URL = "https://developer.android.com/studio/preview/features#automated-test-snapshots";
   private JRadioButton myAllInPackageTestButton;
   private JRadioButton myClassTestButton;
   private JRadioButton myMethodTestButton;
@@ -83,13 +82,12 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   private LabeledComponent<SimpleEditorTextFieldWithBrowseButton> myTestMethodComponent;
   private JPanel myContentPanel;
   private LabeledComponent<EditorTextFieldWithBrowseButton> myInstrumentationClassComponent;
-  private JBLabel myLabelTest;
   private LabeledComponent<SimpleEditorTextFieldWithBrowseButton> myInstrumentationArgsComponent;
   private LabeledComponent myTestRegexComponent;
 
   private final Project myProject;
   private final ConfigurationModuleSelector myModuleSelector;
-  private final boolean isBuildWithGradle;
+  private final boolean canSelectInstrumentationRunnerClass;
 
   private final ContentWrapper myContentWrapper;
   private final BindingsManager myBindingsManager;
@@ -106,7 +104,13 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   public TestRunParameters(Project project, ConfigurationModuleSelector moduleSelector) {
     myProject = project;
     myModuleSelector = moduleSelector;
-    isBuildWithGradle = GradleProjectInfo.getInstance(myProject).isBuildWithGradle();
+    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+    TestRunParametersToken<AndroidProjectSystem> token =
+      Arrays.stream(TestRunParametersToken.EP_NAME.getExtensions(project))
+        .filter(it -> it.isApplicable(projectSystem))
+        .findFirst()
+        .orElse(null);
+    canSelectInstrumentationRunnerClass = token == null || token.canSelectInstrumentationRunnerClass(projectSystem);
 
     myBindingsManager = new BindingsManager();
     mySelectedTestType = new SelectedRadioButtonProperty<>(
@@ -191,7 +195,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     // Disable the instrumentation class selector component for Gradle based project because AGP doesn't allow
     // users to define multiple <instrumentation> tag in their manifest. We just show the instrumentation
     // runner specified in their gradle file as FYI.
-    instrClassEditorText.setEnabled(!isBuildWithGradle);
+    instrClassEditorText.setEnabled(canSelectInstrumentationRunnerClass);
     myInstrumentationClass = new TextProperty(instrClassEditorText.getChildComponent());
     myInstrumentationClassComponent.setComponent(instrClassEditorText);
 
@@ -231,7 +235,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     configuration.CLASS_NAME = myTestClass.get();
     configuration.METHOD_NAME = myTestMethod.get();
     configuration.TEST_NAME_REGEX = myTestRegex.get();
-    configuration.INSTRUMENTATION_RUNNER_CLASS = isBuildWithGradle ? "" : myInstrumentationClass.get();
+    configuration.INSTRUMENTATION_RUNNER_CLASS = canSelectInstrumentationRunnerClass ? myInstrumentationClass.get() : "";
     configuration.EXTRA_OPTIONS = myUserModifiedInstrumentationExtraParams;
   }
 
@@ -247,9 +251,9 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myTestMethod.set(configuration.METHOD_NAME);
     myTestRegex.set(configuration.TEST_NAME_REGEX);
     myInstrumentationClass.set(
-      isBuildWithGradle
-      ? AndroidTestRunConfiguration.getDefaultInstrumentationRunner(androidFacet)
-      : configuration.INSTRUMENTATION_RUNNER_CLASS);
+      canSelectInstrumentationRunnerClass
+      ? configuration.INSTRUMENTATION_RUNNER_CLASS
+      : AndroidTestRunConfiguration.getDefaultInstrumentationRunner(androidFacet));
     myInstrumentationArgs.set(configuration.getExtraInstrumentationOptions(androidFacet));
     myUserModifiedInstrumentationExtraParams = configuration.EXTRA_OPTIONS;
   }
@@ -319,5 +323,12 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     public String getText() {
       return getChildComponent().getText();
     }
+  }
+
+  public interface TestRunParametersToken<P extends AndroidProjectSystem> extends Token {
+    ExtensionPointName<TestRunParametersToken<AndroidProjectSystem>> EP_NAME =
+      new ExtensionPointName<>("com.android.tools.idea.run.editor.testRunParametersToken");
+
+    boolean canSelectInstrumentationRunnerClass(@NotNull P projectSystem);
   }
 }

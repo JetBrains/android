@@ -21,11 +21,11 @@ import com.android.tools.idea.ui.GuiTestingService
 import com.google.common.base.Predicates
 import com.intellij.ide.gdpr.Consent
 import com.intellij.ide.gdpr.ConsentOptions
+import com.intellij.platform.ide.bootstrap.hideSplashBeforeShow
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.platform.ide.bootstrap.hideSplashBeforeShow
 import com.intellij.ui.AppUIUtil
 import icons.StudioIllustrations
 import java.awt.Color
@@ -44,9 +44,6 @@ import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
-import kotlin.Array
-import kotlin.apply
-import kotlin.arrayOf
 
 class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
   override fun createActions(): Array<Action> {
@@ -103,7 +100,7 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
       addHyperlinkListener { e ->
         if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
           if (Desktop.isDesktopSupported()) {
-            Desktop.getDesktop().browse(e.url.toURI())
+            Desktop.getDesktop().browse(e.url.toURI());
           }
         }
       }

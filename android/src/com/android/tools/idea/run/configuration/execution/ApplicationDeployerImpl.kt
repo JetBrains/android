@@ -41,12 +41,10 @@ import com.intellij.openapi.util.Computable
 
 class ApplicationDeployerImpl(private val project: Project, private val stats: RunStats) : ApplicationDeployer {
   private val LOG = Logger.getInstance(this::class.java)
-  private val installPathProvider = Computable { EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() }
+  private val installPathProvider: Computable<String> = Computable { EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() }
 
   override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator): Deployer.Result {
     LOG.info("Full deploy on $device")
-    val installPathProvider = Computable { EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() }
-
     // Add packages to the deployment,
     val deployTask = DeployTask(
       project,
@@ -54,7 +52,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       deployOptions.pmInstallFlags,
       deployOptions.installOnAllUsers,
       deployOptions.alwaysInstallWithPm,
-      installPathProvider)
+      installPathProvider
+    )
 
     return runDeployTask(app, deployTask, device, indicator)
   }
@@ -69,7 +68,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
       DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN,
       deployOptions.alwaysInstallWithPm,
-      installPathProvider)
+      installPathProvider
+    )
 
     return runDeployTask(app, deployTask, device, indicator)
   }
@@ -84,7 +84,8 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
       DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN,
       deployOptions.alwaysInstallWithPm,
-      installPathProvider)
+      installPathProvider
+    )
 
     return runDeployTask(app, deployTask, device, indicator)
   }
@@ -92,7 +93,7 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
   private fun filterDisabledFeatures(apkInfo: ApkInfo, disabledFeatures: List<String>): ApkInfo {
     return if (apkInfo.files.size > 1) {
       val filtered = apkInfo.files.filter { feature: ApkFileUnit -> DynamicAppUtils.isFeatureEnabled(disabledFeatures, feature) }
-      ApkInfo(filtered, apkInfo.applicationId)
+      apkInfo.copy(files = filtered)
     }
     else {
       apkInfo

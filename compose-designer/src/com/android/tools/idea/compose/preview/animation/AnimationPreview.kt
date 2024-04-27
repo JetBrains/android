@@ -20,7 +20,6 @@ import androidx.compose.animation.tooling.ComposeAnimationType
 import androidx.compose.animation.tooling.TransitionInfo
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.TooltipLayeredPane
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.AnimationPreview.Timeline
 import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
 import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
@@ -31,7 +30,8 @@ import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_INFINITE_TRANSITION
@@ -66,7 +66,7 @@ private val LOG = Logger.getInstance(AnimationPreview::class.java)
 
 /**
  * Minimum duration for the timeline. For transitions as snaps duration is 0. Minimum timeline
- * duration allows interact with timeline even for 0-duration animations.
+ * duration allows to interact with timeline even for 0-duration animations.
  */
 private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
 
@@ -85,7 +85,7 @@ private const val DEFAULT_CURVE_POINTS_NUMBER = 200
  *   opened.
  */
 class AnimationPreview(
-  val surface: DesignSurface<LayoutlibSceneManager>,
+  project: Project,
   val tracker: AnimationTracker,
   private val sceneManagerProvider: () -> LayoutlibSceneManager?,
   private val rootComponent: JComponent,
@@ -111,7 +111,7 @@ class AnimationPreview(
    * from/to state combo boxes.
    */
   @VisibleForTesting
-  val tabbedPane = AnimationTabs(surface).apply { addListener(TabChangeListener()) }
+  val tabbedPane = AnimationTabs(project, this).apply { addListener(TabChangeListener()) }
 
   /** Selected single animation. */
   private var selectedAnimation: SupportedAnimationManager? = null
@@ -322,8 +322,7 @@ class AnimationPreview(
         .mapNotNull { it.timelineMaximumMs }
         .maxOrNull()
         ?.toLong()
-        ?.let { max(it, maxDurationPerIteration) }
-        ?: maxDurationPerIteration
+        ?.let { max(it, maxDurationPerIteration) } ?: maxDurationPerIteration
     clockControl.updateMaxDuration(max(timelineMax, MINIMUM_TIMELINE_DURATION_MS))
     updateTimelineElements()
   }
@@ -331,7 +330,7 @@ class AnimationPreview(
   /**
    * Update the timeline window size, which is usually the duration of the longest animation being
    * tracked. However, repeatable animations are handled differently because they can have a large
-   * number of iterations resulting in a unrealistic duration. In that case, we take the longest
+   * number of iterations resulting in an unrealistic duration. In that case, we take the longest
    * iteration instead to represent the window size and set the timeline max loop count to be large
    * enough to display all the iterations.
    */
@@ -355,8 +354,8 @@ class AnimationPreview(
     // update
     timeline.cachedVal = -1
     // The animation panel might not have the focus when the "No animations" panel is displayed,
-    // i.e. when code has changed in the editor using Fast Preview and we need to refresh the
-    // animation preview so it displays the most up-to-date animations. For that reason, we need to
+    // i.e. when code has changed in the editor using Fast Preview, and we need to refresh the
+    // animation preview, so it displays the most up-to-date animations. For that reason, we need to
     // make
     // sure the animation panel is repainted correctly.
     animationPreviewPanel.repaint()
@@ -407,7 +406,7 @@ class AnimationPreview(
     animations.add(animationTab)
 
     if (isAddingFirstTab) {
-      // There are no tabs and we're about to add one. Replace the placeholder panel with the
+      // There are no tabs, and we're about to add one. Replace the placeholder panel with the
       // TabbedPane.
       loadingPanelVisible = false
       tabbedPane.addTab(
@@ -476,8 +475,7 @@ class AnimationPreview(
           ?.let {
             it.isAccessible = true
             it.invoke(animationObject)
-          }
-          ?: states.firstOrNull()
+          } ?: states.firstOrNull()
       else -> states.firstOrNull()
     }
   }
@@ -510,7 +508,7 @@ class AnimationPreview(
 
         stateComboBox.setStartState(state ?: animation.states.firstOrNull())
 
-        // Use a longer timeout the first time we're updating the AnimatedVisiblity state. Since
+        // Use a longer timeout the first time we're updating the AnimatedVisibility state. Since
         // we're running off EDT, the UI will not
         // freeze. This is necessary here because it's the first time the animation mutable states
         // will be written, when setting the clock,
@@ -576,10 +574,16 @@ class AnimationPreview(
     private val tabTimelineParent = JPanel(BorderLayout())
 
     val tabComponent =
-      JPanel(TabularLayout("Fit,*,Fit", "30px,*")).apply {
-        val toolbar = DefaultToolbarImpl(rootComponent, "State", stateComboBox.extraActions)
-        add(toolbar.component, TabularLayout.Constraint(0, 2))
-        add(tabScrollPane, TabularLayout.Constraint(1, 0, 3))
+      JPanel(TabularLayout("*,Fit", "32px,*")).apply {
+        //    |  playbackControls                            |  toolbar  |
+        //    ------------------------------------------------------------
+        //    |                                                          |
+        //    |                     tabScrollPane                        |
+        //    |                                                          |
+        val toolbar =
+          createToolbarWithNavigation(rootComponent, "State", stateComboBox.extraActions)
+        add(toolbar.component, TabularLayout.Constraint(0, 1))
+        add(tabScrollPane, TabularLayout.Constraint(1, 0, 2))
         tabScrollPane.setViewportView(tabTimelineParent)
         add(
           playbackControls.createToolbar(listOf(FreezeAction(previewState, elementState, tracker))),

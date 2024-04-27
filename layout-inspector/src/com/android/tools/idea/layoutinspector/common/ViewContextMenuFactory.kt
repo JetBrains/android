@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
@@ -113,6 +114,8 @@ private class ShowAllAction(private val inspectorModel: InspectorModel) : AnActi
     inspectorModel.showAll()
   }
 
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(actionEvent: AnActionEvent) {
     actionEvent.presentation.isVisible =
       !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
@@ -130,6 +133,8 @@ private class HideSubtreeAction(
     inspectorModel.hideSubtree(topView)
   }
 
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isVisible = !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
@@ -145,6 +150,8 @@ private class ShowOnlySubtreeAction(
     client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     inspectorModel.showOnlySubtree(topView)
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -162,6 +169,8 @@ private class ShowOnlyParentsAction(
     inspectorModel.showOnlyParents(topView)
   }
 
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isVisible = !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
@@ -178,6 +187,8 @@ class SelectViewAction(val view: ViewNode, val inspectorModel: InspectorModel) :
     null,
     IconProvider.getIconForView(view.qualifiedName, view is ComposeViewNode)
   ) {
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun actionPerformed(event: AnActionEvent) {
     inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)

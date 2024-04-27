@@ -18,6 +18,7 @@ package com.android.tools.idea.common.actions;
 import com.android.tools.adtui.workbench.WorkBenchManager;
 import com.intellij.ide.actions.StoreDefaultLayoutAction;
 import com.intellij.idea.ActionsBundle;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
@@ -26,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Stores the layout of tool windows.
  */
-public final class StoreDefaultWindowLayoutAction extends AnAction implements DumbAware {
+public class StoreDefaultWindowLayoutAction extends AnAction implements DumbAware {
   private final StoreDefaultLayoutAction myDelegate;
 
   public StoreDefaultWindowLayoutAction() {
@@ -40,6 +41,12 @@ public final class StoreDefaultWindowLayoutAction extends AnAction implements Du
 
     WorkBenchManager workBenchManager = WorkBenchManager.getInstance();
     workBenchManager.storeDefaultLayout();
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

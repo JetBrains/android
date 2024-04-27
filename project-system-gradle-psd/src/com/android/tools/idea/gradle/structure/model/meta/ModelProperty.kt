@@ -121,7 +121,7 @@ fun <T : Any> emptyKnownValues() = object : KnownValues<T> {
   override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<T>>): Boolean = false
 }
 
-// PSQ erroneously reports AddVarianceModifier on ValueT here.
+@Suppress("AddVarianceModifier")  // PSQ erroneously reports AddVarianceModifier on ValueT here.
 interface ModelPropertyContext<ValueT : Any> {
   /**
    * Parses the text representation of type [ValueT].

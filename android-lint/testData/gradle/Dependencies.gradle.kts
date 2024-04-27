@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    compileSdkVersion(27)
+    <warning>compileSdkVersion(27)</warning>
 
     defaultConfig {
         minSdkVersion(7)

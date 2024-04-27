@@ -131,7 +131,6 @@ public abstract class NewKeyForm {
     }
   }
 
-  @NotNull
   private String getDName() {
     StringBuilder builder = new StringBuilder();
     buildDName(builder, "CN", myFirstAndLastNameField);
@@ -151,6 +150,7 @@ public abstract class NewKeyForm {
     String keyPassword = new String(getKeyPassword());
     String keyAlias = getKeyAlias();
     String dname = getDName();
+    assert dname != null;
 
     boolean createdStore = false;
     final StringBuilder errorBuilder = new StringBuilder();

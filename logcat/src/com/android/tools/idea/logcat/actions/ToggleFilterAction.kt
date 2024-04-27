@@ -24,9 +24,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
-/**
- * An action that adds or removes a filter term from the Logcat filter.
- */
+/** An action that adds or removes a filter term from the Logcat filter. */
 internal class ToggleFilterAction(
   private val logcatPresenter: LogcatPresenter,
   private val logcatFilterParser: LogcatFilterParser,
@@ -42,12 +40,12 @@ internal class ToggleFilterAction(
     val newFilter = toggleFilterTerm(logcatFilterParser, filter, term)
     if (newFilter != null) {
       e.presentation.isVisible = true
-      e.presentation.text = if (filter.contains(term)) {
-        LogcatBundle.message("logcat.toggle.filter.remove", term)
-      }
-      else {
-        LogcatBundle.message("logcat.toggle.filter.add", term)
-      }
+      e.presentation.text =
+        if (filter.contains(term)) {
+          LogcatBundle.message("logcat.toggle.filter.remove", term)
+        } else {
+          LogcatBundle.message("logcat.toggle.filter.add", term)
+        }
     }
   }
 

@@ -44,7 +44,7 @@ public class EmulatorConnectionListener {
                                                                long timeout,
                                                                @NotNull TimeUnit units) {
     if (emulatorProcessHandler == null) {
-      return Futures.immediateFailedFuture(new RuntimeException("The emulator process for AVD " + avdName + " died."));
+      return Futures.immediateFailedFuture(new EmulatorTerminatedException("The emulator process for AVD " + avdName + " died."));
     }
 
     final SettableFuture<IDevice> future = SettableFuture.create();
@@ -89,7 +89,7 @@ public class EmulatorConnectionListener {
         }
 
         if (myEmulatorProcessHandler.isProcessTerminated() || myEmulatorProcessHandler.isProcessTerminating()) {
-          myDeviceFuture.setException(new RuntimeException("The emulator process for AVD " + myAvdName + " has terminated."));
+          myDeviceFuture.setException(new EmulatorTerminatedException("The emulator process for AVD " + myAvdName + " has terminated."));
           return;
         }
 
@@ -149,6 +149,12 @@ public class EmulatorConnectionListener {
       }
 
       return true;
+    }
+  }
+
+  private static class EmulatorTerminatedException extends RuntimeException  {
+    private EmulatorTerminatedException(String message) {
+      super(message);
     }
   }
 }

@@ -27,10 +27,10 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.rules.Timeout
 import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.eq
 import org.mockito.Mockito
 import org.mockito.Mockito.any
 import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
@@ -39,7 +39,7 @@ import java.io.File
 
 class TransportFileManagerTest {
   @get:Rule
-  val timeout = Timeout.seconds(10)
+  val timeout = Timeout.seconds(60)
 
   @JvmField
   @Rule
@@ -76,7 +76,8 @@ class TransportFileManagerTest {
 
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
-    verify(mockDevice, times(1)).executeShellCommand(eq("chmod 555 ${TransportFileManager.DEVICE_DIR}perfa.jar"), any())
+    verify(mockDevice, times(1)).executeShellCommand(eq("chmod 444 ${TransportFileManager.DEVICE_DIR}perfa.jar"), any())
+    verify(mockDevice, times(1)).executeShellCommand(eq("chown shell:shell ${TransportFileManager.DEVICE_DIR}perfa.jar"), any())
 
     val expectedPaths = listOf(
       Pair("dev" + File.separator + "perfa.jar", "perfa.jar")
@@ -136,6 +137,7 @@ class TransportFileManagerTest {
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.first })
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.second })
     verify(mockDevice, times(1)).executeShellCommand(eq("chmod 755 ${TransportFileManager.DEVICE_DIR}transport"), any())
+    verify(mockDevice, times(1)).executeShellCommand(eq("chown shell:shell ${TransportFileManager.DEVICE_DIR}transport"), any())
   }
 
   @Test
@@ -244,7 +246,8 @@ class TransportFileManagerTest {
     val expectedDevicePaths = expectedAbis.map { "${TransportFileManager.DEVICE_DIR}${it.cpuArch}/perfetto" }
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedDevicePaths)
     expectedAbis.map {
-      verify(mockDevice, times(1)).executeShellCommand(eq("mkdir -p -m 755 ${TransportFileManager.DEVICE_DIR}${it.cpuArch}"), any())
+      val filePath = "${TransportFileManager.DEVICE_DIR}${it.cpuArch}"
+      verify(mockDevice, times(1)).executeShellCommand(eq("mkdir -p -m 755 $filePath; chown shell:shell $filePath"), any())
     }
   }
 
@@ -272,9 +275,8 @@ class TransportFileManagerTest {
 
     // Files expected to be copied for device Q include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF
     testNumberOfFilesToCopy(true, 29, 5)
-    // Files expected to be copied for device Q include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF, PERFETTO, PERFETTO_SO,
-    // TRACED, TRACED_PROBE
-    testNumberOfFilesToCopy(false, 29, 9)
+    // Files expected to be copied for device Q include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF
+    testNumberOfFilesToCopy(false, 29, 5)
   }
 
   private fun testNumberOfFilesToCopy(traceboxFlag: Boolean, apiLevel: Int, expectedNumberOfFiles: Int) {

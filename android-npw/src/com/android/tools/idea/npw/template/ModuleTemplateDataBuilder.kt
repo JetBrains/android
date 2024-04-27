@@ -23,7 +23,9 @@ import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.util.DynamicAppUtils
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.hasKotlinFacet
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.ThemeHelper
@@ -46,6 +48,7 @@ import com.android.tools.idea.wizard.template.ThemeData
 import com.android.tools.idea.wizard.template.ThemesData
 import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
@@ -243,6 +246,7 @@ fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuil
   val projectStateBuilder = ProjectTemplateDataBuilder(false).apply {
     setProjectDefaults(project)
     language = if (module.hasKotlinFacet()) Language.Kotlin else Language.Java
+    agpVersion = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(module) ?: GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project) ?: AgpVersions.newProject.also { Logger.getInstance(ModuleTemplateDataBuilder::class.java).warn("Unable to determine AGP version for $module in $project") }
     topOut = project.guessProjectDir()!!.toIoFile()
     applicationPackage = ""
     overridePathCheck = false

@@ -39,12 +39,14 @@ internal class AskStudioBotAction : DumbAwareAction(IssueExplainer.get().getIcon
     val selection = editor.selectionModel.selectedText
     val message = e.getLogcatMessage()?.message
 
-    val label = when {
-      !selection.isNullOrBlank() -> LogcatBundle.message("logcat.studio.bot.action.selection")
-      message == null -> return
-      exceptionLinePattern.containsMatchIn(message) -> LogcatBundle.message("logcat.studio.bot.action.crash")
-      else -> LogcatBundle.message("logcat.studio.bot.action.entry")
-    }
+    val label =
+      when {
+        !selection.isNullOrBlank() -> LogcatBundle.message("logcat.studio.bot.action.selection")
+        message == null -> return
+        exceptionLinePattern.containsMatchIn(message) ->
+          LogcatBundle.message("logcat.studio.bot.action.crash")
+        else -> LogcatBundle.message("logcat.studio.bot.action.entry")
+      }
     e.presentation.isVisible = true
     e.presentation.text = IssueExplainer.get().getFixLabel(label)
   }
@@ -53,7 +55,10 @@ internal class AskStudioBotAction : DumbAwareAction(IssueExplainer.get().getIcon
     val project = e.project ?: return
     val editor = e.getEditor() ?: return
     val selection = editor.selectionModel.selectedText
-    val question = selection.takeIf { !it.isNullOrBlank() } ?: e.getLogcatMessage()?.extractStudioBotQuestion() ?: return
+    val question =
+      selection.takeIf { !it.isNullOrBlank() }
+        ?: e.getLogcatMessage()?.extractStudioBotQuestion()
+        ?: return
     IssueExplainer.get().explain(project, question, IssueExplainer.RequestKind.LOGCAT)
     ApplicationManager.getApplication().invokeLater {
       ToolWindowManagerEx.getInstanceEx(project).hideToolWindow("Logcat", false)

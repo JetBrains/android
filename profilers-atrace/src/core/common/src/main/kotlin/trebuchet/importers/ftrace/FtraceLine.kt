@@ -23,6 +23,7 @@ import trebuchet.util.BufferReader
 import trebuchet.util.StringCache
 import java.util.regex.Pattern
 
+@Suppress("unused")
 const val FtraceLineRE = """^*(.{1,16})-(\d+) +(?:\( *(\d+)?-*\) )?\[(\d+)] (?:[dX.]...)? *([\d.]*): ?([^:]*): (.*)$"""
 
 class FtraceLine private constructor() {

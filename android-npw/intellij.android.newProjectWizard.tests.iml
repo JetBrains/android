@@ -9,61 +9,69 @@
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.newProjectWizard" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.observable" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.lint.common" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.lint" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.android-material" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
-    <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="assertJ" level="project" />
+    <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.builder-model" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.impl" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.android-material" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.projectModel" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.lang.core" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework.common" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util.base" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.lint" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.lint.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.newProjectWizard" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.observable" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.templates" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.codeStyle" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.ide.core.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.execution" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.core.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.core.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.lang.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.projectModel" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util.base" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
   </component>
 </module>

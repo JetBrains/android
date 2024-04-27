@@ -28,7 +28,7 @@ import javax.swing.KeyStroke
 class SaveAsMenuItem(
   listener: DeviceFileExplorerActionListener,
   private val context: MenuContext
-) : TreeMenuItem(listener) {
+) : NonToggleMenuItem(listener) {
   override fun getText(nodes: List<DeviceFileEntryNode>): String =
     if (nodes.size > 1) "Save To..." else "Save As..."
 

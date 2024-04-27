@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.util.device
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.intellij.openapi.application.runReadAction
@@ -23,7 +22,6 @@ import com.intellij.testFramework.fixtures.InjectionTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Before
@@ -41,14 +39,8 @@ internal class DeviceSpecInjectorTest {
 
   @Before
   fun setup() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     fixture.stubPreviewAnnotation()
     fixture.stubComposableAnnotation()
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
   @Test

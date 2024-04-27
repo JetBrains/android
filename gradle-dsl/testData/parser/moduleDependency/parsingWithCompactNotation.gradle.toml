@@ -1,0 +1,4 @@
+[dependencies]
+compile = [{ project = ':javalib1' }]
+test = [{ project = ':test1' }, { project = ':test2' }]
+androidTestImplementation = [{ project = ':test3' }, { project = ':test4' }]

@@ -26,8 +26,8 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.createTransferable
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.util.androidFacet
-import org.junit.Test
 import java.awt.dnd.DnDConstants
+import org.junit.Test
 
 /** This test mimics the resource drag and drop scenario. b/255741287 */
 class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {

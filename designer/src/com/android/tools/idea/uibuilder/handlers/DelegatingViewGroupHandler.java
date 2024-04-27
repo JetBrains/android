@@ -15,39 +15,34 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.ComponentProvider;
 import com.android.tools.idea.common.scene.Placeholder;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.common.scene.ComponentProvider;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.Target;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
-import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
-import com.android.tools.idea.uibuilder.api.CustomPanel;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.ScrollHandler;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.XmlType;
-import com.android.tools.idea.uibuilder.api.actions.ViewAction;
-import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import java.awt.Graphics2D;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import javax.swing.Icon;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public class DelegatingViewGroupHandler extends ViewGroupHandler {
   private final ViewGroupHandler myHandler;
@@ -233,8 +228,8 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  @NotNull
-  public String getGradleCoordinateId(@NotNull String tagName) {
+  @Nullable
+  public GoogleMavenArtifactId getGradleCoordinateId(@NotNull String tagName) {
     return myHandler.getGradleCoordinateId(tagName);
   }
 

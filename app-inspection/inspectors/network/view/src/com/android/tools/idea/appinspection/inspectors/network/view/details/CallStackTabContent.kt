@@ -15,23 +15,25 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.inspectors.common.api.stacktrace.StackFrameParser
 import com.android.tools.inspectors.common.api.stacktrace.ThreadId
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
-import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
+import org.jetbrains.annotations.VisibleForTesting
 
 /** Tab which shows a stack trace to where a network request was created. */
-class CallStackTabContent(@VisibleForTesting val stackTraceView: StackTraceView) : TabContent() {
+internal class CallStackTabContent(@VisibleForTesting val stackTraceView: StackTraceView) :
+  TabContent() {
   override val title = "Call Stack"
 
   override fun createComponent(): JComponent {
     return stackTraceView.component
   }
 
-  override fun populateFor(data: HttpData?, httpDataComponentFactory: HttpDataComponentFactory) {
+  override fun populateFor(data: ConnectionData?, dataComponentFactory: DataComponentFactory) {
     if (data != null) {
       stackTraceView.model.setStackFrames(ThreadId.INVALID_THREAD_ID, data.codeLocations())
     } else {
@@ -41,4 +43,4 @@ class CallStackTabContent(@VisibleForTesting val stackTraceView: StackTraceView)
 }
 
 /** Captures the stacktrace content contained in an [HttpData] object. */
-private fun HttpData.codeLocations(): List<CodeLocation> = StackFrameParser.parseStack(trace)
+private fun ConnectionData.codeLocations(): List<CodeLocation> = StackFrameParser.parseStack(trace)

@@ -46,13 +46,13 @@ import com.intellij.openapi.util.removeUserData
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import com.intellij.util.containers.MultiMap
+import java.lang.ref.SoftReference
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicBoolean
 import org.jetbrains.android.uipreview.StudioModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
 import org.jetbrains.android.uipreview.StudioModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import java.lang.ref.SoftReference
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.atomic.AtomicBoolean
 
 private fun throwIfNotUnitTest(e: Exception) =
   if (!ApplicationManager.getApplication().isUnitTestMode) {
@@ -156,8 +156,8 @@ class Preloader(
     classLoader.get()?.let { it.nonProjectLoadedClasses.size + it.projectLoadedClasses.size } ?: 0
 }
 
-private val PRELOADER: Key<Preloader> = Key.create(::PRELOADER.qualifiedName)
-val HATCHERY: Key<ModuleClassLoaderHatchery> = Key.create(::HATCHERY.qualifiedName)
+private val PRELOADER: Key<Preloader> = Key.create(::PRELOADER.qualifiedName<StudioModuleClassLoaderManager>())
+val HATCHERY: Key<ModuleClassLoaderHatchery> = Key.create(::HATCHERY.qualifiedName<StudioModuleClassLoaderManager>())
 
 private fun calculateTransformationsUniqueId(
   projectClassesTransformationProvider: ClassTransform,
@@ -272,8 +272,8 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
                          additionalProjectTransformation: ClassTransform,
                          additionalNonProjectTransformation: ClassTransform,
                          onNewModuleClassLoader: Runnable): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
-    val module: Module = moduleRenderContext.module
-    var moduleClassLoader = module.getUserData(PRELOADER)?.getClassLoader()
+    val module: Module? = moduleRenderContext.module
+    var moduleClassLoader = module?.getUserData(PRELOADER)?.getClassLoader()
     val combinedProjectTransformations: ClassTransform by lazy {
       combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
     }
@@ -296,19 +296,19 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
 
     if (moduleClassLoader == null) {
       // Make sure the helper service is initialized
-      moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
+      moduleRenderContext.module?.project?.getService(ModuleClassLoaderProjectHelperService::class.java)
       if (LOG.isDebugEnabled) {
-        LOG.debug { "Loading new class loader for module ${anonymize(AndroidFacetRenderModelModule(module.androidFacet!!))}" }
+        LOG.debug { "Loading new class loader for module ${module?.androidFacet?.let { anonymize(AndroidFacetRenderModelModule(it)) }}" }
       }
       val preloadedClassLoader: StudioModuleClassLoader? =
-        moduleRenderContext.module.getOrCreateHatchery().requestClassLoader(
+        moduleRenderContext.module?.getOrCreateHatchery()?.requestClassLoader(
           parent, combinedProjectTransformations, combinedNonProjectTransformations)
       moduleClassLoader = preloadedClassLoader ?: StudioModuleClassLoader(parent,
                                                                           moduleRenderContext,
                                                                           combinedProjectTransformations,
                                                                           combinedNonProjectTransformations,
                                                                           createDiagnostics())
-      module.putUserData(PRELOADER, Preloader(moduleClassLoader))
+      module?.putUserData(PRELOADER, Preloader(moduleClassLoader))
       onNewModuleClassLoader.run()
     }
 
@@ -324,10 +324,6 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
     return newModuleClassLoaderReference
   }
 
-  @Synchronized
-  override fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext) =
-    getShared(parent, moduleRenderContext, ClassTransform.identity, ClassTransform.identity) {}
-
   /**
    * Return a [StudioModuleClassLoader] for a [Module] to be used for rendering. Similar to [getShared] but guarantees that the returned
    * [StudioModuleClassLoader] is not shared and the caller has full ownership of it.
@@ -338,12 +334,12 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
                           additionalProjectTransformation: ClassTransform,
                           additionalNonProjectTransformation: ClassTransform): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
     // Make sure the helper service is initialized
-    moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
+    moduleRenderContext.module?.project?.getService(ModuleClassLoaderProjectHelperService::class.java)
 
     val combinedProjectTransformations = combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
     val combinedNonProjectTransformations = combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)
     val preloadedClassLoader: StudioModuleClassLoader? =
-      moduleRenderContext.module.getOrCreateHatchery().requestClassLoader(
+      moduleRenderContext.module?.getOrCreateHatchery()?.requestClassLoader(
         parent, combinedProjectTransformations, combinedNonProjectTransformations)
     return (preloadedClassLoader ?: StudioModuleClassLoader(parent, moduleRenderContext,
                                                             combinedProjectTransformations,
@@ -356,10 +352,6 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
         newModuleClassLoaderReference
       }
   }
-
-  @Synchronized
-  override fun getPrivate(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, ) =
-    getPrivate(parent, moduleRenderContext, ClassTransform.identity, ClassTransform.identity)
 
   @VisibleForTesting
   fun createCopy(mcl: StudioModuleClassLoader): StudioModuleClassLoader? = mcl.copy(createDiagnostics())

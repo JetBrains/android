@@ -54,13 +54,20 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FIND_USAGES
+import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertSize
+import org.junit.After
 import org.junit.Test
 import com.android.tools.idea.gradle.project.upgrade.REWRITE_DEPRECATED_OPERATORS as REWRITE_DEPRECATED_OPERATORS_INFO
 
 @RunsInEdt
 class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
+  @After
+  fun tearDown() {
+    JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
+  }
+
   @Test
   fun testVersionInLiteralUsageTracker() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInLiteral"))

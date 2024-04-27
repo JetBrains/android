@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.debug;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.debugger.engine.FullValueEvaluatorProvider;
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
 import com.intellij.debugger.ui.impl.watch.ValueDescriptorImpl;
 import com.intellij.debugger.ui.tree.render.CompoundReferenceRenderer;
 import com.intellij.xdebugger.frame.XFullValueEvaluator;
+import com.sun.jdi.ObjectReference;
 import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.NotNull;
 
 final class BitmapRenderer extends CompoundReferenceRenderer implements FullValueEvaluatorProvider {
-  private static final String BITMAP_FQCN = "android.graphics.Bitmap";
+  static final String BITMAP_FQCN = "android.graphics.Bitmap";
 
   BitmapRenderer() {
     super("Bitmap", null, null);
@@ -36,11 +38,16 @@ final class BitmapRenderer extends CompoundReferenceRenderer implements FullValu
   @NotNull
   @Override
   public XFullValueEvaluator getFullValueEvaluator(EvaluationContextImpl evaluationContext, final ValueDescriptorImpl valueDescriptor) {
-    return new BitmapPopupEvaluator(evaluationContext) {
-      @Override
-      protected BufferedImage getData() {
-        return getImage(myEvaluationContext, valueDescriptor.getValue());
-      }
-    };
+    if (StudioFlags.USE_BITMAP_POPUP_EVALUATOR_V2.get()) {
+      return new BitmapPopupEvaluatorV2(evaluationContext, (ObjectReference)valueDescriptor.getValue());
+    }
+    else {
+      return new BitmapPopupEvaluator(evaluationContext) {
+        @Override
+        protected BufferedImage getData() {
+          return getImage(myEvaluationContext, valueDescriptor.getValue());
+        }
+      };
+    }
   }
 }

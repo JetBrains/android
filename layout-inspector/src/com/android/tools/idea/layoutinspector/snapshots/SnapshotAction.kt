@@ -18,10 +18,10 @@ package com.android.tools.idea.layoutinspector.snapshots
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.fileChooser.FileChooserDialog
 import com.intellij.openapi.fileChooser.FileChooserFactory
@@ -39,7 +39,7 @@ import java.util.Date
 import java.util.Locale
 
 object SnapshotAction :
-  DropDownAction(null, "Snapshot Export/Import", StudioIcons.LayoutInspector.SNAPSHOT),
+  DropDownAction(null, "Snapshot Export/Import", StudioIcons.LayoutInspector.Toolbar.SNAPSHOT),
   TooltipDescriptionProvider {
   init {
     add(ExportSnapshotAction)
@@ -54,6 +54,9 @@ object ExportSnapshotAction :
     AllIcons.ToolbarDecorator.Export
   ),
   TooltipDescriptionProvider {
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isEnabled =
@@ -124,7 +127,7 @@ object ImportSnapshotAction :
     if (vFiles.isEmpty()) return
     val vFile = vFiles[0]
     val saveAndOpenSnapshot = Runnable {
-      ApplicationManager.getApplication().invokeLater {
+      invokeLater {
         FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, vFile), true)
       }
     }

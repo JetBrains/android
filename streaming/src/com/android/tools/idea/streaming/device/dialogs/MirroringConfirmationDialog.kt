@@ -15,33 +15,27 @@
  */
 package com.android.tools.idea.streaming.device.dialogs
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.CloseDialogAction
-import com.android.tools.idea.streaming.StreamingBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.util.NlsContexts
-import com.intellij.openapi.util.NlsSafe
 import com.intellij.ui.components.dialog
 import com.intellij.ui.components.htmlComponent
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
-import org.jetbrains.annotations.Nls
 import java.awt.Component
 import java.awt.Dimension
-
-@NlsSafe
-private const val MIRRORING_COMMAND = "adb tcpip"
 
 /**
  * Displays a warning about privacy implications of device mirroring.
  */
-internal class MirroringConfirmationDialog(@NlsContexts.DialogTitle val title: String) {
+internal class MirroringConfirmationDialog(val title: String) {
 
-  @Nls
-  private val text = StreamingBundle.message("android.mirroring.dialog.privacy.notice.warning", MIRRORING_COMMAND)
+  private val text = "<p><b>Warning:</b> Mirroring might result in information disclosure for devices connected with" +
+                     " the<code>&nbsp;adb&nbsp;tcpip </code>command because the&nbsp;mirroring information and commands are passed" +
+                     " over a&nbsp;non-encrypted channel. Mirroring information might also be intercepted by other users on your host" +
+                     " machine since the&nbsp;communication channel between Android Studio and the&nbsp;adb server is not encrypted.</p>"
 
   /**
    * Creates contents of the dialog.
@@ -73,9 +67,7 @@ internal class MirroringConfirmationDialog(@NlsContexts.DialogTitle val title: S
       createActions = {
         listOf(
           CloseDialogAction(dialogPanel, "Acknowledge", ACCEPT_EXIT_CODE, isDefault = true),
-          CloseDialogAction(dialogPanel,
-                            if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) "Cancel" else "Disable Mirroring",
-                            REJECT_EXIT_CODE)
+          CloseDialogAction(dialogPanel, "Cancel", REJECT_EXIT_CODE)
         )
       }).apply { pack() }
   }

@@ -26,15 +26,16 @@ import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestOptions
+import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
+import com.android.tools.idea.run.tasks.DeployTask
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.allInModuleTest
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.allInPackageTest
@@ -47,7 +48,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidT
 import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
-import com.android.tools.idea.run.tasks.DeployTask
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.process.NopProcessHandler
@@ -57,11 +57,10 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.indicatorRunBlockingCancellable
 import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.openapi.util.Computable
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.Deferred
-import com.intellij.openapi.util.Computable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -83,7 +82,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
   val applicationIdProvider = configuration.applicationIdProvider ?: throw RuntimeException("Cannot get ApplicationIdProvider")
   val apkProvider = getApkProvider(configuration)
   var runner = configuration.INSTRUMENTATION_RUNNER_CLASS.takeIf { it.isNotBlank() }
-    ?: AndroidTestRunConfiguration.getDefaultInstrumentationRunner(facet)
+               ?: AndroidTestRunConfiguration.getDefaultInstrumentationRunner(facet)
 
   /**
    * Returns a target Android process ID to be monitored by [AndroidProcessHandler].
@@ -99,7 +98,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     )
   }
 
-  override fun run(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
+  override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
     env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
@@ -135,11 +134,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
         "\"Run Android instrumented tests using Gradle\" option was ignored because this module type is not supported yet."
       )
     }
-    val packageName = try {
-      applicationIdProvider.testPackageName ?: throw ExecutionException("Unable to determine test package name")
-    } catch (e: ApkProvisionException) {
-      throw ExecutionException("Unable to determine test package name")
-    }
+
     RunStats.from(env).apply { setPackage(packageName) }
     printLaunchTaskStartedMessage(console)
 
@@ -171,14 +166,14 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
 
 
   private fun getDeployTask(device: IDevice): DeployTask {
+    val installPathProvider = Computable { EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() }
     val packages = apkProvider.getApks(device)
     val pmInstallOptions = if (device.version.apiLevel >= 23) {
       "-t -g"
-    } else {
+    }
+    else {
       "-t"
     }
-    val installPathProvider = Computable { EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() }
-
     return DeployTask(project, packages, pmInstallOptions, false, false, installPathProvider)
   }
 
@@ -266,7 +261,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     }
   }
 
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
     env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
@@ -284,7 +279,9 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
 
     val device = devices.single()
     indicator.text = "Connecting debugger"
-    val session = startDebuggerSession(indicator, device, console).apply {
+    val session = startDebuggerSession(indicator, device,
+                                       FacetBasedApplicationProjectContext(packageName, facet),
+                                       console).apply {
       processHandler.addProcessListener(object : ProcessAdapter() {
         override fun processTerminated(event: ProcessEvent) {
           processHandler.destroyProcess()
@@ -302,12 +299,4 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
     consoleView.println("$dateFormat: Launching ${configuration.name} on '${env.executionTarget.displayName}.")
   }
-
-  override fun applyChanges(indicator: ProgressIndicator) = throw UnsupportedOperationException(
-    "Apply Changes are not supported for Instrumented tests"
-  )
-
-  override fun applyCodeChanges(indicator: ProgressIndicator) = throw UnsupportedOperationException(
-    "Apply Code Changes are not supported for Instrumented tests"
-  )
 }

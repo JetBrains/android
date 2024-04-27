@@ -29,7 +29,7 @@ using namespace std;
 static mutex static_initialization_mutex; // Protects initialization of static fields.
 
 void SurfaceControl::InitializeStatics(Jni jni) {
-  scoped_lock lock(static_initialization_mutex);
+  unique_lock lock(static_initialization_mutex);
 
   if (surface_control_class_.IsNull()) {
     surface_control_class_ = jni.GetClass("android/view/SurfaceControl");
@@ -53,19 +53,19 @@ void SurfaceControl::InitializeStatics(Jni jni) {
 JObject SurfaceControl::GetInternalDisplayToken(Jni jni) {
   InitializeStatics(jni);
   {
-    scoped_lock lock(static_initialization_mutex);
+    unique_lock lock(static_initialization_mutex);
     if (get_internal_display_token_method_not_available_) {
       return JObject();
     }
     if (get_internal_display_token_method_ == nullptr) {
       get_internal_display_token_method_ =
-          Agent::api_level() >= 33 ?
+          Agent::feature_level() >= 33 ?
               surface_control_class_.FindStaticMethod(jni, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
-          Agent::api_level() >= 29 ?
+          Agent::feature_level() >= 29 ?
               surface_control_class_.GetStaticMethod(jni, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
               surface_control_class_.GetStaticMethod(jni, "getBuiltInDisplay", "(I)Landroid/os/IBinder;");
       if (get_internal_display_token_method_ == nullptr) {
-        if (Agent::api_level() <= 33) {
+        if (Agent::feature_level() <= 33) {
           Log::W("Unable to get display token");
         }
         get_internal_display_token_method_not_available_ = true;
@@ -73,7 +73,7 @@ JObject SurfaceControl::GetInternalDisplayToken(Jni jni) {
       }
     }
   }
-  return Agent::api_level() >= 29 ?
+  return Agent::feature_level() >= 29 ?
       surface_control_class_.CallStaticObjectMethod(jni, get_internal_display_token_method_) :
       surface_control_class_.CallStaticObjectMethod(jni, get_internal_display_token_method_, 0);
 }
@@ -139,7 +139,7 @@ void SurfaceControl::ConfigureProjection(
 void SurfaceControl::SetDisplayPowerMode(Jni jni, jobject display_token, DisplayPowerMode mode) {
   InitializeStatics(jni);
   {
-    scoped_lock lock(static_initialization_mutex);
+    unique_lock lock(static_initialization_mutex);
     if (set_display_power_mode_method_ == nullptr) {
       set_display_power_mode_method_ = surface_control_class_.GetStaticMethod(jni, "setDisplayPowerMode", "(Landroid/os/IBinder;I)V");
     }

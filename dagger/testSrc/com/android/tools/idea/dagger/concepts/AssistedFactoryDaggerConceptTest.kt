@@ -26,6 +26,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFile
@@ -72,16 +73,16 @@ class AssistedFactoryDaggerConceptTest {
 
     assertThat(indexResults)
       .containsExactly(
-        "com.example.MyAssistedFactory",
-        setOf(AssistedFactoryClassIndexValue("com.example.MyAssistedFactory")),
+        MY_ASSISTED_FACTORY_ID.asFqNameString(),
+        setOf(AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID)),
         "CreatedObject1",
-        setOf(AssistedFactoryMethodIndexValue("com.example.MyAssistedFactory", "create1"))
+        setOf(AssistedFactoryMethodIndexValue(MY_ASSISTED_FACTORY_ID, "create1"))
       )
   }
 
   @Test
   fun assistedFactoryClassIndexValue_serialization() {
-    val indexValue = AssistedFactoryClassIndexValue("abc")
+    val indexValue = AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID)
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -111,13 +112,13 @@ class AssistedFactoryDaggerConceptTest {
       )
 
     assertThat(
-        AssistedFactoryClassIndexValue("com.example.MyAssistedFactory")
+        AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(myAssistedFactoryDaggerElement)
 
     assertThat(
-        AssistedFactoryClassIndexValue("com.example.NotAnAssistedFactory")
+        AssistedFactoryClassIndexValue(NOT_AN_ASSISTED_FACTORY_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .isEmpty()
@@ -147,13 +148,13 @@ class AssistedFactoryDaggerConceptTest {
       ProviderDaggerElement(myFixture.findParentElement<PsiClass>("interface MyAssisted|Factory"))
 
     assertThat(
-        AssistedFactoryClassIndexValue("com.example.MyAssistedFactory")
+        AssistedFactoryClassIndexValue(MY_ASSISTED_FACTORY_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(myAssistedFactoryDaggerElement)
 
     assertThat(
-        AssistedFactoryClassIndexValue("com.example.NotAnAssistedFactory")
+        AssistedFactoryClassIndexValue(NOT_AN_ASSISTED_FACTORY_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .isEmpty()
@@ -161,7 +162,7 @@ class AssistedFactoryDaggerConceptTest {
 
   @Test
   fun assistedFactoryMethodIndexValue_serialization() {
-    val indexValue = AssistedFactoryMethodIndexValue("abc", "def")
+    val indexValue = AssistedFactoryMethodIndexValue(MY_ASSISTED_FACTORY_ID, "def")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -198,14 +199,14 @@ class AssistedFactoryDaggerConceptTest {
 
     // Expected to resolve
     assertThat(
-        AssistedFactoryMethodIndexValue("com.example.MyAssistedFactory", "create1")
+        AssistedFactoryMethodIndexValue(MY_ASSISTED_FACTORY_ID, "create1")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(myAssistedFactoryMethodDaggerElement)
 
     // Expected to not resolve
     assertThat(
-        AssistedFactoryMethodIndexValue("com.example.NotAnAssistedFactory", "create2")
+        AssistedFactoryMethodIndexValue(NOT_AN_ASSISTED_FACTORY_ID, "create2")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .isEmpty()
@@ -246,14 +247,14 @@ class AssistedFactoryDaggerConceptTest {
 
     // Expected to resolve
     assertThat(
-        AssistedFactoryMethodIndexValue("com.example.MyAssistedFactory", "create1")
+        AssistedFactoryMethodIndexValue(MY_ASSISTED_FACTORY_ID, "create1")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(myAssistedFactoryMethodDaggerElement)
 
     // Expected to not resolve
     assertThat(
-        AssistedFactoryMethodIndexValue("com.example.NotAnAssistedFactory", "create2")
+        AssistedFactoryMethodIndexValue(NOT_AN_ASSISTED_FACTORY_ID, "create2")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .isEmpty()
@@ -305,5 +306,10 @@ class AssistedFactoryDaggerConceptTest {
           "CreatedObject"
         )
       )
+  }
+
+  companion object {
+    private val MY_ASSISTED_FACTORY_ID = ClassId.fromString("com/example/MyAssistedFactory")
+    private val NOT_AN_ASSISTED_FACTORY_ID = ClassId.fromString("com/example/NotAnAssistedFactory")
   }
 }

@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.actions.license;
 
-import static com.google.common.truth.Truth.assertThat;
+import com.intellij.openapi.util.SystemInfo;
+import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class LicensesLocatorTest {
   @Test

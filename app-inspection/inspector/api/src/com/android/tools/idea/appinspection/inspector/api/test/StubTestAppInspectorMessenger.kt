@@ -17,10 +17,10 @@ package com.android.tools.idea.appinspection.inspector.api.test
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlin.coroutines.EmptyCoroutineContext
 
 class StubTestAppInspectorMessenger : AppInspectorMessenger {
   @WorkerThread

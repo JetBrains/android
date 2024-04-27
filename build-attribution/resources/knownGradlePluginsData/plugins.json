@@ -72,7 +72,7 @@
         "androidx.benchmark.gradle.BenchmarkPlugin"
       ],
       "pluginArtifact": "androidx.benchmark:benchmark-gradle-plugin",
-      "configurationCachingCompatibleFrom": "1.1.0"
+      "configurationCachingCompatibleFrom": "1.2.0-rc02"
     },
     {
       "name": "org.gradle.test-retry",

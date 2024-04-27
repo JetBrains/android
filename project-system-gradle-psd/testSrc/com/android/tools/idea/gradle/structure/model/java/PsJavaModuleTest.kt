@@ -26,7 +26,6 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Truth
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.Assert.assertNotNull
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -70,16 +69,38 @@ class PsJavaModuleTest {
     }
   }
 
-  // TODO(b/117969438) : Find out what the correct configurations are and implement.
   @Test
-  @Ignore("b/117969438")
-  fun /*testC*/onfigurations() {
+  fun testConfigurations() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     projectRule.psTestWithProject(preparedProject) {
       val appModule = moduleWithSyncedModel(project, "jav")
       assertNotNull(appModule)
-
-      TODO("b/117969438")
+      Truth.assertThat(appModule.getConfigurations()).containsExactly(
+        "implementation",
+        "annotationProcessor",
+        "api",
+        "compile",
+        "compileOnly",
+        "runtime",
+        "runtimeOnly",
+        "testAnnotationProcessor",
+        "testCompile",
+        "testCompileOnly",
+        "testImplementation",
+        "testRuntime",
+        "testRuntimeOnly",
+        "compileClasspath",
+        "testCompileClasspath",
+        "archives",
+        "apiElements",
+        "runtimeElements",
+        "testResultsElementsForTest",
+        "testRuntimeClasspath",
+        "runtimeClasspath",
+        "default",
+        "mainSourceElements",
+        "compileOnlyApi"
+      )
     }
   }
 

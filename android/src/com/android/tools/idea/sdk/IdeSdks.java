@@ -23,6 +23,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
+import static com.intellij.openapi.projectRoots.JdkUtil.checkForJre;
 import static com.intellij.openapi.projectRoots.JdkUtil.isModularRuntime;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
@@ -38,8 +39,6 @@ import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.extensions.SdkExtensions;
-import com.android.tools.sdk.AndroidPlatform;
-import com.android.tools.sdk.AndroidSdkData;
 import com.android.tools.sdk.AndroidSdkPath;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -64,6 +63,7 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -83,7 +83,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
+import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -336,7 +338,7 @@ public class IdeSdks {
    * @return the JDK in the given path if valid, null otherwise.
    */
   public Sdk setJdkPath(@NotNull Path path) {
-    if (checkForJdk(path)) {
+    if (isValidJdkPath(path)) {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
       Path canonicalPath = resolvePath(path);
       Sdk chosenJdk = null;
@@ -351,7 +353,7 @@ public class IdeSdks {
 
       if (chosenJdk == null) {
         if (Files.isDirectory(canonicalPath)) {
-          chosenJdk = createJdk(canonicalPath);
+          chosenJdk = getOrCreateJdk(canonicalPath);
           if (chosenJdk == null) {
             // Unlikely to happen
             throw new IllegalStateException("Failed to create IDEA JDK from '" + path + "'");
@@ -646,12 +648,12 @@ public class IdeSdks {
 
   @Nullable
   private static String doGetJdkFromPath(@NotNull Path file) {
-    if (checkForJdk(file)) {
+    if (isValidJdkPath(file)) {
       return file.toString();
     }
     if (SystemInfo.isMac) {
       Path potentialPath = file.resolve(MAC_JDK_CONTENT_PATH);
-      if (Files.isDirectory(potentialPath) && checkForJdk(potentialPath)) {
+      if (Files.isDirectory(potentialPath) && isValidJdkPath(potentialPath)) {
         return potentialPath.toString();
       }
     }
@@ -722,8 +724,8 @@ public class IdeSdks {
         continue; // already checked: didn't fit
       }
 
-      if (checkForJdk(jdkPath.toPath())) {
-        Sdk jdk = createJdk(jdkPath.toPath()); // TODO-ank: this adds JDK to the project even if the JDK is not compatibile and will be skipped
+      if (isValidJdkPath(jdkPath.toPath())) {
+        Sdk jdk = getOrCreateJdk(jdkPath.toPath()); // TODO-ank: this adds JDK to the project even if the JDK is not compatibile and will be skipped
         if (isJdkCompatible(jdk, preferredVersion) ) {
           return jdk;
         }
@@ -731,7 +733,7 @@ public class IdeSdks {
       // On Linux, the returned path is the folder that contains all JDKs, instead of a specific JDK.
       if (SystemInfo.isLinux) {
         for (File child : notNullize(jdkPath.listFiles())) {
-          if (child.isDirectory() && checkForJdk(child.toPath())) {
+          if (child.isDirectory() && isValidJdkPath(child.toPath())) {
             Sdk jdk = myJdks.createAndAddJdk(child.getPath());
             if (isJdkCompatible(jdk, preferredVersion)) {
               return jdk;
@@ -826,7 +828,7 @@ public class IdeSdks {
    */
   @VisibleForTesting
   @Nullable
-  public Sdk createJdk(@NotNull Path homeDirectory) {
+  public Sdk getOrCreateJdk(@NotNull Path homeDirectory) {
     ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
     for (Sdk jdk : projectJdkTable.getSdksOfType(JavaSdk.getInstance())) {
       if (FileUtil.pathsEqual(jdk.getHomePath(), homeDirectory.toString())) {
@@ -896,12 +898,12 @@ public class IdeSdks {
   @Nullable
   public Path validateJdkPath(@NotNull Path path) {
     Path possiblePath = null;
-    if (checkForJdk(path)) {
+    if (isValidJdkPath(path)) {
       possiblePath = path;
     }
     else if (SystemInfo.isMac) {
       Path macPath = path.resolve(MAC_JDK_CONTENT_PATH);
-      if (Files.isDirectory(macPath) && checkForJdk(macPath)) {
+      if (Files.isDirectory(macPath) && isValidJdkPath(macPath)) {
         possiblePath = macPath;
       }
     }
@@ -928,6 +930,15 @@ public class IdeSdks {
     LOG.warn("  Apple JDK: " + new File(homePath, "../Classes/classes.jar").exists());
     LOG.warn("  IBM JDK: " + new File(homePath, "jre/lib/vm.jar").exists());
     LOG.warn("  Custom build: " + new File(homePath, "classes").isDirectory());
+  }
+
+  /**
+   * Checks if the specified path contains a valid JDK structure
+   * @param path the JDK path to validate
+   * @return true if the path contains a valid JDK
+   */
+  private static boolean isValidJdkPath(@NotNull Path path) {
+    return checkForJdk(path) && checkForJre(path);
   }
 
   /**
@@ -1011,9 +1022,7 @@ public class IdeSdks {
       if (shouldUpdate) {
         ProjectJdkTable.getInstance().updateJdk(jdkInTable, updatedJdk);
       }
-      if (updatedJdk instanceof Disposable disposableJdk) {
-        Disposer.dispose(disposableJdk);
-      }
+      Disposer.dispose((ProjectJdkImpl)updatedJdk);
     } else {
       // Could not find JDK in JDK table, add as new entry
       jdkTable.addJdk(updatedJdk);
@@ -1085,7 +1094,7 @@ public class IdeSdks {
           // Check initialization again (another thread could have called this already when waiting for EDT)
           if (!myInitialized) {
             try {
-              @Nullable Sdk jdk = createJdk(finalEnvVariableJdkPath);
+              @Nullable Sdk jdk = getOrCreateJdk(finalEnvVariableJdkPath);
               if (jdk != null) {
                 setInitialization(value, FilePaths.stringToFile(finalEnvVariableJdkPath.toString()), jdk);
                 LOG.info("Using Gradle JDK from " + JDK_LOCATION_ENV_VARIABLE_NAME + "=" + value);

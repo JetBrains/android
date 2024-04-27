@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.U
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class RawTextTest : GradleFileModelTestCase() {

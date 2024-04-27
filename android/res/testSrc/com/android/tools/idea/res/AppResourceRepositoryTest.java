@@ -184,8 +184,8 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
   public void testGetItemsOfTypeIdIncludeAar() {
     VirtualFile res1 = myFixture.copyFileToProject(LAYOUT, "res/layout/some_layout.xml").getParent().getParent();
-    LocalResourceRepository moduleRepository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1), RES_AUTO, null);
-    LocalResourceRepository projectResources = ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(moduleRepository));
+    LocalResourceRepository<VirtualFile> moduleRepository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1), RES_AUTO, null);
+    LocalResourceRepository<VirtualFile> projectResources = ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(moduleRepository));
 
     AarSourceResourceRepository aar = AarTestUtils.getTestAarRepositoryFromExplodedAar();
     AppResourceRepository appResources =
@@ -295,7 +295,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     addBinaryAarDependency(myModule);
     enableNamespacing("p1.p2");
 
-    LocalResourceRepository appResources = StudioResourceRepositoryManager.getAppResources(myFacet);
+    LocalResourceRepository<?> appResources = StudioResourceRepositoryManager.getAppResources(myFacet);
     Collection<SingleNamespaceResourceRepository> repositories = appResources.getLeafResourceRepositories();
     assertThat(repositories).hasSize(4);
 
@@ -305,7 +305,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertThat(items.get(0).getResourceValue().getValue()).isEqualTo("This string came from an AARv2");
   }
 
-  private static void checkCrossNamespaceReference(LocalResourceRepository repo,
+  private static void checkCrossNamespaceReference(ResourceRepository repo,
                                                    ResourceReference toCheck,
                                                    ResourceReference expected,
                                                    boolean shouldExist) {
@@ -344,7 +344,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     }
   }
 
-  private static void assertOnlyValue(MultiResourceRepository repository,
+  private static void assertOnlyValue(MultiResourceRepository<VirtualFile> repository,
                                       ResourceNamespace namespace,
                                       String name,
                                       String value) {
@@ -353,7 +353,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
   }
 
   @NotNull
-  private static ResourceValue getOnlyValue(LocalResourceRepository repository,
+  private static ResourceValue getOnlyValue(ResourceRepository repository,
                                             ResourceNamespace namespace,
                                             ResourceType resourceType,
                                             String name) {

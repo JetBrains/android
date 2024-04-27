@@ -1,10 +1,8 @@
 package org.jetbrains.android.compiler.artifact;
 
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
+
+import javax.swing.*;
 
 public interface ApkSigningSettingsForm {
   JButton getLoadKeyStoreButton();

@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporte
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallBuildToolsQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
@@ -82,7 +82,10 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
 
     // TODO(b/149203281): Fix support for composite projects.
     val modules = listOfNotNull(GradleHolderProjectPath(FileUtil.toSystemIndependentName(projectPath), gradlePath).resolveIn(ideaProject))
-    val buildFiles = listOfNotNull(if (modules.isEmpty()) null else GradleUtil.getGradleBuildFile(modules[0]))
+    val buildFiles = listOfNotNull(if (modules.isEmpty()) null else GradleProjectSystemUtil.getGradleBuildFile(
+      modules[0]
+    )
+    )
 
     val sdkHandler = AndroidSdks.getInstance().tryToChooseAndroidSdk()?.sdkHandler
     if (sdkHandler != null) {

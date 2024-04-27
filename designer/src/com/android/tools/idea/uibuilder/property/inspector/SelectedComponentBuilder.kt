@@ -30,8 +30,8 @@ import com.android.tools.property.panel.api.SelectedComponentModel
 import com.android.tools.property.panel.api.SelectedComponentPanel
 import com.intellij.util.text.nullize
 import icons.StudioIcons
-import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import javax.swing.Icon
+import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 
 private const val UNNAMED_COMPONENT = "<unnamed>"
 private const val MULTIPLE_COMPONENTS = "<multiple>"
@@ -84,12 +84,15 @@ class SelectedComponentBuilder(private val model: NlPropertiesModel) :
               model.properties.getOrNull(ANDROID_URI, ATTR_ID)?.value.nullize() ?: UNNAMED_COMPONENT
             else MULTIPLE_COMPONENTS
           }
+
         override val icon = iconValue
         override val description = tagName
+
         override fun addValueChangedListener(listener: ValueChangedListener) {
           currentListener = listener
           model.addListener(modelListener)
         }
+
         override fun removeValueChangedListener(listener: ValueChangedListener) {
           currentListener = null
           model.removeListener(modelListener)

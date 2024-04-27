@@ -95,7 +95,7 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
       .listenInPoolThread(taskExecutor)
       .whenAllComplete()
       .call(
-        Callable { DeviceNameProperties(futures[0].get(), futures[1].get(), futures[2].get(), futures[3].get()) },
+        Callable<DeviceNameProperties> { DeviceNameProperties(futures[0].get(), futures[1].get(), futures[2].get(), futures[3].get()) },
         MoreExecutors.directExecutor())
   }
 
@@ -161,7 +161,7 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
       edtExecutor.execute {
         assertThreadMatch(ThreadType.EDT)
         deviceNamePropertiesMap.remove(device)
-        tasksMap.remove(device)
+        tasksMap.remove(device);
       }
     }
 

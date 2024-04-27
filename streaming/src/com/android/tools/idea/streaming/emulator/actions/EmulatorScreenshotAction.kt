@@ -21,8 +21,8 @@ import com.android.emulator.control.ImageFormat
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
+import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.FutureStreamObserver
-import com.android.tools.idea.streaming.emulator.SkinDefinition
 import com.android.tools.idea.ui.screenshot.DeviceType
 import com.android.tools.idea.ui.screenshot.FramingOption
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
@@ -59,22 +59,22 @@ import javax.imageio.ImageIO
 class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
-    val project = event.getData(CommonDataKeys.PROJECT) ?: return
-    val emulatorController = getEmulatorController(event) ?: return
-    emulatorController.getScreenshot(pngFormat(), ScreenshotReceiver(emulatorController, project))
+    val project: Project = event.getData(CommonDataKeys.PROJECT) ?: return
+    val emulatorView = getEmulatorView(event) ?: return
+    emulatorView.emulator.getScreenshot(pngFormat(), ScreenshotReceiver(emulatorView, project))
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-  private class ScreenshotReceiver(val emulatorController: EmulatorController, val project: Project) : EmptyStreamObserver<Image>() {
+  private class ScreenshotReceiver(val emulatorView: EmulatorView, val project: Project) : EmptyStreamObserver<Image>() {
 
     override fun onNext(response: Image) {
       executeOnPooledThread {
-        showScreenshotViewer(response, emulatorController, project)
+        showScreenshotViewer(response)
       }
     }
 
-    private fun showScreenshotViewer(screenshot: Image, emulatorController: EmulatorController, project: Project) {
+    private fun showScreenshotViewer(screenshot: Image) {
       try {
         val imageBytes = screenshot.image
         val image = ImageIO.read(imageBytes.newInput()) ?: throw IIOException("Corrupted screenshot image")
@@ -84,11 +84,11 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
           imageBytes.writeTo(it)
         }
 
+        val emulatorController = emulatorView.emulator
         val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue, deviceType(emulatorController))
         val screenshotSupplier = MyScreenshotSupplier(emulatorController)
-        val skinDefinition = emulatorController.skinDefinition
-        val screenshotFramer = MyScreenshotPostprocessor(skinDefinition)
-        val framingOptions = skinDefinition?.let { listOf(avdFrame) } ?: listOf()
+        val screenshotFramer = MyScreenshotPostprocessor(emulatorView)
+        val framingOptions = if (emulatorController.getSkin() == null) listOf() else listOf(avdFrame)
 
         ApplicationManager.getApplication().invokeLater {
           showScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotFramer, framingOptions)
@@ -150,12 +150,13 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     }
   }
 
-  private class MyScreenshotPostprocessor(val skinDefinition: SkinDefinition?) : ScreenshotPostprocessor {
+  private class MyScreenshotPostprocessor(val emulatorView: EmulatorView) : ScreenshotPostprocessor {
 
     override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
       val image = screenshotImage.image
       val w = image.width
       val h = image.height
+      val skinDefinition = emulatorView.emulator.getSkin(emulatorView.currentPosture?.posture)
       val skin = skinDefinition?.createScaledLayout(w, h, screenshotImage.screenshotRotationQuadrants)
       if (framingOption == null || skin == null) {
         @Suppress("UndesirableClassUsage")

@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.frame
 
-import com.android.SdkConstants.FRAME_LAYOUT
-import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.util.NlTreeDumper
-import com.android.tools.idea.uibuilder.model.SegmentType.RIGHT
-import com.android.tools.idea.uibuilder.model.SegmentType.TOP
+import com.android.tools.idea.uibuilder.model.SegmentType.*
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 

@@ -22,7 +22,7 @@ import com.android.tools.adtui.model.DefaultDataSeries
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.StateChartModel
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_RECEIVING_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_RECEIVING_SELECTED_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_SENDING_COLOR
@@ -35,8 +35,8 @@ import java.awt.Color
  * appearing as a horizontal bar where each stage of its lifetime (sending, receiving, etc.) is
  * highlighted with unique colors.
  */
-class ConnectionsStateChart(dataList: List<HttpData>, range: Range) {
-  constructor(data: HttpData, range: Range) : this(listOf(data), range)
+class ConnectionsStateChart(dataList: List<ConnectionData>, range: Range) {
+  constructor(data: ConnectionData, range: Range) : this(listOf(data), range)
 
   val colors =
     EnumColors.Builder<NetworkState>(2)
@@ -52,7 +52,10 @@ class ConnectionsStateChart(dataList: List<HttpData>, range: Range) {
     component.heightGap = gap
   }
 
-  private fun createChart(dataList: Collection<HttpData>, range: Range): StateChart<NetworkState> {
+  private fun createChart(
+    dataList: Collection<ConnectionData>,
+    range: Range
+  ): StateChart<NetworkState> {
     val series = DefaultDataSeries<NetworkState>()
     series.add(0, NetworkState.NONE)
     for (data in dataList) {

@@ -18,7 +18,7 @@ package trebuchet.model
 
 import trebuchet.model.fragments.ThreadModelFragment
 
-class ThreadModel(val process: ProcessModel, fragment: ThreadModelFragment) {
+class ThreadModel constructor(val process: ProcessModel, fragment: ThreadModelFragment) {
     val id: Int = fragment.id
     val name: String = fragment.name ?: "<$id>"
     val slices = fragment.slices

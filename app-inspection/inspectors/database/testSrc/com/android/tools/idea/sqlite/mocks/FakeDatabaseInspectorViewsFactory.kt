@@ -26,10 +26,10 @@ import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
+import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import org.mockito.Mockito.spy
-import javax.swing.JComponent
 
 open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
   val sqliteEvaluatorView: FakeSqliteEvaluatorView = spy(FakeSqliteEvaluatorView::class.java)

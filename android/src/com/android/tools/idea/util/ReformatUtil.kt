@@ -92,6 +92,7 @@ object ReformatUtil {
 
     if (keepDocumentLocked) {
       psiDocumentManager.commitDocument(document)
+      PsiDocumentManager.getInstance(project).reparseFiles(listOf(virtualFile), true)
     }
   }
 }

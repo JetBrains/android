@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import junit.framework.Assert
 import org.junit.Test
 import org.jetbrains.org.objectweb.asm.ClassReader

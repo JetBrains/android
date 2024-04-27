@@ -18,9 +18,9 @@ package com.android.tools.idea.layoutinspector
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.DeviceFutures
 import com.intellij.execution.ExecutionListener
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
@@ -43,19 +43,11 @@ class LayoutInspectorExecutionListener : ExecutionListener {
       return
     }
 
-    val appId =
-      configuration.appId
-        ?: throw RuntimeException(
-          "No packageName for started AndroidRunConfiguration configuration"
-        )
+    val info = AndroidSessionInfo.from(handler) ?: return
 
-    val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
-    // Devices should be already ready as they were used for launching.
-    val targetDevices = deviceFutures?.ifReady ?: return
-
-    targetDevices.forEach { device ->
+    info.devices.forEach { device ->
       if (device.version.apiLevel >= 29) {
-        enableDebugViewAttributes(project, handler, appId, device)
+        enableDebugViewAttributes(project, handler, info.applicationId, device)
       }
     }
   }
@@ -106,6 +98,5 @@ class LayoutInspectorExecutionListener : ExecutionListener {
       when {
         isEmulator -> avdName.takeIf { !it.isNullOrBlank() }
         else -> getProperty(IDevice.PROP_DEVICE_MODEL)?.let { StringUtil.capitalizeWords(it, true) }
-      }
-        ?: "Unknown"
+      } ?: "Unknown"
 }

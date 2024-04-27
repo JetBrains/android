@@ -16,23 +16,20 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.pom.java.LanguageLevel
-import com.intellij.testFramework.replaceService
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker.Companion.getKnownIssuesCheckList
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.any
-import org.mockito.Mockito.eq
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
 
 class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
   @Test
@@ -60,18 +57,20 @@ class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
     val project = project
     addJarDependency(dependency)
 
-    val spyNotificationManager = spy(ExternalSystemNotificationManager.getInstance(project))
-    project.replaceService(ExternalSystemNotificationManager::class.java, spyNotificationManager, testRootDisposable)
-    // Confirm that there is a build error
-    val result = invokeGradle(project) {
-      obj: GradleBuildInvoker -> obj.rebuild()
+    val generatedExceptions = mutableListOf<Exception>()
+    val taskNotificationListener = object : ExternalSystemTaskNotificationListenerAdapter() {
+      override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
+        generatedExceptions.add(e)
+      }
     }
-    assertThat(result).isNotNull()
-    assertThat(result.invocations.firstOrNull()?.buildError).isNotNull()
-    // and that error generates the expected BuildIssue
-    val throwableCaptor = ArgumentCaptor.forClass(Throwable::class.java)
-    verify(spyNotificationManager).createNotification(any(), throwableCaptor.capture(), any(), eq(project), any())
-    val generatedExceptions = throwableCaptor.allValues
+    AndroidGradleTaskManager().executeTasks(
+      ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
+      listOf(":app:assembleDebug"),
+      project.basePath.orEmpty(),
+      null,
+      null,
+      taskNotificationListener
+    )
     assertThat(generatedExceptions).hasSize(1)
     assertThat(generatedExceptions[0]).isInstanceOf(BuildIssueException::class.java)
     val buildIssue = (generatedExceptions[0] as BuildIssueException).buildIssue

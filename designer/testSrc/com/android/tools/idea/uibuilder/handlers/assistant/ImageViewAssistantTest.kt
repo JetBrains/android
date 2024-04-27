@@ -23,14 +23,14 @@ import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.UIUtil
+import javax.swing.JCheckBox
+import javax.swing.JComboBox
+import javax.swing.JList
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import javax.swing.JCheckBox
-import javax.swing.JComboBox
-import javax.swing.JList
 
 class ImageViewAssistantTest {
 

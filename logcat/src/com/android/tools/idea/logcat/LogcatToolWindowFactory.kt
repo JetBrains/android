@@ -32,6 +32,7 @@ import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceInfo
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
@@ -51,24 +52,31 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
 
   private val logcatColors: LogcatColors = LogcatColors()
 
-  // When ShowLogcatListener is activated, we do not want to create a new Logcat tab if the tool was empty
+  // When ShowLogcatListener is activated, we do not want to create a new Logcat tab if the tool was
+  // empty
   private var insideShowLogcatListener = false
 
   override fun init(toolWindow: ToolWindow) {
     super.init(toolWindow)
     val project = (toolWindow as ToolWindowEx).project
-    project.messageBus.connect(toolWindow.disposable)
-      .subscribe(ShowLogcatListener.TOPIC, object : ShowLogcatListener {
-        override fun showLogcat(deviceInfo: DeviceInfo, applicationId: String?) {
-          showLogcat(toolWindow, deviceInfo, applicationId)
-        }
+    project.messageBus
+      .connect(toolWindow.disposable)
+      .subscribe(
+        ShowLogcatListener.TOPIC,
+        object : ShowLogcatListener {
+          override fun showLogcat(deviceInfo: DeviceInfo, applicationId: String?) {
+            showLogcat(toolWindow, deviceInfo, applicationId)
+          }
 
-        override fun showLogcatFile(path: Path, displayName: String?) {
-          openLogcatFile(toolWindow, path, displayName)
+          override fun showLogcatFile(path: Path, displayName: String?) {
+            openLogcatFile(toolWindow, path, displayName)
+          }
         }
-      })
+      )
 
-    project.getService(ProcessNameMonitor::class.java).start()
+    ApplicationManager.getApplication().executeOnPooledThread {
+      project.getService(ProcessNameMonitor::class.java).start()
+    }
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
@@ -79,20 +87,20 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   private fun showLogcat(toolWindow: ToolWindowEx, deviceInfo: DeviceInfo, applicationId: String?) {
     AndroidCoroutineScope(toolWindow.disposable).launch {
       val name = if (applicationId == null) deviceInfo.id else "$applicationId (${deviceInfo.id})"
-      val device = toolWindow.project.service<DeviceFinder>().findDevice(deviceInfo.serialNumber) ?: deviceInfo.toOfflineDevice()
+      val device =
+        toolWindow.project.service<DeviceFinder>().findDevice(deviceInfo.serialNumber)
+          ?: deviceInfo.toOfflineDevice()
       withContext(uiThread) {
         insideShowLogcatListener = true
         try {
           val content = toolWindow.findTab(name)
           if (content != null) {
             toolWindow.contentManager.setSelectedContent(content)
-          }
-          else {
+          } else {
             toolWindow.createLogcatTab(name, device, applicationId)
           }
           toolWindow.activate(null)
-        }
-        finally {
+        } finally {
           insideShowLogcatListener = false
         }
       }
@@ -100,18 +108,20 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   }
 
   private fun ToolWindowEx.createLogcatTab(name: String, device: Device, applicationId: String?) {
-    val filter = when (applicationId) {
-      null -> getDefaultFilter(project, AndroidProjectDetectorImpl())
-      else -> "package:$applicationId"
-    }
-    val config = LogcatPanelConfig(
-      device = device,
-      file = null,
-      formattingConfig = getDefaultFormattingConfig(),
-      filter = filter,
-      filterMatchCase = false,
-      isSoftWrap = false
-    )
+    val filter =
+      when (applicationId) {
+        null -> getDefaultFilter(project, AndroidProjectDetectorImpl())
+        else -> "package:$applicationId"
+      }
+    val config =
+      LogcatPanelConfig(
+        device = device,
+        file = null,
+        formattingConfig = getDefaultFormattingConfig(),
+        filter = filter,
+        filterMatchCase = false,
+        isSoftWrap = false
+      )
     createNewTab(this, name, LogcatPanelConfig.toJson(config))
   }
 
@@ -119,19 +129,23 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
     invokeLater {
       insideShowLogcatListener = true
       try {
-        val config = LogcatPanelConfig(
-          device = null,
-          file = path.pathString,
-          formattingConfig = getDefaultFormattingConfig(),
-          filter = "",
-          filterMatchCase = false,
-          isSoftWrap = false
-        )
+        val config =
+          LogcatPanelConfig(
+            device = null,
+            file = path.pathString,
+            formattingConfig = getDefaultFormattingConfig(),
+            filter = "",
+            filterMatchCase = false,
+            isSoftWrap = false
+          )
 
-        createNewTab(toolWindow, displayName ?: path.fileName.name, LogcatPanelConfig.toJson(config))
+        createNewTab(
+          toolWindow,
+          displayName ?: path.fileName.name,
+          LogcatPanelConfig.toJson(config)
+        )
         toolWindow.activate(null)
-      }
-      finally {
+      } finally {
         insideShowLogcatListener = false
       }
     }
@@ -142,8 +156,17 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   override fun generateTabName(tabNames: Set<String>) =
     UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }
 
-  override fun createChildComponent(project: Project, popupActionGroup: ActionGroup, clientState: String?) =
-    LogcatMainPanel(project, popupActionGroup, logcatColors, LogcatPanelConfig.fromJson(clientState))
+  override fun createChildComponent(
+    project: Project,
+    popupActionGroup: ActionGroup,
+    clientState: String?
+  ) =
+    LogcatMainPanel(
+        project,
+        popupActionGroup,
+        logcatColors,
+        LogcatPanelConfig.fromJson(clientState)
+      )
       .also {
         logcatPresenters.add(it)
         Disposer.register(it) { logcatPresenters.remove(it) }
@@ -152,7 +175,6 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   companion object {
     internal val logcatPresenters = mutableListOf<LogcatPresenter>()
   }
-
 }
 
 private fun ToolWindowEx.findTab(name: String): Content? {
@@ -174,7 +196,9 @@ private fun getDefaultFormattingConfig(): LogcatPanelConfig.FormattingConfig {
 
 private fun DeviceInfo.toOfflineDevice(): Device {
   return when (this) {
-    is PhysicalDeviceInfo -> Device.createPhysical(serialNumber, false, release, sdk, manufacturer, model)
-    is EmulatorDeviceInfo -> Device.createEmulator(serialNumber, false, release, sdk, avdName)
+    is PhysicalDeviceInfo ->
+      Device.createPhysical(serialNumber, false, release, sdk, manufacturer, model, featureLevel)
+    is EmulatorDeviceInfo ->
+      Device.createEmulator(serialNumber, false, release, sdk, avdName, featureLevel)
   }
 }

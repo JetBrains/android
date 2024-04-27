@@ -34,6 +34,7 @@ import java.awt.FlowLayout
 import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.lang.Runnable
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import javax.swing.Box
@@ -103,6 +104,7 @@ protected constructor(
     set(value) {
       _forceElapsedReset = value
     }
+
   private var _forceElapsedReset: Boolean = false
 
   /**

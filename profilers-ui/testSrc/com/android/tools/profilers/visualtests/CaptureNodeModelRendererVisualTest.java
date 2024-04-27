@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.visualtests;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.model.Range;

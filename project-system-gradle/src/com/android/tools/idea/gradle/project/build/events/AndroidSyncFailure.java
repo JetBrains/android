@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.events;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
 
 import com.intellij.build.events.Failure;
 import com.intellij.notification.Notification;

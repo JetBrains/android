@@ -18,6 +18,9 @@ package com.android.tools.idea.uibuilder.scene
 import android.view.View
 import android.view.accessibility.AccessibilityNodeInfo
 import com.android.ide.common.rendering.api.ViewInfo
+import com.intellij.openapi.diagnostic.Logger
+
+val LOG = Logger.getInstance("Accessibility")
 
 /**
  * Custom parser to create a [ViewInfo] hierarchy based on the [AccessibilityNodeInfo] tree instead
@@ -29,7 +32,8 @@ val accessibilityBasedHierarchyParser = { view: Any ->
   } else {
     val nodeInfo: AccessibilityNodeInfo = view.createAccessibilityNodeInfo()
     nodeInfo.setQueryFromAppProcessEnabled(view, true)
-    parseChildren(view, nodeInfo, 0, 0)
+    val bounds = nodeInfo.boundsInScreen
+    parseChildren(view, nodeInfo, bounds.left, bounds.top)
   }
 }
 
@@ -56,10 +60,14 @@ private fun parseChildren(
         AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH,
         childNodeInfo.text.length
       )
-      childNodeInfo.refreshWithExtraData(
-        AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
-        extras
-      )
+      try {
+        childNodeInfo.refreshWithExtraData(
+          AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
+          extras
+        )
+      } catch (ex: Exception) {
+        Logger.getInstance("AccessibilityViewInfoParser.kt").warn(ex)
+      }
     }
 
     // Create a ViewInfo for each AccessibilityNodeInfo.

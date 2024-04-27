@@ -23,7 +23,7 @@ class ProjectSyncModificationTracker(val project: Project) : ModificationTracker
   private val tracker = SimpleModificationTracker()
 
   init {
-    project.messageBus.connect().subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
+    project.messageBus.connect(project).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
       override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
         tracker.incModificationCount()
       }

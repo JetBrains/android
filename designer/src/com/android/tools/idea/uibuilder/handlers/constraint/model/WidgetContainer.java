@@ -66,7 +66,7 @@ public class WidgetContainer extends ConstraintWidget {
     /**
      * Access the children
      *
-     * @return the list of children
+     * @return the array of children
      */
     public ArrayList<ConstraintWidget> getChildren() {
         return mChildren;

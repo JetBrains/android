@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.dagger.concepts
 
-import com.android.tools.idea.dagger.concepts.DaggerAnnotations.INJECT
 import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
+import com.android.tools.idea.dagger.index.psiwrappers.DaggerAnnotation
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
-import com.android.tools.idea.kotlin.hasAnnotation
+import com.android.tools.idea.dagger.index.psiwrappers.hasAnnotation
+import com.android.tools.idea.dagger.index.readClassId
+import com.android.tools.idea.dagger.index.writeClassId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
@@ -30,6 +32,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import java.io.DataInput
@@ -58,41 +61,49 @@ internal object InjectedFieldDaggerConcept : DaggerConcept {
 
 private object InjectedFieldIndexer : DaggerConceptIndexer<DaggerIndexFieldWrapper> {
   override fun addIndexEntries(wrapper: DaggerIndexFieldWrapper, indexEntries: IndexEntries) {
-    if (!wrapper.getIsAnnotatedWith(INJECT)) return
-    val classFqName = wrapper.getContainingClass()?.getFqName() ?: return
+    if (!wrapper.getIsAnnotatedWith(DaggerAnnotation.INJECT)) return
+    val classId = wrapper.getContainingClass()?.getClassId() ?: return
 
     val fieldTypeSimpleName = wrapper.getType()?.getSimpleName() ?: ""
     val fieldName = wrapper.getSimpleName()
-    indexEntries.addIndexValue(fieldTypeSimpleName, InjectedFieldIndexValue(classFqName, fieldName))
+    indexEntries.addIndexValue(fieldTypeSimpleName, InjectedFieldIndexValue(classId, fieldName))
   }
 }
 
 @VisibleForTesting
-internal data class InjectedFieldIndexValue(val classFqName: String, val fieldName: String) :
+internal data class InjectedFieldIndexValue(val classId: ClassId, val fieldName: String) :
   IndexValue() {
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
-    output.writeString(classFqName)
+    output.writeClassId(classId)
     output.writeString(fieldName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.INJECTED_FIELD
+
     override fun read(input: DataInput) =
-      InjectedFieldIndexValue(input.readString(), input.readString())
+      InjectedFieldIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
     private fun identify(psiElement: KtProperty): DaggerElement? =
-      if (psiElement.containingClassOrObject != null && psiElement.hasAnnotation(INJECT)) {
+      if (
+        psiElement.containingClassOrObject != null &&
+          psiElement.hasAnnotation(DaggerAnnotation.INJECT)
+      ) {
         ConsumerDaggerElement(psiElement)
       } else {
         null
       }
 
     private fun identify(psiElement: PsiField): DaggerElement? =
-      if (psiElement.hasAnnotation(INJECT)) ConsumerDaggerElement(psiElement) else null
+      if (psiElement.hasAnnotation(DaggerAnnotation.INJECT)) {
+        ConsumerDaggerElement(psiElement)
+      } else {
+        null
+      }
 
     internal val identifiers =
       DaggerElementIdentifiers(
@@ -103,7 +114,8 @@ internal data class InjectedFieldIndexValue(val classFqName: String, val fieldNa
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
     val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
+      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
+        ?: return emptyList()
     return psiClass.fields.filter { it.name == fieldName }
   }
 

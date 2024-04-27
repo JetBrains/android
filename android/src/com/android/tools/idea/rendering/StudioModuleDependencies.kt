@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.SdkConstants
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.projectmodel.ExternalAndroidLibrary
@@ -34,25 +33,25 @@ import java.io.IOException
 class StudioModuleDependencies(private val module: Module) : ModuleDependencies {
   override fun dependsOn(artifactId: GoogleMavenArtifactId): Boolean = module.dependsOn(artifactId)
 
-  override val rClassesNames: List<String>
-    get() =
+  override fun getResourcePackageNames(includeExternalLibraries: Boolean): List<String> =
+    (
       (
-        (
-          sequenceOf(module) +
+        sequenceOf(module) +
           // Get all project (not external libraries) dependencies
-          AndroidDependenciesCache.getAllAndroidDependencies(module, false).map { it.module }
-        ).map { getRClassName(it) } +
+          AndroidDependenciesCache.getAllAndroidDependencies(module, false).map { it.module }.asSequence()
+        ).map { it.getModuleSystem().getPackageName() } +
         // Get all external (libraries) dependencies
-        module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN).map { getPackageName(it) }
-      ).filterNotNull().toList()
+        when (includeExternalLibraries) {
+          true -> module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN).map { getPackageName(it) }.asSequence()
+          false -> emptySequence<String>()
+        }
+      ).filterNotNull().distinct().toList()
 
   override fun findPsiClassInModuleAndDependencies(fqcn: String): PsiClass? {
     val facade = JavaPsiFacade.getInstance(module.project)
     return facade.findClass(fqcn, module.getModuleWithDependenciesAndLibrariesScope(false))
   }
 }
-
-private fun getRClassName(module: Module): String? = module.getModuleSystem().getPackageName()?.let { "$it.${SdkConstants.R_CLASS}" }
 
 private fun getPackageName(library: ExternalAndroidLibrary): String? {
   var packageName = library.packageName
@@ -72,5 +71,5 @@ private fun getPackageName(library: ExternalAndroidLibrary): String? {
       return null
     }
   }
-  return packageName + '.' + SdkConstants.R_CLASS
+  return packageName
 }

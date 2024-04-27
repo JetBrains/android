@@ -25,6 +25,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -42,6 +43,12 @@ public class GetAdbAction extends AnAction {
     Project project = getEventProject(e);
     File adb = project == null ? null : getAdbFile(project);
     e.getPresentation().setEnabled(adb != null && adb.exists());
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

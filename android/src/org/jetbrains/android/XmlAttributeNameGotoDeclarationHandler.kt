@@ -16,13 +16,13 @@
 package org.jetbrains.android
 
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.tools.idea.res.isResourceFile
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlAttribute
 import org.jetbrains.android.facet.AndroidFacet
+import com.android.tools.idea.res.isResourceFile
 
 /**
  * {@link GotoDeclarationHandler} which handles XML attribute names.

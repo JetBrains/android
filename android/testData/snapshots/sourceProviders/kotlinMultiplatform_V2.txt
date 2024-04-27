@@ -716,6 +716,13 @@ MODULE: kotlinMultiPlatform.module2
                     ./module2/src/androidDebug/shaders
                 BaselineProfileDirectories:
                     ./module2/src/debug/baselineProfiles
+            debug_KotlinMPP
+                Manifest:
+                    ./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
+                JavaDirectories:
+                    ./module2/src/commonMain/kotlin
+                ResourcesDirectories:
+                    ./module2/src/commonMain/resources
         All:
             main
                 Manifest:
@@ -769,6 +776,13 @@ MODULE: kotlinMultiPlatform.module2
                     ./module2/src/androidDebug/shaders
                 BaselineProfileDirectories:
                     ./module2/src/debug/baselineProfiles
+            debug_KotlinMPP
+                Manifest:
+                    ./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
+                JavaDirectories:
+                    ./module2/src/commonMain/kotlin
+                ResourcesDirectories:
+                    ./module2/src/commonMain/resources
             release
                 Manifest:
                     ./module2/src/androidRelease/AndroidManifest.xml
@@ -848,6 +862,13 @@ MODULE: kotlinMultiPlatform.module2
                     ./module2/src/androidUnitTestDebug/shaders
                 BaselineProfileDirectories:
                     ./module2/src/testDebug/baselineProfiles
+            debug_KotlinMPP
+                Manifest:
+                    ./module2/src/androidUnitTest/__KotlinMPP__/AndroidManifest.xml
+                JavaDirectories:
+                    ./module2/src/commonTest/kotlin
+                ResourcesDirectories:
+                    ./module2/src/commonTest/resources
         AndroidTest:
             androidTest
                 Manifest:
@@ -911,11 +932,13 @@ MODULE: kotlinMultiPlatform.module2
                 ManifestFileUrls:
                     file://./module2/src/androidMain/AndroidManifest.xml
                     file://./module2/src/androidDebug/AndroidManifest.xml
+                    file://./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
                 ManifestFiles:
                     file://./module2/src/androidMain/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./module2/src/androidMain
                     file://./module2/src/androidDebug
+                    file://./module2/src/androidMain/__KotlinMPP__
                 ManifestDirectories:
                     file://./module2/src/androidMain
                 AssetsDirectoryUrls:
@@ -926,6 +949,7 @@ MODULE: kotlinMultiPlatform.module2
                 JavaDirectoryUrls:
                     file://./module2/src/main/java
                     file://./module2/src/debug/java
+                    file://./module2/src/commonMain/kotlin
                 KotlinDirectoryUrls:
                     file://./module2/src/androidMain/kotlin
                     file://./module2/src/main/java
@@ -950,6 +974,7 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/androidMain/resources
                     file://./module2/src/debug/resources
                     file://./module2/src/androidDebug/resources
+                    file://./module2/src/commonMain/resources
                 ShadersDirectoryUrls:
                     file://./module2/src/main/shaders
                     file://./module2/src/androidMain/shaders
@@ -961,9 +986,11 @@ MODULE: kotlinMultiPlatform.module2
                 ManifestFileUrls:
                     file://./module2/src/androidUnitTest/AndroidManifest.xml
                     file://./module2/src/androidUnitTestDebug/AndroidManifest.xml
+                    file://./module2/src/androidUnitTest/__KotlinMPP__/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./module2/src/androidUnitTest
                     file://./module2/src/androidUnitTestDebug
+                    file://./module2/src/androidUnitTest/__KotlinMPP__
                 AssetsDirectoryUrls:
                     file://./module2/src/test/assets
                     file://./module2/src/androidUnitTest/assets
@@ -972,6 +999,7 @@ MODULE: kotlinMultiPlatform.module2
                 JavaDirectoryUrls:
                     file://./module2/src/test/java
                     file://./module2/src/testDebug/java
+                    file://./module2/src/commonTest/kotlin
                 KotlinDirectoryUrls:
                     file://./module2/src/androidUnitTest/kotlin
                     file://./module2/src/test/java
@@ -994,6 +1022,7 @@ MODULE: kotlinMultiPlatform.module2
                     file://./module2/src/androidUnitTest/resources
                     file://./module2/src/testDebug/resources
                     file://./module2/src/androidUnitTestDebug/resources
+                    file://./module2/src/commonTest/resources
                 ShadersDirectoryUrls:
                     file://./module2/src/test/shaders
                     file://./module2/src/androidUnitTest/shaders
@@ -1131,6 +1160,16 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectoryUrls:
                     file://./module2/src/debug/shaders
                     file://./module2/src/androidDebug/shaders
+            debug_KotlinMPP (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./module2/src/androidMain/__KotlinMPP__
+                JavaDirectoryUrls:
+                    file://./module2/src/commonMain/kotlin
+                ResourcesDirectoryUrls:
+                    file://./module2/src/commonMain/resources
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1219,6 +1258,16 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectoryUrls:
                     file://./module2/src/debug/shaders
                     file://./module2/src/androidDebug/shaders
+            debug_KotlinMPP (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./module2/src/androidMain/__KotlinMPP__/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./module2/src/androidMain/__KotlinMPP__
+                JavaDirectoryUrls:
+                    file://./module2/src/commonMain/kotlin
+                ResourcesDirectoryUrls:
+                    file://./module2/src/commonMain/resources
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -1274,6 +1323,16 @@ MODULE: kotlinMultiPlatform.module2
                 ShadersDirectoryUrls:
                     file://./module2/src/testDebug/shaders
                     file://./module2/src/androidUnitTestDebug/shaders
+            debug_KotlinMPP (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./module2/src/androidUnitTest/__KotlinMPP__/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./module2/src/androidUnitTest/__KotlinMPP__
+                JavaDirectoryUrls:
+                    file://./module2/src/commonTest/kotlin
+                ResourcesDirectoryUrls:
+                    file://./module2/src/commonTest/resources
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -1335,7 +1394,7 @@ MODULE: kotlinMultiPlatform.module2
 Build configuration files:
     file://./build.gradle : Project: kotlinMultiPlatform [0]
     file://./app/build.gradle : Module :app [2000004]
-    file://./module2/build.gradle : Module :module2 [2000010]
+    file://./module2/build.gradle : Module :module2 [2000008]
     file://./settings.gradle : Project Settings [3000000]
     file://./gradle.properties : Project Properties [3000000]
     file://./gradle/wrapper/gradle-wrapper.properties : Gradle Version [3000000]

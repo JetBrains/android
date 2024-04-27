@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.benchmarks
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
@@ -38,6 +38,32 @@ class MlModelBindingBenchmark {
       .setDescription("Benchmark test for ml model binding project.")
       .setProject(EDITOR_PERFGATE_PROJECT_NAME)
       .build()
+
+    fun doBenchmark(rule: AndroidGradleProjectRule,
+                    filePath: String,
+                    measure: () -> List<Metric.MetricSample>,
+                    processSamples: (List<Metric.MetricSample>) -> Unit = { }) {
+      disableExpensivePlatformAssertions(rule.fixture)
+      enableAllDefaultInspections(rule.fixture)
+
+      rule.generateSources() // Gets us closer to a production setup.
+      waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
+
+      runInEdtAndWait {
+        // Open editor.
+        val fixture = rule.fixture
+        val project = rule.project
+        val projectDir = project.guessProjectDir()!!
+        val javaFile = projectDir.findFileByRelativePath(filePath)!!
+        fixture.openFileInEditor(javaFile)
+        fixture.configureFromExistingVirtualFile(javaFile)
+
+        // Measure.
+        val samplesMs = measure()
+
+        processSamples(samplesMs)
+      }
+    }
   }
 
   @Before
@@ -49,79 +75,62 @@ class MlModelBindingBenchmark {
 
   @Test
   fun projectHighlighting() {
-    disableExpensivePlatformAssertions(gradleRule.fixture)
-    enableAllDefaultInspections(gradleRule.fixture)
+    doBenchmark(
+      gradleRule,
+      "app/src/main/java/google/mlmodelbinding/HighlightActivity.java",
+      {
+        measureTimeMs(
+          warmupIterations = 10,
+          mainIterations = 10,
+          setUp = {
+            PsiManager.getInstance(gradleRule.project).dropPsiCaches()
+            System.gc()
+          },
+          action = {
+            val info = gradleRule.fixture.doHighlighting(HighlightSeverity.ERROR)
+            assert(info.isEmpty())
+          }
+        )
+      },
+      { samplesMs ->
+        val samplesStr = samplesMs.joinToString(prefix = "[", postfix = "]") { it.sampleData.toString() }
+        println("Recorded samples: $samplesStr")
 
-    gradleRule.generateSources() // Gets us closer to a production setup.
-    waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
-
-    runInEdtAndWait {
-      // Open editor.
-      val fixture = gradleRule.fixture
-      val project = gradleRule.project
-      val projectDir = project.guessProjectDir()!!
-      val javaFile = projectDir.findFileByRelativePath("app/src/main/java/google/mlmodelbinding/HighlightActivity.java")!!
-      fixture.openFileInEditor(javaFile)
-
-      // Measure.
-      val samplesMs = measureTimeMs(
-        warmupIterations = 10,
-        mainIterations = 10,
-        setUp = {
-          PsiManager.getInstance(project).dropPsiCaches()
-          System.gc()
-        },
-        action = {
-          val info = fixture.doHighlighting(HighlightSeverity.ERROR)
-          assert(info.isEmpty())
-        }
-      )
-      val samplesStr = samplesMs.joinToString(prefix = "[", postfix = "]") { it.sampleData.toString() }
-      println("Recorded samples: $samplesStr")
-
-      // Save Perfgate data.
-      val metric = Metric("highlighting_latency")
-      metric.addSamples(benchmark, *samplesMs.toTypedArray())
-      metric.commit()
-    }
+        // Save Perfgate data.
+        val metric = Metric("highlighting_latency")
+        metric.addSamples(benchmark, *samplesMs.toTypedArray())
+        metric.commit()
+      }
+    )
   }
 
   @Test
   fun projectCompletion() {
-    disableExpensivePlatformAssertions(gradleRule.fixture)
-    enableAllDefaultInspections(gradleRule.fixture)
+    doBenchmark(
+      gradleRule,
+      "app/src/main/java/google/mlmodelbinding/CompleteActivity.java",
+      {
+        measureTimeMs(
+          warmupIterations = 10,
+          mainIterations = 10,
+          setUp = {
+            PsiManager.getInstance(gradleRule.project).dropPsiCaches()
+            System.gc()
+          },
+          action = {
+            gradleRule.fixture.complete(CompletionType.BASIC)
+          }
+        )
+      },
+      { samplesMs ->
+        val samplesStr = samplesMs.joinToString(prefix = "[", postfix = "]") { it.sampleData.toString() }
+        println("Recorded samples: $samplesStr")
 
-    gradleRule.generateSources() // Gets us closer to a production setup.
-    waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
-
-    runInEdtAndWait {
-      // Open editor.
-      val fixture = gradleRule.fixture
-      val project = gradleRule.project
-      val projectDir = project.guessProjectDir()!!
-      val javaFile = projectDir.findFileByRelativePath("app/src/main/java/google/mlmodelbinding/CompleteActivity.java")!!
-      fixture.openFileInEditor(javaFile)
-      fixture.configureFromExistingVirtualFile(javaFile)
-
-      // Measure.
-      val samplesMs = measureTimeMs(
-        warmupIterations = 10,
-        mainIterations = 10,
-        setUp = {
-          PsiManager.getInstance(project).dropPsiCaches()
-          System.gc()
-        },
-        action = {
-          fixture.complete(CompletionType.BASIC)
-        }
-      )
-      val samplesStr = samplesMs.joinToString(prefix = "[", postfix = "]") { it.sampleData.toString() }
-      println("Recorded samples: $samplesStr")
-
-      // Save Perfgate data.
-      val metric = Metric("completion_latency")
-      metric.addSamples(benchmark, *samplesMs.toTypedArray())
-      metric.commit()
-    }
+        // Save Perfgate data.
+        val metric = Metric("completion_latency")
+        metric.addSamples(benchmark, *samplesMs.toTypedArray())
+        metric.commit()
+      }
+    )
   }
 }

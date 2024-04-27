@@ -20,6 +20,6 @@ package org.jetbrains.android.dom.converters
  */
 class DynamicFeatureResourceReferenceConverter : ResourceReferenceConverter() {
   init {
-    includeDynamicFeatures = true
+    setIncludeDynamicFeatures(true)
   }
 }

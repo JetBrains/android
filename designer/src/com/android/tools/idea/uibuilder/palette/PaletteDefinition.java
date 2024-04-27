@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.tools.adtui.workbench.AutoHide;
-import com.android.tools.adtui.workbench.Side;
-import com.android.tools.adtui.workbench.Split;
-import com.android.tools.adtui.workbench.ToolContent;
-import com.android.tools.adtui.workbench.ToolWindowDefinition;
+import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;

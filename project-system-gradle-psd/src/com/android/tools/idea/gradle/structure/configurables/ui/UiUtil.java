@@ -24,8 +24,7 @@ import static java.awt.event.KeyEvent.VK_CONTROL;
 import static java.awt.event.KeyEvent.VK_META;
 import static javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.TreeBuilderSpeedSearch;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.util.ui.JBUI;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -46,16 +45,14 @@ public final class UiUtil {
   }
 
   @NotNull
-  public static JScrollPane setUp(@NotNull AbstractBaseTreeBuilder treeBuilder, @NotNull String name) {
-    JTree tree = treeBuilder.getUi().getTree();
-
+  public static JScrollPane setUp(@NotNull JTree tree, @NotNull String name) {
     tree.setExpandsSelectedPaths(true);
     tree.setRootVisible(false);
     tree.setName(name);
     TreeSelectionModel selectionModel = tree.getSelectionModel();
     selectionModel.setSelectionMode(DISCONTIGUOUS_TREE_SELECTION);
 
-    TreeBuilderSpeedSearch.installTo(treeBuilder);
+    new TreeSpeedSearch(tree);
 
     JScrollPane scrollPane = createScrollPane(tree);
     scrollPane.setBorder(JBUI.Borders.empty());

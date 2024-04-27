@@ -71,8 +71,7 @@ fun createVcsDocument(
     VcsForAppInsights.getExtensionByKey(vcsKey)
       ?.createVcsContent(virtualFile.toVcsFilePath(), revision, project)
       ?.content
-      ?.let { StringUtilRt.convertLineSeparators(it, "\n") }
-      ?: return null
+      ?.let { StringUtilRt.convertLineSeparators(it, "\n") } ?: return null
 
   return DocumentImpl(vcsContentText)
 }

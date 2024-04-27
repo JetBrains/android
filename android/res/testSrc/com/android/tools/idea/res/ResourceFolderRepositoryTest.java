@@ -52,7 +52,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.DrawableRenderer;
@@ -69,8 +69,6 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.io.FileUtil;
@@ -87,8 +85,8 @@ import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.DumbModeTestUtils;
+import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.ServiceContainerUtil;
@@ -207,7 +205,8 @@ public class ResourceFolderRepositoryTest {
     ResourceNamespace namespace = StudioResourceRepositoryManager.getInstance(myFacet).getNamespace();
     ResourceFolderRepositoryCachingData cachingData =
         ResourceFolderRepositoryFileCacheService.get().getCachingData(myProject, dir, createCache ? directExecutor() : null);
-    return ResourceFolderRepository.create(myFacet, dir, namespace, cachingData);
+
+    return ResourceFolderRepository.create(myFacet, dir, namespace, cachingData).ensureLoaded();
   }
 
   private @NotNull ResourceFolderRepository createRegisteredRepository() {
@@ -299,7 +298,7 @@ public class ResourceFolderRepositoryTest {
   }
 
   /** Commits all documents and waits for the given resource repository to finish currently pending updates. */
-  private void commitAndWaitForUpdates(@NotNull LocalResourceRepository repository) throws InterruptedException, TimeoutException {
+  private void commitAndWaitForUpdates(@NotNull LocalResourceRepository<VirtualFile> repository) throws InterruptedException, TimeoutException {
     PsiDocumentManager.getInstance(myProject).commitAllDocuments();
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     waitForUpdates(repository);
@@ -1448,6 +1447,47 @@ public class ResourceFolderRepositoryTest {
 
     // Shouldn't have done any full file rescans during the above edits.
     assertThat(repository.getFileRescans()).isEqualTo(rescans);
+  }
+
+  @Test
+  public void commentAndUncommentTag() throws Exception {
+    // Regression test for https://issuetracker.google.com/302262716.
+    VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(myProject).findFile(file1);
+    assertThat(psiFile1).isNotNull();
+    myFixture.configureFromExistingVirtualFile(file1);
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    assertThat(repository.hasResources(RES_AUTO, ResourceType.ID, "noteArea")).isTrue();
+
+    // Locate the `noteArea` ID, and then find and select its surrounding tag.
+    String documentText = myFixture.getEditor().getDocument().getText();
+    int idIndex = documentText.indexOf("android:id=\"@+id/noteArea\"");
+    assertThat(idIndex).isAtLeast(0);
+    int startTagIndex = documentText.substring(0, idIndex).lastIndexOf("<LinearLayout");
+    assertThat(startTagIndex).isAtLeast(0);
+    int endTagIndex = documentText.indexOf("</LinearLayout>", idIndex);
+    assertThat(endTagIndex).isAtLeast(0);
+    myFixture.getEditor().getSelectionModel().setSelection(
+      startTagIndex,
+      endTagIndex + "</LinearLayout>".length());
+
+    // Comment out the `noteArea` tag.
+    myFixture.performEditorAction(IdeActions.ACTION_COMMENT_BLOCK);
+    commitAndWaitForUpdates(repository);
+
+    // The repository should no longer have the `noteArea` id.
+    assertThat(repository.hasResources(RES_AUTO, ResourceType.ID, "noteArea")).isFalse();
+
+    // Select and uncomment out the `noteArea` tag.
+    myFixture.getEditor().getSelectionModel().setSelection(
+      startTagIndex,
+      endTagIndex + "</LinearLayout>".length() + "<!---->".length());
+    myFixture.performEditorAction(IdeActions.ACTION_COMMENT_BLOCK);
+    commitAndWaitForUpdates(repository);
+
+    // The `noteArea` id should be back again.
+    assertThat(repository.hasResources(RES_AUTO, ResourceType.ID, "noteArea")).isTrue();
   }
 
 
@@ -4219,7 +4259,6 @@ public class ResourceFolderRepositoryTest {
       assertThat(repository.getFileRescans()).isEqualTo(rescans + 1); // First edit is not incremental (file -> Psi).
       return item;
     });
-
     // Before the fix, item.getResourceValue would return null since the file is not invalid after getting out of dumb mode.
     assertThat(resourceItem.getResourceValue()).isNotNull();
   }
@@ -4335,8 +4374,7 @@ public class ResourceFolderRepositoryTest {
     VirtualFile file = VfsUtil.findFileByIoFile(new File(myFixture.getTestDataPath(), DRAWABLE), true);
 
     // Trigger dumb mode to clear the PsiDirectory cache.
-    DumbModeTestUtils.runInDumbModeSynchronously(myModule.getProject(), () -> {
-    });
+    DumbModeTestUtils.runInDumbModeSynchronously(myModule.getProject(), () -> {});
     WriteCommandAction.runWriteCommandAction(
       myModule.getProject(), () -> {
         try {
@@ -4720,5 +4758,22 @@ public class ResourceFolderRepositoryTest {
       new FolderConfiguration(),
       FolderConfiguration.getConfig(new String[] { "values", "fr" })
     );
+  }
+
+  @Test
+  public void reparseLayoutFile() throws Exception {
+    VirtualFile file = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    assertThat(repository).isNotNull();
+
+    long generation = repository.getModificationCount();
+    assertThat(repository.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout1")).isTrue();
+
+    PsiDocumentManager.getInstance(myProject).reparseFiles(List.of(file), true);
+
+    waitForUpdates(repository);
+    assertThat(repository.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout1")).isTrue();
+    assertThat(repository.getModificationCount()).isEqualTo(generation);
   }
 }

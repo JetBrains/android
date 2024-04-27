@@ -35,7 +35,7 @@ class ColorPickerState(tracker: AnimationTracker, callback: () -> Unit) : Animat
   override fun stateHashCode(): Int =
     (initialState.stateHashCode() to targetState.stateHashCode()).hashCode()
 
-  override fun getState(index: Int): Any? {
+  override fun getState(index: Int): Any {
     return if (index == 0) initialState.getStateAsComponents()
     else targetState.getStateAsComponents()
   }

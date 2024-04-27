@@ -21,11 +21,12 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.xml.XmlFile;
-import java.util.Collections;
-import java.util.List;
 import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
+import java.util.List;
 
 public class FontFamilyDomFileDescription extends SingleRootResourceDomFileDescription<FontFamily> {
   public static final String TAG_NAME = "font-family";

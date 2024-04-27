@@ -15,16 +15,13 @@
  */
 package com.android.tools.idea.actions.annotations
 
-import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.actions.annotations.InferAnnotations.Companion.apply
 import com.android.tools.idea.actions.annotations.InferAnnotations.Companion.generateReport
 import com.android.tools.idea.actions.annotations.InferAnnotations.Companion.nothingFoundMessage
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.repositories.RepositoryUrlManager.Companion.get
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.util.addDependenciesWithUiConfirmation
-import com.android.tools.idea.util.dependsOn
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.MoreExecutors
@@ -45,17 +42,13 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.PlainTextLanguage
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.calcRelativeToProjectPath
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Factory
 import com.intellij.openapi.util.Ref
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiCompiledElement
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -79,7 +72,6 @@ import com.intellij.util.SequentialTask
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.psi.KtFile
-import java.nio.file.FileSystems
 import javax.swing.JComponent
 
 /** Analyze support annotations */
@@ -120,9 +112,10 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
     val inferrer = InferAnnotations(settings, project)
     val usageInfos = findUsages(project, scope, fileCount[0], inferrer) ?: return
     if (settings.checkDependencies) {
-      val modules = findModulesFromUsage(usageInfos)
-      if (!checkModules(project, scope, modules)) {
-        return
+      project.getProjectSystem().getTokenOrNull(InferAnnotationsToken.EP_NAME)?.let { token ->
+        if (!token.checkDependencies(project, usageInfos) { syncAndRestartAnalysis(project, scope) }) {
+          return
+        }
       }
     }
     // We show the report when presenting the usages, not after the user hits Apply, since
@@ -138,61 +131,6 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
     restoreTestSetting()
   }
 
-  // See whether we need to add the androidx annotations library to the dependency graph
-  private fun checkModules(
-    project: Project,
-    scope: AnalysisScope,
-    modules: Map<Module, PsiFile>
-  ): Boolean {
-    val artifact = getAnnotationsMavenArtifact(project)
-    val modulesWithoutAnnotations = modules.keys.filter { module -> !module.dependsOn(artifact) }.toSet()
-    if (modulesWithoutAnnotations.isEmpty()) {
-      return true
-    }
-    val moduleNames = StringUtil.join(modulesWithoutAnnotations, { obj: Module -> obj.name }, ", ")
-    val count = modulesWithoutAnnotations.size
-    val message = String.format(
-      """
-      The %1${"$"}s %2${"$"}s %3${"$"}sn't refer to the existing '%4${"$"}s' library with Android annotations.
-
-      Would you like to add the %5${"$"}s now?
-      """.trimIndent(),
-      StringUtil.pluralize("module", count),
-      moduleNames,
-      if (count > 1) "do" else "does",
-      GoogleMavenArtifactId.SUPPORT_ANNOTATIONS.mavenArtifactId,
-      StringUtil.pluralize("dependency", count)
-    )
-    if (Messages.showOkCancelDialog(
-        project,
-        message,
-        "Infer Annotations",
-        "OK",
-        "Cancel",
-        Messages.getErrorIcon()
-      ) == Messages.OK
-    ) {
-      val manager = get()
-      val revision = manager.getLibraryRevision(artifact.mavenGroupId, artifact.mavenArtifactId, null, false, FileSystems.getDefault())
-      if (revision != null) {
-        val coordinates = listOf(artifact.getCoordinate(revision))
-        for (module in modulesWithoutAnnotations) {
-          val added = module.addDependenciesWithUiConfirmation(coordinates, false, requestSync = false)
-          if (added.isEmpty()) {
-            break // user canceled or some other problem; don't resume with other modules
-          }
-        }
-        syncAndRestartAnalysis(project, scope)
-      }
-    }
-    return false
-  }
-
-  // In theory, we should look up project.isAndroidX() here and pick either SUPPORT_ANNOTATIONS or ANDROIDX_SUPPORT_ANNOTATIONS
-  // but calling project.isAndroidX is getting caught in the SlowOperations check in recent IntelliJs. And androidx is a reasonable
-  // requirement now; support annotations are dying out.
-  private fun getAnnotationsMavenArtifact(project: Project) = GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS
-
   private fun syncAndRestartAnalysis(project: Project, scope: AnalysisScope) {
     assert(ApplicationManager.getApplication().isDispatchThread)
     val syncResult = project.getProjectSystem()
@@ -206,7 +144,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
           }
         }
 
-        override fun onFailure(t: Throwable?) {
+        override fun onFailure(t: Throwable) {
           throw RuntimeException(t)
         }
       },
@@ -238,7 +176,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
     options = null
   }
 
-  private class AnnotateTask(
+  private class AnnotateTask constructor(
     private val myProject: Project,
     private val myTask: SequentialModalProgressTask,
     private val myInfos: Array<UsageInfo>
@@ -292,18 +230,6 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
         report?.let(::println)
         Logger.getInstance(InferAnnotationsAction::class.java).warn(t)
       }
-    }
-
-    private fun findModulesFromUsage(infos: Array<UsageInfo>): Map<Module, PsiFile> {
-      // We need 1 file from each module that requires changes (the file may be overwritten below):
-      val modules: MutableMap<Module, PsiFile> = HashMap()
-      for (info in infos) {
-        val element = info.element ?: continue
-        val module = ModuleUtilCore.findModuleForPsiElement(element) ?: continue
-        val file = element.containingFile
-        modules[module] = file
-      }
-      return modules
     }
 
     private fun findUsages(

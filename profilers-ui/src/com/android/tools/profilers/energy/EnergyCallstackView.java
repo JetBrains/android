@@ -23,8 +23,8 @@ import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView;
 import com.android.tools.profiler.proto.Common;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
+import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ public final class EnergyCallstackView extends JPanel {
   @NotNull private final EnergyProfilerStageView myStageView;
 
   public EnergyCallstackView(@NotNull EnergyProfilerStageView stageView) {
-    super(new VerticalFlowLayout(0, JBUIScale.scale(5)));
+    super(new VerticalFlowLayout(0, JBUI.scale(5)));
     myStageView = stageView;
   }
 

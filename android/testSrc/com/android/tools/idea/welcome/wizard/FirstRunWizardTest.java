@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.GlobalInstallerData;

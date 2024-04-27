@@ -20,9 +20,8 @@ import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProviderListener
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.StudioRenderService
-import com.android.tools.idea.rendering.createLogger
+import com.android.tools.idea.rendering.createHtmlLogger
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
@@ -228,8 +227,7 @@ class VisualLintService(val project: Project) : Disposable {
       val latch = CountDownLatch(modelsToAnalyze.size)
       val hasTimedOut = AtomicBoolean(false)
       for (model in modelsToAnalyze) {
-        val runAtfChecks =
-          StudioFlags.NELE_ATF_IN_VISUAL_LINT.get() && VisualLintErrorType.ATF !in ignoredTypes
+        val runAtfChecks = VisualLintErrorType.ATF !in ignoredTypes
         createRenderResult(model, runAtfChecks)
           .handleAsync(
             { result, _ ->
@@ -253,7 +251,7 @@ class VisualLintService(val project: Project) : Disposable {
           )
       }
       hasTimedOut.set(!latch.await(visualLintTimeout, TimeUnit.SECONDS))
-      issueModel.updateErrorsList(IssueProviderListener.UI_CHECK)
+      issueModel.updateErrorsList(IssueProviderListener.TOPIC)
       LOG.debug(
         "Visual Lint analysis finished, ${issueModel.issueCount} ${if (issueModel.issueCount > 1) "errors" else "error"} found"
       )
@@ -283,6 +281,9 @@ class VisualLintService(val project: Project) : Disposable {
     }
     hasTimedOut.set(!latch.await(visualLintTimeout, TimeUnit.SECONDS))
     issueModel.updateErrorsList(IssueProviderListener.UI_CHECK)
+    LOG.debug(
+      "Visual Lint analysis finished, ${issueModel.issueCount} ${if (issueModel.issueCount > 1) "errors" else "error"} found"
+    )
   }
 
   /**
@@ -304,7 +305,6 @@ class VisualLintService(val project: Project) : Disposable {
       if (VisualLintErrorType.LOCALE_TEXT !in ignoredTypes) {
         LocaleAnalyzer(baseConfigIssues).let {
           targetIssueProvider.addAllIssues(
-            it.type,
             it.analyze(result, model, getSeverity(it.type), runningInBackground)
           )
         }
@@ -323,7 +323,7 @@ class VisualLintService(val project: Project) : Disposable {
       .filter { !ignoredTypes.contains(it.type) }
       .forEach {
         val issues = it.analyze(result, model, getSeverity(it.type), runningInBackground)
-        targetIssueProvider.addAllIssues(it.type, issues)
+        targetIssueProvider.addAllIssues(issues)
       }
   }
 
@@ -331,8 +331,7 @@ class VisualLintService(val project: Project) : Disposable {
     val key = HighlightDisplayKey.find(type.shortName)
     return key?.let {
       InspectionProfileManager.getInstance(project).currentProfile.getErrorLevel(it, null).severity
-    }
-      ?: HighlightSeverity.WARNING
+    } ?: HighlightSeverity.WARNING
   }
 
   fun removeAllIssueProviders() {
@@ -348,7 +347,7 @@ class VisualLintService(val project: Project) : Disposable {
 /** Inflates a model, then returns the completable future with render result. */
 fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture<RenderResult> {
   val renderService = StudioRenderService.getInstance(model.project)
-  val logger = renderService.createLogger(model.project)
+  val logger = renderService.createHtmlLogger(model.project)
 
   return renderService
     .taskBuilder(model.facet, model.configuration, logger)

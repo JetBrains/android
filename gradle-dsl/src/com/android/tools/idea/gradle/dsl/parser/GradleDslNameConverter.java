@@ -30,7 +30,8 @@ public interface GradleDslNameConverter {
     NONE,
     GROOVY,
     KOTLIN,
-    TOML,
+    CATALOG_TOML,
+    DECLARATIVE_TOML
   }
 
   /**

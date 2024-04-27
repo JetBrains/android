@@ -17,9 +17,11 @@ package com.android.tools.idea.npw.model
 
 import com.android.SdkConstants.DOT_KTS
 import com.android.annotations.concurrency.WorkerThread
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
@@ -49,6 +51,7 @@ import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
@@ -68,6 +71,7 @@ class ExistingProjectModelData(
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(project.isViewBindingSupported())
   override val isNewProject = false
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
+  override val agpVersion = ObjectValueProperty<AgpVersion>(GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project) ?: AgpVersions.newProject.also { Logger.getInstance(ExistingProjectModelData::class.java).warn("Unable to determine AGP version for $project, using $it") })
   override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer { renderer ->
     object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
       override fun run(indicator: ProgressIndicator) {
@@ -246,7 +250,7 @@ private fun FormFactor.toModuleRenderingLoggingEvent() = when(this) {
 }
 
 internal fun Project.hasKtsUsage() : Boolean {
-  return GradleUtil.projectBuildFilesTypes(this).contains(DOT_KTS)
+  return GradleProjectSystemUtil.projectBuildFilesTypes(this).contains(DOT_KTS)
 }
 
 internal fun Project.isViewBindingSupported(): ViewBindingSupport {

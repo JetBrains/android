@@ -19,11 +19,11 @@ import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.LineChartModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedContinuousSeries
-import com.android.tools.adtui.model.StreamingTimeline
+import com.android.tools.adtui.model.Timeline
 import java.util.concurrent.Executor
 
 class NetworkSpeedLineChartModel(
-  timeline: StreamingTimeline,
+  timeline: Timeline,
   private val dataSource: NetworkInspectorDataSource,
   backgroundExecutor: Executor
 ) : LineChartModel(backgroundExecutor) {

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.diagnostics.jfr;
 
+import com.intellij.openapi.util.registry.RegistryManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.registry.RegistryManager;
 import org.jetbrains.annotations.NotNull;
 
 // Causes the UI to freeze for long enough to trigger PerformanceWatcher

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.baselineprofiles
 
-import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.npw.model.ExistingProjectModelData
@@ -49,8 +48,7 @@ class NewBaselineProfilesModuleModel(
     get() = AndroidStudioEvent.TemplateRenderer.BASELINE_PROFILES_MODULE
 
   val targetModule = OptionalValueProperty<Module>()
-  val useGmd = BoolValueProperty(true)
-  val agpVersion = OptionalValueProperty<AgpVersion>()
+  val useGmd = BoolValueProperty(false)
 
   override val renderer: MultiTemplateRenderer.TemplateRenderer
     get() = object : ModuleTemplateRenderer() {
@@ -61,8 +59,7 @@ class NewBaselineProfilesModuleModel(
             useGradleKts = useGradleKts.get(),
             useGmd = useGmd.get(),
             targetModule = targetModule.value,
-            useVersionCatalog = useVersionCatalog.get(),
-            agpVersion = agpVersion.value
+            useVersionCatalog = useVersionCatalog.get()
           )
         }
     }

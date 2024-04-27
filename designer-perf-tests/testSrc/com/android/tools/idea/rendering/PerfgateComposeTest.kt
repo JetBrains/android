@@ -32,7 +32,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-private const val NUMBER_OF_SAMPLES = 40
+private const val NUMBER_OF_SAMPLES = 5
 
 private val composeTimeBenchmark = Benchmark.Builder("Compose Preview Benchmark")
   .setProject("Design Tools")
@@ -59,7 +59,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
 
     composeTimeBenchmark.measureOperation(
       measures = listOf(ElapsedTimeMeasurement(Metric("kotlin_compile_time"))),
-      samplesCount = 10) {
+      samplesCount = NUMBER_OF_SAMPLES) {
       SimpleComposeProjectScenarios.baselineCompileScenario(projectRule)
     }
   }
@@ -70,7 +70,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
       ElapsedTimeMeasurement(Metric("default_template_end_to_end_time")),
       // Measures the memory usage of the render operation end to end.
-      MemoryUseMeasurement(Metric("default_template_memory_use")),
+      HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("default_template_memory_use")),
       // Measures just the inflate time.
       InflateTimeMeasurement(Metric("default_template_inflate_time"))
         .withAnalyzer(WindowDeviationAnalyzer.Builder()
@@ -95,7 +95,8 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       ClassLoadCountMeasurement(Metric("default_class_load_count")),
       // Measures the class avg loading time.
       ClassAverageLoadTimeMeasurement(Metric("default_class_avg_load_time"))),
-                                          printSamples = true) {
+                                          printSamples = true,
+                                          samplesCount = NUMBER_OF_SAMPLES) {
       SimpleComposeProjectScenarios.baselineRenderScenario(projectRule)
     }
   }
@@ -106,7 +107,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
       ElapsedTimeMeasurement(Metric("complex_template_end_to_end_time")),
       // Measures the memory usage of the render operation end to end.
-      MemoryUseMeasurement(Metric("complex_template_memory_use")),
+      HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("complex_template_memory_use")),
       // Measures just the inflate time.
       InflateTimeMeasurement(Metric("complex_template_inflate_time"))
         .withAnalyzer(WindowDeviationAnalyzer.Builder()
@@ -131,7 +132,8 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       ClassLoadCountMeasurement(Metric("complex_template_class_load_count")),
       // Measures the class avg loading time.
       ClassAverageLoadTimeMeasurement(Metric("complex_template_class_avg_load_time"))),
-                                          printSamples = true) {
+                                          printSamples = true,
+                                          samplesCount = NUMBER_OF_SAMPLES) {
       SimpleComposeProjectScenarios.complexRenderScenario(projectRule)
     }
   }
@@ -142,7 +144,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
       ElapsedTimeMeasurement(Metric("complex_with_bounds_template_end_to_end_time")),
       // Measures the memory usage of the render operation end to end.
-      MemoryUseMeasurement(Metric("complex_with_bounds_template_memory_use")),
+      HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("complex_with_bounds_template_memory_use")),
       // Measures just the inflate time.
       InflateTimeMeasurement(Metric("complex_with_bounds_template_inflate_time")),
       // Measures just the render time.
@@ -155,7 +157,8 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       ClassLoadCountMeasurement(Metric("complex_with_bounds_template_class_load_count")),
       // Measures the class avg loading time.
       ClassAverageLoadTimeMeasurement(Metric("complex_with_bounds_template_class_avg_load_time"))),
-                                          printSamples = true) {
+                                          printSamples = true,
+                                          samplesCount = NUMBER_OF_SAMPLES) {
       SimpleComposeProjectScenarios.complexRenderScenarioWithBoundsCalculation(projectRule)
     }
   }
@@ -172,7 +175,8 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       FirstCallbacksExecutionTimeMeasurement(Metric("interactive_first_callbacks_time")),
       FirstTouchEventTimeMeasurement(Metric("interactive_first_touch_time")),
       PostTouchEventCallbacksExecutionTimeMeasurement(Metric("interactive_post_touch_time"))),
-                                          printSamples = true) {
+                                          printSamples = true,
+                                          samplesCount = NUMBER_OF_SAMPLES) {
       SimpleComposeProjectScenarios.interactiveRenderScenario(projectRule)
     }
   }
@@ -201,13 +205,13 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
     composeTimeBenchmark.measureOperation(
       measures = listOf(ElapsedTimeMeasurement(Metric("fast_preview_single_file_first_build_time"))),
       printSamples = true,
-      samplesCount = 10) {
+      samplesCount = NUMBER_OF_SAMPLES) {
       runWriteActionAndWait {
         projectRule.fixture.type("A")
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       }
       runBlocking {
-        val (result, _) = fastPreviewManager.compileRequest(psiMainFile, ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!)
+        val (result, _) = fastPreviewManager.compileRequest(psiMainFile, runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! })
         assertTrue("Compilation must pass", result == CompilationResult.Success)
         fastPreviewManager.stopAllDaemons().join()
       }
@@ -221,7 +225,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       project.guessProjectDir()!!
         .findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
-    val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
+    val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     val fastPreviewManager = FastPreviewManager.getInstance(project)
     fastPreviewManager.preStartDaemon(module)
 
@@ -236,7 +240,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
     composeTimeBenchmark.measureOperation(
       measures = listOf(ElapsedTimeMeasurement(Metric("fast_preview_single_file_compile_time"))),
       printSamples = true,
-      samplesCount = 10) {
+      samplesCount = NUMBER_OF_SAMPLES) {
       runWriteActionAndWait {
         projectRule.fixture.type("A")
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()

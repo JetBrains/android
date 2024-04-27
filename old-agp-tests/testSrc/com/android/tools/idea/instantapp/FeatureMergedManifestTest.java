@@ -27,7 +27,6 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.EdtRule;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -41,7 +40,6 @@ public class FeatureMergedManifestTest {
   public RuleChain ruleChain = RuleChain.outerRule(projectRule).around(new EdtRule());
 
   @Test
-  @Ignore("b/203803107")
   public void testLibraryManifestMergedOnFeature() throws Exception {
     // Use a plugin version with feature support
     projectRule.loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
@@ -51,7 +49,6 @@ public class FeatureMergedManifestTest {
   }
 
   @Test
-  @Ignore("b/203803107")
   public void testCanFindURL() throws Exception {
     // Use a plugin version with feature support
     projectRule.loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35);

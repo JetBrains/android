@@ -28,7 +28,7 @@ import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.common.surface.selectComponent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import kotlinx.coroutines.launch
 import org.intellij.lang.annotations.JdkConstants
@@ -44,10 +44,12 @@ import javax.swing.SwingUtilities
  */
 class NavigatingInteractionHandler(
   private val surface: DesignSurface<*>,
+  private val navigationHandler: NavigationHandler,
   private val isSelectionEnabled: () -> Boolean = { false }
 ) : NlInteractionHandler(surface) {
 
   private val scope = AndroidCoroutineScope(surface)
+
   override fun singleClick(x: Int, y: Int, modifiersEx: Int) {
     // When the selection capabilities are enabled and a Shift-click (single or double) happens,
     // then
@@ -172,10 +174,9 @@ class NavigatingInteractionHandler(
     val sceneView = surface.getSceneViewAt(x, y) ?: return
     val androidX = Coordinates.getAndroidXDip(sceneView, x)
     val androidY = Coordinates.getAndroidYDip(sceneView, y)
-    val navHandler = (surface as NlDesignSurface).navigationHandler ?: return
     val scene = sceneView.scene
     scope.launch(AndroidDispatchers.workerThread) {
-      if (!navHandler.handleNavigateWithCoordinates(sceneView, x, y, needsFocusEditor)) {
+      if (!navigationHandler.handleNavigateWithCoordinates(sceneView, x, y, needsFocusEditor)) {
         val sceneComponent =
           scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch
         navigateToComponent(sceneComponent.nlComponent, needsFocusEditor)

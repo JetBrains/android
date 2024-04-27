@@ -7,9 +7,9 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.as-driver.utils" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" />
+    <orderEntry type="module" module-name="intellij.android.as-driver.utils" scope="TEST" />
   </component>
 </module>

@@ -15,27 +15,25 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.facet.impl.FacetUtil;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.HeavyPlatformTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
 
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 /**
  * Tests for {@link AndroidStudioGradleAction}.
  */
-public class AndroidStudioGradleActionTest extends HeavyPlatformTestCase {
+public class AndroidStudioGradleActionTest extends PlatformTestCase {
   @Mock private AnActionEvent myEvent;
-  @Mock private GradleProjectInfo myProjectInfo;
+  @Mock private Info myProjectInfo;
 
   private Presentation myPresentation;
 
@@ -44,12 +42,11 @@ public class AndroidStudioGradleActionTest extends HeavyPlatformTestCase {
     super.setUp();
     initMocks(this);
 
-    FacetUtil.addFacet(myModule, AndroidFacet.getFacetType());
     myPresentation = new Presentation();
     when(myEvent.getPresentation()).thenReturn(myPresentation);
     when(myEvent.getProject()).thenReturn(myProject);
 
-    new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
+    new IdeComponents(getProject()).replaceProjectService(Info.class, myProjectInfo);
   }
 
   public void testUpdateWithAndroidStudioAndGradleProject() {

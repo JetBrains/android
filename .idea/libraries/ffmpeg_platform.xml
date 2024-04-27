@@ -1,8 +1,16 @@
 <component name="libraryTable">
-  <library name="ffmpeg-platform" type="repository">
-    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg-platform:6.0-1.5.9" />
+  <library name="ffmpeg-platform">
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-platform/6.0-1.5.9/ffmpeg-platform-6.0-1.5.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/bytedeco/ffmpeg-platform/6.0-1.5.9/ffmpeg-platform-6.0-1.5.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/bytedeco/ffmpeg/6.0-1.5.9/ffmpeg-6.0-1.5.9-linux-x86_64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/bytedeco/ffmpeg/6.0-1.5.9/ffmpeg-6.0-1.5.9-macosx-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/bytedeco/ffmpeg/6.0-1.5.9/ffmpeg-6.0-1.5.9-macosx-x86_64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/bytedeco/ffmpeg/6.0-1.5.9/ffmpeg-6.0-1.5.9-windows-x86_64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/bytedeco/javacpp-platform/1.5.9/javacpp-platform-1.5.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/bytedeco/javacpp/1.5.9/javacpp-1.5.9-linux-x86_64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/bytedeco/javacpp/1.5.9/javacpp-1.5.9-macosx-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/bytedeco/javacpp/1.5.9/javacpp-1.5.9-macosx-x86_64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/bytedeco/javacpp/1.5.9/javacpp-1.5.9-windows-x86_64.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

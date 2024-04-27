@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface.interaction
 
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.draw.ColorSet
@@ -27,7 +27,6 @@ import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.MouseDraggedEvent
 import com.android.tools.idea.common.surface.SceneView
 import com.intellij.util.containers.ContainerUtil
-import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Graphics2D
 
@@ -39,6 +38,7 @@ class MarqueeInteraction(private val sceneView: SceneView, private val repaint: 
   Interaction() {
   /** The [Layer] drawn for the marquee. */
   private var overlay: MarqueeLayer? = null
+
   override fun begin(event: InteractionEvent) {
     assert(event is MouseDraggedEvent) {
       "The instance of event should be MouseDraggedEvent but it is ${event.javaClass}; The SceneView is $sceneView, start (x, y) = $myStartX, $myStartY, start mask is $myStartMask"
@@ -50,31 +50,26 @@ class MarqueeInteraction(private val sceneView: SceneView, private val repaint: 
   override fun update(event: InteractionEvent) {
     if (event is MouseDraggedEvent) {
       val mouseEvent = event.eventObject
-      update(mouseEvent.x, mouseEvent.y, mouseEvent.modifiersEx)
+      if (overlay == null) {
+        return
+      }
+      val x = mouseEvent.x
+      val y = mouseEvent.y
+      val xp = Math.min(x, myStartX)
+      val yp = Math.min(y, myStartY)
+      val w = Math.abs(x - myStartX)
+      val h =
+        Math.abs(y - myStartY) // Convert to Android coordinates and compute selection overlaps
+      val ax = Coordinates.getAndroidXDip(sceneView, xp)
+      val ay = Coordinates.getAndroidYDip(sceneView, yp)
+      val aw = Coordinates.getAndroidDimensionDip(sceneView, w)
+      val ah = Coordinates.getAndroidDimensionDip(sceneView, h)
+      overlay!!.updateValues(xp, yp, w, h, x, y, aw, ah)
+      val within: Collection<SceneComponent> = sceneView.scene.findWithin(ax, ay, aw, ah)
+      val result = ContainerUtil.map(within) { it.nlComponent }
+      sceneView.selectionModel.setSelection(result)
+      repaint()
     }
-  }
-
-  override fun update(
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
-  ) {
-    if (overlay == null) {
-      return
-    }
-    val xp = Math.min(x, myStartX)
-    val yp = Math.min(y, myStartY)
-    val w = Math.abs(x - myStartX)
-    val h = Math.abs(y - myStartY) // Convert to Android coordinates and compute selection overlaps
-    val ax = Coordinates.getAndroidXDip(sceneView, xp)
-    val ay = Coordinates.getAndroidYDip(sceneView, yp)
-    val aw = Coordinates.getAndroidDimensionDip(sceneView, w)
-    val ah = Coordinates.getAndroidDimensionDip(sceneView, h)
-    overlay!!.updateValues(xp, yp, w, h, x, y, aw, ah)
-    val within: Collection<SceneComponent> = sceneView.scene.findWithin(ax, ay, aw, ah)
-    val result = ContainerUtil.map(within) { it.nlComponent }
-    sceneView.selectionModel.setSelection(result)
-    repaint()
   }
 
   override fun commit(event: InteractionEvent) { // Do nothing
@@ -83,14 +78,6 @@ class MarqueeInteraction(private val sceneView: SceneView, private val repaint: 
   override fun cancel(
     event: InteractionEvent
   ) { //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(event.info.x, event.info.y, event.info.modifiersEx)
-  }
-
-  override fun cancel(
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
-  ) {
     sceneView.selectionModel.clear()
   }
 

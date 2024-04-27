@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit
  * A [DelegatingClassLoader.Loader] that caches the loaded data. This class accepts a pre-configured [CacheBuilder] to tweak
  * the caching behaviour.
  */
-class CachingLoader(
+class CachingLoader constructor(
   private val delegate: DelegatingClassLoader.Loader,
   val cacheBuilder: CacheBuilder<String, ByteArray>) : DelegatingClassLoader.Loader {
 

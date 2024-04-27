@@ -82,7 +82,7 @@ public class GoToBundleLocationTaskTest extends PlatformTestCase {
   }
 
   public void testExecuteWithFailedBuild() {
-    String message = "Errors while building Bundle file. You can find the errors in the 'Messages' view.";
+    String message = "Errors while building Bundle file. You can find the errors in the 'Build' view.";
     myTask.executeWhenBuildFinished(Futures.immediateFuture(createBuildResult(new Throwable("Unknown error with gradle build"))));
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, NotificationType.ERROR);
   }
@@ -92,7 +92,7 @@ public class GoToBundleLocationTaskTest extends PlatformTestCase {
     String moduleName = getModule().getName();
     String message = getExpectedModuleNotificationMessage(moduleName);
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
-                                           new OpenFolderNotificationListener(myProject, modulesToPaths, null));
+                                           new OpenFolderNotificationListener(myProject, modulesToPaths));
   }
 
   public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {

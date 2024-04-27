@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.lint.common;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -87,15 +85,14 @@ public class SetAttributeQuickFix extends DefaultLintQuickFix {
       }
     }
 
-    final XmlAttribute attribute = ApplicationManager.getApplication().runWriteAction(
-      (Computable<XmlAttribute>)() -> myNamespace != null
-                                      ? tag.setAttribute(myAttributeName, myNamespace, "")
-                                      : tag.setAttribute(myAttributeName, ""));
+    final XmlAttribute attribute = myNamespace != null
+                                   ? tag.setAttribute(myAttributeName, myNamespace, "")
+                                   : tag.setAttribute(myAttributeName, "");
 
     if (attribute != null) {
       if (value != null && !value.isEmpty()) {
         String finalValue = value;
-        ApplicationManager.getApplication().runWriteAction(() -> attribute.setValue(finalValue));
+        attribute.setValue(finalValue);
       }
       if (context instanceof AndroidQuickfixContexts.EditorContext) {
         final Editor editor = ((AndroidQuickfixContexts.EditorContext)context).getEditor();

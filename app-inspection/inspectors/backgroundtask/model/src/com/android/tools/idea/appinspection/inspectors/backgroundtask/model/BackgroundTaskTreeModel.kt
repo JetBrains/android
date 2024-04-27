@@ -20,11 +20,11 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.JobEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WakeLockEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.DefaultTreeModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.DefaultTreeModel
 
 typealias BackgroundTaskOnFilteredListener = (filter: String?) -> Unit
 
@@ -156,8 +156,7 @@ class BackgroundTaskTreeModel(
             }
           result
         }
-      }
-        ?: groupedByParentNode)
+      } ?: groupedByParentNode)
       .forEach { (parent, children) -> children.forEach { parent.add(it.value) } }
 
     nodeStructureChanged(root)

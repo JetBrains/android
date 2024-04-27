@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.tools.idea.streaming.core.DisplayDescriptor
+import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.device.RequestDeviceStateMessage.Companion.PHYSICAL_STATE
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128InputStream.StreamFormatException
@@ -22,6 +24,7 @@ import com.android.utils.Base128OutputStream
 import com.android.utils.FlightRecorder
 import com.android.utils.TraceUtils
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
+import java.awt.Dimension
 import kotlin.text.Charsets.UTF_8
 
 // Classes in this file have to be kept in sync with tools/adt/idea/streaming/screen-sharing-agent/app/src/main/cpp/control_messages.h.
@@ -35,17 +38,14 @@ sealed class ControlMessage(val type: Int) {
     stream.writeInt(type)
   }
 
-  override fun equals(other: Any?): Boolean {
-    return javaClass == other?.javaClass
-  }
+  override fun equals(other: Any?): Boolean =
+      javaClass == other?.javaClass
 
-  override fun hashCode(): Int {
-    return javaClass.hashCode()
-  }
+  override fun hashCode(): Int =
+      javaClass.hashCode()
 
-  override fun toString(): String {
-    return javaClass.simpleName
-  }
+  override fun toString(): String =
+      javaClass.simpleName
 
   interface Deserializer {
     fun deserialize(stream: Base128InputStream): ControlMessage
@@ -64,9 +64,17 @@ sealed class ControlMessage(val type: Int) {
         StartClipboardSyncMessage.TYPE -> StartClipboardSyncMessage.deserialize(stream)
         StopClipboardSyncMessage.TYPE -> StopClipboardSyncMessage.deserialize(stream)
         RequestDeviceStateMessage.TYPE -> RequestDeviceStateMessage.deserialize(stream)
+        DisplayConfigurationRequest.TYPE -> DisplayConfigurationRequest.deserialize(stream)
+        ErrorResponse.TYPE -> ErrorResponse.deserialize(stream)
+        DisplayConfigurationResponse.TYPE -> DisplayConfigurationResponse.deserialize(stream)
         ClipboardChangedNotification.TYPE -> ClipboardChangedNotification.deserialize(stream)
         SupportedDeviceStatesNotification.TYPE -> SupportedDeviceStatesNotification.deserialize(stream)
         DeviceStateNotification.TYPE -> DeviceStateNotification.deserialize(stream)
+        DisplayAddedNotification.TYPE -> DisplayAddedNotification.deserialize(stream)
+        DisplayRemovedNotification.TYPE -> DisplayRemovedNotification.deserialize(stream)
+        UiSettingsRequest.TYPE -> UiSettingsRequest.deserialize(stream)
+        UiSettingsResponse.TYPE -> UiSettingsResponse.deserialize(stream)
+        SetDarkModeMessage.TYPE -> SetDarkModeMessage.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
       FlightRecorder.log { "${TraceUtils.currentTime()} deserialize: message = $message" }
@@ -74,6 +82,18 @@ sealed class ControlMessage(val type: Int) {
     }
   }
 }
+
+/** Interface that has to be implemented by all request and response control messages. */
+internal abstract class CorrelatedMessage(type: Int) : ControlMessage(type) {
+  abstract val requestId: Int
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(requestId)
+  }
+}
+
+// Messages sent to the device.
 
 /** Represents an Android [MotionEvent](https://developer.android.com/reference/android/view/MotionEvent). */
 internal data class MotionEventMessage(
@@ -96,9 +116,8 @@ internal data class MotionEventMessage(
     stream.writeInt(displayId)
   }
 
-  override fun toString(): String {
-    return "MotionEventMessage(pointers=$pointers, action=$action, buttonState=$buttonState actionButton=$actionButton displayId=$displayId)"
-  }
+  override fun toString(): String =
+      "MotionEventMessage(pointers=$pointers, action=$action, buttonState=$buttonState actionButton=$actionButton displayId=$displayId)"
 
   companion object : Deserializer {
     const val TYPE = 1
@@ -142,7 +161,7 @@ internal data class MotionEventMessage(
       return MotionEventMessage(pointers, action, buttonState, actionButton, displayId)
     }
 
-    fun deserializePointer(stream: Base128InputStream): Pointer {
+    private fun deserializePointer(stream: Base128InputStream): Pointer {
       val x = stream.readInt()
       val y = stream.readInt()
       val pointerId = stream.readInt()
@@ -175,8 +194,8 @@ internal data class MotionEventMessage(
     }
 
     override fun toString(): String {
-      if (axisValues == null) return "Pointer(x=$x, y=$y, pointerId=$pointerId)"
-      return "Pointer(x=$x, y=$y, pointerId=$pointerId, axisValues=$axisValues)"
+      return if (axisValues == null) "Pointer(x=$x, y=$y, pointerId=$pointerId)"
+             else "Pointer(x=$x, y=$y, pointerId=$pointerId, axisValues=$axisValues)"
     }
   }
 }
@@ -195,9 +214,8 @@ internal data class KeyEventMessage(
     stream.writeInt(metaState)
   }
 
-  override fun toString(): String {
-    return "KeyEventMessage(action=$action, keyCode=$keyCode, metaState=0x${metaState.toString(16)})"
-  }
+  override fun toString(): String =
+      "KeyEventMessage(action=$action, keyCode=$keyCode, metaState=0x${metaState.toString(16)})"
 
   companion object : Deserializer {
     const val TYPE = 2
@@ -222,9 +240,8 @@ internal data class TextInputMessage(
     stream.writeString(text)
   }
 
-  override fun toString(): String {
-    return "TextInputMessage(text=\"$text\")"
-  }
+  override fun toString(): String =
+      "TextInputMessage(text=\"$text\")"
 
   companion object : Deserializer {
     const val TYPE = 3
@@ -244,9 +261,8 @@ internal data class SetDeviceOrientationMessage(val orientation: Int) : ControlM
     stream.writeInt(orientation)
   }
 
-  override fun toString(): String {
-    return "SetDeviceOrientationMessage(orientation=$orientation)"
-  }
+  override fun toString(): String =
+      "SetDeviceOrientationMessage(orientation=$orientation)"
 
   companion object : Deserializer {
     const val TYPE = 4
@@ -259,51 +275,72 @@ internal data class SetDeviceOrientationMessage(val orientation: Int) : ControlM
 }
 
 /** Sets maximum display streaming resolution. */
-internal data class SetMaxVideoResolutionMessage(val width: Int, val height: Int) : ControlMessage(TYPE) {
+internal data class SetMaxVideoResolutionMessage(val displayId: Int, val maxVideoSize: Dimension) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
-    stream.writeInt(width)
-    stream.writeInt(height)
+    stream.writeInt(displayId)
+    stream.writeInt(maxVideoSize.width)
+    stream.writeInt(maxVideoSize.height)
   }
 
-  override fun toString(): String {
-    return "SetMaxVideoResolutionMessage(width=$width, height=$height)"
-  }
+  override fun toString(): String =
+      "SetMaxVideoResolutionMessage(displayId=$displayId, maxVideoSize=${maxVideoSize.width}x${maxVideoSize.height})"
 
   companion object : Deserializer {
     const val TYPE = 5
 
     override fun deserialize(stream: Base128InputStream): SetMaxVideoResolutionMessage {
+      val displayId = stream.readInt()
       val width = stream.readInt()
       val height = stream.readInt()
-      return SetMaxVideoResolutionMessage(width, height)
+      return SetMaxVideoResolutionMessage(displayId, Dimension(width, height))
     }
   }
 }
 
 /** Starts video stream if it was stopped. */
-internal class StartVideoStreamMessage private constructor() : ControlMessage(TYPE) {
+internal class StartVideoStreamMessage(val displayId: Int, val maxVideoSize: Dimension) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(displayId)
+    stream.writeInt(maxVideoSize.width)
+    stream.writeInt(maxVideoSize.height)
+  }
+
+  override fun toString(): String =
+      "StartVideoStreamMessage(displayId=$displayId, maxVideoSize=${maxVideoSize.width}x${maxVideoSize.height})"
 
   companion object : Deserializer {
     const val TYPE = 6
-    val instance = StartVideoStreamMessage()
 
     override fun deserialize(stream: Base128InputStream): StartVideoStreamMessage {
-      return instance
+      val displayId = stream.readInt()
+      val width = stream.readInt()
+      val height = stream.readInt()
+      return StartVideoStreamMessage(displayId, Dimension(width, height))
     }
   }
 }
 
 /** Stops video stream. */
-internal class StopVideoStreamMessage private constructor() : ControlMessage(TYPE) {
+internal class StopVideoStreamMessage(val displayId: Int) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(displayId)
+  }
+
+  override fun toString(): String =
+      "StopVideoStreamMessage(displayId=$displayId)"
 
   companion object : Deserializer {
     const val TYPE = 7
-    val instance = StopVideoStreamMessage()
 
     override fun deserialize(stream: Base128InputStream): StopVideoStreamMessage {
-      return instance
+      val displayId = stream.readInt()
+      return StopVideoStreamMessage(displayId)
     }
   }
 }
@@ -317,9 +354,8 @@ internal data class StartClipboardSyncMessage(val maxSyncedLength: Int, val text
     stream.writeBytes(text.toByteArray(UTF_8))
   }
 
-  override fun toString(): String {
-    return "StartClipboardSyncMessage(maxSyncedLength=$maxSyncedLength, text='$text')"
-  }
+  override fun toString(): String =
+      "StartClipboardSyncMessage(maxSyncedLength=$maxSyncedLength, text='$text')"
 
   companion object : Deserializer {
     const val TYPE = 8
@@ -357,9 +393,8 @@ internal data class RequestDeviceStateMessage(val state: Int) : ControlMessage(T
     stream.writeInt(state + 1) // Add 1 to make sure that PHYSICAL_STATE is encoded efficiently.
   }
 
-  override fun toString(): String {
-    return "RequestDeviceStateMessage(state=$state)"
-  }
+  override fun toString(): String =
+      "RequestDeviceStateMessage(state=$state)"
 
   companion object : Deserializer {
     const val TYPE = 10
@@ -373,6 +408,94 @@ internal data class RequestDeviceStateMessage(val state: Int) : ControlMessage(T
   }
 }
 
+/** Requests a display screenshot. */
+internal data class DisplayConfigurationRequest private constructor(override val requestId: Int) : CorrelatedMessage(TYPE) {
+
+  constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
+
+  override fun toString(): String {
+    return "DisplayConfigurationRequest(requestId=$requestId)"
+  }
+
+  companion object : Deserializer {
+    const val TYPE = 11
+
+    override fun deserialize(stream: Base128InputStream): DisplayConfigurationRequest {
+      val requestId = stream.readInt()
+      return DisplayConfigurationRequest(requestId)
+    }
+  }
+}
+
+// Messages received from the device.
+
+/** Error response from the device to a command that is guaranteed to trigger a response. */
+internal data class ErrorResponse(override val requestId: Int, val errorMessage: String) : CorrelatedMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeBytes(errorMessage.toByteArray(UTF_8))
+  }
+
+  override fun toString(): String {
+    return "ErrorResponse(requestId=$requestId, errorMessage=\"$errorMessage\")"
+  }
+
+  companion object : Deserializer {
+    const val TYPE = 12
+
+    override fun deserialize(stream: Base128InputStream): ErrorResponse {
+      val requestId = stream.readInt()
+      val errorMessage = stream.readBytes().toString(UTF_8)
+      return ErrorResponse(requestId, errorMessage)
+    }
+  }
+}
+
+/** Screenshot of a device display. */
+internal class DisplayConfigurationResponse(override val requestId: Int, val displays: List<DisplayDescriptor>): CorrelatedMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(displays.size)
+    for (display in displays) {
+      stream.writeInt(display.displayId)
+      stream.writeInt(display.width)
+      stream.writeInt(display.height)
+      stream.writeInt(display.orientation)
+      stream.writeInt(display.type.ordinal)
+    }
+  }
+
+  override fun toString(): String {
+    return "ScreenshotResponse(requestId=$requestId, displays=$displays)"
+  }
+
+  companion object : Deserializer {
+    const val TYPE = 13
+
+    override fun deserialize(stream: Base128InputStream): DisplayConfigurationResponse {
+      val requestId = stream.readInt()
+      val count = stream.readInt()
+      val displays = ArrayList<DisplayDescriptor>(count)
+      for (i in 0 until count) {
+        val displayId = stream.readInt()
+        val width = stream.readInt()
+        val height = stream.readInt()
+        val orientation = stream.readInt()
+        val type = try {
+          DisplayType.values()[stream.readInt()]
+        }
+        catch (e: ArrayIndexOutOfBoundsException) {
+          DisplayType.UNKNOWN
+        }
+        displays.add(DisplayDescriptor(displayId, width, height, orientation, type))
+      }
+      return DisplayConfigurationResponse(requestId, displays)
+    }
+  }
+}
+
 /** A clipboard update from the device. */
 internal data class ClipboardChangedNotification(val text: String) : ControlMessage(TYPE) {
 
@@ -381,12 +504,11 @@ internal data class ClipboardChangedNotification(val text: String) : ControlMess
     stream.writeBytes(text.toByteArray(UTF_8))
   }
 
-  override fun toString(): String {
-    return "ClipboardChangedNotification(text=\"$text\")"
-  }
+  override fun toString(): String =
+      "ClipboardChangedNotification(text=\"$text\")"
 
   companion object : Deserializer {
-    const val TYPE = 11
+    const val TYPE = 14
 
     override fun deserialize(stream: Base128InputStream): ClipboardChangedNotification {
       val bytes = stream.readBytes()
@@ -414,12 +536,11 @@ internal data class SupportedDeviceStatesNotification(val text: String) : Contro
     stream.writeBytes(text.toByteArray(UTF_8))
   }
 
-  override fun toString(): String {
-    return "SupportedDeviceStatesNotification(text=\"$text\")"
-  }
+  override fun toString(): String =
+      "SupportedDeviceStatesNotification(text=\"$text\")"
 
   companion object : Deserializer {
-    const val TYPE = 12
+    const val TYPE = 15
 
     override fun deserialize(stream: Base128InputStream): SupportedDeviceStatesNotification {
       val bytes = stream.readBytes()
@@ -439,16 +560,128 @@ internal data class DeviceStateNotification(val deviceState: Int) : ControlMessa
     stream.writeInt(deviceState)
   }
 
-  override fun toString(): String {
-    return "DeviceStateNotification(deviceState=$deviceState)"
-  }
+  override fun toString(): String =
+      "DeviceStateNotification(deviceState=$deviceState)"
 
   companion object : Deserializer {
-    const val TYPE = 13
+    const val TYPE = 16
 
     override fun deserialize(stream: Base128InputStream): DeviceStateNotification {
       val deviceState = stream.readInt()
       return DeviceStateNotification(deviceState)
+    }
+  }
+}
+
+/**
+ * Notification of an added display.
+ */
+internal data class DisplayAddedNotification(val displayId: Int) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(displayId)
+  }
+
+  override fun toString(): String =
+      "DisplayAddedNotification(displayId=$displayId)"
+
+  companion object : Deserializer {
+    const val TYPE = 17
+
+    override fun deserialize(stream: Base128InputStream): DisplayAddedNotification {
+      val displayId = stream.readInt()
+      return DisplayAddedNotification(displayId)
+    }
+  }
+}
+
+/**
+ * Notification of a removed display.
+ */
+internal data class DisplayRemovedNotification(val displayId: Int) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(displayId)
+  }
+
+  override fun toString(): String =
+      "DisplayRemovedNotification(displayId=$displayId)"
+
+  companion object : Deserializer {
+    const val TYPE = 18
+
+    override fun deserialize(stream: Base128InputStream): DisplayRemovedNotification {
+      val displayId = stream.readInt()
+      return DisplayRemovedNotification(displayId)
+    }
+  }
+}
+
+/**
+ * Queries the current UI settings from a device.
+ */
+internal class UiSettingsRequest private constructor (override val requestId: Int) : CorrelatedMessage(TYPE) {
+
+  constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
+
+  override fun toString(): String =
+    "UiSettingsRequest(requestId=$requestId)"
+
+  companion object : Deserializer {
+    const val TYPE = 19
+
+    override fun deserialize(stream: Base128InputStream): UiSettingsRequest {
+      val requestId = stream.readInt()
+      return UiSettingsRequest(requestId)
+    }
+  }
+}
+
+/**
+ * The current UI settings received from a device.
+ */
+internal data class UiSettingsResponse(override val requestId: Int, val darkMode: Boolean) : CorrelatedMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeBoolean(darkMode)
+  }
+
+  override fun toString(): String =
+    "UiSettingsResponse(requestId=$requestId, darkMode=$darkMode)"
+
+  companion object : Deserializer {
+    const val TYPE = 20
+
+    override fun deserialize(stream: Base128InputStream): UiSettingsResponse {
+      val requestId = stream.readInt()
+      val darkMode = stream.readBoolean()
+      return UiSettingsResponse(requestId, darkMode)
+    }
+  }
+}
+
+/**
+ * Changes the DarkMode setting on a device.
+ */
+internal data class SetDarkModeMessage(val darkMode: Boolean) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeBoolean(darkMode)
+  }
+
+  override fun toString(): String =
+    "SetDarkModeMessage(darkMode=$darkMode)"
+
+  companion object : Deserializer {
+    const val TYPE = 21
+
+    override fun deserialize(stream: Base128InputStream): SetDarkModeMessage {
+      val darkMode = stream.readBoolean()
+      return SetDarkModeMessage(darkMode)
     }
   }
 }

@@ -17,9 +17,13 @@ package com.android.tools.rendering.parsers
 
 import com.android.resources.ResourceFolderType
 import com.intellij.mock.MockProject
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -28,7 +32,19 @@ import java.io.File
 class RenderXmlFileSnapshotTest {
   @JvmField @Rule val tmpFolder = TemporaryFolder()
 
-  private val project = MockProject(null, Disposer.newDisposable())
+  private lateinit var rootDisposable: Disposable
+  private lateinit var project: Project
+
+  @Before
+  fun before() {
+    rootDisposable = Disposer.newDisposable()
+    project = MockProject(null, rootDisposable)
+  }
+
+  @After
+  fun after() {
+    Disposer.dispose(rootDisposable)
+  }
 
   @Test
   fun testOnDiskXmlFileSnapshot() {

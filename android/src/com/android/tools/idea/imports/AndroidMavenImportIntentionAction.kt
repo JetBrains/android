@@ -50,17 +50,29 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.ui.popup.list.ListPopupImpl
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
+import org.jetbrains.kotlin.idea.structuralsearch.resolveExprType
 import org.jetbrains.kotlin.idea.util.ImportInsertHelperImpl
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtUserType
+import org.jetbrains.kotlin.types.error.ErrorType
+
+private const val ALL_RECEIVER_TYPES = "*"
 
 /**
- * An action which recognizes classes from key Maven artifacts and offers to add a dependency on them.
+ * An action which recognizes classes from key Maven artifacts and offers to add a dependency on
+ * them.
  */
 class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private var intentionActionText: String = familyName
@@ -72,21 +84,18 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     val version: String?
   ) : Comparable<AutoImportVariant> {
     override fun compareTo(other: AutoImportVariant): Int {
-      artifactToAdd.compareTo(other.artifactToAdd).let {
-        if (it != 0) return it
-      }
+      artifactToAdd.compareTo(other.artifactToAdd).let { if (it != 0) return it }
 
       return classToImport.compareTo(other.classToImport)
     }
   }
 
-  private class Resolvable private constructor(
-    val libraries: Collection<MavenClassRegistryBase.LibraryImportData>
-  ) {
+  private class Resolvable
+  private constructor(val libraries: Collection<MavenClassRegistryBase.LibraryImportData>) {
     companion object {
-      fun createNewOrNull(libraries: Collection<MavenClassRegistryBase.LibraryImportData>): Resolvable? {
-        return if (libraries.isEmpty()) null else Resolvable(libraries)
-      }
+      fun createNewOrNull(
+        libraries: Collection<MavenClassRegistryBase.LibraryImportData>
+      ): Resolvable? = libraries.takeUnless { it.isEmpty() }?.let(::Resolvable)
     }
   }
 
@@ -94,28 +103,38 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     perform(project, editor, element, true)
   }
 
-  /**
-   * Performs a fix. Or let users to choose from the popup if there's multiple options.
-   */
+  /** Performs a fix. Or let users choose from the popup if there are multiple options. */
   fun perform(project: Project, editor: Editor, element: PsiElement, sync: Boolean) {
-    val resolvable = findResolvable(element, editor.caretModel.offset) { text ->
-      Resolvable.createNewOrNull(findLibraryData(project, text, element.containingFile?.fileType))
-    } ?: return
-
-    val suggestions = resolvable.libraries
-      .asSequence()
-      .map {
-        val artifact = resolveArtifact(project, element.language, it.artifact)
-        val importSymbol = resolveImport(project, it.importedItemFqName)
-        AutoImportVariant(artifact, importSymbol, it.version)
+    val resolvable =
+      findResolvable(element, editor.caretModel.offset) { text, receiverType ->
+        Resolvable.createNewOrNull(
+          findLibraryData(project, text, receiverType, element.containingFile?.fileType)
+        )
       }
-      .toSortedSet()
+        ?: return
+
+    val suggestions =
+      resolvable.libraries
+        .asSequence()
+        .map {
+          val artifact = resolveArtifact(project, element.language, it.artifact)
+          val importSymbol = resolveImport(project, it.importedItemFqName)
+          AutoImportVariant(artifact, importSymbol, it.version)
+        }
+        .toSortedSet()
 
     if (suggestions.isEmpty()) return
 
     if (suggestions.size == 1 || ApplicationManager.getApplication().isUnitTestMode) {
       val suggestion = suggestions.first()
-      perform(project, element, suggestion.artifactToAdd, suggestion.version, suggestion.classToImport, sync)
+      perform(
+        project,
+        element,
+        suggestion.artifactToAdd,
+        suggestion.version,
+        suggestion.classToImport,
+        sync
+      )
       return
     }
 
@@ -129,19 +148,31 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     suggestions: List<AutoImportVariant>,
     sync: Boolean
   ) {
-    val step = object : BaseListPopupStep<AutoImportVariant>(
-      AndroidBundle.message("android.suggested.imports.title"),
-      suggestions
-    ) {
-      override fun getTextFor(value: AutoImportVariant): String {
-        return flagPreview(value.artifactToAdd, value.version)
-      }
+    val step =
+      object :
+        BaseListPopupStep<AutoImportVariant>(
+          AndroidBundle.message("android.suggested.imports.title"),
+          suggestions
+        ) {
+        override fun getTextFor(value: AutoImportVariant): String {
+          return flagPreview(value.artifactToAdd, value.version)
+        }
 
-      override fun onChosen(selectedValue: AutoImportVariant, finalChoice: Boolean): PopupStep<*>? {
-        perform(project, element, selectedValue.artifactToAdd, selectedValue.version, selectedValue.classToImport, sync)
-        return FINAL_CHOICE
+        override fun onChosen(
+          selectedValue: AutoImportVariant,
+          finalChoice: Boolean
+        ): PopupStep<*>? {
+          perform(
+            project,
+            element,
+            selectedValue.artifactToAdd,
+            selectedValue.version,
+            selectedValue.classToImport,
+            sync
+          )
+          return FINAL_CHOICE
+        }
       }
-    }
 
     ListPopupImpl(project, step).showInBestPositionFor(editor)
   }
@@ -159,9 +190,9 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     var syncFuture: ListenableFuture<ProjectSystemSyncManager.SyncResult>? = null
     WriteCommandAction.runWriteCommandAction(project) {
       if (sync) {
-        syncFuture = performWithLockAndSync(project, module, element, artifact, artifactVersion, importSymbol)
-      }
-      else {
+        syncFuture =
+          performWithLockAndSync(project, module, element, artifact, artifactVersion, importSymbol)
+      } else {
         performWithLock(project, module, element, artifact, artifactVersion, importSymbol)
       }
     }
@@ -179,26 +210,35 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     importSymbol: String?
   ): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
     // Register sync action for undo.
-    UndoManager.getInstance(project).undoableActionPerformed(object : GlobalUndoableAction() {
-      override fun undo() {
-        project.requestSync()
-      }
+    UndoManager.getInstance(project)
+      .undoableActionPerformed(
+        object : GlobalUndoableAction() {
+          override fun undo() {
+            project.requestSync()
+          }
 
-      override fun redo() {}
-    })
+          override fun redo() {}
+        }
+      )
 
     performWithLock(project, module, element, artifact, artifactVersion, importSymbol)
 
     // Register sync action for redo.
-    UndoManager.getInstance(project).undoableActionPerformed(object : GlobalUndoableAction() {
-      override fun undo() {}
+    UndoManager.getInstance(project)
+      .undoableActionPerformed(
+        object : GlobalUndoableAction() {
+          override fun undo() {}
 
-      override fun redo() {
-        project.requestSync()
-      }
-    })
+          override fun redo() {
+            project.requestSync()
+          }
+        }
+      )
 
-    return project.getProjectSystem().getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+    return project
+      .getProjectSystem()
+      .getSyncManager()
+      .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
   }
 
   /**
@@ -214,7 +254,8 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     artifactVersion: String?,
     importSymbol: String?
   ) {
-    // Import the class as well (if possible); otherwise it might be confusing that you have to invoke two
+    // Import the class as well (if possible); otherwise it might be confusing that you have to
+    // invoke two
     // separate intention actions in order to get your symbol resolved
     if (importSymbol != null) {
       addImportStatement(project, element, importSymbol)
@@ -222,26 +263,37 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
     addDependency(module, artifact, artifactVersion)
     // Also add on an extra dependency for special cases.
-    getMavenClassRegistry()
-      .findExtraArtifacts(artifact)
-      .forEach { addDependency(module, it.key, artifactVersion, it.value) }
+    getMavenClassRegistry().findExtraArtifacts(artifact).forEach {
+      addDependency(module, it.key, artifactVersion, it.value)
+    }
 
     // Also add dependent annotation processor?
-    if (module.getModuleSystem().canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR).isSupported()) {
+    if (
+      module
+        .getModuleSystem()
+        .canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR)
+        .isSupported()
+    ) {
       getMavenClassRegistry().findAnnotationProcessor(artifact)?.let { it ->
-        val annotationProcessor = if (project.isAndroidx()) {
-          AndroidxNameUtils.getCoordinateMapping(it)
-        }
-        else {
-          it
-        }
+        val annotationProcessor =
+          if (project.isAndroidx()) {
+            AndroidxNameUtils.getCoordinateMapping(it)
+          } else {
+            it
+          }
 
-        addDependency(module, annotationProcessor, artifactVersion, DependencyType.ANNOTATION_PROCESSOR)
+        addDependency(
+          module,
+          annotationProcessor,
+          artifactVersion,
+          DependencyType.ANNOTATION_PROCESSOR
+        )
       }
     }
   }
 
-  override fun getFamilyName(): String = AndroidBundle.message("android.suggested.import.action.family.name")
+  override fun getFamilyName(): String =
+    AndroidBundle.message("android.suggested.import.action.family.name")
 
   override fun getText(): String = intentionActionText
 
@@ -249,23 +301,31 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     val module = ModuleUtil.findModuleForPsiElement(element) ?: return false
     if (!module.getModuleSystem().canRegisterDependency().isSupported()) return false
 
-    val resolvable = findResolvable(element, editor?.caretModel?.offset ?: -1) { text ->
-      Resolvable.createNewOrNull(findLibraryData(project, text, element.containingFile?.fileType))
-    } ?: return false
+    val resolvable =
+      findResolvable(element, editor?.caretModel?.offset ?: -1) { text, receiverType ->
+        Resolvable.createNewOrNull(
+          findLibraryData(project, text, receiverType, element.containingFile?.fileType)
+        )
+      }
+        ?: return false
 
     val foundLibraries = resolvable.libraries
     // If we are already depending on any of them, we just abort providing any suggestions as well.
-    if (foundLibraries.isEmpty() || foundLibraries.any { dependsOn(module, it.artifact) }) return false
+    if (foundLibraries.isEmpty() || foundLibraries.any { dependsOn(module, it.artifact) })
+      return false
 
     // Update the text.
-    intentionActionText = if (foundLibraries.size == 1) {
-      val library = foundLibraries.single()
-      val artifact = resolveArtifact(project, element.language, library.artifact)
-      AndroidBundle.message("android.suggested.import.action.name.prefix", flagPreview(artifact, library.version))
-    }
-    else {
-      familyName
-    }
+    intentionActionText =
+      if (foundLibraries.size == 1) {
+        val library = foundLibraries.single()
+        val artifact = resolveArtifact(project, element.language, library.artifact)
+        AndroidBundle.message(
+          "android.suggested.import.action.name.prefix",
+          flagPreview(artifact, library.version)
+        )
+      } else {
+        familyName
+      }
 
     return true
   }
@@ -273,25 +333,33 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private fun Project.requestSync() {
     val syncManager = getProjectSystem().getSyncManager()
     if (syncManager.isSyncInProgress()) {
-      listenUntilNextSync(this, object : ProjectSystemSyncManager.SyncResultListener {
-        override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-          syncManager.syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+      listenUntilNextSync(
+        this,
+        object : ProjectSystemSyncManager.SyncResultListener {
+          override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+            syncManager.syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+          }
         }
-      })
-    }
-    else {
+      )
+    } else {
       syncManager.syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
     }
   }
 
-  private fun addDependency(module: Module, artifact: String, version: String?, type: DependencyType = DependencyType.IMPLEMENTATION) {
+  private fun addDependency(
+    module: Module,
+    artifact: String,
+    version: String?,
+    type: DependencyType = DependencyType.IMPLEMENTATION
+  ) {
     val coordinate = getCoordinate(artifact, version) ?: return
     val moduleSystem = module.getModuleSystem()
     moduleSystem.registerDependency(coordinate, type)
   }
 
   private fun dependsOn(module: Module, artifact: String): Boolean {
-    // To check if we depend on an artifact, we don't particularly care which version is there, just whether the library is included at all.
+    // To check if we depend on an artifact, we don't particularly care which version is there, just
+    // whether the library is included at all.
     val coordinate = getCoordinate(artifact) ?: return false
     val moduleSystem = module.getModuleSystem()
     return moduleSystem.getRegisteredDependency(coordinate) != null
@@ -301,54 +369,60 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
    * Generates a coordinate representing the specified artifact.
    *
    * @param artifact requested artifact
-   *
-   * @param version desired version, if any. This is expected to be in the form "2.5.1". The version comes from [MavenClassRegistry], and
-   * represents the minimum version of a dependency that should be added. See
-   * [b/275602080](https://issuetracker.google.com/issues/275602080#comment6) for more details.
+   * @param version desired version, if any. This is expected to be in the form "2.5.1". The version
+   *   comes from [MavenClassRegistry], and represents the minimum version of a dependency that
+   *   should be added. See [b/275602080](https://issuetracker.google.com/issues/275602080#comment6)
+   *   for more details.
    */
   private fun getCoordinate(artifact: String, version: String? = null) =
     if (version.isNullOrEmpty()) GradleCoordinate.parseCoordinateString("$artifact:+")
     else GradleCoordinate.parseCoordinateString("$artifact:$version")
 
-  private fun findResolvable(
+  private tailrec fun findResolvable(
     element: PsiElement,
     caret: Int,
-    resolve: (String) -> Resolvable?
+    resolve: (String, String?) -> Resolvable?
   ): Resolvable? {
+    // This is actually the common case.
+    fun resolveWithoutReceiver(s: String) = resolve(s, null)
     if (element is PsiIdentifier || caret == 0) {
-      // In Java code, if you're pointing somewhere in the middle of a fully qualified name (such as an import
-      // statement to a library that isn't available), the unresolved symbol won't be the final class, it will be the
-      // first unavailable package segment. In these cases, search down the chain for the actual imported class symbol
-      // and scan on that one instead.
-      // E.g. for "androidx.camera.core.ImageCapture.OnImageSavedCallback" and "camera" is an unresolvable symbol, we
-      // search first for "androidx.camera", and then "androidx.camera.core", and we stop at the first resolvable, which
-      // is "androidx.camera.core.ImageCapture".
+      // In Java code, if you're pointing somewhere in the middle of a fully qualified name (such as
+      // an import statement to a library that isn't available), the unresolved symbol won't be the
+      // final class, it will be the first unavailable package segment. In these cases, search down
+      // the chain for the actual imported class symbol and scan on that one instead. E.g. for
+      // "androidx.camera.core.ImageCapture.OnImageSavedCallback" and "camera" is an unresolvable
+      // symbol, we search first for "androidx.camera", and then "androidx.camera.core", and we stop
+      // at the first resolvable, which is "androidx.camera.core.ImageCapture".
       if (element.parent is PsiJavaCodeReferenceElement) {
         var curr: PsiJavaCodeReferenceElement? = element.parent as PsiJavaCodeReferenceElement
         while (curr != null) {
-          val found = resolve(curr.text)
-          if (found != null) return found
+          resolveWithoutReceiver(curr.text)?.let {
+            return it
+          }
 
           curr = curr.parent as? PsiJavaCodeReferenceElement
         }
       }
 
-      return resolve(element.text)
-    }
-    else if (element is LeafPsiElement && element.elementType == KtTokens.IDENTIFIER) {
-      // In Kotlin code, if you're pointing somewhere in the middle of a fully qualified name (such as an import
-      // statement to a library that isn't available), the unresolved symbol won't be the final class, it will be the
-      // first unavailable package segment. In these cases, search down the chain for the actual imported class symbol
-      // and scan on that one instead.
+      return resolveWithoutReceiver(element.text)
+    } else if (element is LeafPsiElement && element.elementType == KtTokens.IDENTIFIER) {
+      // In Kotlin code, if you're pointing somewhere in the middle of a fully qualified name (such
+      // as an import statement to a library that isn't available), the unresolved symbol won't be
+      // the final class, it will be the first unavailable package segment. In these cases, search
+      // down the chain for the actual imported class symbol and scan on that one instead.
       if (element.parent is KtNameReferenceExpression) {
         when (val current = element.parent.parent) {
-          is KtDotQualifiedExpression -> {
-            var curr: KtDotQualifiedExpression? = current
+          is KtDotQualifiedExpression,
+          is KtCallExpression -> {
+            var curr =
+              current as? KtDotQualifiedExpression ?: current.parent as? KtDotQualifiedExpression
             while (curr != null) {
-              val found = curr.formText()?.let {
-                resolve(it)
-              }
-              if (found != null) return found
+              curr
+                .formText()
+                ?.let { resolve(it.first, it.second) }
+                ?.let {
+                  return it
+                }
 
               curr = curr.parent as? KtDotQualifiedExpression
             }
@@ -356,56 +430,91 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
           is KtUserType -> {
             var curr: KtUserType? = current
             while (curr != null) {
-              val found = resolve(curr.text)
-              if (found != null) return found
+              resolveWithoutReceiver(curr.text)?.let {
+                return it
+              }
 
               curr = curr.parent as? KtUserType
             }
           }
-          else -> return resolve(element.text)
+          else -> return resolveWithoutReceiver(element.text)
         }
       }
 
-      return resolve(element.text)
+      return resolveWithoutReceiver(element.text)
     }
 
     // When the caret is at the end of the word (which it frequently is in the unresolved symbol
     // scenario, where you've just typed in the symbol you're interested in) PSI picks the element
     // on the right of the caret, which is the next element, not the symbol element.
     if (caret == element.textOffset || element is PsiWhiteSpace) {
-      if (element.prevSibling != null) {
-        return resolve(element.prevSibling.text)
-      }
+      // Find the element at the previous position.
       val targetOffset = caret - 1
-      var curr = element.parent
-      while (curr != null && curr.textOffset > targetOffset) {
-        curr = curr.parent
-      }
-      if (curr != null) {
-        val text = curr.findElementAt(targetOffset - curr.textOffset)?.text ?: element.text
-        return resolve(text)
+      element.parentContainingOffset(targetOffset)?.findElementAtAbsoluteOffset(targetOffset)?.let {
+        return findResolvable(it, targetOffset, resolve)
       }
     }
 
-    return resolve(element.text)
+    return resolveWithoutReceiver(element.text)
   }
 
-  private fun KtDotQualifiedExpression.formText(): String? {
-    val referenceNameElement = selectorExpression
-    if (referenceNameElement != null) {
-      var left: PsiElement = referenceNameElement
-      while (left.firstChild != null) {
-        left = left.firstChild
+  /**
+   * Walks up the tree of parent [PsiElement]s until it finds one that contains the [targetOffset].
+   */
+  private tailrec fun PsiElement.parentContainingOffset(targetOffset: Int): PsiElement? =
+    if (textRange.contains(targetOffset)) this else parent?.parentContainingOffset(targetOffset)
+
+  /**
+   * Like [PsiElement.findElementAt], but with a [targetOffset] corrected for the relative offset of
+   * `this` [PsiElement] in the document.
+   */
+  private fun PsiElement.findElementAtAbsoluteOffset(targetOffset: Int): PsiElement? =
+    findElementAt(targetOffset - textRange.startOffset)
+
+  @OptIn(KtAllowAnalysisOnEdt::class)
+  private fun KtDotQualifiedExpression.formText(): Pair<String, String>? {
+    val referenceNameElement =
+      when (val selector = selectorExpression) {
+        null -> return null
+        is KtCallExpression -> selector.calleeExpression ?: return null // Get rid of any parens.
+        else -> selector
       }
-      return "${receiverExpression.text}.${left.text}"
+    var left: PsiElement = referenceNameElement
+    while (left.firstChild != null) {
+      left = left.firstChild
+    }
+    val receiverExpr =
+      (receiverExpression as? KtDotQualifiedExpression)?.selectorExpression ?: receiverExpression
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      allowAnalysisOnEdt {
+        analyze(receiverExpr) {
+          (receiverExpr.getKtType() as? KtNonErrorClassType)?.classId?.asFqNameString()?.let {
+            return left.text to it
+          }
+        }
+      }
+    } else {
+      val receiverType = receiverExpr.resolveExprType()?.takeUnless { it is ErrorType }
+      receiverType?.fqName?.asString()?.let {
+        return left.text to it
+      }
     }
 
-    return null
+    return "${receiverExpression.text}.${left.text}" to ALL_RECEIVER_TYPES
   }
 
-  private fun findLibraryData(project: Project, text: String, completionFileType: FileType?)
-      : Collection<MavenClassRegistryBase.LibraryImportData> {
-    return getMavenClassRegistry().findLibraryData(text, project.isAndroidx(), completionFileType)
+  private fun findLibraryData(
+    project: Project,
+    text: String,
+    receiverType: String?,
+    completionFileType: FileType?
+  ): Collection<MavenClassRegistryBase.LibraryImportData> {
+    if (receiverType == ALL_RECEIVER_TYPES) {
+      return getMavenClassRegistry()
+        .findLibraryDataAnyReceiver(text, project.isAndroidx(), completionFileType)
+    }
+    return getMavenClassRegistry()
+      .findLibraryData(text, receiverType, project.isAndroidx(), completionFileType)
   }
 
   private fun resolveArtifact(project: Project, language: Language, artifact: String): String {
@@ -420,8 +529,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       }
 
       androidx
-    }
-    else {
+    } else {
       artifact
     }
   }
@@ -429,8 +537,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private fun resolveImport(project: Project, fqn: String): String {
     return if (project.isAndroidx()) {
       AndroidxNameUtils.getNewName(fqn)
-    }
-    else {
+    } else {
       fqn
     }
   }
@@ -456,7 +563,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         // Can't access org.jetbrains.kotlin.idea.util.ImportInsertHelper
         ImportInsertHelperImpl.addImport(project, file as KtFile, FqName(import))
       }
-      // Nothing to do in XML etc
+    // Nothing to do in XML etc
     }
   }
 

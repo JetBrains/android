@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import java.awt.Rectangle;
 import junit.framework.TestCase;
+
+import java.awt.*;
 
 public class InsetsTest extends TestCase {
   public void test() {

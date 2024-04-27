@@ -24,14 +24,15 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.google.common.truth.Truth.assertThat
+import javax.swing.tree.DefaultMutableTreeNode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.emptyFlow
-import javax.swing.tree.DefaultMutableTreeNode
 
 object BackgroundTaskInspectorTestUtils {
   private class FakeAppInspectorMessenger(override val scope: CoroutineScope) :
     AppInspectorMessenger {
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray = ByteArray(0)
+
     override val eventFlow = emptyFlow<ByteArray>()
   }
 
@@ -125,8 +126,11 @@ object BackgroundTaskInspectorTestUtils {
   }
 
   fun DefaultMutableTreeNode.getWorksCategoryNode() = getCategoryNode("Workers")
+
   fun DefaultMutableTreeNode.getAlarmsCategoryNode() = getCategoryNode("Alarms")
+
   fun DefaultMutableTreeNode.getJobsCategoryNode() = getCategoryNode("Jobs")
+
   fun DefaultMutableTreeNode.getWakeLocksCategoryNode() = getCategoryNode("WakeLocks")
 
   fun createJobInfoExtraWithWorkerId(id: String) = "{EXTRA_WORK_SPEC_ID=$id}"

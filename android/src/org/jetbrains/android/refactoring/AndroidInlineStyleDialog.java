@@ -4,10 +4,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.inline.InlineOptionsDialog;
-import java.util.Map;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 class AndroidInlineStyleDialog extends InlineOptionsDialog {
   private final String myStyleName;

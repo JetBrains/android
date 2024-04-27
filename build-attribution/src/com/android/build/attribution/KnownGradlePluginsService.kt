@@ -54,7 +54,7 @@ interface KnownGradlePluginsService {
  * to make sure data is ready before proceeding. Note that data refresh interval is 1 day thus most of these requests will
  * not proceed making any delay to be an extremely rare case.
  */
-class KnownGradlePluginsServiceImpl(downloader: FileDownloader, cachePath: File) :
+class KnownGradlePluginsServiceImpl constructor(downloader: FileDownloader, cachePath: File) :
   DownloadService(downloader, SERVICE_NAME, FALLBACK_URL, cachePath, FILENAME),
   KnownGradlePluginsService {
 

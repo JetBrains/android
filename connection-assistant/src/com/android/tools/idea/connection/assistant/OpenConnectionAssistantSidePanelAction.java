@@ -19,6 +19,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ConnectionAssistantEvent;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +27,11 @@ public class OpenConnectionAssistantSidePanelAction extends OpenAssistSidePanelA
   @Override
   public void update(AnActionEvent e) {
     e.getPresentation().setVisible(true);
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

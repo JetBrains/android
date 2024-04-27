@@ -32,6 +32,7 @@ import kotlin.reflect.KProperty1
  * Since we're invoking get and set on the wrapped delegate directly in [set] we need a reference to the associated [KProperty1], in case
  * the wrapped property relies on that being set correctly.
  */
+@Suppress("UNCHECKED_CAST")
 class MetricsLoggingAttributeDelegate<T> private constructor(
   val attrName: String,
   val delegate: ReadWriteProperty<NlComponent, T>,

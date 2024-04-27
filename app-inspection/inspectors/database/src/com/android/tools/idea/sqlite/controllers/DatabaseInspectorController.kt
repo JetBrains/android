@@ -70,6 +70,9 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import icons.StudioIcons
+import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -82,9 +85,6 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
-import java.util.concurrent.Executor
-import java.util.concurrent.TimeUnit
-import javax.swing.JComponent
 
 /** Implementation of the application logic related to viewing/editing sqlite databases. */
 class DatabaseInspectorControllerImpl(
@@ -799,6 +799,7 @@ class DatabaseInspectorControllerImpl(
 
     class Table(@get:UiThread override val databasePath: String, val tableName: String) :
       TabDescription()
+
     class AdHocQuery(@get:UiThread override val databasePath: String?, val query: String) :
       TabDescription()
   }
@@ -858,5 +859,6 @@ interface DatabaseInspectorController : Disposable {
 
 sealed class TabId {
   data class TableTab(val databaseId: SqliteDatabaseId, val tableName: String) : TabId()
+
   data class AdHocQueryTab(val tabId: Int) : TabId()
 }

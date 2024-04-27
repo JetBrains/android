@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.hprof
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.diagnostics.hprof.analysis.HProfAnalysis
 import com.android.tools.idea.diagnostics.hprof.classstore.HProfMetadata
 import com.android.tools.idea.diagnostics.hprof.navigator.RootReason
@@ -120,7 +120,7 @@ class HProfEventBasedParserTest {
     val progress = object : AbstractProgressIndicatorBase() {
     }
     progress.isIndeterminate = false
-    val generatedReport = analysis.analyze(progress)
+    val generatedReport = analysis.analyze(progress).report
     val baselinePath = getBaselinePath("sample-report.txt")
     val baselineReport = getBaselineContents(baselinePath)
 

@@ -41,8 +41,8 @@ interface SyncIssueUsageReporter {
   fun collect(issue: GradleSyncIssue)
 
   /**
-   * Logs collected usages to the usage tracker as a [AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES] and/or
-   * [AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS] event. This method is supposed to be called on EDT only.
+   * Logs collected usages to the usage tracker as a [AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES] event.
+   * This method is supposed to be called on EDT only.
    */
   fun reportToUsageTracker(rootProjectPath: @SystemIndependent String)
 

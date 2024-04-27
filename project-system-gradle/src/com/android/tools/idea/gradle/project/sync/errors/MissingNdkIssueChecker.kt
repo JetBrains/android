@@ -19,7 +19,7 @@ import com.android.repository.Revision
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersionProcessor
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.build.FilePosition
@@ -68,7 +68,7 @@ class MissingNdkIssueChecker: GradleIssueChecker {
       return null
     }
 
-    val gradleVersion = issueData.buildEnvironment?.gradle?.gradleVersion
+    val gradleVersion = issueData.buildEnvironment?.gradle?.gradleVersion;
 
     if (gradleVersion != null && GradleVersionUtil.isGradleOlderOrSameAs(gradleVersion, "6.2")) {
       // If the version of AGP is too old to support android.ndkVersion then don't offer to download an NDK.
@@ -151,7 +151,11 @@ class MissingNdkIssueChecker: GradleIssueChecker {
           localProperties.save()
 
           // Rewrite android.ndkVersion.
-          val buildFiles = ModuleManager.getInstance(project).modules.mapNotNull { GradleUtil.getGradleBuildFile(it) }
+          val buildFiles = ModuleManager.getInstance(project).modules.mapNotNull {
+            GradleProjectSystemUtil.getGradleBuildFile(
+              it
+            )
+          }
           val processor = FixNdkVersionProcessor(project, buildFiles, version)
           processor.run()
           future.complete(null)
@@ -172,7 +176,11 @@ class MissingNdkIssueChecker: GradleIssueChecker {
       val future = CompletableFuture<Any>()
       ApplicationManager.getApplication().invokeLater {
         try {
-          val buildFiles = ModuleManager.getInstance(project).modules.mapNotNull { GradleUtil.getGradleBuildFile(it) }
+          val buildFiles = ModuleManager.getInstance(project).modules.mapNotNull {
+            GradleProjectSystemUtil.getGradleBuildFile(
+              it
+            )
+          }
           InstallNdkHyperlink(preferredVersion, buildFiles).execute(project)
           future.complete(null)
         }

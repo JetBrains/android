@@ -122,22 +122,6 @@ internal class ElapsedTimeMeasurement<T>(metric: Metric) : MetricMeasurementAdap
 }
 
 /**
- * A [MetricMeasurement] that measures the memory usage delta between [before] and [after].
- */
-// TODO(b/292229448): replace all usages of this measurement with HeapSnapshotMemoryUseMeasurement
-internal class MemoryUseMeasurement<T>(metric: Metric) : MetricMeasurementAdapter<T>(metric) {
-  private var initialMemoryUse = -1L
-
-  override fun before() {
-    initialMemoryUse = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
-  }
-
-  override fun after(result: T) =
-    MetricSample(Instant.now().toEpochMilli(),
-                 Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - initialMemoryUse)
-}
-
-/**
  * A [MetricMeasurement] that measures the memory usage using the [HeapSnapshotTraverseService].
  *
  * When [component] is null, the measure is done over the whole [category]. Otherwhise, the
@@ -161,11 +145,11 @@ internal class HeapSnapshotMemoryUseMeasurement<T>(private val category: String,
     if (stats == null) stats = HeapSnapshotTraverseService.getInstance().collectMemoryStatistics(false, true)!!
     val bytes = (if (component == null ) {
       // Full category
-      stats!!.categoryComponentStats.single { it.componentCategory.componentCategoryLabel == category }
+      stats!!.categoryComponentStats.single { it.cluster.label == category }
     }
     else {
       // Specific component
-      stats!!.componentStats.single { it.component.componentCategory.componentCategoryLabel == category && it.component.componentLabel == component }
+      stats!!.componentStats.single { it.cluster.componentCategory.label == category && it.cluster.label == component }
     }).ownedClusterStat.objectsStatistics.totalSizeInBytes
     return MetricSample(Instant.now().toEpochMilli(), bytes)
   }
@@ -286,27 +270,27 @@ internal fun <T> Benchmark.measureOperation(measures: List<MetricMeasurement<T>>
                                             samplesCount: Int = NUMBER_OF_SAMPLES,
                                             printSamples: Boolean = false,
                                             operation: () -> T) {
-  assert(measures.map { it.metric.metricName }.distinct().count() == measures.map { it.metric.metricName }.count()) {
+  // Make sure to make any memory measurements at the end as their 'after' method
+  // is slow and may affect the result of other time related metrics
+  val sortedMeasures = measures.sortedBy { it is HeapSnapshotMemoryUseMeasurement }
+  assert(sortedMeasures.map { it.metric.metricName }.distinct().count() == sortedMeasures.map { it.metric.metricName }.count()) {
     "Metrics can not have duplicate names"
   }
   repeat(warmUpCount) {
     operation()
   }
   runGC()
-  // Make sure to make any memory measurements at the end as their 'after' method
-  // is slow and may affect the result of other time related metrics
-  measures.sortedBy { it is HeapSnapshotMemoryUseMeasurement }
   val metricSamples: LinkedListMultimap<String, MetricSample> = LinkedListMultimap.create()
   repeat(samplesCount) {
-    measures.forEach { it.before() }
+    sortedMeasures.forEach { it.before() }
     val result = operation()
-    measures.forEach {
+    sortedMeasures.forEach {
       it.after(result)?.let { value -> metricSamples.put(it.metric.metricName, value) }
     }
     runGC()
   }
 
-  measures.forEach { measure ->
+  sortedMeasures.forEach { measure ->
     val metric = measure.metric
     val samples = metricSamples.get(metric.metricName)
     if (samples.isNotEmpty()) {

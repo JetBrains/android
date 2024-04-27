@@ -15,15 +15,17 @@
  */
 package org.jetbrains.android.actions;
 
-import static org.jetbrains.android.util.AndroidUtils.getApplicationFacets;
-
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.google.wireless.android.vending.developer.signing.tools.extern.export.ExportEncryptedPrivateKeyTool;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,8 +37,15 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 public class GenerateSignedApkAction extends AnAction {
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
   public GenerateSignedApkAction() {
-    super(AndroidBundle.messagePointer(StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get() ? "android.generate.signed.apk.action.bundle.text" : "android.generate.signed.apk.action.text"));
+    super(AndroidBundle.message(StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get() ? "android.generate.signed.apk.action.bundle.text" : "android.generate.signed.apk.action.text"));
   }
 
   @VisibleForTesting
@@ -58,16 +67,25 @@ public class GenerateSignedApkAction extends AnAction {
     assert !facets.isEmpty();
 
     ExportSignedPackageWizard wizard =
-      new ExportSignedPackageWizard(project, facets, true, allowBundleSigning(project), new ExportEncryptedPrivateKeyTool());
+      new ExportSignedPackageWizard(project, facets, true, allowBundleSigning(project));
     wizard.show();
+  }
+
+  private static boolean hasAtLeastOneApp(@NotNull Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      if (ModuleSystemUtil.androidProjectType(module) == AndroidModuleSystem.Type.TYPE_APP) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    boolean enabled = project != null && !getApplicationFacets(project).isEmpty() &&
+    boolean enabled = project != null && hasAtLeastOneApp(project) &&
                       /* Available for Gradle projects and legacy IDEA Android projects */
-                      (GradleProjectInfo.getInstance(project).isBuildWithGradle() ||
+                      (ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem ||
                        !ProjectSystemUtil.requiresAndroidModel(project));
     e.getPresentation().setEnabledAndVisible(enabled);
     if (enabled) {

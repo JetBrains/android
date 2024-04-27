@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.compose.pickers.common.property
 
+import com.android.ide.common.resources.colorToStringWithAlpha
+import com.android.ide.common.resources.parseColor
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.adtui.actions.locationFromEvent
 import com.android.tools.idea.compose.pickers.base.model.PsiCallPropertiesModel
 import com.android.tools.idea.compose.pickers.base.property.PsiCallParameterPropertyItem
 import com.android.tools.idea.compose.pickers.common.editingsupport.ColorValidation
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.res.colorToStringWithAlpha
-import com.android.tools.idea.res.parseColor
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
 import com.android.tools.property.panel.api.ActionIconButton
 import com.intellij.openapi.actionSystem.AnAction

@@ -20,6 +20,7 @@ import static com.android.tools.idea.transport.faketransport.FakeTransportServic
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeTrue;
 
 import com.android.ddmlib.allocations.AllocationsParserTest;
@@ -41,6 +42,7 @@ import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -135,18 +137,20 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     MemoryProfilerTestUtils
       .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
-    assertThat(myStage.getCaptureSelection().getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
-    myAspectObserver.assertAndResetCounts(1, 1, 0, 0, 0, 0, 0, 0);
-    LegacyAllocationCaptureObject capture = (LegacyAllocationCaptureObject)myStage.getCaptureSelection().getSelectedCapture();
+    // The MemoryCaptureStage should be entered at this point to display the legacy (pre-O) Java/Kotlin Allocation capture data.
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryCaptureStage.class);
+    CaptureObject capture = ((MemoryCaptureStage)myProfilers.getStage()).getCaptureSelection().getSelectedCapture();
+    assertThat(capture).isInstanceOf(LegacyAllocationCaptureObject.class);
+    myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
     assertThat(capture.isDoneLoading()).isFalse();
     assertThat(capture.isError()).isFalse();
 
     // Finish the load task.
     myMockLoader.runTask();
-    assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(capture);
+    assertThat(((MemoryCaptureStage)myProfilers.getStage()).getCaptureSelection().getSelectedCapture()).isEqualTo(capture);
     assertThat(capture.isDoneLoading()).isTrue();
     assertThat(capture.isError()).isFalse();
-    myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
   }
 
   @Test
@@ -177,7 +181,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Native allocation recording is only enabled as a built-in recording option for Q+ api levels.
     // The call to RecordingOptionsModel::setRecording can only be done if native allocation recording
     // is a part of the built-in recording options list. Thus, we only run this test with api levels Q and above.
-    assumeTrue(myStage.getDeviceForSelectedSession().getFeatureLevel() >= AndroidVersion.VersionCodes.Q);
+    assumeQAndAbove(true);
     assertThat(myStage.isTrackingAllocations()).isFalse();
     assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isFalse();
     // Set time to 1 second (in ns) before starting tracking to verify start time field of TraceStartStatus event.
@@ -670,8 +674,11 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
       .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
 
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
-    assertThat(myStage.getCaptureSelection().getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
-    myAspectObserver.assertAndResetCounts(2, 1, 1, 0, 1, 0, 0, 0);
+    // The MemoryCaptureStage should be entered at this point to display the legacy (pre-O) Java/Kotlin Allocation capture data.
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryCaptureStage.class);
+    assertThat(((MemoryCaptureStage)myProfilers.getStage()).getCaptureSelection().getSelectedCapture()).isInstanceOf(
+      LegacyAllocationCaptureObject.class);
+    myAspectObserver.assertAndResetCounts(2, 0, 0, 0, 0, 0, 0, 0);
   }
 
   @Test
@@ -841,6 +848,29 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
+  public void selectingLegacyAllocationsGoesToMemoryCaptureStage() {
+    long startTimeUs = 5;
+    long endTimeUs = 10;
+    AllocationsInfo info = AllocationsInfo.newBuilder()
+      .setStartTime(TimeUnit.MICROSECONDS.toNanos(startTimeUs)).setEndTime(TimeUnit.MICROSECONDS.toNanos(endTimeUs)).setLegacy(true)
+      .build();
+    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                        ProfilersTestData.generateMemoryAllocationInfoData(info.getStartTime(),
+                                                                                           ProfilersTestData.SESSION_DATA.getPid(),
+                                                                                           info).build());
+
+    DataSeries<CaptureDurationData<? extends CaptureObject>> series =
+      CaptureDataSeries.ofLegacyAllocationInfos(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
+                                                myIdeProfilerServices.getFeatureTracker(), myStage);
+    List<SeriesData<CaptureDurationData<? extends CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
+
+    assertEquals(1, dataList.size());
+    myStage.selectCaptureDuration(dataList.get(0).value, null);
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryCaptureStage.class);
+    assertThat(myProfilers.getStage().getStageType()).isEqualTo(AndroidProfilerEvent.Stage.MEMORY_STAGE);
+  }
+
+  @Test
   public void selectingFinishedAllocationSessionSwitchesToAllocationStage() {
     CaptureObject obj = new FakeCaptureObject.Builder().build();
     CaptureEntry<CaptureObject> entry = new CaptureEntry<>(0, () -> obj);
@@ -870,8 +900,132 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.myNativeAllocationTracking).isTrue();
   }
 
+  @Test
+  public void testLazyHeapDumpRecordingOption() {
+    MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
+    RecordingOption recordingOption = stage.lazyHeapDumpRecordingOption.getValue();
+    // Call for the recording option again to confirm it is the original recording option instance.
+    assertThat(recordingOption).isEqualTo(stage.lazyHeapDumpRecordingOption.getValue());
+  }
+
+  @Test
+  public void testLazyNativeRecordingOption() {
+    MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
+    RecordingOption recordingOption = stage.lazyNativeRecordingOption.getValue();
+    // Call for the recording option again to confirm it is the original recording option instance.
+    assertThat(recordingOption).isEqualTo(stage.lazyNativeRecordingOption.getValue());
+  }
+
+  @Test
+  public void testLazyJavaKotlinAllocationsRecordingOption() {
+    MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
+    RecordingOption recordingOption = stage.lazyJavaKotlinAllocationsRecordingOption.getValue();
+    // Call for the recording option again to confirm it is the original recording option instance.
+    assertThat(recordingOption).isEqualTo(stage.lazyJavaKotlinAllocationsRecordingOption.getValue());
+  }
+
+  @Test
+  public void testStartHeapDumpCapture() {
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startHeapDumpCapture();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(myStage.lazyHeapDumpRecordingOption.getValue());
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+  }
+
+  @Test
+  public void testStartNativeAllocationCapture() {
+    assumeQAndAbove(true);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startNativeAllocationCapture();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(myStage.lazyNativeRecordingOption.getValue());
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+  }
+
+  @Test
+  public void testStopNativeAllocationCapture() {
+    assumeQAndAbove(true);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startNativeAllocationCapture();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(myStage.lazyNativeRecordingOption.getValue());
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+    assertThat(myStage.myNativeAllocationTracking).isTrue();
+    myStage.stopMemoryRecording();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.myNativeAllocationTracking).isFalse();
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+  }
+
+  @Test
+  public void testStartJavaKotlinAllocationCapturePreO() {
+    assumePreO(true);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startJavaKotlinAllocationCapture();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(
+      myStage.lazyJavaKotlinAllocationsRecordingOption.getValue());
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+  }
+
+  @Test
+  public void testStopJavaKotlinAllocationCapturePreO() {
+    assumePreO(true);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startJavaKotlinAllocationCapture();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(
+      myStage.lazyJavaKotlinAllocationsRecordingOption.getValue());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+    // Force the tracking allocations boolean flag to be true to simulate successful start.
+    myStage.setTrackingAllocations(true);
+    myStage.stopMemoryRecording();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // Because setFinished() (which sets isRecording to false) is only called when the TraceStopStatus event
+    // is received, isRecording should still be true.
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+    // The value will eventually be false once a trace stop status even is received. This is verified by
+    // other tests such as MainMemoryProfilerStageTest's testToggleNativeAllocationRecordingChangesIsRecordingState()
+    // and testStartAndStopNativeAllocationCapture tests, as well as CpuProfilerStageTest's
+    // receivingTraceStopStatusEventSetsRecordingToFinished() test.
+  }
+
+  @Test
+  public void testStartJavaKotlinAllocationCaptureOAndAbove() {
+    assumePreO(false);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startJavaKotlinAllocationCapture();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(
+      myStage.lazyJavaKotlinAllocationsRecordingOption.getValue());
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+  }
+
+  @Test
+  public void testStopJavaKotlinAllocationCaptureOAndAbove() {
+    assumePreO(false);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startJavaKotlinAllocationCapture();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(
+      myStage.lazyJavaKotlinAllocationsRecordingOption.getValue());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+    // Force the tracking allocations boolean flag to be true to simulate successful start.
+    myStage.setTrackingAllocations(true);
+    myStage.stopMemoryRecording();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // Because setFinished() (which sets isRecording to false) is only called when the TraceStopStatus event
+    // is received, isRecording should still be true.
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+    // The value will eventually be false once a trace stop status even is received. This is verified by
+    // other tests such as MainMemoryProfilerStageTest's testToggleNativeAllocationRecordingChangesIsRecordingState()
+    // and testStartAndStopNativeAllocationCapture tests, as well as CpuProfilerStageTest's
+    // receivingTraceStopStatusEventSetsRecordingToFinished() test.
+  }
+
   private void assumePreO(boolean assumedPreO) {
     assumeTrue(myStage.getDeviceForSelectedSession().getFeatureLevel() < AndroidVersion.VersionCodes.O == assumedPreO);
+  }
+
+  private void assumeQAndAbove(boolean assumedQAndAbove) {
+    assumeTrue(myStage.getDeviceForSelectedSession().getFeatureLevel() >= AndroidVersion.VersionCodes.Q == assumedQAndAbove);
   }
 
   @Parameterized.Parameters

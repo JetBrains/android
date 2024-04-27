@@ -22,22 +22,29 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.util.Locale
 
-/**
- * Tests for [LogcatColorSettingsPage]
- */
+/** Tests for [LogcatColorSettingsPage] */
 class LogcatColorSettingsPageTest {
   private val colors = LogcatColors()
   private val logcatColorSettingsPage = LogcatColorSettingsPage()
 
   @Test
   fun attributeDescriptors() {
-    val descriptors = logcatColorSettingsPage.attributeDescriptors.associate { it.displayName to it.key }
+    val descriptors =
+      logcatColorSettingsPage.attributeDescriptors.associate { it.displayName to it.key }
 
     assertThat(descriptors.size).isEqualTo(LogLevel.values().size * 2)
     for (level in LogLevel.values()) {
       val name = level.name.lowercase(Locale.getDefault()).usLocaleCapitalize()
-      assertThat(descriptors).containsEntry(LogcatBundle.message("logcat.color.page.indicator", name), colors.getLogLevelKey(level))
-      assertThat(descriptors).containsEntry(LogcatBundle.message("logcat.color.page.message", name), colors.getMessageKey(level))
+      assertThat(descriptors)
+        .containsEntry(
+          LogcatBundle.message("logcat.color.page.indicator", name),
+          colors.getLogLevelKey(level)
+        )
+      assertThat(descriptors)
+        .containsEntry(
+          LogcatBundle.message("logcat.color.page.message", name),
+          colors.getMessageKey(level)
+        )
     }
   }
 
@@ -54,18 +61,26 @@ class LogcatColorSettingsPageTest {
 
   @Test
   fun demoText() {
-    // Extract only lines containing a sample log entry and trim out everything before the first color tag (first '<' char)
-    val lines = logcatColorSettingsPage.demoText.lines().filter { it.contains("Sample") }.map { it.substring(it.indexOf("<")) }
+    // Extract only lines containing a sample log entry and trim out everything before the first
+    // color tag (first '<' char)
+    val lines =
+      logcatColorSettingsPage.demoText
+        .lines()
+        .filter { it.contains("Sample") }
+        .map { it.substring(it.indexOf("<")) }
 
     assertThat(lines.size).isEqualTo(LogLevel.values().size)
     for (level in LogLevel.values()) {
       val indicatorTag = level.toIndicatorTag()
       val messageTag = level.toMessageTag()
       assertThat(lines)
-        .contains("<$indicatorTag> ${level.priorityLetter} </$indicatorTag> <$messageTag>Sample ${level.stringValue} text</$messageTag>")
+        .contains(
+          "<$indicatorTag> ${level.priorityLetter} </$indicatorTag> <$messageTag>Sample ${level.stringValue} text</$messageTag>"
+        )
     }
   }
 }
 
 private fun LogLevel.toIndicatorTag() = "${priorityLetter.toLowerCase()}"
+
 private fun LogLevel.toMessageTag() = "${priorityLetter.toLowerCase()}m"

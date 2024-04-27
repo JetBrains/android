@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.ext;
 
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription.NOT_FOR_DECLARATIVE;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -38,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class ExtDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<ExtDslElement> EXT =
-    new PropertiesElementDescription<>("ext", ExtDslElement.class, ExtDslElement::new);
+    new PropertiesElementDescription<>("ext", ExtDslElement.class, ExtDslElement::new, NOT_FOR_DECLARATIVE);
 
   public ExtDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);

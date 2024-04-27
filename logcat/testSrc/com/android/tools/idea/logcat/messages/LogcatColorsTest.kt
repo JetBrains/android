@@ -24,9 +24,7 @@ import java.awt.Color
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 
-/**
- * Tests for [LogcatColors]
- */
+/** Tests for [LogcatColors] */
 class LogcatColorsTest {
   private val logcatColors = LogcatColors()
 
@@ -38,7 +36,9 @@ class LogcatColorsTest {
   @Test
   fun tagColors_areDiverse() {
     val colors = mutableMapOf<TextAttributes, MutableList<Int>>()
-    repeat(100) { colors.computeIfAbsent(logcatColors.getTagColor("tag$it")) { mutableListOf() }.add(it) }
+    repeat(100) {
+      colors.computeIfAbsent(logcatColors.getTagColor("tag$it")) { mutableListOf() }.add(it)
+    }
 
     assertThat(colors.size).isAtLeast(50)
     colors.forEach { (_, tags) -> assertThat(tags.size).isAtMost(10) }
@@ -54,7 +54,8 @@ class LogcatColorsTest {
 
   @Test
   fun tagColors_doNotHaveBackground() {
-    assertThat(logcatColors.getTagColor("tag").backgroundColor).isEqualTo(TextAttributes().backgroundColor)
+    assertThat(logcatColors.getTagColor("tag").backgroundColor)
+      .isEqualTo(TextAttributes().backgroundColor)
   }
 
   @Test
@@ -62,11 +63,8 @@ class LogcatColorsTest {
     val exceptions = AtomicInteger()
     val block: () -> Unit = {
       try {
-        repeat(10000) {
-          logcatColors.getTagColor("tag$it")
-        }
-      }
-      catch (e: ConcurrentModificationException) {
+        repeat(10000) { logcatColors.getTagColor("tag$it") }
+      } catch (e: ConcurrentModificationException) {
         exceptions.incrementAndGet()
       }
     }
@@ -78,7 +76,6 @@ class LogcatColorsTest {
       fail("logcatColors.getTagColor() is not thread safe")
     }
   }
-
 }
 
 private fun assertJBColors(textAttributes: TextAttributes) {
@@ -87,7 +84,5 @@ private fun assertJBColors(textAttributes: TextAttributes) {
 }
 
 private fun assertJBColor(color: Color?) {
-  color?.run {
-    assertThat(color).isInstanceOf(JBColor::class.java)
-  }
+  color?.run { assertThat(color).isInstanceOf(JBColor::class.java) }
 }

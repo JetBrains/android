@@ -20,8 +20,8 @@ import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.utils.toSqliteValues
 import com.intellij.testFramework.LightPlatformTestCase
-import junit.framework.TestCase
 import java.util.LinkedList
+import junit.framework.TestCase
 
 class UtilsTest : LightPlatformTestCase() {
   fun testReplaceParametersNothingIsReplaced() {

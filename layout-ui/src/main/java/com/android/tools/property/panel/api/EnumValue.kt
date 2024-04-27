@@ -78,14 +78,22 @@ interface EnumValue {
   /** Default implementations of [EnumValue]s */
   companion object {
     fun item(value: String): EnumValue = ItemEnumValue(value)
+
     fun item(value: String, display: String): EnumValue = ItemWithDisplayEnumValue(value, display)
+
     fun indented(value: String): EnumValue = IndentedItemEnumValue(value)
+
     fun indented(value: String, display: String): EnumValue =
       IndentedItemWithDisplayEnumValue(value, display)
+
     fun action(action: AnAction): BaseActionEnumValue = AnActionEnumValue(action)
+
     fun header(header: String): EnumValue = HeaderEnumValue(header)
+
     fun header(header: String, icon: Icon?): EnumValue = HeaderEnumValue(header, icon)
+
     fun empty(display: String) = EmptyDisplayEnumValue(display)
+
     val DEFAULT_RENDERER: ListCellRenderer<EnumValue> = EnumValueListCellRenderer()
     val EMPTY: EnumValue = ItemEnumValue(null)
     val SEPARATOR: EnumValue = object : EnumValue, CommonElementSelectability {}

@@ -22,7 +22,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType
@@ -34,6 +34,7 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
+import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
@@ -61,7 +62,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -111,6 +111,7 @@ import javax.swing.JViewport
 /**
  * Tests for [EmulatorToolWindowPanel] and some of its toolbar actions.
  */
+@Suppress("OPT_IN_USAGE")
 @RunsInEdt
 class EmulatorToolWindowPanelTest {
 
@@ -158,7 +159,7 @@ class EmulatorToolWindowPanelTest {
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(400, 600)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
@@ -266,7 +267,7 @@ class EmulatorToolWindowPanelTest {
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(430, 450)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
@@ -394,7 +395,7 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
-  fun testChangeDisplayMode() {
+  fun testDisplayModes() {
     val avdFolder = FakeEmulator.createResizableAvd(emulatorRule.avdRoot)
     val panel = createWindowPanel(avdFolder)
     panel.zoomToolbarVisible = false
@@ -407,23 +408,40 @@ class EmulatorToolWindowPanelTest {
     val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
 
     var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
-    panel.size = Dimension(1200, 1200)
+    assertThat(frameNumber).isEqualTo(0u)
+    panel.size = Dimension(500, 600)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
-    var streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1080 height: 1171")
-    assertAppearance(ui, "ChangeDisplayMode1", maxPercentDifferentMac = 0.002, maxPercentDifferentWindows = 0.05)
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 500 height: 571")
+    assertAppearance(ui, "DisplayModesPhone", maxPercentDifferentMac = 0.002, maxPercentDifferentWindows = 0.05)
 
-    // Set the desktop display mode.
-    executeStreamingAction("android.emulator.display.mode.tablet", emulatorView, project)
+    // Set the foldable display mode.
+    executeStreamingAction("android.emulator.display.mode.foldable", emulatorView, project)
     val setDisplayModeCall = emulator.getNextGrpcCall(2, SECONDS)
     assertThat(setDisplayModeCall.methodName).isEqualTo("android.emulation.control.EmulatorController/setDisplayMode")
-    assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: TABLET")
+    assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: FOLDABLE")
 
-    streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1200 height: 1171")
-    assertAppearance(ui, "ChangeDisplayMode2", maxPercentDifferentMac = 0.002, maxPercentDifferentWindows = 0.05)
+    panel.waitForFrame(ui, ++frameNumber, 2, SECONDS)
+    assertAppearance(ui, "DisplayModesFoldable", maxPercentDifferentMac = 0.002, maxPercentDifferentWindows = 0.05)
+
+    val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
+    val event = createTestEvent(emulatorView, project, ActionPlaces.TOOLBAR)
+    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.isVisible}
+    assertThat(event.presentation.isEnabled).isTrue()
+    assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
+    val foldingActions = foldingGroup.getChildren(event)
+    assertThat(foldingActions).asList().containsExactly(
+      EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_CLOSED, PostureDescriptor.ValueType.HINGE_ANGLE, 0.0, 30.0)),
+      EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 30.0, 150.0)),
+      EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 150.0, 180.0)),
+      Separator.getInstance(),
+      ActionManager.getInstance().getAction(EmulatorShowVirtualSensorsAction.ID))
+    for (action in foldingActions) {
+      action.update(event)
+      assertThat(event.presentation.isEnabled).isTrue()
+      assertThat(event.presentation.isVisible).isTrue()
+    }
   }
 
   @Test
@@ -439,12 +457,12 @@ class EmulatorToolWindowPanelTest {
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(200, 400)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
     var call = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 200 height: 371")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 186 height: 327")
 
     val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
     val event = createTestEvent(emulatorView, project, ActionPlaces.TOOLBAR)
@@ -453,9 +471,9 @@ class EmulatorToolWindowPanelTest {
     assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
     val foldingActions = foldingGroup.getChildren(event)
     assertThat(foldingActions).asList().containsExactly(
-        EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_CLOSED, 0.0, 30.0)),
-        EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, 30.0, 150.0)),
-        EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_OPENED, 150.0, 180.0)),
+        EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_CLOSED, PostureDescriptor.ValueType.HINGE_ANGLE, 0.0, 30.0)),
+        EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 30.0, 150.0)),
+        EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 150.0, 180.0)),
         Separator.getInstance(),
         ActionManager.getInstance().getAction(EmulatorShowVirtualSensorsAction.ID))
     for (action in foldingActions) {
@@ -469,6 +487,8 @@ class EmulatorToolWindowPanelTest {
     call = emulator.getNextGrpcCall(2, SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: HINGE_ANGLE0 value { data: 0.0 }")
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 170 height: 347")
     waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
     panel.waitForFrame(ui, ++frameNumber, 2, SECONDS)
     assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))
@@ -498,7 +518,7 @@ class EmulatorToolWindowPanelTest {
     var emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
 
     var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(400, 600)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
@@ -544,7 +564,7 @@ class EmulatorToolWindowPanelTest {
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(200, 400)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
@@ -635,8 +655,8 @@ class EmulatorToolWindowPanelTest {
     val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
 
     // Check appearance.
-    val frameNumbers = intArrayOf(emulatorView.frameNumber, 0, 0)
-    assertThat(frameNumbers[PRIMARY_DISPLAY_ID]).isEqualTo(0)
+    val frameNumbers = uintArrayOf(emulatorView.frameNumber, 0u, 0u)
+    assertThat(frameNumbers[PRIMARY_DISPLAY_ID]).isEqualTo(0u)
     panel.size = Dimension(400, 600)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
@@ -652,7 +672,7 @@ class EmulatorToolWindowPanelTest {
     assertAppearance(ui, "MultipleDisplays1", maxPercentDifferentMac = 0.09, maxPercentDifferentWindows = 0.25)
 
     // Resize emulator display panels.
-    ui.findAllComponents<EmulatorSplitPanel>().forEach { it.proportion /= 2 }
+    ui.findAllComponents<SplitPanel>().forEach { it.proportion /= 2 }
     ui.layoutAndDispatchEvents()
     val displayViewSizes = ui.findAllComponents<EmulatorView>().map { it.size }
 
@@ -792,10 +812,10 @@ class EmulatorToolWindowPanelTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
-  private fun getStreamScreenshotCallAndWaitForFrame(fakeUi: FakeUi, panel: EmulatorToolWindowPanel, frameNumber: Int): GrpcCallRecord {
-    val call = emulator.getNextGrpcCall(2, SECONDS)
+  private fun getStreamScreenshotCallAndWaitForFrame(fakeUi: FakeUi, panel: EmulatorToolWindowPanel, frameNumber: UInt): GrpcCallRecord {
+    val call = emulator.getNextGrpcCall(2_000, SECONDS) //TODO NOW
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamScreenshot")
-    panel.waitForFrame(fakeUi, frameNumber, 2, SECONDS)
+    panel.waitForFrame(fakeUi, frameNumber, 2_000, SECONDS)
     return call
   }
 
@@ -811,25 +831,19 @@ class EmulatorToolWindowPanelTest {
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
-    val panel = EmulatorToolWindowPanel(projectRule.project, emulatorController)
-    Disposer.register(testRootDisposable) {
-      if (panel.primaryEmulatorView != null) {
-        panel.destroyContent()
-      }
-      emulator.stop()
-    }
+    val panel = EmulatorToolWindowPanel(testRootDisposable, projectRule.project, emulatorController)
     panel.zoomToolbarVisible = true
     waitForCondition(5, SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     return panel
   }
 
   @Throws(TimeoutException::class)
-  private fun EmulatorToolWindowPanel.waitForFrame(fakeUi: FakeUi, frame: Int, timeout: Long, unit: TimeUnit) {
+  private fun EmulatorToolWindowPanel.waitForFrame(fakeUi: FakeUi, frame: UInt, timeout: Long, unit: TimeUnit) {
     waitForCondition(timeout, unit) { renderAndGetFrameNumber(fakeUi, primaryEmulatorView!!) >= frame }
   }
 
   @Throws(TimeoutException::class)
-  private fun waitForNextFrameInAllDisplays(fakeUi: FakeUi, frameNumbers: IntArray) {
+  private fun waitForNextFrameInAllDisplays(fakeUi: FakeUi, frameNumbers: UIntArray) {
     val displayViews = fakeUi.findAllComponents<EmulatorView>()
     assertThat(displayViews.size).isEqualTo(frameNumbers.size)
     waitForCondition(2, SECONDS) {
@@ -846,7 +860,7 @@ class EmulatorToolWindowPanelTest {
     }
   }
 
-  private fun renderAndGetFrameNumber(fakeUi: FakeUi, emulatorView: EmulatorView): Int {
+  private fun renderAndGetFrameNumber(fakeUi: FakeUi, emulatorView: EmulatorView): UInt {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return emulatorView.frameNumber
   }

@@ -15,20 +15,12 @@
  */
 package com.android.tools.compose
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.openapi.application.ex.PathManagerEx
 import java.nio.file.Files
 
-fun getComposePluginTestDataPath():String {
+fun getComposePluginTestDataPath(): String {
   val adtPath = resolveWorkspacePath("tools/adt/idea/compose-ide-plugin/testData")
   return if (Files.exists(adtPath)) adtPath.toString()
-         else PathManagerEx.findFileUnderCommunityHome("plugins/android-compose-ide-plugin").path
+  else PathManagerEx.findFileUnderCommunityHome("plugins/android-compose-ide-plugin").path
 }
-
-// Kotlin compiler diagnostics to suppress
-// When testing Compose compiler plugin checkers, let's test diagnostics from plugin checkers,
-// not those from built-in compiler checkers.
-private val SUPPRESSION = listOf("UNUSED_PARAMETER", "UNUSED_VARIABLE")
-
-internal val suppressAnnotation: String
-  get() = SUPPRESSION.joinToString(prefix = "@file:Suppress(", postfix = ")") { "\"$it\"" }

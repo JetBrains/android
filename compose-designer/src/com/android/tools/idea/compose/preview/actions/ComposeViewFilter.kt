@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
+import com.intellij.openapi.actionSystem.DataContext
 
 /** The interface for implementing the filtering logic of [ComposeFilterTextAction]. */
 interface ComposeViewFilter {
-  fun filter(query: String?)
+  fun filter(query: String?, dataContext: DataContext?)
 }
 
 /**
@@ -29,8 +30,9 @@ interface ComposeViewFilter {
  * visible only when its model name contains the searched text, otherwise it is invisible. If the
  * query is blank or null, all [com.android.tools.idea.common.surface.SceneView] would be visible.
  */
-class ComposeViewSingleWordFilter(private val surface: DesignSurface<*>) : ComposeViewFilter {
-  override fun filter(query: String?) {
+class ComposeViewSingleWordFilter : ComposeViewFilter {
+  override fun filter(query: String?, dataContext: DataContext?) {
+    val surface = dataContext?.getData(DESIGN_SURFACE) ?: return
     if (query.isNullOrBlank()) {
       surface.updateSceneViewVisibilities { true }
       return

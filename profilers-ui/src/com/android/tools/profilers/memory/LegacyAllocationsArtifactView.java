@@ -35,14 +35,4 @@ public final class LegacyAllocationsArtifactView extends SessionArtifactView<Leg
     return buildCaptureArtifactView(getArtifact().getName(), getArtifact().getSubtitle(), StudioIcons.Profiler.Sessions.ALLOCATIONS,
                                     getArtifact().isOngoing());
   }
-
-  @Override
-  protected void exportArtifact() {
-    assert !getArtifact().isOngoing();
-    getSessionsView().getIdeProfilerComponents().createExportDialog().open(
-      () -> "Export As",
-      () -> MemoryProfiler.generateCaptureFileName(),
-      () -> "alloc",
-      file -> getSessionsView().getProfilers().getIdeServices().saveFile(file, outputStream -> getArtifact().export(outputStream), null));
-  }
 }

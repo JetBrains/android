@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 
 /**
  * Handler for the {@code <DatePicker>} widget.

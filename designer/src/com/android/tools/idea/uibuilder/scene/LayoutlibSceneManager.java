@@ -33,8 +33,8 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationListener;
 import com.android.tools.idea.common.analytics.CommonUsageTracker;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
@@ -45,8 +45,10 @@ import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.scene.TargetProvider;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.common.surface.LayoutScannerEnabled;
@@ -55,17 +57,17 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.modes.essentials.EssentialsMode;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
+import com.android.tools.idea.rendering.RenderResultUtilKt;
 import com.android.tools.idea.rendering.RenderResults;
+import com.android.tools.idea.rendering.RenderServiceUtilsKt;
 import com.android.tools.idea.rendering.ShowFixFactory;
 import com.android.tools.idea.rendering.StudioRenderService;
-import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
 import com.android.tools.idea.uibuilder.io.PsiFileUtil;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -75,6 +77,7 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode;
 import com.android.tools.idea.util.ListenerCollection;
 import com.android.tools.rendering.ExecuteCallbacksResult;
@@ -111,7 +114,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -272,6 +277,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private final RenderingQueue myRenderingQueue;
   @NotNull
   private RenderAsyncActionExecutor.RenderingTopic myRenderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED;
+  private boolean myUseCustomInflater = true;
   @GuardedBy("myRenderingTaskLock")
   private RenderTask myRenderTask;
   @GuardedBy("myRenderingTaskLock")
@@ -388,6 +394,11 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
   /** Counter for user events during the interactive session. */
   private AtomicInteger myInteractiveEventsCounter = new AtomicInteger(0);
+
+  /**
+   * If true, this {@link LayoutlibSceneManager} will retain the last successful image even if the new result is an error.
+   */
+  private boolean myCacheSuccessfulRenderImage = false;
 
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
@@ -559,7 +570,18 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     assert scene.getRoot() != null;
 
     TemporarySceneComponent tempComponent = new TemporarySceneComponent(getScene(), component);
-    tempComponent.setTargetProvider(sceneComponent -> ImmutableList.of(new ConstraintDragDndTarget()));
+    tempComponent.setTargetProvider(new TargetProvider() {
+      @NotNull
+      @Override
+      public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
+        return Collections.emptyList();
+      }
+
+      @Override
+      public boolean shouldAddCommonDragTarget(@NotNull SceneComponent component) {
+        return true;
+      }
+    });
     scene.setAnimated(false);
     scene.getRoot().addChild(tempComponent);
     syncFromNlComponent(tempComponent);
@@ -707,7 +729,13 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     // TODO See if there's a better way to trigger the NavigationViewSceneView. Perhaps examine the view objects?
     if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE)) {
       sceneView = ScreenView.newBuilder(getDesignSurface(), this)
-        .withLayersProvider((sv) -> ImmutableList.of(new ScreenViewLayer(sv,getDesignSurface(), getDesignSurface()::getRotateSurfaceDegree)))
+        .withLayersProvider((sv) -> {
+          ColorBlindMode colorBlindMode = ColorBlindMode.NONE;
+          if (getDesignSurface().getScreenViewProvider() != null) {
+            colorBlindMode = getDesignSurface().getScreenViewProvider().getColorBlindFilter();
+          }
+          return ImmutableList.of(new ScreenViewLayer(sv, colorBlindMode, getDesignSurface(), getDesignSurface()::getRotateSurfaceDegree));
+        })
         .withContentSizePolicy(NavigationViewSceneView.CONTENT_SIZE_POLICY)
         .withShapePolicy(SQUARE_SHAPE_POLICY)
         .build();
@@ -906,8 +934,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @Override
   @NotNull
   public CompletableFuture<Void> requestLayoutAndRenderAsync(boolean animate) {
-    // Don't render if we're just showing the blueprint
-    if (getDesignSurface().getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
+    // Don't re-render if we're just showing the blueprint
+    if (myRenderedVersion != null && getDesignSurface().getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
       return requestLayoutAsync(animate);
     }
 
@@ -978,6 +1006,10 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     myRenderingTopic = topic;
   }
 
+  public void setUseCustomInflater(boolean useCustomInflater) {
+    myUseCustomInflater = useCustomInflater;
+  }
+
   public void setUpdateAndRenderWhenActivated(boolean enable) {
     myUpdateAndRenderWhenActivated = enable;
   }
@@ -1008,6 +1040,28 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
   public void setCustomContentHierarchyParser(Function<Object, List<ViewInfo>> parser) {
     myCustomContentHierarchyParser = parser;
+  }
+
+  /**
+   * If {@code enabled}, the last successful image and root bounds are cached in the {@link RenderResult}.
+   * If a new render or inflate happens and it's not successful, the previous one, if any, will be cached.
+   * Setting this flag has no effect in metrics and the actual result will be reported.
+   */
+  public void setCacheSuccessfulRenderImage(boolean enabled) {
+    myCacheSuccessfulRenderImage = enabled;
+  }
+
+  public void invalidateCachedResponse() {
+    RenderResult toDispose = getRenderResult();
+    if (toDispose != null) {
+      toDispose.dispose();
+      myRenderResultLock.writeLock().lock();
+      try {
+        myRenderResult = null;
+      } finally {
+        myRenderResultLock.writeLock().unlock();
+      }
+    }
   }
 
   @Override
@@ -1149,12 +1203,13 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
     RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
-    RenderLogger logger = myLogRenderErrors ? StudioRenderServiceKt.createLogger(renderService, project) : renderService.getNopLogger();
+    RenderLogger logger = myLogRenderErrors ? RenderServiceUtilsKt.createHtmlLogger(renderService, project) : renderService.getNopLogger();
     RenderModelModule renderModule = createRenderModule(facet);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(renderModule, configuration, logger)
       .withPsiFile(new PsiXmlFile(getModel().getFile()))
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
-      .withTopic(myRenderingTopic);
+      .withTopic(myRenderingTopic)
+      .setUseCustomInflater(myUseCustomInflater);
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
         if (newTask != null) {
@@ -1174,10 +1229,10 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
               if (result == null || !result.getRenderResult().isSuccess()) {
                 // Do not ignore ClassNotFoundException on inflate
                 if (exception instanceof ClassNotFoundException) {
-                  logger.addMessage(RenderProblem.createPlain(ERROR,
-                                                              "Error inflating the preview",
-                                                              renderModule.getProject(),
-                                                              logger.getLinkManager(), exception, ShowFixFactory.INSTANCE));
+                  logger.addMessage(RenderProblem.createHtml(ERROR,
+                                                             "Error inflating the preview",
+                                                             renderModule.getProject(),
+                                                             logger.getLinkManager(), exception, ShowFixFactory.INSTANCE));
                 }
                 else {
                   logger.error(ILayoutLog.TAG_INFLATE, "Error inflating the preview", exception, null, null);
@@ -1243,7 +1298,22 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     myRenderResultLock.writeLock().lock();
     try {
       if (myRenderResult != null && myRenderResult != result) {
-        myRenderResult.dispose();
+        if (
+          myCacheSuccessfulRenderImage
+          // Do not cache in interactive mode. It does not help and would make unnecessary copies of the bitmap.
+          && !myIsInteractive
+          // The previous result was valid
+          && myRenderResult.getRenderedImage().getWidth() > 1 && myRenderResult.getRenderedImage().getHeight() > 1
+          // The new result is an error
+          && RenderResultUtilKt.isErrorResult(result)
+        ) {
+          assert result != null; // result can not be null if isErrorResult is true
+          result = result.copyWithNewImageAndRootViewDimensions(
+            StudioRenderService.getInstance(result.getProject()).getSharedImagePool()
+              .copyOf(myRenderResult.getRenderedImage().getCopy()),
+            myRenderResult.getRootViewDimensions());
+        }
+        invalidateCachedResponse();
       }
       myRenderResult = result;
       return result;
@@ -1489,7 +1559,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
           final float currentQuality = quality;
           myRenderTask.setQuality(quality);
           return myRenderTask.render().thenApply(result -> {
-            if (result.getRenderResult().isSuccess()) {
+            if (result != null && result.getRenderResult().isSuccess()) {
               lastRenderQuality = currentQuality;
             }
             // When the layout was inflated in this same call, we do not have to update the hierarchy again
@@ -1502,6 +1572,9 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       })
       .handle((result, exception) -> {
         if (exception != null) {
+          if (exception instanceof CompletionException && exception.getCause() != null) {
+            exception = exception.getCause();
+          }
           return RenderResults.createRenderTaskErrorResult(getModel().getFile(), exception);
         }
         return result;

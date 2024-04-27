@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.events
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Device
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.OperatingSystemInfo
@@ -40,14 +41,17 @@ data class IssuesChanged(
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
     if (issues is LoadingState.Failure) {
       return StateTransition(
         state.copy(
           issues = issues,
+          currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
-          currentNotes = LoadingState.Ready(null)
+          currentNotes = LoadingState.Ready(null),
+          currentEvents = LoadingState.Ready(null)
         ),
         Action.NONE
       )
@@ -119,17 +123,19 @@ data class IssuesChanged(
                 }
               } else state.filters.operatingSystems
           ),
+        currentIssueVariants =
+          if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
         currentIssueDetails =
-          if (issues is LoadingState.Ready && newSelectedIssue != null) LoadingState.Loading
+          if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
+        currentEvents =
+          if (newSelectedIssue != null) transitionEventForKey(key, newSelectedIssue.sampleEvent)
           else LoadingState.Ready(null),
         currentNotes =
-          if (issues is LoadingState.Ready && newSelectedIssue != null) LoadingState.Loading
-          else LoadingState.Ready(null),
+          if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
         permission = (issues as? LoadingState.Ready)?.value?.permission ?: state.permission
       ),
       action =
-        if (issues is LoadingState.Ready && newSelectedIssue != null)
-          newSelectedIssue.id.let { Action.FetchDetails(it) and Action.FetchNotes(it) }
+        if (newSelectedIssue != null) actionsForSelectedIssue(key, newSelectedIssue.id)
         else Action.NONE
     )
   }

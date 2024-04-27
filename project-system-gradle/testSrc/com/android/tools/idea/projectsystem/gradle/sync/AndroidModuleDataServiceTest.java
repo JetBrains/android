@@ -16,8 +16,8 @@
 package com.android.tools.idea.projectsystem.gradle.sync;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

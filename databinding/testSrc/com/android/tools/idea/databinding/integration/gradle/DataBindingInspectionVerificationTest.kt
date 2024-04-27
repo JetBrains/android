@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding.integration.gradle
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.openapi.project.guessProjectDir
@@ -25,6 +25,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
+import java.io.File
 import junit.framework.Assert.fail
 import org.junit.Before
 import org.junit.Ignore
@@ -32,41 +33,39 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 /**
  * This test class loads the giant Gradle project that is maintained in the data binding compiler
- * codebase that tests all possible edge-cases and is guaranteed to be error-free, so we run it
- * here as well and verify that we don't show any errors in the IDE.
+ * codebase that tests all possible edge-cases and is guaranteed to be error-free, so we run it here
+ * as well and verify that we don't show any errors in the IDE.
  */
 class DataBindingInspectionVerificationTest {
   private val projectRule = AndroidGradleProjectRule()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
 
   private val fileRoot = "app"
-  private val rootsToCheck = listOf(
-    "app/src/main/res/layout",
-    "app/src/main/res/layout-land",
-    "app/src/java/android/databinding/testapp",
-    "app/src/androidTest"
-  )
+  private val rootsToCheck =
+    listOf(
+      "app/src/main/res/layout",
+      "app/src/main/res/layout-land",
+      "app/src/java/android/databinding/testapp",
+      "app/src/androidTest"
+    )
 
   // TODO(b/122983052): These are currently failing. Get these files down to zero!
-  private val excludedFiles = setOf(
-    "app/src/androidTest/java/android/databinding/testapp/InstanceAdapterTest.java",
-    "app/src/androidTest/java/androidx/databinding/DataBindingMapperTest.java",
-    "app/src/main/res/layout/observable_field_test.xml",
-    "app/src/main/res/layout/static_access_import_on_demand_with_conflict.xml"
-  )
-
+  private val excludedFiles =
+    setOf(
+      "app/src/androidTest/java/android/databinding/testapp/InstanceAdapterTest.java",
+      "app/src/androidTest/java/androidx/databinding/DataBindingMapperTest.java",
+      "app/src/main/res/layout/observable_field_test.xml",
+      "app/src/main/res/layout/static_access_import_on_demand_with_conflict.xml"
+    )
 
   @Before
   fun setUp() {
@@ -99,7 +98,9 @@ class DataBindingInspectionVerificationTest {
             // This will be populated by AndroidGradleProjectRule
           }
         }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     fixture.testDataPath = temporaryFolder.root.absolutePath
     projectRule.load("TestApp")
@@ -119,7 +120,8 @@ class DataBindingInspectionVerificationTest {
       val testAppRoot = projectRule.project.guessProjectDir()!!.path
       val rootPrefix = "${testAppRoot}/"
 
-      return File(testAppRoot, fileRoot).walkTopDown()
+      return File(testAppRoot, fileRoot)
+        .walkTopDown()
         .mapNotNull { file -> VfsUtil.findFileByIoFile(file, true) }
         .filter { virtualFile -> !virtualFile.isDirectory }
         .map { virtualFile -> FileEntry(virtualFile, virtualFile.path.removePrefix(rootPrefix)) }
@@ -146,8 +148,7 @@ class DataBindingInspectionVerificationTest {
       try {
         fixture.configureFromExistingVirtualFile(entry.virtualFile)
         fixture.checkHighlighting(false, false, false)
-      }
-      catch (_: Throwable) {
+      } catch (_: Throwable) {
         excludedPaths.add(entry.relativePath)
       }
     }
@@ -159,8 +160,7 @@ class DataBindingInspectionVerificationTest {
       println("private val excludedFiles = setOf(")
       println(excludedPaths.joinToString(",\n") { "\"$it\"" })
       println(")")
-    }
-    else {
+    } else {
       // If here, delete the excludedFiles field and close b/122983052
       println("Congrats - there are no more invalid paths!")
     }

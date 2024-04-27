@@ -23,7 +23,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUpgradeAssistantHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SuppressUnsupportedSdkVersionHyperlink
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -154,45 +153,6 @@ class CompileSdkVersionTooHighReporterTest {
 
       val quickFixes = messages[0].quickFixes
       assertSize(0 + 1 /* affected modules */, quickFixes)
-      mock.close()
-    }
-  }
-
-  @Test
-  fun `test upgrade assistant quick-fix appears with old version of agp`() {
-    StudioFlags.ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES.override(true)
-    val preparedProject = projectRule.prepareTestProject(TestProject.APP_WITH_BUILD_FEATURES_ENABLED)
-    val syncMessage = "Some random text android.suppressUnsupportedCompileSdk=UpsideDownCake with some more text here"
-    val syncData = "android.suppressUnsupportedCompileSdk=UpsideDownCake"
-
-    preparedProject.open { project ->
-      val pluginInfo = mock<AndroidPluginInfo>()
-      whenever(pluginInfo.pluginVersion).thenReturn(AgpVersion.parse("4.0.0"))
-      val mock = mockStatic<AndroidPluginInfo>()
-      mock.whenever<Any?> { AndroidPluginInfo.find(project) }.thenReturn(pluginInfo)
-
-      val syncIssue = setUpMockSyncIssue(syncMessage, syncData)
-      val messages = reporter.report(syncIssue, project.gradleModule(":app")!!, null)
-
-      assertSize(1, messages)
-      val notification = messages[0]
-      assertEquals("Gradle Sync Issues", notification.group)
-      assertEquals(
-        """
-          Some random text android.suppressUnsupportedCompileSdk=UpsideDownCake with some more text here
-          <a href="openUpgradeAssistant">Open AGP Upgrade Assistant</a>
-          <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
-          Affected Modules: app
-        """.trimIndent(),
-        notification.message
-      )
-      assertEquals(MessageType.INFO, notification.type)
-
-      val quickFixes = messages[0].quickFixes
-      assertSize(2 + 1 /* affected modules */, quickFixes)
-      assertInstanceOf(quickFixes[0], OpenUpgradeAssistantHyperlink::class.java)
-      assertInstanceOf(quickFixes[1], SuppressUnsupportedSdkVersionHyperlink::class.java)
-      assertEquals("android.suppressUnsupportedCompileSdk=UpsideDownCake", (quickFixes[1] as SuppressUnsupportedSdkVersionHyperlink).gradleProperty)
       mock.close()
     }
   }

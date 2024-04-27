@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 import java.util.Collections
 import java.util.PriorityQueue
 import java.util.concurrent.CancellationException
@@ -35,6 +36,10 @@ enum class RefreshResult {
   SUCCESS,
   CANCELLED,
   FAILED
+}
+
+interface RefreshType {
+  val priority: Int
 }
 
 /**
@@ -59,10 +64,10 @@ interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
    * - Sort the pending requests
    * - Cancel or skip requests (see [doRefresh] and [onSkip])
    */
-  val priority: Int
+  val refreshType: RefreshType
 
   override fun compareTo(other: PreviewRefreshRequest): Int {
-    return priority.compareTo(other.priority)
+    return refreshType.priority.compareTo(other.refreshType.priority)
   }
 
   /**
@@ -122,13 +127,13 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
   @GuardedBy("requestsLock") private var runningRequest: PreviewRefreshRequest? = null
   @GuardedBy("requestsLock") private var runningJob: Job? = null
 
-  private val _isRefreshingFlow = MutableStateFlow(false)
+  private val _refreshingTypeFlow = MutableStateFlow<RefreshType?>(null)
 
   /**
    * Flow that indicates if there are any requests being processed. This flow will become true if
    * any requests are being processed for the project.
    */
-  val isRefreshingFlow: StateFlow<Boolean> = _isRefreshingFlow
+  val refreshingTypeFlow: StateFlow<RefreshType?> = _refreshingTypeFlow
 
   init {
     scope.launch(AndroidDispatchers.workerThread) {
@@ -138,7 +143,7 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
         val currentRequest: PreviewRefreshRequest
         requestsLock.withLock {
           if (allPendingRequests.isEmpty()) {
-            _isRefreshingFlow.value = false
+            _refreshingTypeFlow.value = null
             return@collect
           }
           currentRequest = allPendingRequests.remove()
@@ -155,15 +160,16 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
         }
 
         try {
-          _isRefreshingFlow.value = true
+          _refreshingTypeFlow.value = currentRequest.refreshType
           lazyWrapperJob.invokeOnCompletion {
             if (it != null) {
               currentRefreshJob?.cancel(if (it is CancellationException) it else null)
             }
             val result =
-              when (it) {
-                null -> RefreshResult.SUCCESS
-                is CancellationException -> RefreshResult.CANCELLED
+              when {
+                it == null && currentRefreshJob?.isCancelled == false -> RefreshResult.SUCCESS
+                it is CancellationException || currentRefreshJob?.isCancelled == true ->
+                  RefreshResult.CANCELLED
                 else -> RefreshResult.FAILED
               }
             currentRequest.onRefreshCompleted(result, it)
@@ -187,9 +193,25 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
     }
   }
 
+  /** Add a [request] to the queue asynchronously. */
   fun requestRefresh(request: PreviewRefreshRequest) {
-    scope
-      .launch(AndroidDispatchers.workerThread) {
+    doRequestRefresh(request)
+  }
+
+  /**
+   * Add a [request] to the queue asynchronously.
+   *
+   * Returns the job executing the enqueueing of this request, which is not related with how the
+   * refresh manager will later decide to process the request itself.
+   *
+   * This is only intended to be used for synchronization purposes inside tests.
+   */
+  @TestOnly
+  fun requestRefreshForTest(request: PreviewRefreshRequest): Job = doRequestRefresh(request)
+
+  private fun doRequestRefresh(request: PreviewRefreshRequest): Job {
+    val enqueueingJob =
+      scope.launch(AndroidDispatchers.workerThread) {
         requestsLock.withLock {
           // If the running request is of the same client and has lower than
           // or equal priority to the new one, then it should be cancelled.
@@ -219,10 +241,11 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
           requestsFlow.tryEmit(Unit)
         }
       }
-      .invokeOnCompletion {
-        if (it != null) {
-          log.warn("Failure while trying to enqueue a new refresh request ($request)", it)
-        }
+    enqueueingJob.invokeOnCompletion {
+      if (it != null) {
+        log.warn("Failure while trying to enqueue a new refresh request ($request)", it)
       }
+    }
+    return enqueueingJob
   }
 }

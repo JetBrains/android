@@ -26,28 +26,37 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Project service that keeps track of whether the project uses any namespaced modules or not.
  *
- * When namespaces are not used at all, some project-wide functionality may be simplified, e.g. "find usages" doesn't have to look for
- * usages of fields from two R classes (namespaced and non-namespaced). This is mostly to simplify UI, not gain performance.
+ * When namespaces are not used at all, some project-wide functionality may be simplified, e.g.
+ * "find usages" doesn't have to look for usages of fields from two R classes (namespaced and
+ * non-namespaced). This is mostly to simplify UI, not gain performance.
  */
-class ProjectNamespacingStatusService(private val project: Project) {
+class ProjectNamespacingStatusService(val project: Project) {
   @Volatile
   var namespacesUsed = checkNamespacesUsed()
     private set
 
-
   init {
-    project.messageBus.connect().subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: ProjectSystemSyncManager.SyncResultListener {
-      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-        namespacesUsed = checkNamespacesUsed()
-      }
-    })
+    project.messageBus
+      .connect()
+      .subscribe(
+        PROJECT_SYSTEM_SYNC_TOPIC,
+        object : ProjectSystemSyncManager.SyncResultListener {
+          override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+            namespacesUsed = checkNamespacesUsed()
+          }
+        }
+      )
   }
 
   private fun checkNamespacesUsed(): Boolean {
-    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).any { it.namespacing == Namespacing.REQUIRED }
+    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).any {
+      it.namespacing == Namespacing.REQUIRED
+    }
   }
 
   companion object {
-    @JvmStatic fun getInstance(project: Project) = project.getService(ProjectNamespacingStatusService::class.java)!!
+    @JvmStatic
+    fun getInstance(project: Project) =
+      project.getService(ProjectNamespacingStatusService::class.java)!!
   }
 }

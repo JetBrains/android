@@ -46,15 +46,18 @@ class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
   ) {
     runReadAction {
       if (element !is ResourceReferencePsiElement) return@runReadAction
-      val androidFacet = element.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)?.androidFacet ?: return@runReadAction
+      val androidFacet =
+        element.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)?.androidFacet ?: return@runReadAction
       val bindingModuleCache = LayoutBindingModuleCache.getInstance(androidFacet)
       val groups = bindingModuleCache.bindingLayoutGroups
 
       when (element.resourceReference.resourceType) {
         ResourceType.LAYOUT -> {
-          // When searching for usages of a layout resource, we want to add any uses of the generated DataBinding class.
+          // When searching for usages of a layout resource, we want to add any uses of the
+          // generated DataBinding class.
           val layoutGroup =
-            groups.firstOrNull { it.mainLayout.resource.name == element.resourceReference.name } ?: return@runReadAction
+            groups.firstOrNull { it.mainLayout.resource.name == element.resourceReference.name }
+              ?: return@runReadAction
           val lightBindingClasses = bindingModuleCache.getLightBindingClasses(layoutGroup)
           lightBindingClasses.forEach {
             ReferencesSearch.search(it, options.searchScope).all { reference ->
@@ -63,20 +66,28 @@ class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
           }
         }
         ResourceType.ID -> {
-          // When searching for usages of an ID resource, we want to add any uses of the generated fields, in every accessible DataBinding
+          // When searching for usages of an ID resource, we want to add any uses of the generated
+          // fields, in every accessible DataBinding
           // class.
-          val lightClasses = groups.flatMap { group -> bindingModuleCache.getLightBindingClasses(group) }
+          val lightClasses =
+            groups.flatMap { group -> bindingModuleCache.getLightBindingClasses(group) }
           val javaFieldName = convertAndroidIdToJavaFieldName(element.resourceReference.name)
           val definingXmlTag = element.parentOfType<XmlTag>()
           val relevantFields =
             lightClasses
-              .mapNotNull { bindingClass -> bindingClass.allFields.find { it.name == javaFieldName } }
+              .mapNotNull { bindingClass ->
+                bindingClass.allFields.find { it.name == javaFieldName }
+              }
               .filter {
-                // It's possible for the same ID to be used in two different views within the same group. Most of the time we want to
-                // include all references in find usages. But here when looking for view binding usages, we only want to return the light
-                // class corresponding to this specific view. Check that the defining XmlTag for this light class is the same as the
+                // It's possible for the same ID to be used in two different views within the same
+                // group. Most of the time we want to
+                // include all references in find usages. But here when looking for view binding
+                // usages, we only want to return the light
+                // class corresponding to this specific view. Check that the defining XmlTag for
+                // this light class is the same as the
                 // containing tag for this ID.
-                // If we couldn't find the defining tag above, go ahead and include all results (err on the side of more info).
+                // If we couldn't find the defining tag above, go ahead and include all results (err
+                // on the side of more info).
                 definingXmlTag == null || it.navigationElement as? XmlTag == definingXmlTag
               }
 

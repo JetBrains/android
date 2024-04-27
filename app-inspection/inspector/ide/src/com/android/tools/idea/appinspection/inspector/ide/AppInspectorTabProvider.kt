@@ -66,8 +66,10 @@ interface AppInspectorTabProvider : Comparable<AppInspectorTabProvider> {
   val displayName: String
   val icon: Icon?
     get() = null
+
   val learnMoreUrl: String?
     get() = null
+
   fun isApplicable(): Boolean = true
 
   /**

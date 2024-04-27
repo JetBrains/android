@@ -4,43 +4,40 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-zipflinger" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.zipflinger:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.zipflinger:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.zipflinger/231.0.26.0/studio.android.sdktools.zipflinger-231.0.26.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.zipflinger/232.1.23.0/studio.android.sdktools.zipflinger-232.1.23.0.jar">
               <sha256sum>214a05cd32fdc40faa89b1fd33b4bcaa36da454c7cd8f0b673a5ffb2611dba99</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.zipflinger/231.0.26.0/studio.android.sdktools.zipflinger-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.zipflinger/232.1.23.0/studio.android.sdktools.zipflinger-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.zipflinger/231.0.26.0/studio.android.sdktools.zipflinger-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-zipflinger-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.zipflinger_test:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.zipflinger_test:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.zipflinger_test/231.0.26.0/studio.android.sdktools.zipflinger_test-231.0.26.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.zipflinger_test/232.1.23.0/studio.android.sdktools.zipflinger_test-232.1.23.0.jar">
               <sha256sum>db1e307f8d935b22e45650a49c863a9292c436bc0e1064b3a93679cd5a20268f</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.zipflinger_test/231.0.26.0/studio.android.sdktools.zipflinger_test-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.zipflinger_test/232.1.23.0/studio.android.sdktools.zipflinger_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.zipflinger_test/231.0.26.0/studio.android.sdktools.zipflinger_test-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
   </component>
 </module>

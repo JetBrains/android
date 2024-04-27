@@ -58,7 +58,7 @@ class DaggerIndexMethodWrapperTest {
       package com.example
 
       class Foo {
-        fun bar(arg1: Integer, arg2: Bat = Bat()): Baz {} 
+        fun bar(arg1: Integer, arg2: Bat = Bat()): Baz {}
       }
       """
           .trimIndent()
@@ -71,8 +71,8 @@ class DaggerIndexMethodWrapperTest {
     assertThat(wrapper.getReturnType()?.getSimpleName()).isEqualTo("Baz")
     assertThat(wrapper.getParameters().map { it.getSimpleName() }).containsExactly("arg1", "arg2")
     assertThat(wrapper.getIsConstructor()).isFalse()
-    assertThat(wrapper.getContainingClass()?.getFqName()).isEqualTo("com.example.Foo")
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
+    assertThat(wrapper.getContainingClass()?.getClassId()?.asString()).isEqualTo("com/example/Foo")
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isFalse()
   }
 
   @Test
@@ -106,11 +106,13 @@ class DaggerIndexMethodWrapperTest {
         """
       package com.example
 
+      import dagger.*
+
       class Foo {
-        @Annotation1
-        @Annotation2()
-        @Annotation3(true)
-        fun bar(arg1: Integer, arg2: Bat = Bat()): Baz {} 
+        @Binds
+        @Module()
+        @Component(true)
+        fun bar(arg1: Integer, arg2: Bat = Bat()): Baz {}
       }
       """
           .trimIndent()
@@ -119,10 +121,10 @@ class DaggerIndexMethodWrapperTest {
     val element: KtFunction = myFixture.findParentElement("b|ar")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation1")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation2")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation3")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation4")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.BINDS)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.COMPONENT)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.PROVIDES)).isFalse()
   }
 
   @Test
@@ -166,8 +168,8 @@ class DaggerIndexMethodWrapperTest {
     assertThat(wrapper.getReturnType()).isNull()
     assertThat(wrapper.getParameters().map { it.getSimpleName() }).containsExactly("arg1", "arg2")
     assertThat(wrapper.getIsConstructor()).isTrue()
-    assertThat(wrapper.getContainingClass()?.getFqName()).isEqualTo("com.example.Foo")
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
+    assertThat(wrapper.getContainingClass()?.getClassId()?.asString()).isEqualTo("com/example/Foo")
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isFalse()
   }
 
   @Test
@@ -193,8 +195,8 @@ class DaggerIndexMethodWrapperTest {
     assertThat(wrapper.getReturnType()).isNull()
     assertThat(wrapper.getParameters().map { it.getSimpleName() }).containsExactly("arg1")
     assertThat(wrapper.getIsConstructor()).isTrue()
-    assertThat(wrapper.getContainingClass()?.getFqName()).isEqualTo("com.example.Foo")
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
+    assertThat(wrapper.getContainingClass()?.getClassId()?.asString()).isEqualTo("com/example/Foo")
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isFalse()
   }
 
   @Test
@@ -219,8 +221,8 @@ class DaggerIndexMethodWrapperTest {
     assertThat(wrapper.getReturnType()?.getSimpleName()).isEqualTo("Baz")
     assertThat(wrapper.getParameters().map { it.getSimpleName() }).containsExactly("arg1", "arg2")
     assertThat(wrapper.getIsConstructor()).isFalse()
-    assertThat(wrapper.getContainingClass()?.getFqName()).isEqualTo("com.example.Foo")
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
+    assertThat(wrapper.getContainingClass()?.getClassId()?.asString()).isEqualTo("com/example/Foo")
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isFalse()
   }
 
   @Test
@@ -231,10 +233,13 @@ class DaggerIndexMethodWrapperTest {
         // language=java
         """
       package com.example;
+
+      import dagger.*;
+
       public class Foo {
-        @Annotation1
-        @Annotation2()
-        @Annotation3(true)
+        @Binds
+        @Module()
+        @Component(true)
         public Baz bar(int arg1, Bat arg2) {}
       }
       """
@@ -244,10 +249,10 @@ class DaggerIndexMethodWrapperTest {
     val element: PsiMethod = myFixture.findParentElement("b|ar")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation1")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation2")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation3")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation4")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.BINDS)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.COMPONENT)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.PROVIDES)).isFalse()
   }
 
   @Test
@@ -272,7 +277,7 @@ class DaggerIndexMethodWrapperTest {
     assertThat(wrapper.getReturnType()).isNull()
     assertThat(wrapper.getParameters().map { it.getSimpleName() }).containsExactly("arg1", "arg2")
     assertThat(wrapper.getIsConstructor()).isTrue()
-    assertThat(wrapper.getContainingClass()?.getFqName()).isEqualTo("com.example.Foo")
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
+    assertThat(wrapper.getContainingClass()?.getClassId()?.asString()).isEqualTo("com/example/Foo")
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isFalse()
   }
 }

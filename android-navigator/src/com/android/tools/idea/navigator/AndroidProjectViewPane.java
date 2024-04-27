@@ -33,6 +33,7 @@ import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructurePr
 import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectWideFacetAdapter;
 import com.intellij.facet.ProjectWideFacetListenersRegistry;
+import com.intellij.ide.DataManager;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectViewSelectInTarget;
@@ -83,11 +84,11 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
   // Note: This value is duplicated in ProjectViewImpl.java to set the default view to be the Android project view.
   public static final String ID = AndroidProjectView.ID;
 
-  private final AtomicBoolean isProcessingChanges = new AtomicBoolean(false);
+  private AtomicBoolean isProcessingChanges = new AtomicBoolean(false);
 
   public AndroidProjectViewPane(Project project) {
     super(project);
-    ProjectWideFacetListenersRegistry.getInstance(project).registerListener(new ProjectWideFacetAdapter<>() {
+    ProjectWideFacetListenersRegistry.getInstance(project).registerListener(new ProjectWideFacetAdapter<Facet>() {
       @Override
       public void facetAdded(@NotNull Facet facet) {
         somethingChanged();
@@ -194,7 +195,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
   }
 
   @Override
-  public PsiDirectory @NotNull [] getSelectedDirectories() {
+  @NotNull
+  public PsiDirectory[] getSelectedDirectories() {
     Object selectedElement = getSelectedElement();
     if (selectedElement instanceof PackageElement) {
       PackageElement packageElement = (PackageElement)selectedElement;
@@ -237,7 +239,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
   public Object getValueFromNode(@Nullable Object node) {
     Object o = super.getValueFromNode(node);
     if (o instanceof ArrayList && TreeUtil.getUserObject(node) instanceof FolderGroupNode) {
-      return ((ArrayList<?>)o).toArray();
+      return ((ArrayList)o).toArray();
     }
 
     return o;
@@ -290,7 +292,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     }
 
     if (VIRTUAL_FILE_ARRAY.is(dataId)) {
-      NodeDescriptor<?> selectedDescriptor =
+      NodeDescriptor selectedDescriptor =
           (selectedUserObjects.length != 1) ? null : ObjectUtils.tryCast(selectedUserObjects[0], NodeDescriptor.class);
       if (selectedDescriptor instanceof FileGroupNode) {
         List<PsiFile> files = ((FileGroupNode)selectedDescriptor).getFiles();
@@ -331,7 +333,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
         }
       }
 
-      NodeDescriptor<?> selectedDescriptor =
+      NodeDescriptor selectedDescriptor =
           (selectedUserObjects.length != 1) ? null : ObjectUtils.tryCast(selectedUserObjects[0], NodeDescriptor.class);
       if (selectedDescriptor instanceof FileGroupNode) {
         List<PsiFile> files = ((FileGroupNode)selectedDescriptor).getFiles();
@@ -367,15 +369,20 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     return false;
   }
 
-  private class MyProjectViewTree extends ProjectViewTree implements DataProvider {
+  private class MyProjectViewTree extends ProjectViewTree {
     MyProjectViewTree(DefaultTreeModel treeModel) {
       super(treeModel);
-    }
-
-    @Nullable
-    @Override
-    public Object getData(@NotNull @NonNls String dataId) {
-      return AndroidProjectViewPane.this.getData(dataId);
+      DataProvider parentProvider = DataManager.getDataProvider(this);
+      DataManager.removeDataProvider(this);
+      DataManager.registerDataProvider(this, new DataProvider() {
+        @Override
+        public @Nullable Object getData(@NotNull @NonNls String dataId) {
+          Object result = AndroidProjectViewPane.this.getData(dataId);
+          if (result != null) return result;
+          if (parentProvider != null) parentProvider.getData(dataId);
+          return null;
+        }
+      });
     }
   }
 
@@ -400,11 +407,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   private static class AndroidProjectTreeStructure extends ProjectTreeStructure implements ProjectViewSettings {
 
-    private final String panelId;
-
     AndroidProjectTreeStructure(@NotNull Project project, @NotNull String panelId) {
       super(project, panelId);
-      this.panelId = panelId;
     }
 
     @Override

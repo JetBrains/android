@@ -45,6 +45,7 @@ class TestComposePreviewView(
   navigationHandler: NavigationHandler = ComposePreviewNavigationHandler()
 ) : ComposePreviewView, JPanel() {
   var interactionPaneProvider: () -> JComponent? = { null }
+  var isInteractive = false
   val delegateInteractionHandler = DelegateInteractionHandler()
 
   override val mainSurface: NlDesignSurface =
@@ -55,7 +56,8 @@ class TestComposePreviewView(
         { null },
         parentDisposable,
         ComposeSceneComponentProvider(),
-        ComposeScreenViewProvider(NopComposePreviewManager())
+        ComposeScreenViewProvider(NopComposePreviewManager()),
+        { isInteractive }
       )
       .setInteractableProvider {
         object : SurfaceInteractable(it) {
@@ -66,6 +68,7 @@ class TestComposePreviewView(
       .build()
   override val component: JComponent
     get() = this
+
   override var bottomPanel: JComponent? = null
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = false

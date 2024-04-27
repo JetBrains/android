@@ -9,6 +9,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAnnotation
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -29,19 +30,27 @@ class MethodTest {
   @Before
   fun setUp() {
     setUpComposeInProjectFixture(projectRule)
+    disableLiveEdit()
+  }
+
+  @After
+  fun tearDown() {
+    enableLiveEdit()
   }
 
   @Test
   fun testAccess() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         open fun method() = 0
-      }""", "A.kt", "A")
+      }""")
+    val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    val new = projectRule.compileIr("""
+    projectRule.modifyKtFile(file, """
       class A {
         private fun method() = 0
-      }""", "A.kt", "A")
+      }""")
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -73,15 +82,17 @@ class MethodTest {
 
   @Test
   fun testSignature() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         fun method(value: List<String>) = 0
-      }""", "A.kt", "A")
+      }""")
+    val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    val new = projectRule.compileIr("""
+    projectRule.modifyKtFile(file, """
       class A {
         fun method(value: List<Int>) = 0
-      }""", "A.kt", "A")
+      }""")
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -113,18 +124,20 @@ class MethodTest {
 
   @Test
   fun testAddRemoveMethod() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         fun methodA() = 0
         fun methodB() = 0
         fun methodC() = 0
-      }""", "A.kt", "A")
+      }""")
+    val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    val new = projectRule.compileIr("""
+    projectRule.modifyKtFile(file, """
       class A {
         fun methodB() = "default"
         fun methodD() = 0
-      }""", "A.kt", "A")
+      }""")
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -154,7 +167,7 @@ class MethodTest {
 
   @Test
   fun testAddRemoveMethodAnnotation() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       annotation class Q
       annotation class R
       annotation class S
@@ -164,9 +177,10 @@ class MethodTest {
         fun method() = 0
   
         fun other() = 0
-      }""", "A.kt", "A")
+      }""")
+    val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    val new = projectRule.compileIr("""
+    projectRule.modifyKtFile(file, """
       annotation class Q
       annotation class R
       annotation class S
@@ -178,7 +192,8 @@ class MethodTest {
         @R
         @S
         fun other() = 0
-      }""", "A.kt", "A")
+      }""")
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -224,13 +239,17 @@ class MethodTest {
     })
   }
 
+  // There was a bug where we thought SAM methods would cause the class diff to erroneously always show changes.
+  // That turned out to not be the case, but we leave this test here just in case.
   @Test
   fun testSAM() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       fun interface Sam {
         fun getNewString() : String
-      }""", "A.kt", "Sam")
-
-    assertNull(diff(original, original))
+      }""")
+    val original = projectRule.directApiCompileIr(file)
+    for (clazz in original.values) {
+      assertNoChanges(clazz, clazz)
+    }
   }
 }

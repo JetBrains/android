@@ -17,16 +17,17 @@ package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneViewPanel
-import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.LayoutManager
 import java.awt.Point
 
+val INVISIBLE_POINT = Point(Integer.MIN_VALUE, Integer.MIN_VALUE)
+
 /**
- * [LayoutManager] responsible for positioning and measuring all the [PositionableContent] in a
- * [DesignSurface]
+ * [LayoutManager] responsible for positioning and measuring all the [PositionablePanel] in a
+ * [DesignSurface]. [PositionablePanel] is accessed via [PositionableContent].
  *
  * For now, the PositionableContentLayoutManager does not contain actual Swing components so we do
  * not need to layout them, just calculate the size of the layout. Eventually, PositionableContent
@@ -39,26 +40,35 @@ abstract class PositionableContentLayoutManager : LayoutManager {
    */
   abstract fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension)
 
-  private fun Container.findSceneViewPeerPanels(): Collection<SceneViewPeerPanel> =
-    components.filterIsInstance<SceneViewPeerPanel>()
+  private fun Container.findVisiblePositionablePanels(): Collection<PositionablePanel> =
+    components.filterIsInstance<PositionablePanel>().filter { it.isVisible() }
+
   private val Container.availableSize: Dimension
     get() = Dimension(size.width - insets.horizontal, size.height - insets.vertical)
 
   final override fun layoutContainer(parent: Container) {
-    val sceneViewPeerPanels = parent.findSceneViewPeerPanels()
+    val panels = parent.findVisiblePositionablePanels()
 
     // We lay out the [SceneView]s first, so we have the actual sizes available for setting the
     // bounds of the Swing components.
-    layoutContainer(sceneViewPeerPanels.map { it.positionableAdapter }, parent.availableSize)
+    layoutContainer(panels.map { it.positionableAdapter }, parent.availableSize)
+
+    // We set invisible panels to have the most negative coordinates possible, so that their
+    // entire content is guaranteed to be outside of the user visible area.
+    parent.components
+      .filterIsInstance<PositionablePanel>()
+      .filterNot { it.isVisible() }
+      .forEach { it.positionableAdapter.setLocation(INVISIBLE_POINT.x, INVISIBLE_POINT.y) }
   }
 
   open fun minimumLayoutSize(
     content: Collection<PositionableContent>,
     availableSize: Dimension
   ): Dimension = Dimension(0, 0)
+
   final override fun minimumLayoutSize(parent: Container): Dimension =
     minimumLayoutSize(
-      parent.findSceneViewPeerPanels().map { it.positionableAdapter },
+      parent.findVisiblePositionablePanels().map { it.positionableAdapter },
       parent.availableSize
     )
 
@@ -66,13 +76,15 @@ abstract class PositionableContentLayoutManager : LayoutManager {
     content: Collection<PositionableContent>,
     availableSize: Dimension
   ): Dimension
+
   final override fun preferredLayoutSize(parent: Container): Dimension =
     preferredLayoutSize(
-      parent.findSceneViewPeerPanels().map { it.positionableAdapter },
+      parent.findVisiblePositionablePanels().map { it.positionableAdapter },
       parent.availableSize
     )
 
   override fun addLayoutComponent(name: String?, comp: Component?) {}
+
   override fun removeLayoutComponent(comp: Component?) {}
 
   abstract fun getMeasuredPositionableContentPosition(

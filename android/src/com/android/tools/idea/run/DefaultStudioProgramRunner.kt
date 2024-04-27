@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.run
 
-import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
-import com.android.tools.idea.execution.common.AndroidConfigurationProgramRunner
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
-import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
+import com.android.tools.idea.execution.common.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.google.common.annotations.VisibleForTesting
@@ -34,7 +35,6 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
-import com.intellij.util.ThreeState
 import org.jetbrains.concurrency.Promise
 
 //TODO(b/266232023): define a better way for running ComposePreviewRunConfiguration and get rid of this constant.
@@ -46,16 +46,16 @@ const val composePreviewRunConfigurationId = "ComposePreviewRunConfiguration"
  */
 class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
 
-  private var getGradleSyncState: (Project) -> GradleSyncState = { GradleSyncState.getInstance(it) }
+  private var getSyncManager: (Project) -> ProjectSystemSyncManager = { it.getSyncManager() }
 
   constructor()
 
   @VisibleForTesting
   constructor(
-    getGradleSyncState: (Project) -> GradleSyncState,
+    getSyncManager: (Project) -> ProjectSystemSyncManager,
     getAndroidTarget: (Project, RunConfiguration) -> AndroidExecutionTarget?
   ) : super(getAndroidTarget) {
-    this.getGradleSyncState = getGradleSyncState
+    this.getSyncManager = getSyncManager
   }
 
 
@@ -71,8 +71,8 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
     if (DefaultDebugExecutor.EXECUTOR_ID != executorId && DefaultRunExecutor.EXECUTOR_ID != executorId) {
       return false
     }
-    val syncState = getGradleSyncState(config.project)
-    return !syncState.isSyncInProgress && syncState.isSyncNeeded() == ThreeState.NO
+    val syncManager = getSyncManager(config.project)
+    return !syncManager.isSyncInProgress() && !syncManager.isSyncNeeded()
   }
 
   override fun canRunWithMultipleDevices(executorId: String): Boolean {

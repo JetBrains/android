@@ -17,6 +17,7 @@ package com.android.tools.idea.execution.common.debug.impl.java
 
 import com.android.ddmlib.Client
 import com.android.tools.idea.execution.common.AndroidSessionInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.debugger.impl.DebuggerSession
 import com.intellij.execution.ExecutionException
@@ -25,7 +26,6 @@ import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.Project
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.catchError
-
 
 fun startAndroidJavaDebuggerSession(
   project: Project,
@@ -51,6 +51,9 @@ fun startAndroidJavaDebuggerSession(
       val debuggerSession = DebuggerManagerEx.getInstanceEx(project).attachVirtualMachine(debugEnvironment)
                             ?: throw ExecutionException("Unable to start debugger session")
 
+      if (StudioFlags.EMIT_CONSOLE_OUTPUT_TO_LOGCAT.get()) {
+        debuggerSession.process.processHandler.addProcessListener(LogcatEmitterProcessListener(debuggerSession.process))
+      }
       debuggerSession.process.processHandler.putUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL, client.device.version)
       promise.setResult(debuggerSession)
     }

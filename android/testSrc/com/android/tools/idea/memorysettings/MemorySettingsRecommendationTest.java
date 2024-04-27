@@ -15,28 +15,40 @@
  */
 package com.android.tools.idea.memorysettings;
 
+import static com.android.tools.idea.memorysettings.MemorySettingsGradleToken.LARGE_MODULE_COUNT;
+import static com.android.tools.idea.memorysettings.MemorySettingsGradleToken.XLARGE_MODULE_COUNT;
 import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.DEFAULT_HEAP_SIZE_IN_MB;
 import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.LARGE_HEAP_SIZE_RECOMMENDATION_IN_MB;
-import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.LARGE_MODULE_COUNT;
 import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.LARGE_RAM_IN_GB;
 import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB;
-import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.XLARGE_MODULE_COUNT;
 import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.XLARGE_RAM_IN_GB;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndroidProjectBuilderForDefaultTestProjectStructure;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.analytics.HostData;
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.ServiceContainerUtil;
+import java.util.Arrays;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class MemorySettingsRecommendationTest extends LightPlatformTestCase {
+public class MemorySettingsRecommendationTest {
+
+  @Rule
+  public final AndroidProjectRule myRule = AndroidProjectRule.withAndroidModel(createAndroidProjectBuilderForDefaultTestProjectStructure());
 
   private final int smallRAM = LARGE_RAM_IN_GB - 1;
   private final int normalModuleCount = LARGE_MODULE_COUNT - 1;
@@ -85,14 +97,25 @@ public class MemorySettingsRecommendationTest extends LightPlatformTestCase {
   }
 
   private int getRecommended(int currentXmxInMB, int machineMemInGB, int moduleCount) {
-    Project project = mock(Project.class);
-    ModuleManager moduleManager = mock(ModuleManager.class);
+    Project project = myRule.getProject();
 
-    when(project.getService(ModuleManager.class)).thenReturn(moduleManager);
+    ModuleManager moduleManager = mock(ModuleManager.class);
     Module[] modules = new Module[moduleCount];
+    Module module = myRule.getModule();
+    assertTrue(ModuleSystemUtil.isHolderModule(module));
+    Arrays.fill(modules, module);
     when(moduleManager.getModules()).thenReturn(modules);
+
     stubHostData(machineMemInGB);
-    return MemorySettingsRecommendation.getRecommended(project, currentXmxInMB);
+
+    Disposable disposable = Disposer.newDisposable();
+    try {
+      ServiceContainerUtil.replaceService(project, ModuleManager.class, moduleManager, disposable);
+      return MemorySettingsRecommendation.getRecommended(project, currentXmxInMB);
+    }
+    finally {
+      Disposer.dispose(disposable);
+    }
   }
 
   private void stubHostData(int machineMemInGB) {

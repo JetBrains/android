@@ -18,13 +18,13 @@ package com.android.tools.idea.editors.fast
 import com.android.ide.common.gradle.Version
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
 
@@ -76,7 +76,7 @@ class FastPreviewCompileFlowTest {
       }
 
       flow.join()
-      assertThat(results).containsExactly(false, true, false, true, false, true, false, true, false)
+      assertThat(results).containsExactly(false, true, false, true, false, true, false, true, false).inOrder()
     }
   }
 }

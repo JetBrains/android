@@ -27,7 +27,7 @@ import java.io.File
 
 /** [IdeaSourceProvider] for legacy Android projects without [SourceProvider].  */
 @Suppress("DEPRECATION")
-class LegacyDelegate(private val facet: AndroidFacet) : NamedIdeaSourceProvider {
+class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSourceProvider {
 
   override val name: String = ""
 

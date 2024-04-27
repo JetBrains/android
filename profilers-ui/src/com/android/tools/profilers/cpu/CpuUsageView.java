@@ -31,24 +31,48 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.event.DelegateMouseEventHandler;
+import com.android.tools.adtui.model.DurationDataModel;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.cpu.CpuProfilerStage.CpuStageLegends;
 import com.intellij.ui.components.JBPanel;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.util.function.Consumer;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class CpuUsageView extends JBPanel<CpuUsageView> {
-  @NotNull protected final CpuProfilerStage myStage;
   @NotNull protected final OverlayComponent myOverlayComponent;
+  @NotNull private final AxisComponentModel myCpuUsageAxis;
+  @NotNull private final AxisComponentModel myThreadCountAxis;
+  @NotNull private final DetailedCpuUsage myDetailedCpuUsage;
+  @NotNull private final DurationDataModel<CpuTraceInfo> myTraceDurations;
+  @NotNull private final CpuStageLegends myCpuStageLegends;
+  @NotNull private final String myName;
+  @NotNull private final Consumer<Long> myStageSetAndSelectCapture;
 
-  public CpuUsageView(@NotNull CpuProfilerStage stage) {
+
+  public CpuUsageView(@NotNull final AxisComponentModel cpuUsageAxis,
+                      @NotNull final AxisComponentModel threadCountAxis,
+                      @NotNull final DetailedCpuUsage detailedCpuUsage,
+                      @NotNull final DurationDataModel<CpuTraceInfo> traceDurations,
+                      @NotNull final CpuStageLegends cpuStageLegends,
+                      @NotNull final String name,
+                      @NotNull final Consumer<Long> stageSetAndSelectCapture) {
     super(new TabularLayout("*", "*"));
-    myStage = stage;
+    myCpuUsageAxis = cpuUsageAxis;
+    myThreadCountAxis = threadCountAxis;
+    myDetailedCpuUsage = detailedCpuUsage;
+    myTraceDurations = traceDurations;
+    myCpuStageLegends = cpuStageLegends;
+    myName = name;
+    myStageSetAndSelectCapture = stageSetAndSelectCapture;
 
     myOverlayComponent = new OverlayComponent(new JPanel());
     // |CpuUsageView| does not receive any mouse events, because all mouse events are consumed by |OverlayComponent|
@@ -68,11 +92,17 @@ public class CpuUsageView extends JBPanel<CpuUsageView> {
     add(createLineChartPanel(), new TabularLayout.Constraint(0, 0));
   }
 
+  @VisibleForTesting
+  public CpuUsageView(@NotNull CpuProfilerStage stage) {
+    this(stage.getCpuUsageAxis(), stage.getThreadCountAxis(), stage.getCpuUsage(), stage.getTraceDurations(),
+         stage.getLegends(), stage.getName(), stage::setAndSelectCapture);
+  }
+
   @NotNull
   private JComponent createAxisPanel() {
     final JPanel axisPanel = new JBPanel<>(new BorderLayout());
     axisPanel.setOpaque(false);
-    final AxisComponent leftAxis = new AxisComponent(myStage.getCpuUsageAxis(), AxisComponent.AxisOrientation.RIGHT, true);
+    final AxisComponent leftAxis = new AxisComponent(myCpuUsageAxis, AxisComponent.AxisOrientation.RIGHT, true);
     leftAxis.setShowAxisLine(false);
     leftAxis.setShowMax(true);
     leftAxis.setOnlyShowUnitAtMax(false);
@@ -81,7 +111,7 @@ public class CpuUsageView extends JBPanel<CpuUsageView> {
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
-    final AxisComponent rightAxis = new AxisComponent(myStage.getThreadCountAxis(), AxisComponent.AxisOrientation.LEFT, true);
+    final AxisComponent rightAxis = new AxisComponent(myThreadCountAxis, AxisComponent.AxisOrientation.LEFT, true);
     rightAxis.setShowAxisLine(false);
     rightAxis.setShowMax(true);
     rightAxis.setOnlyShowUnitAtMax(true);
@@ -99,7 +129,7 @@ public class CpuUsageView extends JBPanel<CpuUsageView> {
 
     lineChartPanel.setOpaque(false);
 
-    DetailedCpuUsage cpuUsage = myStage.getCpuUsage();
+    DetailedCpuUsage cpuUsage = myDetailedCpuUsage;
     LineChart lineChart = new LineChart(cpuUsage);
     lineChart.configure(cpuUsage.getCpuSeries(), new LineConfig(ProfilerColors.CPU_USAGE)
       .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
@@ -114,7 +144,7 @@ public class CpuUsageView extends JBPanel<CpuUsageView> {
 
     @SuppressWarnings("UseJBColor")
     DurationDataRenderer<CpuTraceInfo> traceRenderer =
-      new DurationDataRenderer.Builder<>(myStage.getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
+      new DurationDataRenderer.Builder<>(myTraceDurations, ProfilerColors.CPU_CAPTURE_EVENT)
         .setDurationBg(CPU_CAPTURE_BACKGROUND)
         .setIconMapper(info -> info.getDurationUs() != Long.MAX_VALUE ? StudioIcons.Profiler.Toolbar.CAPTURE_CLOCK : null)
         .setLabelProvider(info -> info.getDurationUs() == Long.MAX_VALUE ? "In progress" : "")
@@ -122,7 +152,7 @@ public class CpuUsageView extends JBPanel<CpuUsageView> {
         .setBackgroundClickable(true)
         .setClickHandler(traceInfo -> {
           if (traceInfo.getDurationUs() != Long.MAX_VALUE) {
-            myStage.setAndSelectCapture(traceInfo.getTraceId());
+            myStageSetAndSelectCapture.accept(traceInfo.getTraceId());
           }
         })
         .build();
@@ -143,7 +173,7 @@ public class CpuUsageView extends JBPanel<CpuUsageView> {
   @NotNull
   private JComponent createLegendPanel() {
     final JPanel legendPanel = new JBPanel<>(new BorderLayout());
-    CpuProfilerStage.CpuStageLegends legends = myStage.getLegends();
+    CpuStageLegends legends = myCpuStageLegends;
     LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
     legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     legend.configure(legends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_USAGE_CAPTURED));
@@ -151,7 +181,7 @@ public class CpuUsageView extends JBPanel<CpuUsageView> {
     legend.configure(legends.getThreadsLegend(),
                      new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.THREADS_COUNT_CAPTURED));
 
-    final JLabel label = new JLabel(myStage.getName());
+    final JLabel label = new JLabel(myName);
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(SwingConstants.TOP);
     label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);

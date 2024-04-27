@@ -25,6 +25,7 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiNameValuePair
 
 class AndroidOverrideAnnotationsHandler : OverrideImplementsAnnotationsHandler {
+
   override fun getAnnotations(file: PsiFile): Array<String> {
     return arrayOf(
       "androidx.annotation.NonNull",

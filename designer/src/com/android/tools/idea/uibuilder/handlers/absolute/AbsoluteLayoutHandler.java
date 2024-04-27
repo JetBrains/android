@@ -19,22 +19,21 @@ import com.android.SdkConstants;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Placeholder;
+import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
 import com.android.tools.idea.common.scene.SceneInteraction;
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.Interaction;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintDragHandler;
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Handler for {@link com.android.SdkConstants#ABSOLUTE_LAYOUT}
@@ -46,7 +45,7 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
                                        @NotNull SceneComponent layout,
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
-    return new ConstraintDragHandler(editor, this, layout, components, type);
+    return new CommonDragHandler(editor, this, layout, components, type);
   }
 
   @Override
@@ -75,7 +74,6 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
   @Override
   public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
     return ImmutableList.of(
-      new AbsoluteDragTarget(),
       new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT),
       new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
       new AbsoluteResizeTarget(ResizeBaseTarget.Type.TOP),
@@ -90,5 +88,10 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
   @Override
   public List<Placeholder> getPlaceholders(@NotNull SceneComponent component, @NotNull List<SceneComponent> draggedComponents) {
     return ImmutableList.of(new AbsolutePlaceholder(component));
+  }
+
+  @Override
+  public boolean shouldAddCommonDragTarget(@NotNull SceneComponent component) {
+    return true;
   }
 }

@@ -160,7 +160,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
         " " +
         foldInfo.posture
     val labelPosition = Point()
-    val icon = StudioIcons.LayoutInspector.DEGREE
+    val icon = StudioIcons.LayoutInspector.Toolbar.DEGREE
     // Note this could be AdtUiUtils.DEFAULT_FONT, but since that's a static if it gets initialized
     // during a test that overrides
     // ui defaults it can end up as something unexpected.

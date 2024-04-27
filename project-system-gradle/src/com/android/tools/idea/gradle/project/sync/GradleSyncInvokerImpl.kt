@@ -17,12 +17,12 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.project.AndroidNotification
 import com.intellij.ide.impl.isTrusted
 import com.intellij.notification.NotificationType
@@ -42,7 +42,7 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
   @Suppress("UnstableApiUsage")
   override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
     if (!project.isTrusted()) {
-      LOG.debug("Skip ${project.name} import, because project is not trusted", Throwable())
+      LOG.info("Skip ${project.name} import, because project is not trusted", Throwable())
       listener?.syncSkipped(project)
       return
     }
@@ -55,7 +55,9 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
       return
     }
     val syncTask = Runnable {
-      ExternalSystemUtil.ensureToolWindowContentInitialized(project, GradleUtil.GRADLE_SYSTEM_ID)
+      ExternalSystemUtil.ensureToolWindowContentInitialized(project,
+                                                            GradleProjectSystemUtil.GRADLE_SYSTEM_ID
+      )
       if (prepareProject(project, listener)) {
         sync(project, request, listener)
       }
@@ -84,8 +86,7 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
   companion object {
     private val LOG = Logger.getInstance(GradleSyncInvoker::class.java)
     private fun prepareProject(project: Project, listener: GradleSyncListener?): Boolean {
-      val projectInfo = GradleProjectInfo.getInstance(project)
-      if (projectInfo.isBuildWithGradle) {
+      if (Info.getInstance(project).isBuildWithGradle) {
         FileDocumentManager.getInstance().saveAllDocuments()
         return true // continue with sync.
       }

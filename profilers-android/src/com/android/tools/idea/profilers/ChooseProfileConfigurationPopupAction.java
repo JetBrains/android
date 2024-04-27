@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.IdeInfo;
 import com.intellij.execution.Executor;
 import com.intellij.execution.actions.ChooseRunConfigurationPopupAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
 
 public class ChooseProfileConfigurationPopupAction extends ChooseRunConfigurationPopupAction {
   @Override
@@ -31,11 +27,5 @@ public class ChooseProfileConfigurationPopupAction extends ChooseRunConfiguratio
   @Override
   protected Executor getAlternativeExecutor() {
     return super.getDefaultExecutor();
-  }
-
-  @Override
-  public void update(@NotNull AnActionEvent e) {
-    e.getPresentation().setEnabledAndVisible(
-      e.getProject() != null && (IdeInfo.getInstance().isAndroidStudio() || AndroidUtils.hasAndroidFacets(e.getProject())));
   }
 }

@@ -96,7 +96,7 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.APP_WITH_ML_MODELS),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.MULTI_FLAVOR),
-      // TODO(b/279759255) AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
+      AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPOSITE_BUILD),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.BUILDSRC_WITH_COMPOSITE, compatibleWith = setOf(AGP_42, AGP_CURRENT)),

@@ -45,17 +45,18 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   data class CurrentJdkInfo(val path: String, val javaVersion: JavaVersion)
   data class NewJdkInfo(val sdk: Sdk, val path: String?, val javaVersion: JavaVersion)
 
-  private val currentJdkInfo: CurrentJdkInfo?
   var newJdkInfo: NewJdkInfo? = null
 
-  init {
+  private val currentJdkInfo by lazy {
     val installationManager = GradleInstallationManager.getInstance()
-    currentJdkInfo = project.basePath?.let { basePath -> installationManager.getGradleJvmPath(project, basePath) }
+    project.basePath?.let { basePath -> installationManager.getGradleJvmPath(project, basePath) }
       ?.let { gradleJvmPath ->
         SdkVersionUtil.getJdkVersionInfo(gradleJvmPath)
           ?.let { CurrentJdkInfo(gradleJvmPath, it.version) }
       }
+  }
 
+  init {
     val jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance())
     val newCompatibleJdk = AgpCompatibleJdkVersion.getCompatibleJdkVersion(new)
     newJdkInfo = jdks

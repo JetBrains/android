@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.ToolWindowWindowAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -27,6 +25,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowContentUiType
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowType
+import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 
 /**
  * [ToolWindowFactory] implementation for the Emulator tool window.
@@ -36,22 +35,14 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     toolWindow.setTitleActions(listOf(MoveToWindowAction(toolWindow)))
     toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
-
-    if (!StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-      toolWindow.hide()
-    }
   }
 
   override fun init(toolWindow: ToolWindow) {
+    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
+      toolWindow.component.putClientProperty(ToolWindowContentUi.ALLOW_DND_FOR_TABS, true)
+    }
     StreamingToolWindowManager(toolWindow)
   }
-
-  override fun isApplicable(project: Project): Boolean {
-    return (canLaunchEmulator() || DeviceMirroringSettings.getInstance().deviceMirroringEnabled || StudioFlags.DIRECT_ACCESS.get())
-  }
-
-  private fun canLaunchEmulator(): Boolean =
-      !isChromeOSAndIsNotHWAccelerated()
 
   private class MoveToWindowAction(private val toolWindow: ToolWindow) : ToolWindowWindowAction() {
     override fun update(event: AnActionEvent) {

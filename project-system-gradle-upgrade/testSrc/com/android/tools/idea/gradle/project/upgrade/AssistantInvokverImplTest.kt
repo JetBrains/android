@@ -19,7 +19,10 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.psi.PsiElement
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -30,6 +33,13 @@ class AssistantInvokerImplTest {
   val projectRule = AndroidProjectRule.withSdk()
 
   val project by lazy { projectRule.project }
+
+  @After
+  fun tearDown() {
+    invokeAndWaitIfNeeded {
+      JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
+    }
+  }
 
   @Test
   fun testDialogUpgradeAccepted() {

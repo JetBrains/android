@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.CHECK_BOX;
-import static com.android.SdkConstants.IMAGE_VIEW;
-import static com.android.SdkConstants.PROGRESS_BAR;
-import static com.android.SdkConstants.SEEK_BAR;
-import static com.android.SdkConstants.SWITCH;
-
 import com.android.AndroidXConstants;
-import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.image.BufferedImage;
+
+import static com.android.SdkConstants.*;
 
 public class SceneDecoratorTest extends SceneTest {
   @Override

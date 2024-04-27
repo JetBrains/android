@@ -25,8 +25,8 @@ import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
 import java.awt.Font
 import java.awt.Graphics2D
 
-private const val text1 = "Click "
-private const val text2 = " to add a destination"
+private val text1 = "Click "
+private val text2 = " to add a destination"
 @SwingCoordinate
 private val FONT_SIZE = JBUI.scale(13)
 @SwingCoordinate

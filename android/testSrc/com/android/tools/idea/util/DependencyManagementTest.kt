@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.util
 
-import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.NON_PLATFORM_SUPPORT_LAYOUT_LIBS
 import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -59,10 +59,19 @@ class DependencyManagementTest : LightPlatformTestCase() {
     TestDialogManager.setTestDialog(TestDialog.DEFAULT)
   }
 
-  fun testDependsOnAndroidX() {
+  fun testDoesNotDependOnAndroidX() {
     projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
+
+    Truth.assertThat(module.dependsOnAndroidx()).isFalse()
+
     projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, module, GradleVersion(1337, 600613))
 
+    Truth.assertThat(module.dependsOnAndroidx()).isFalse()
+  }
+
+  fun testDependsOnAndroidXWithUseAndroidX() {
+    Truth.assertThat(module.dependsOnAndroidx()).isFalse()
+    projectSystem.useAndroidX = true
     Truth.assertThat(module.dependsOnAndroidx()).isTrue()
   }
 
@@ -71,12 +80,6 @@ class DependencyManagementTest : LightPlatformTestCase() {
     projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, module, GradleVersion(1337, 600613))
 
     Truth.assertThat(module.dependsOnOldSupportLib()).isTrue()
-  }
-
-  fun testDoesNotDependOnAndroidX() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, module, GradleVersion(1337, 600613))
-
-    Truth.assertThat(module.dependsOnAndroidx()).isFalse()
   }
 
   fun testDoesNotDependOnOldSupportLib() {

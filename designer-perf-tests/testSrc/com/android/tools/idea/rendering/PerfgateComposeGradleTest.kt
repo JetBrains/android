@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.gradle.ComposePreviewFakeUiGradleRule
 import com.android.tools.idea.compose.gradle.preview.TestComposePreviewView
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
@@ -36,6 +37,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
 
 private const val NUMBER_OF_SAMPLES = 5
 
@@ -51,7 +53,8 @@ class PerfgateComposeGradleTest {
     projectPath = SIMPLE_COMPOSE_PROJECT_PATH,
     previewFilePath = "app/src/main/java/google/simpleapplication/MainActivity.kt",
     testDataPath = "tools/adt/idea/designer-perf-tests/testData",
-    kotlinVersion = DEFAULT_KOTLIN_VERSION)
+    kotlinVersion = DEFAULT_KOTLIN_VERSION,
+    enableRenderQuality = false)
 
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
@@ -136,7 +139,7 @@ class PerfgateComposeGradleTest {
    * Then, perform a new full refresh under all [measurements] (see [measureOperation]).
    */
   private fun addPreviewsAndMeasure(nPreviewsToAdd: Int, nExpectedPreviewInstances: Int, measurements: List<MetricMeasurement<Unit>>) = runBlocking {
-    projectRule.runAndWaitForRefresh {
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds) {
       runWriteActionAndWait {
         fixture.openFileInEditor(psiMainFile.virtualFile)
         fixture.moveCaret("|@Preview")
@@ -152,7 +155,7 @@ class PerfgateComposeGradleTest {
 
     composeGradleTimeBenchmark.measureOperation(measurements, samplesCount = NUMBER_OF_SAMPLES, printSamples = true) {
       runBlocking {
-        projectRule.runAndWaitForRefresh {
+        projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds) {
           composePreviewRepresentation.invalidate()
           composePreviewRepresentation.requestRefreshForTest()
         }
@@ -166,6 +169,7 @@ class PerfgateComposeGradleTest {
         AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = true
         composePreviewRepresentation.updateGalleryModeForTest()
       }
+      delayUntilCondition(500, 5.seconds) { previewView.galleryMode != null }
       previewView.galleryMode!!.triggerTabChange(MapDataContext().also {
         it.put(getComposePreviewManagerKeyForTests(), composePreviewRepresentation)
       }, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.first())

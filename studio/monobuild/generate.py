@@ -199,7 +199,7 @@ def move_project_kotlinc_opts_into_modules(project: JpsProject):
     kotlin_facet = create_kotlin_facet_from_project_settings(project)
     for module in project.modules:
         facet_manager = get_or_create_child(module.xml.getroot(), "component", name="FacetManager")
-        if not facet_manager.find(f"./facet[@type='kotlin-language']"):
+        if facet_manager.find(f"./facet[@type='kotlin-language']") is None:
             facet_manager.append(copy.deepcopy(kotlin_facet))
 
 
@@ -322,18 +322,6 @@ def transfer_user_files(src_project: Path, dst_project: Path):
             shutil.copy(src, dst)
         elif src.is_dir():
             shutil.copytree(src, dst)
-
-    workspace_xml = dst_project.joinpath(".idea/workspace.xml")
-    if not workspace_xml.exists():
-        # Init with sensible defaults to avoid very slow builds.
-        print("Seeding .idea/workspace.xml")
-        with open(workspace_xml, 'w', encoding="UTF-8") as f:
-            f.write('<project version="4">\n')
-            f.write('  <component name="CompilerWorkspaceConfiguration">\n')
-            f.write('    <option name="PARALLEL_COMPILATION" value="true" />\n')
-            f.write('    <option name="COMPILER_PROCESS_HEAP_SIZE" value="3072" />\n')
-            f.write('  </component>\n')
-            f.write('</project>')
 
 
 # Runs AndroidStudioSourceMapBuildTarget from platform/tools/idea to generate a

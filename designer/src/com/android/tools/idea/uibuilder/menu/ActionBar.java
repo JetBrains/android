@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import java.awt.Rectangle;

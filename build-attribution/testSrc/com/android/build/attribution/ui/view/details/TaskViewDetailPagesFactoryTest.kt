@@ -208,7 +208,7 @@ which it must do in order to support incremental builds.<BR/>
   }
 
   @Test
-  @Ignore("Currently does not work because can not open browser in test, needs refactoring, will address in the following CL")
+  @Ignore("b/303118095")
   @RunsInEdt
   fun testLearnMoreLinkClicked() {
     val data = MockUiData(tasksList = "myPlugin".let { pluginName ->
@@ -295,7 +295,7 @@ which it must do in order to support incremental builds.<BR/>
       <BR/>
       <B>Warnings</B><BR/>
       1 warning associated with Android Resources category.<BR/>
-      
+
       <table><tr><td VALIGN=TOP><icon alt='Warning' src='AllIcons.General.BalloonWarning'></td><td VALIGN=TOP>Non-transitive R classes are currently disabled.<BR/>
       Enable non-transitive R classes for faster incremental compilation.<BR/>
       <a href='AndroidMigrateToNonTransitiveRClassesAction'>Click here to migrate your project to use non-transitive R classes</a>, or <a href='NON_TRANSITIVE_R_CLASS'>Learn more</a><icon src='AllIcons.Ide.External_link_arrow'></td></tr>

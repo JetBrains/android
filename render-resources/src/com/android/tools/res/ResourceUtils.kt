@@ -17,7 +17,6 @@
 package com.android.tools.res
 
 import com.android.SdkConstants
-import com.intellij.openapi.util.text.StringUtil
 
 /**
  * Studio Independent resource util functions
@@ -38,7 +37,7 @@ fun getResourceUrlFromQualifiedName(qualifiedName: String, type: String): String
   if (colonIndex != -1) {
     // The theme name contains a namespace, change the format to be "@namespace:style/ThemeName".
     val namespace = qualifiedName.substring(0, colonIndex + 1) // Namespace plus + colon
-    val themeNameWithoutNamespace = StringUtil.trimStart(qualifiedName, namespace)
+    val themeNameWithoutNamespace = qualifiedName.removePrefix(namespace)
     return "$startChar$namespace$type/$themeNameWithoutNamespace"
   }
   return "$startChar$type/$qualifiedName"

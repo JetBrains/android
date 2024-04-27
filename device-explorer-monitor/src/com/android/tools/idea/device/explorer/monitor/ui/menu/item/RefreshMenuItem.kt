@@ -19,7 +19,7 @@ import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsLis
 import icons.StudioIcons
 import javax.swing.Icon
 
-class RefreshMenuItem(listener: DeviceMonitorActionsListener) : NonToggleMenuItem(listener) {
+class RefreshMenuItem(listener: DeviceMonitorActionsListener) : TreeMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
     return "Refresh"
   }

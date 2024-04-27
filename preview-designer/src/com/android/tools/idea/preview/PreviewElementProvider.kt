@@ -17,6 +17,7 @@ package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
+import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.ModificationTracker
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -76,8 +77,8 @@ class MemoizedPreviewElementProvider<P : PreviewElement>(
   }
 
   /**
-   * Returns the latest value of the [ComposePreviewElement]s contained in the [delegate]. If the
-   * [modificationTracker] has not changed, this property will return a cached value.
+   * Returns the latest value of the [P]s contained in the [delegate]. If the [modificationTracker]
+   * has not changed, this property will return a cached value.
    *
    * _This call might be [Slow]. Do not call on the UI thread._
    */

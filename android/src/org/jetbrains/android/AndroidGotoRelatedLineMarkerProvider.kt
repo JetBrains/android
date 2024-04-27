@@ -62,6 +62,7 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
+import java.util.ArrayList
 import javax.swing.Icon
 
 /**
@@ -242,7 +243,7 @@ internal class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvi
                                       facet: AndroidFacet,
                                       resourceType: ResourceType): List<GotoRelatedItem>? {
       val resourceName = SdkUtils.fileNameToResourceName(file.name)
-      val fields = findResourceFields(facet, resourceType.getName(), resourceName, true)
+      val fields = findResourceFields(facet, resourceType.getName(), resourceName)
       val field = fields.firstOrNull() ?: return null
       val module = facet.module
       // Explicitly chosen in the layout/menu file with a tools:context attribute?

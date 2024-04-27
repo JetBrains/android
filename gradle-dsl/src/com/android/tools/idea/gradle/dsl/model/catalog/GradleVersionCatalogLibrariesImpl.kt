@@ -56,6 +56,10 @@ class GradleVersionCatalogLibrariesImpl(private val dslElement: GradleProperties
     MapDependencyDeclarationModel.createNew(myDslElement, alias, name, group, versionReference)
   }
 
+  override fun addDeclaration(alias: String, name: String, group: String) {
+    MapDependencyDeclarationModel.createNew(myDslElement, alias, name, group)
+  }
+
   override fun getPsiElement(): PsiElement? = dslElement.psiElement
 
   override fun addDeclaration(alias: String, dependencySpec: LibraryDeclarationSpec) {

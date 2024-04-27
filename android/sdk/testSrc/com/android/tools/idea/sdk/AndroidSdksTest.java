@@ -16,7 +16,6 @@
 package com.android.tools.idea.sdk;
 
 import static com.android.sdklib.AndroidTargetHash.getTargetHashString;
-import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.Sdks.findAndroidTarget;
 import static com.android.tools.idea.testing.Sdks.findLatestAndroidTarget;
@@ -35,6 +34,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.generated.common.v1.LibraryType;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.testing.Sdks;
 import com.android.tools.sdk.AndroidPlatform;
@@ -67,7 +67,7 @@ public class AndroidSdksTest extends PlatformTestCase {
     initMocks(this);
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
 
-    mySdkPath = getSdk().toFile();
+    mySdkPath = TestUtils.getSdk().toFile();
 
     Sdks.allowAccessToSdk(getTestRootDisposable());
 
@@ -177,9 +177,10 @@ public class AndroidSdksTest extends PlatformTestCase {
     VirtualFile[] classesRoots = sdk.getRootProvider().getFiles(CLASSES);
     assertThat(classesRoots).isNotEmpty();
 
-    //TODO nvuk Publish Android SDK with sources
-    //VirtualFile[] sourcesRoots = sdk.getRootProvider().getFiles(SOURCES);
-    //assertThat(sourcesRoots).isNotEmpty();
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      VirtualFile[] sourcesRoots = sdk.getRootProvider().getFiles(SOURCES);
+      assertThat(sourcesRoots).isNotEmpty();
+    }
   }
 
   private void verifyCorrectPath(@NotNull Sdk androidSdk) {

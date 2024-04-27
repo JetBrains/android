@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.common
 
+import com.android.sdklib.AndroidCoordinate
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.api.InsertType
-import com.android.tools.idea.common.model.AndroidCoordinate
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
@@ -28,15 +28,8 @@ import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
-import com.android.tools.idea.uibuilder.handlers.DelegatingViewGroupHandler
-import com.android.tools.idea.uibuilder.handlers.preference.PreferenceCategoryHandler
-import com.android.tools.idea.uibuilder.handlers.preference.PreferenceScreenHandler
-import com.android.tools.idea.uibuilder.menu.ItemHandler
-import com.android.tools.idea.uibuilder.menu.MenuHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
-
-private const val ERROR_UNDEFINED = "undefined"
 
 /** [DragHandler] handles the dragging from Palette and ComponentTree for all Layouts. */
 internal class CommonDragHandler(
@@ -47,7 +40,7 @@ internal class CommonDragHandler(
   type: DragType
 ) : DragHandler(editor, handler, layout, components, type) {
 
-  private val dragTarget: CommonDragTarget?
+  private val dragTarget: CommonDragTarget
 
   init {
     val dragged = components[0]
@@ -70,9 +63,6 @@ internal class CommonDragHandler(
   }
 
   override fun start(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int) {
-    if (dragTarget == null) {
-      return
-    }
     super.start(x, y, modifiers)
     dragTarget.mouseDown(x, y)
   }
@@ -83,9 +73,6 @@ internal class CommonDragHandler(
     modifiers: Int,
     sceneContext: SceneContext
   ): String? {
-    if (dragTarget == null) {
-      return ERROR_UNDEFINED
-    }
     val result = super.update(x, y, modifiers, sceneContext)
     dragTarget.mouseDrag(x, y, emptyList(), sceneContext)
     dragTarget.component.scene.requestLayoutIfNeeded()
@@ -99,9 +86,6 @@ internal class CommonDragHandler(
     modifiers: Int,
     insertType: InsertType
   ) {
-    if (dragTarget == null) {
-      return
-    }
     dragTarget.insertType = insertType
     @AndroidDpCoordinate val dx = editor.pxToDp(x)
     @AndroidDpCoordinate val dy = editor.pxToDp(y)
@@ -117,37 +101,10 @@ internal class CommonDragHandler(
   }
 
   override fun cancel() {
-    if (dragTarget == null) {
-      return
-    }
     if (dragTarget.component is TemporarySceneComponent) {
       layout.scene.removeComponent(dragTarget.component)
     }
     dragTarget.component.drawState = SceneComponent.DrawState.NORMAL
     dragTarget.mouseCancel()
-  }
-
-  companion object {
-    /**
-     * The classes of [ViewGroupHandler] which don't support [CommonDragHandler] yet.
-     *
-     * TODO: makes [CommonDragHandler] can be used in all [ViewGroupHandler].
-     */
-    private val HANDLER_CLASSES_NOT_SUPPORT =
-      listOf(
-        ItemHandler::class,
-        MenuHandler::class,
-        PreferenceCategoryHandler::class,
-        PreferenceScreenHandler::class,
-      )
-
-    @JvmStatic
-    fun isSupportCommonDragHandler(handler: ViewGroupHandler): Boolean {
-      var checkedHandler = handler
-      while (checkedHandler is DelegatingViewGroupHandler) {
-        checkedHandler = checkedHandler.delegateHandler
-      }
-      return HANDLER_CLASSES_NOT_SUPPORT.none { it.isInstance(checkedHandler) }
-    }
   }
 }

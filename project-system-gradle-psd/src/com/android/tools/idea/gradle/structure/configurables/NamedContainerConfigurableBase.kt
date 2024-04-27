@@ -89,7 +89,7 @@ private fun <T> ConfigurablesTreeModel.updateChildrenOf(
       val existingNode = existing[model]
       when {
         existingNode != null ->
-          // Move existing nodes to the right positions if require.
+          // Move existing nodes to the right positions if required.
           if (getIndexOfChild(parentNode, existingNode) != index) {
             removeNodeFromParent(existingNode)
             insertNodeInto(existingNode, parentNode, index)

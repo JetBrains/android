@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.semantics
 
+import java.lang.IllegalArgumentException
+
 /**
  * A class representing a specific version of the Android Gradle Plugin.  Unlike GradleVersion in
  * android.sdktools.sdk-common, this makes no attempt to represent declarations of "required versions"

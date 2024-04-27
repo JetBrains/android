@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.common.scene.target
 
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.addComponentsAndSelectedIfCreated
-import com.android.tools.idea.common.scene.NonPlaceholderDragTarget
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.Scene
@@ -140,6 +139,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
   }
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
+    @Suppress("ConstantConditionIf")
     if (DEBUG_RENDERER) {
       list.addRect(
         sceneContext,
@@ -503,18 +503,6 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
 
   override fun isHittable() =
     if (myComponent.isSelected) myComponent.canShowBaseline() || !myComponent.isDragging else true
-
-  companion object {
-
-    /** Determine if the [Target] could be replaced by [CommonDragTarget] */
-    @JvmStatic
-    fun isSupported(target: Target): Boolean =
-      when (target) {
-        !is NonPlaceholderDragTarget -> false
-        is LegacyDragTarget -> false
-        else -> true
-      }
-  }
 }
 
 private abstract class BasePlaceholderDrawRegion(

@@ -36,7 +36,7 @@ public class SelectBuildVariantAction extends AndroidStudioGradleAction {
 
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
-     e.getPresentation().setEnabled(isGradleProject(project));
+     e.getPresentation().setEnabled(isGradleProject(e));
   }
 
   @Override

@@ -42,6 +42,7 @@ class WorkEntry(override val id: String) : BackgroundTaskEntry {
 
   override val tags
     get() = work.tagsList.toList()
+
   override val callstacks = emptyList<BackgroundTaskCallStack>()
   override val retries: Int
     get() = (work.runAttemptCount - 1).takeIf { it >= 0 } ?: 0

@@ -15,10 +15,18 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.android.tools.idea.wizard.model.WizardModel
+import kotlinx.collections.immutable.ImmutableCollection
+import kotlinx.collections.immutable.persistentListOf
 
 internal class AddDeviceWizardModel internal constructor() : WizardModel() {
+  internal var device by mutableStateOf(VirtualDevice())
+  internal var systemImages: ImmutableCollection<SystemImage> by mutableStateOf(persistentListOf())
+
   override fun handleFinished() {
-    // TODO
+    VirtualDevices.add(device)
   }
 }

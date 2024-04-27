@@ -30,7 +30,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.psi.PsiElement
 import com.intellij.util.Alarm
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
@@ -38,27 +38,28 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import java.beans.PropertyChangeListener
 
-/**
- * Automatically shows quick documentation for Compose functions during code completion
- */
+/** Automatically shows quick documentation for Compose functions during code completion */
 class ComposeAutoDocumentation(private val project: Project) {
   private var documentationOpenedByCompose = false
 
   private val lookupListener = PropertyChangeListener { evt ->
-    if (LookupManager.PROP_ACTIVE_LOOKUP == evt.propertyName &&
-        evt.newValue is Lookup) {
+    if (LookupManager.PROP_ACTIVE_LOOKUP == evt.propertyName && evt.newValue is Lookup) {
       val lookup = evt.newValue as Lookup
 
-      val moduleSystem = FileDocumentManager.getInstance().getFile(lookup.editor.document)
-        ?.let { ModuleUtilCore.findModuleForFile(it, lookup.project) }
-        ?.getModuleSystem()
+      val moduleSystem =
+        FileDocumentManager.getInstance()
+          .getFile(lookup.editor.document)
+          ?.let { ModuleUtilCore.findModuleForFile(it, lookup.project) }
+          ?.getModuleSystem()
 
       if (moduleSystem?.usesCompose == true) {
-        lookup.addLookupListener(object : LookupListener {
-          override fun currentItemChanged(event: LookupEvent) {
-            showJavaDoc(lookup)
+        lookup.addLookupListener(
+          object : LookupListener {
+            override fun currentItemChanged(event: LookupEvent) {
+              showJavaDoc(lookup)
+            }
           }
-        })
+        )
       }
     }
   }
@@ -69,22 +70,23 @@ class ComposeAutoDocumentation(private val project: Project) {
     }
   }
 
-  class MyStartupActivity : ProjectActivity {
-
-    override suspend fun execute(project: Project)  = getInstance(project).onProjectOpened()
+  class MyStartupActivity : StartupActivity {
+    override fun runActivity(project: Project) = getInstance(project).onProjectOpened()
   }
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): ComposeAutoDocumentation = project.getService(ComposeAutoDocumentation::class.java)
+    fun getInstance(project: Project): ComposeAutoDocumentation =
+      project.getService(ComposeAutoDocumentation::class.java)
 
     @VisibleForTesting
     internal fun PsiElement?.shouldShowDocumentation(): Boolean =
       when {
         this == null -> false
         isComposableFunction() -> true
-        this is KtNamedFunction -> receiverTypeReference?.text == "androidx.compose.ui.Modifier" ||
-                                   containingClass()?.fqName?.asString() == "androidx.compose.ui.Modifier"
+        this is KtNamedFunction ->
+          receiverTypeReference?.text == "androidx.compose.ui.Modifier" ||
+            containingClass()?.fqName?.asString() == "androidx.compose.ui.Modifier"
         else -> false
       }
   }
@@ -100,18 +102,26 @@ class ComposeAutoDocumentation(private val project: Project) {
       return
     }
 
-    // If we open doc when lookup is not visible, doc will have wrong parent window (editor window instead of lookup).
+    // If we open doc when lookup is not visible, doc will have wrong parent window (editor window
+    // instead of lookup).
     if ((lookup as? LookupImpl)?.isVisible != true) {
-      Alarm().addRequest({ showJavaDoc(lookup) }, CodeInsightSettings.getInstance().JAVADOC_INFO_DELAY)
+      Alarm()
+        .addRequest({ showJavaDoc(lookup) }, CodeInsightSettings.getInstance().JAVADOC_INFO_DELAY)
       return
     }
 
     val docManager = DocumentationManager.getInstance(project)
-    val psiElement = lookup.currentItem?.let { it.psiElement ?: (it.`object` as? DeclarationLookupObject)?.psiElement }
+    val psiElement =
+      lookup.currentItem?.let {
+        it.psiElement ?: (it.`object` as? DeclarationLookupObject)?.psiElement
+      }
     if (!psiElement.shouldShowDocumentation()) {
-      // Close documentation for not composable function if it was opened by [AndroidComposeAutoDocumentation].
-      // Case docManager.docInfoHint?.isFocused == true: user clicked on doc window and after that clicked on lookup and selected another
-      // element. Due to bug docManager.docInfoHint?.isFocused == true even after clicking on lookup element, in that case if we close
+      // Close documentation for not composable function if it was opened by
+      // [AndroidComposeAutoDocumentation].
+      // Case docManager.docInfoHint?.isFocused == true: user clicked on doc window and after that
+      // clicked on lookup and selected another
+      // element. Due to bug docManager.docInfoHint?.isFocused == true even after clicking on lookup
+      // element, in that case if we close
       // docManager.docInfoHint, lookup will be closed as well.
       if (documentationOpenedByCompose && docManager.docInfoHint?.isFocused == false) {
         docManager.docInfoHint?.cancel()
@@ -121,18 +131,20 @@ class ComposeAutoDocumentation(private val project: Project) {
     }
 
     // It's composable function and documentation already opened
-    if (docManager.docInfoHint != null) return  // will auto-update
+    if (docManager.docInfoHint != null) return // will auto-update
 
     val currentItem = lookup.currentItem
-    if (currentItem != null && currentItem.isValid && CompletionService.getCompletionService().currentCompletion != null) {
+    if (
+      currentItem != null &&
+        currentItem.isValid &&
+        CompletionService.getCompletionService().currentCompletion != null
+    ) {
       try {
         docManager.showJavaDocInfo(lookup.editor, lookup.psiFile, false) {
           documentationOpenedByCompose = false
         }
         documentationOpenedByCompose = true
-      }
-      catch (ignored: IndexNotReadyException) {
-      }
+      } catch (ignored: IndexNotReadyException) {}
     }
   }
 }

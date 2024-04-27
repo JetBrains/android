@@ -22,6 +22,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.LiveStage
 import com.android.tools.profilers.NullMonitorStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
@@ -31,7 +32,11 @@ import com.android.tools.profilers.Utils.debuggableProcess
 import com.android.tools.profilers.Utils.newProcess
 import com.android.tools.profilers.Utils.onlineDevice
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
+import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
+import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.CallstackSampleTaskHandler
 import com.google.common.truth.Truth
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -45,6 +50,53 @@ class SessionItemTest {
 
   private val myIdeServices = FakeIdeProfilerServices()
   private val myProfilers by lazy { StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer) }
+
+  @Before
+  fun cleanup() {
+    myIdeServices.enableTaskBasedUx(false)
+  }
+
+  @Test
+  fun testNavigateToLiveStageWhenTaskBasedUxEnabled() {
+    myIdeServices.enableTaskBasedUx(true)
+    setupTaskHandlers()
+    val sessionsManager = getSessionManager()
+
+    // Navigate to a random stage, and selecting the session item should navigate to LiveStage.
+    myProfilers.stage = MainMemoryProfilerStage(myProfilers)
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(MainMemoryProfilerStage::class.java)
+    val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
+    sessionItem.onSelect()
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(LiveStage::class.java)
+  }
+
+  @Test
+  fun testNavigateToLiveStageWhenTaskBasedUxEnabledAlreadyLiveStage() {
+    myIdeServices.enableTaskBasedUx(true)
+    setupTaskHandlers()
+    val sessionsManager = getSessionManager()
+    myProfilers.stage = LiveStage(myProfilers)
+
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(LiveStage::class.java)
+    val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
+    sessionItem.onSelect()
+    Truth.assertThat(myProfilers.stageClass).isEqualTo(LiveStage::class.java)
+  }
+
+  private fun setupTaskHandlers() {
+    val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myProfilers.sessionsManager)
+    taskHandlers.forEach{ (type, handler)  -> myProfilers.addTaskHandler(type, handler) }
+    myProfilers.addTaskHandler(ProfilerTaskType.UNSPECIFIED,  CallstackSampleTaskHandler(myProfilers.sessionsManager))
+  }
+
+  private fun getSessionManager() : SessionsManager {
+    val sessionsManager = myProfilers.sessionsManager
+    val device = onlineDevice { deviceId = NEW_DEVICE_ID }
+    val process = newProcess { deviceId = NEW_DEVICE_ID; pid = 10 }
+    sessionsManager.beginSession(device.deviceId, device, process)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    return sessionsManager
+  }
 
   @Test
   fun testNavigateToStudioMonitorStage() {

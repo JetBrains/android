@@ -22,4 +22,5 @@ import com.intellij.psi.PsiErrorElement
  *
  * TODO(aalbert): Maybe add more context that could allow us to highlight the error
  */
-internal class LogcatFilterParseException(psiErrorElement: PsiErrorElement) : Exception(psiErrorElement.errorDescription)
+internal class LogcatFilterParseException(psiErrorElement: PsiErrorElement) :
+  Exception(psiErrorElement.errorDescription)

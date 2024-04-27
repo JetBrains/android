@@ -86,7 +86,7 @@ constructor(
         renderer = FrameworkDrawableRenderer(
           facet,
           ::createRenderTask,
-          ImageFuturesManager()
+          ImageFuturesManager<ResourceValue>()
         )
         facet.putUserData(FRAMEWORK_DRAWABLE_KEY, renderer)
       }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.stats
 
-import java.util.ArrayDeque
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class EventsLimiter(private val eventCount : Int,

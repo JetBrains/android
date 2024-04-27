@@ -30,13 +30,16 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
   public static final PropertiesElementDescription<CompileOptionsDslElement> COMPILE_OPTIONS =
-    new PropertiesElementDescription<>("compileOptions", CompileOptionsDslElement.class, CompileOptionsDslElement::new);
+    new PropertiesElementDescription<>("compileOptions",
+                                       CompileOptionsDslElement.class,
+                                       CompileOptionsDslElement::new,
+                                       CompileOptionsDslElementSchema::new);
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"encoding", property, ENCODING, VAR},
@@ -50,9 +53,14 @@ public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
     {"incremental", exactly(1), INCREMENTAL, SET},
   }).collect(toModelMap(BaseCompileOptionsDslElement.groovyToModelNameMap));
 
+  public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"encoding", property, ENCODING, VAR},
+    {"incremental", property, INCREMENTAL, VAR}
+  }).collect(toModelMap(BaseCompileOptionsDslElement.declarativeToModelNameMap));
+
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
   public CompileOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
@@ -62,14 +70,14 @@ public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
   public static final class CompileOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
     @NotNull
     @Override
-    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
-      return ImmutableMap.of();
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
     }
 
-    @NotNull
+    @Nullable
     @Override
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap);
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.CompileOptions";
     }
   }
 }

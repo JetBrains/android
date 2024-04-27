@@ -63,8 +63,6 @@ class GradleProjectPathIntegrationTest {
             .feature-a.unitTest ==> :feature-a/UNIT_TEST
             .feature-b ==> :feature-b
             .feature-b.androidTest ==> :feature-b/ANDROID_TEST
-            .feature-b.commonMain ==> :feature-b/commonMain
-            .feature-b.commonTest ==> :feature-b/commonTest
             .feature-b.main ==> :feature-b/MAIN
             .feature-b.unitTest ==> :feature-b/UNIT_TEST
             .jarWrapperLib ==> :jarWrapperLib

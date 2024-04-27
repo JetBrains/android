@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.annotations.TestDumbService
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.preview.DisplayPositioning
-import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.DisplayPositioning
+import com.android.tools.preview.ParametrizedComposePreviewElementTemplate
+import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.UNDEFINED_API_LEVEL
+import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.util.Segment
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.GlobalScope
@@ -47,13 +48,13 @@ import org.junit.Rule
 import org.junit.Test
 
 /** Asserts that the given [methodName] body has the actual given [actualBodyRange] */
-private fun assertMethodTextRange(file: PsiFile, methodName: String, actualBodyRange: Segment) {
+private fun assertMethodTextRange(file: PsiFile, methodName: String, actualBodyRange: TextRange) {
   val range =
     ReadAction.compute<TextRange, Throwable> {
       file.toUElementOfType<UFile>()?.method(methodName)?.uastBody?.sourcePsi?.textRange!!
     }
   assertNotEquals(range, TextRange.EMPTY_RANGE)
-  assertTrue(range.equalsToRange(actualBodyRange.startOffset, actualBodyRange.endOffset))
+  assertEquals(range, actualBodyRange)
 }
 
 private fun <T> computeOnBackground(computable: () -> T): T =
@@ -64,6 +65,7 @@ class AnnotationFileComposePreviewElementFinderTest {
   @get:Rule val projectRule = ComposeProjectRule()
   private val project
     get() = projectRule.project
+
   private val fixture
     get() = projectRule.fixture
 
@@ -190,7 +192,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview1",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -209,7 +215,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(0, it.configuration.uiMode)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview2", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview2",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals(
           "@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\", showBackground = true, locale = \"en-rUS\")",
           it.previewElementDefinitionPsi?.element?.text
@@ -230,7 +240,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals("id:Nexus 7", it.configuration.deviceSpec)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview3",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals(
           "@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true, device = Devices.NEXUS_7)",
           it.previewElementDefinitionPsi?.element?.text
@@ -244,7 +258,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals("#baaaba", it.displaySettings.backgroundColor)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview4", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview4",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals(
           "@Preview(name = \"preview4\", uiMode = 3, backgroundColor = 0xBAAABA)",
           it.previewElementDefinitionPsi?.element?.text
@@ -258,7 +276,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals("#ffbaaaba", it.displaySettings.backgroundColor)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview5", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview5",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals(
           "@Preview(name = \"preview5\", uiMode = 3, backgroundColor = 0xFFBAAABA)",
           it.previewElementDefinitionPsi?.element?.text
@@ -275,7 +297,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview6", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview6",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals("Preview", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -289,7 +315,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview7", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview7",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals("@MyAnnotation", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -303,7 +333,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview7", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview7",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals("@MyAnnotation", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -317,7 +351,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview7", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview7",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals("@Preview(name = \"preview7\")", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -474,7 +512,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview1",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -488,7 +530,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview1",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals("@MyValidAnnotation1", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -502,7 +548,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview1",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals("@MyValidAnnotation2", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -516,7 +566,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview1",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals("@MyValidAnnotation3", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -552,9 +606,9 @@ class AnnotationFileComposePreviewElementFinderTest {
         .toList()
     assertEquals(2, elements.size)
 
-    elements[0].let { assertEquals("TestKt.Preview1", it.composableMethodFqn) }
+    elements[0].let { assertEquals("TestKt.Preview1", it.methodFqn) }
 
-    elements[1].let { assertEquals("TestKt.Preview2", it.composableMethodFqn) }
+    elements[1].let { assertEquals("TestKt.Preview2", it.methodFqn) }
   }
 
   @Test
@@ -639,44 +693,44 @@ class AnnotationFileComposePreviewElementFinderTest {
    */
   @Test
   fun testDumbMode() = runBlocking {
-    val dumbService = TestDumbService(project)
-    project.replaceService(DumbService::class.java, dumbService, project)
     val composeTest =
       fixture.addFileToProjectAndInvalidate(
         "src/Test.kt",
         // language=kotlin
         """
-        import $COMPOSABLE_ANNOTATION_FQN
-        import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
-        @Composable
-        @Preview
-        fun Preview1() {
-        }
+      @Composable
+      @Preview
+      fun Preview1() {
+      }
 
-        @Composable
-        @Preview(name = "preview2", apiLevel = 12)
-        fun Preview1() {
-        }
-      """
+      @Composable
+      @Preview(name = "preview2", apiLevel = 12)
+      fun Preview1() {
+      }
+    """
           .trimIndent()
       )
-
-    runInEdtAndWait {
-      assertFalse(
-        AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
-      )
-    }
     val result =
-      GlobalScope.async {
-        AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+      DumbModeTestUtils.computeInDumbModeSynchronously(project) {
+        runInEdtAndWait {
+          assertFalse(
+            AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+          )
+        }
+        val result =
+          GlobalScope.async {
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+          }
+        try {
+          runBlocking { withTimeout(2500) { result.await() } }
+          fail("The result should not have been returned in non-smart mode")
+        } catch (_: TimeoutCancellationException) {}
+        result
       }
-    try {
-      withTimeout(2500) { result.await() }
-      fail("The result should not have been returned in non-smart mode")
-    } catch (_: TimeoutCancellationException) {}
     runInEdtAndWait {
-      dumbService.dumbMode = false
       assertTrue(
         AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
       )
@@ -828,7 +882,7 @@ class AnnotationFileComposePreviewElementFinderTest {
         }
       }
       .sortByDisplayAndSourcePosition()
-      .map { it.composableMethodFqn }
+      .map { it.methodFqn }
       .toTypedArray()
       .let {
         assertArrayEquals(
@@ -989,7 +1043,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview1",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals(
           "@Preview(name = \"preview1\", widthDp = 2)",
           it.previewElementDefinitionPsi?.element?.text
@@ -1004,7 +1062,11 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange!!)
+        assertMethodTextRange(
+          composeTest,
+          "Preview1",
+          TextRange.create(it.previewBodyPsi!!.psiRange!!)
+        )
         assertEquals(
           "@Preview(name = \"preview2\", group = \"groupA\")",
           it.previewElementDefinitionPsi?.element?.text
@@ -1071,5 +1133,31 @@ class AnnotationFileComposePreviewElementFinderTest {
 
       AnnotationFilePreviewElementFinder.findPreviewMethods(project, otherFile.virtualFile).toList()
     }
+  }
+
+  @Test
+  fun testFindPreviewAnnotationsWithAlias() = runBlocking {
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
+        import $PREVIEW_TOOLING_PACKAGE.Devices
+        import $PREVIEW_TOOLING_PACKAGE.Preview as MyPreview
+        import $COMPOSABLE_ANNOTATION_FQN
+
+        @Composable
+        @MyPreview
+        fun Preview1() {
+        }
+
+      """
+          .trimIndent()
+      )
+
+    val elements =
+      AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+        .toList()
+    assertEquals("Preview1", elements.single().displaySettings.name)
   }
 }

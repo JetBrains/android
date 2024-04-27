@@ -103,6 +103,7 @@ class TreeTableImplTest {
     object : ContextPopupHandler {
       var popupInvokeCount = 0
         private set
+
       var lastItem: Any? = null
 
       override fun invoke(item: Any, component: JComponent, x: Int, y: Int) {
@@ -114,6 +115,7 @@ class TreeTableImplTest {
     object : DoubleClickHandler {
       var clickCount = 0
         private set
+
       var lastItem: Any? = null
 
       override fun invoke(item: Any) {
@@ -192,7 +194,9 @@ class TreeTableImplTest {
     val settings =
       object : AdvancedSettings() {
         override fun getSetting(id: String) = false
+
         override fun setSetting(id: String, value: Any, expectType: AdvancedSettingType) {}
+
         override fun getDefault(id: String) = false
       }
     ApplicationManager.getApplication()

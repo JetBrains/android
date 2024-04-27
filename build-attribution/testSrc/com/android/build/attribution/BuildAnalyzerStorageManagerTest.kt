@@ -112,24 +112,25 @@ class BuildAnalyzerStorageManagerTest {
   @Test
   fun testBuildResultsAreCleared() {
     StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
-    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildResultsStored()).isEqualTo(0)
-    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
-      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
+    val storageManager = BuildAnalyzerStorageManager.getInstance(projectRule.project)
+    Truth.assertThat(storageManager.getNumberOfBuildResultsStored()).isEqualTo(0)
+    storageManager.storeNewBuildResults(
+      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer(), storageManager),
       "someID",
       BuildRequestHolder(
         GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
       )
     ).get()
-    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
-      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
+    storageManager.storeNewBuildResults(
+      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer(), storageManager),
       "someID2",
       BuildRequestHolder(
         GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
       )
     ).get()
-    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildResultsStored()).isEqualTo(2)
-    BuildAnalyzerStorageManager.getInstance(projectRule.project).clearBuildResultsStored().get()
-    Truth.assertThat(BuildAnalyzerStorageManager.getInstance(projectRule.project).getNumberOfBuildResultsStored()).isEqualTo(0)
+    Truth.assertThat(storageManager.getNumberOfBuildResultsStored()).isEqualTo(2)
+    storageManager.clearBuildResultsStored().get()
+    Truth.assertThat(storageManager.getNumberOfBuildResultsStored()).isEqualTo(0)
   }
 
   @Test
@@ -350,7 +351,7 @@ class BuildAnalyzerStorageManagerTest {
                                                buildID: String = UUID.randomUUID().toString()): BuildAnalyzerResultData {
     val taskContainer = TaskContainer()
     val pluginContainer = PluginContainer()
-    val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
+    val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer, BuildAnalyzerStorageManager.getInstance(projectRule.project))
     val setPrivateField: (Any, String, Any) -> Unit = { classInstance: Any, fieldName: String, newValue: Any ->
       val field = classInstance.javaClass.getDeclaredField(fieldName)
       field.isAccessible = true

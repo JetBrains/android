@@ -17,12 +17,12 @@ package com.android.tools.idea.preview.interactive.analytics
 
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.InteractivePreviewEvent
+import java.util.concurrent.Executor
+import java.util.function.Consumer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
-import java.util.concurrent.Executor
-import java.util.function.Consumer
 
 class InteractivePreviewUsageTrackerImplTest {
   private lateinit var myInteractivePreviewUsageTracker: InteractivePreviewUsageTracker

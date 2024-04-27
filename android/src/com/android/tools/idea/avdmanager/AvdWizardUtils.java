@@ -15,29 +15,24 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_AVD_ID;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
-import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.DESKTOP_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
+import static com.android.sdklib.SystemImageTags.ANDROID_TV_TAG;
+import static com.android.sdklib.SystemImageTags.AUTOMOTIVE_TAG;
+import static com.android.sdklib.SystemImageTags.CHROMEOS_TAG;
+import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
+import static com.android.sdklib.SystemImageTags.DESKTOP_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
+import static com.android.sdklib.SystemImageTags.WEAR_TAG;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.repository.Revision;
-import com.android.repository.api.LocalPackage;
-import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
@@ -127,10 +122,10 @@ public class AvdWizardUtils {
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
   /**
-   * @deprecated Use fileSystem.getPath({@link SkinUtils#NO_SKIN})
+   * @deprecated Use {@link SkinUtils#noSkin()}
    */
   @Deprecated
-  static final File NO_SKIN = new File(SkinUtils.NO_SKIN);
+  static final File NO_SKIN = SkinUtils.noSkin().toFile();
 
   // The AVD wizard needs a bit of extra width as its options panel is pretty dense
   private static final Dimension AVD_WIZARD_MIN_SIZE = JBUI.size(600, 400);
@@ -140,9 +135,6 @@ public class AvdWizardUtils {
 
   /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
   private static final int MAX_RAM_MB = 2048;
-
-  private static final Revision MIN_SNAPSHOT_MANAGEMENT_VERSION = new Revision(27, 2, 5);
-  private static final Revision MIN_WEBP_VERSION = new Revision(25, 2, 3);
 
   /**
    * Get the default amount of ram to use for the given hardware in an AVD. This is typically
@@ -222,32 +214,7 @@ public class AvdWizardUtils {
   @Slow
   public static @Nullable File pathToUpdatedSkins(@Nullable Path device,
                                                   @Nullable SystemImageDescription image) {
-    return device == null ? null : DeviceSkinUpdater.updateSkins(device, image).toFile();
-  }
-
-  static boolean emulatorSupportsWebp(@NotNull AndroidSdkHandler sdkHandler) {
-    return emulatorVersionIsAtLeast(sdkHandler, MIN_WEBP_VERSION);
-  }
-
-  static boolean emulatorSupportsSnapshotManagement(@NotNull AndroidSdkHandler sdkHandler) {
-    return emulatorVersionIsAtLeast(sdkHandler, MIN_SNAPSHOT_MANAGEMENT_VERSION);
-  }
-
-  private static boolean emulatorVersionIsAtLeast(@NotNull AndroidSdkHandler sdkHandler, Revision minRevision) {
-    ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
-    LocalPackage sdkPackage = sdkHandler.getLocalPackage(FD_EMULATOR, log);
-    if (sdkPackage != null) {
-      return sdkPackage.getVersion().compareTo(minRevision) >= 0;
-    }
-    return false;
-  }
-
-  /**
-   * Creates a {@link ModelWizardDialog} containing all the steps needed to create a new AVD
-   */
-  public static ModelWizardDialog createAvdWizard(@Nullable Component parent,
-                                                  @Nullable Project project) {
-    return createAvdWizard(parent, project, new AvdOptionsModel(null));
+    return device == null ? null : DeviceSkinUpdater.updateSkin(device, image).toFile();
   }
 
   /**

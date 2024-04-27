@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dependencies;
 
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
 import static com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.calculateAddDependencyPolicy;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
@@ -38,8 +38,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Objects;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -258,12 +256,12 @@ public class GradleDependencyManager {
 
   /**
    * Updates any coordinates to the versions specified in the dependencies list.
+   * In case module has a reference to catalog file, dependency will be updated there.
    * For example, if you pass it [com.android.support.constraint:constraint-layout:1.0.0-alpha2],
    * it will find any constraint layout occurrences of 1.0.0-alpha1 and replace them with 1.0.0-alpha2.
    */
   public boolean updateLibrariesToVersion(@NotNull Module module,
                                           @NotNull List<Dependency> dependencies) {
-    // TODO upgrade to work seamlessly with version catalog
     GradleBuildModel buildModel = ProjectBuildModel.get(module.getProject()).getModuleBuildModel(module);
     if (buildModel == null) {
       return false;
@@ -293,11 +291,10 @@ public class GradleDependencyManager {
                                            @Nullable ConfigurationNameMapper nameMapper) {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       for (Pair<String, Dependency> namedDependency : namedDependencies) {
-        String name = COMPILE;
+        String name = IMPLEMENTATION;
         if (nameMapper != null) {
           name = nameMapper.mapName(module, name, namedDependency.getSecond());
         }
-        name = GradleUtil.mapConfigurationName(name, GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(module), false);
         String alias = namedDependency.getFirst();
         ReferenceTo reference = new ReferenceTo(catalogModel.libraries().findProperty(alias), dependenciesModel);
         dependenciesModel.addArtifact(name, reference);
@@ -369,11 +366,10 @@ public class GradleDependencyManager {
     updateModel(module, model -> {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       for (Dependency dependency : dependencies) {
-        String name = COMPILE;
+        String name = IMPLEMENTATION;
         if (nameMapper != null) {
           name = nameMapper.mapName(module, name, dependency);
         }
-        name = GradleUtil.mapConfigurationName(name, GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(module), false);
         String identifier = dependency.toIdentifier();
         if (identifier != null) {
           dependenciesModel.addArtifact(name, identifier);
@@ -389,7 +385,8 @@ public class GradleDependencyManager {
     assert !dependencies.isEmpty();
 
     Project project = module.getProject();
-    WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> updateDependencies(buildModel, module, dependencies));
+    WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY)
+      .run(() -> updateDependencies(buildModel, module, dependencies));
   }
 
   private static void requestProjectSync(@NotNull Project project, @NotNull GradleSyncStats.Trigger trigger) {
@@ -400,6 +397,8 @@ public class GradleDependencyManager {
   private static void updateDependencies(@NotNull GradleBuildModel buildModel,
                                          @NotNull Module module,
                                          @NotNull List<Dependency> dependencies) {
+    GradleVersionCatalogsModel catalogsModel = ProjectBuildModel.get(module.getProject()).getVersionCatalogsModel();
+
     updateModel(module, model -> {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       for (Dependency dependency : dependencies) {
@@ -411,12 +410,23 @@ public class GradleDependencyManager {
           if (Objects.equal(dependency.getGroup(), m.group().toString())
               && Objects.equal(dependency.getName(), m.name().forceString())
               && !Objects.equal(richVersionIdentifier, m.version().toString())) {
-            // TODO probably need to update in place as external references can be broken
-            // need to reconsider version catalog as dependency storage
-            dependenciesModel.remove(m);
-            dependenciesModel.addArtifact(m.configurationName(), dependency.toString());
+
+            boolean successfulUpdate = false;
+
+            if (m.isVersionCatalogDependency()) {
+              // Trying update catalog once dependency is a reference to a catalog declaration
+              successfulUpdate = DependenciesHelper.updateCatalogLibrary(catalogsModel, m, richVersion);
+            }
+            if (!successfulUpdate) {
+              // Update directly in build file if there is no catalog or update there was unsuccessful
+              dependenciesModel.remove(m);
+              dependenciesModel.addArtifact(m.configurationName(), dependency.toString());
+            }
           }
         }
+      }
+      for (String catalogName : catalogsModel.catalogNames()) {
+        catalogsModel.getVersionCatalogModel(catalogName).applyChanges();
       }
       buildModel.applyChanges();
     });

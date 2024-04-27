@@ -24,10 +24,10 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.actions.OrientationMenuAction
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.actions.GotoComponentAction
 import com.android.tools.idea.common.util.NlTreeDumper
-import com.android.tools.idea.configurations.OrientationMenuAction
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.actions.ActivateComponentAction
@@ -63,6 +63,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
+import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 
 /**

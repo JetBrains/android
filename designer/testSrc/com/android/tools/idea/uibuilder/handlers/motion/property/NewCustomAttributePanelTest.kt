@@ -25,13 +25,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import icons.StudioIcons
+import java.awt.Window
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
-import java.awt.Window
 
 @RunsInEdt
 class NewCustomAttributePanelTest {

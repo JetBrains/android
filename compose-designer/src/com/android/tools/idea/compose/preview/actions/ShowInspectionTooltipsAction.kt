@@ -16,15 +16,14 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
 
 /** Action to toggle the tooltip inspection mode of compose preview. */
-class ShowInspectionTooltipsAction(private val composeContext: DataContext) : ToggleAction() {
+class ShowInspectionTooltipsAction : ToggleAction() {
 
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -33,15 +32,11 @@ class ShowInspectionTooltipsAction(private val composeContext: DataContext) : To
   }
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    return e.withDataContext(composeContext)
-      .getData(COMPOSE_PREVIEW_MANAGER)
-      ?.isInspectionTooltipEnabled
-      ?: false
+    return e.getData(COMPOSE_PREVIEW_MANAGER)?.isInspectionTooltipEnabled ?: false
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    e.withDataContext(composeContext).getData(COMPOSE_PREVIEW_MANAGER)?.isInspectionTooltipEnabled =
-      state
+    e.getData(COMPOSE_PREVIEW_MANAGER)?.isInspectionTooltipEnabled = state
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

@@ -104,7 +104,7 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
                   ?: throw IllegalArgumentException("Attempt to obtain manifest info from a non Android module: ${module.name}")
       when {
         // Make sure the module wasn't disposed while we were waiting for the read lock.
-        facet.isDisposed || module.project.isDisposed -> throw ProcessCanceledException()
+        facet.isDisposed() || module.project.isDisposed -> throw ProcessCanceledException()
         cachedSnapshot != null && snapshotUpToDate(cachedSnapshot) -> cachedSnapshot
         else -> createMergedManifestSnapshot(facet)
       }

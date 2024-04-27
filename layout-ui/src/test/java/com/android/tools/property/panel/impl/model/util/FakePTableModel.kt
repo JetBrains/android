@@ -60,6 +60,7 @@ class FakePTableModel(
 
 class TestTableItem(override val name: String, override val value: String?) : PTableItem {
   override fun hashCode(): Int = Objects.hash(name, value)
+
   override fun equals(other: Any?): Boolean =
     other is TestTableItem && name == other.name && value == other.value
 }

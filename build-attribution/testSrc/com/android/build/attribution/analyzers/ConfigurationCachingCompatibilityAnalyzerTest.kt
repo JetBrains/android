@@ -25,7 +25,7 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.getSuccessfulResult
 import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.ide.common.gradle.Version
-import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
+import com.android.test.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
@@ -161,7 +161,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     }
   }
 
-  @Ignore("Need additional work to make such setup run offline.")
+  @Ignore("b/303118113")
   @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
   @Test
   fun testOldKotlinDetectedAppliedInPluginDsl() {

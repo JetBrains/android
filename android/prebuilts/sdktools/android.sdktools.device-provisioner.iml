@@ -4,48 +4,50 @@
     <exclude-output />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="module" module-name="android.sdktools.adblib" />
-    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-device-provisioner" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.device-provisioner:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.device-provisioner:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner/231.0.26.0/studio.android.sdktools.device-provisioner-231.0.26.0.jar">
-              <sha256sum>8ec670f70ed35315ae8c812350281318535eac3d5a7c264d0c87723146eb00d1</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner/232.1.23.0/studio.android.sdktools.device-provisioner-232.1.23.0.jar">
+              <sha256sum>030a552051c777292f31ea9a7ffcd842484109a63fc5a20960e9b1e445e36bd8</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner/231.0.26.0/studio.android.sdktools.device-provisioner-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner/232.1.23.0/studio.android.sdktools.device-provisioner-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner/231.0.26.0/studio.android.sdktools.device-provisioner-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-device-provisioner-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.device-provisioner_test:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.device-provisioner_test:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner_test/231.0.26.0/studio.android.sdktools.device-provisioner_test-231.0.26.0.jar">
-              <sha256sum>4638c0f2164d6b2f00fe144db8fec4e366a5f9ac1652b953a96d2d74d23ca751</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner_test/232.1.23.0/studio.android.sdktools.device-provisioner_test-232.1.23.0.jar">
+              <sha256sum>13ef4fcb5d61a40434d5b25d8d2edb5ea7271ff96a279065067ee93cbda5cabc</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner_test/231.0.26.0/studio.android.sdktools.device-provisioner_test-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner_test/232.1.23.0/studio.android.sdktools.device-provisioner_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner_test/231.0.26.0/studio.android.sdktools.device-provisioner_test-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="emulator-proto" level="project" />
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" name="studio-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.adblib" />
+    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-shared" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
   </component>
 </module>

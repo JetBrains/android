@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.device.explorer
 
-import com.android.adblib.ConnectedDevice
 import com.android.adblib.serialNumber
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.device.explorer.files.DeviceFileExplorerController
-import com.android.tools.idea.device.explorer.files.adbimpl.AdbDeviceFileSystem
-import com.android.tools.idea.device.explorer.monitor.DeviceMonitorController
+import com.android.tools.idea.device.explorer.common.DeviceExplorerControllerListener
+import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
+import com.android.tools.idea.device.explorer.common.DeviceExplorerTabController
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerView
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerViewListener
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -34,24 +32,16 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
-import com.intellij.util.concurrency.EdtExecutorService
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
-import org.jetbrains.ide.PooledThreadExecutor
 
 @UiThread
 class DeviceExplorerController(
   project: Project,
   private val model: DeviceExplorerModel,
   private val view: DeviceExplorerView,
-  private val deviceFilesController: DeviceFileExplorerController,
-  private val deviceMonitorControllerImpl: DeviceMonitorController) : Disposable {
-
+  private val tabControllers: List<DeviceExplorerTabController>) : Disposable, DeviceExplorerControllerListener {
   private val uiThreadScope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
   private val viewListener: DeviceExplorerViewListener = ViewListener()
-
-  private val edtExecutor = FutureCallbackExecutor(EdtExecutorService.getInstance())
-  private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
 
   init {
     Disposer.register(project, this)
@@ -63,13 +53,26 @@ class DeviceExplorerController(
     view.removeListener(viewListener)
   }
 
+  override fun packageFilterToggled(isActive: Boolean) {
+    DeviceExplorerSettings.getInstance().isPackageFilterActive = isActive
+    trackAction(DeviceExplorerEvent.Action.APPLICATION_ID_FILTER_TOGGLED)
+    trackAction(
+      if (isActive) DeviceExplorerEvent.Action.APPLICATION_ID_FILTER_TOGGLED_ON
+      else DeviceExplorerEvent.Action.APPLICATION_ID_FILTER_TOGGLED_OFF
+    )
+    tabControllers.forEach {
+      it.setPackageFilter(isActive)
+    }
+  }
+
   fun setup() {
     uiThreadScope.launch {
       view.setup()
-      deviceFilesController.setup()
-      view.addTab(deviceFilesController.getViewComponent(), DeviceExplorerTab.Files.name)
-      deviceMonitorControllerImpl.setup()
-      view.addTab(deviceMonitorControllerImpl.getViewComponent(), DeviceExplorerTab.Processes.name)
+      tabControllers.forEach {
+        it.setup()
+        it.controllerListener = this@DeviceExplorerController
+        view.addTab(it.getViewComponent(), it.getTabName())
+      }
       launch { view.trackDeviceListChanges() }
       launch { view.trackActiveDeviceChanges() }
     }
@@ -90,24 +93,22 @@ class DeviceExplorerController(
 
   private fun setActiveDevice(deviceHandle: DeviceHandle?) {
     model.setActiveDevice(deviceHandle)
-    trackDeviceChangeAction()
-    deviceMonitorControllerImpl.setActiveConnectedDevice(deviceHandle?.state?.connectedDevice?.serialNumber)
-    deviceFilesController.setActiveConnectedDevice(newDeviceFileSystem(deviceHandle, deviceHandle?.state?.connectedDevice))
+    trackAction(DeviceExplorerEvent.Action.DEVICE_CHANGE)
+    tabControllers.forEach {
+      it.setActiveConnectedDevice(deviceHandle)
+    }
   }
 
-  private fun trackDeviceChangeAction() {
+  private fun trackAction(action: DeviceExplorerEvent.Action) {
     log(
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
         .setDeviceExplorerEvent(
           DeviceExplorerEvent.newBuilder()
-            .setAction(DeviceExplorerEvent.Action.DEVICE_CHANGE)
+            .setAction(action)
         )
     )
   }
-
-  private fun newDeviceFileSystem(handle: DeviceHandle?, connectedDevice: ConnectedDevice?): AdbDeviceFileSystem?  =
-    if (handle != null && connectedDevice != null) AdbDeviceFileSystem(handle, connectedDevice, edtExecutor, dispatcher) else null
 
   private inner class ViewListener : DeviceExplorerViewListener {
     override fun noDeviceSelected() {

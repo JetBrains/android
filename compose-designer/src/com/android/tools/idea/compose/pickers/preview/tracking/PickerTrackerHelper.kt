@@ -16,10 +16,10 @@
 package com.android.tools.idea.compose.pickers.preview.tracking
 
 import com.android.resources.Density
-import com.android.tools.idea.avdmanager.AvdScreenData
-import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
-import com.android.tools.idea.compose.pickers.preview.property.DimUnit
-import com.android.tools.idea.compose.pickers.preview.property.toMutableConfig
+import com.android.tools.preview.config.Densities
+import com.android.tools.preview.config.DeviceConfig
+import com.android.tools.preview.config.DimUnit
+import com.android.tools.preview.config.toMutableConfig
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.math.roundToInt
@@ -36,11 +36,7 @@ internal object PickerTrackerHelper {
         dimUnit = DimUnit.px
       } // We need pixel dimensions to calculate density
     val density =
-      AvdScreenData.getScreenDensity(
-        false,
-        configCopy.dpi.toDouble(),
-        configCopy.height.roundToInt()
-      )
+      Densities.getScreenDensity(false, configCopy.dpi.toDouble(), configCopy.height.roundToInt())
     return when (density) {
       Density.LOW -> PreviewPickerValue.DENSITY_LOW
       Density.MEDIUM -> PreviewPickerValue.DENSITY_MEDIUM
@@ -49,7 +45,8 @@ internal object PickerTrackerHelper {
       Density.XXHIGH -> PreviewPickerValue.DENSITY_XX_HIGH
       Density.XXXHIGH -> PreviewPickerValue.DENSITY_XXX_HIGH
       else -> {
-        Logger.getInstance(this::class.java).warn("Unexpected density bucket: ${density.name}")
+        Logger.getInstance(this::class.java)
+          .warn("Unexpected density bucket: ${density.resourceValue}")
         PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       }
     }

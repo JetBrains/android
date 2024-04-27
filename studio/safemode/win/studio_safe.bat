@@ -6,6 +6,11 @@ SETLOCAL
 ::----------------------------------------------------------------------
 
 :: ---------------------------------------------------------------------
+:: Ensure System32 is in PATH.
+:: ---------------------------------------------------------------------
+SET PATH=%PATH%;%systemroot%\system32
+
+:: ---------------------------------------------------------------------
 :: Ensure IDE_HOME points to the directory where the IDE is installed.
 :: ---------------------------------------------------------------------
 SET IDE_BIN_DIR=%~dp0
@@ -65,49 +70,32 @@ USER_VM_OPTIONS_FILE=%APPDATA%\Google\%STUDIO_VERSION%.safe\studio64.exe.vmoptio
 SET ACC="-Djb.vmOptionsFile=%USER_VM_OPTIONS_FILE%"
 FINDSTR /R /C:"-XX:\+.*GC" "%USER_VM_OPTIONS_FILE%" > NUL
 
-SET "CLASS_PATH=%IDE_HOME%\lib\util.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\app.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\3rd-party-rt.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\jna.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\platform-statistics-devkit.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\jps-model.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\rd-core.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\rd-framework.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\stats.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\protobuf.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\external-system-rt.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\forms_rt.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\intellij-test-discovery.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\rd-swing.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\annotations.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\groovy.jar"
 SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\annotations-java5.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\asm-9.2.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\asm-analysis-9.2.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\asm-commons-9.2.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\asm-tree-9.2.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\asm-util-9.2.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\byte-buddy-agent.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\error-prone-annotations.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\util.jar"
 SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\externalProcess-rt.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\grpc-netty-shaded.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\idea_rt.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\intellij-coverage-agent-1.0.673.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\jffi-1.3.9-native.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\jffi-1.3.9.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\jnr-a64asm-1.0.0.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\jnr-ffi-2.2.12.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\jnr-x86asm-1.0.2.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\junit.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\junit4.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\lz4-java.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\platform-objectSerializer-annotations.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\pty4j.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\rd-text.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\groovy.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\external-system-rt.jar"
 SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\resources.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\util_rt.jar"
-SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\winp.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\lib.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\intellij-coverage-agent-1.0.723.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\byte-buddy-agent.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\jps-model.jar"
 SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\ant/lib/ant.jar"
+SET "CLASS_PATH=%IDE_HOME%\lib\platform-loader.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\forms_rt.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\grpc.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\util_rt.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\bouncy-castle.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\idea_rt.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\app.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\junit4.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\util-8.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\annotations.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\intellij-test-discovery.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\error-prone-annotations.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\protobuf.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\rd.jar"
+SET "CLASS_PATH=%CLASS_PATH%;%IDE_HOME%\lib\stats.jar"
 
 :: ---------------------------------------------------------------------
 :: Run the IDE.

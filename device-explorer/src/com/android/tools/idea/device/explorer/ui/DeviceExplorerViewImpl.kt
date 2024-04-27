@@ -18,7 +18,7 @@ package com.android.tools.idea.device.explorer.ui
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.device.explorer.DeviceExplorerModel
-import com.android.tools.idea.device.explorer.DeviceExplorerTab
+import com.android.tools.idea.device.explorer.common.DeviceExplorerTab
 import com.android.tools.idea.deviceprovisioner.DeviceHandleRenderer
 import com.android.tools.idea.deviceprovisioner.toIterable
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent

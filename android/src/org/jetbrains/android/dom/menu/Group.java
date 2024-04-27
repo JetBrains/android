@@ -16,8 +16,9 @@
 
 package org.jetbrains.android.dom.menu;
 
-import java.util.List;
 import org.jetbrains.android.dom.Styleable;
+
+import java.util.List;
 
 @Styleable("MenuGroup")
 public interface Group extends MenuElement {

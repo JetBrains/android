@@ -31,7 +31,6 @@ import com.android.sdklib.internal.avd.HardwareProperties
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.meta.DetailsTypes
-import com.android.tools.analytics.CommonMetricsData.osArchitecture
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.AvdOptionsModel
 import com.android.tools.idea.avdmanager.AvdWizardUtils
@@ -44,17 +43,19 @@ import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Objects
 import com.google.common.collect.ImmutableSet
-import com.google.wireless.android.sdk.stats.ProductDetails
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.system.CpuArch
 import java.nio.file.Path
+import com.google.wireless.android.sdk.stats.ProductDetails
+
+import com.android.tools.analytics.CommonMetricsData.osArchitecture
+import com.intellij.util.system.CpuArch
 
 
 /**
  * Logic for setting up Android virtual device
  */
-class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean) : InstallableComponent(
+class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean) : InstallableComponent(
   "Android Virtual Device",
   "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
   installUpdates

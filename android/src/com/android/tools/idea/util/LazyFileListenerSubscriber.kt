@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.util
 
+import com.intellij.openapi.Disposable
 import java.util.EventListener
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * An object that lazily subscribes a [listener] to respond to file changes after [ensureSubscribed] has been called.
  */
-abstract class LazyFileListenerSubscriber<T : EventListener>(val listener: T) {
+abstract class LazyFileListenerSubscriber<T : EventListener>(val listener: T, val parent: Disposable) {
   private val subscribed = AtomicBoolean(false)
 
   /** Subscribes the listener. [ensureSubscribed] guarantees this function will only be called once.*/

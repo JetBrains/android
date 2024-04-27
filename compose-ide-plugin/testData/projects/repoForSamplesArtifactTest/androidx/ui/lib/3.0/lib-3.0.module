@@ -27,7 +27,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib-jdk8",
           "version": {
-            "requires": "1.9.0"
+            "requires": "1.9.20"
           }
         }
       ],
@@ -56,7 +56,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib-jdk8",
           "version": {
-            "requires": "1.9.0"
+            "requires": "1.9.20"
           }
         }
       ],
@@ -89,6 +89,15 @@
           "sha256": "f003f3bcb0bdad83c471997e30da1f3b0c0921c31a8bab64749a0193977300f3",
           "sha1": "101b594578582916cdddc5244908b676163d2e59",
           "md5": "217d0ef64b3ab27df1f35fdcd9be474b"
+        },
+        {
+          "name": "lib-3.0-samplesources.jar",
+          "url": "lib-3.0-samplesources.jar",
+          "size": 706,
+          "sha512": "df874a3b57e78291fa7832028795d33617a08f8e4cf2607aa4bb704ee68ae67542d780f4d28da50a53813f823d1a4425f0c862783e52f6779bad13ccc89b864d",
+          "sha256": "44b980f2f33d2303a035818d8c120a4ac180d62786566094482a6fb837b89bf8",
+          "sha1": "83d14763d328fb33d717cd1d5b20487652a5c191",
+          "md5": "741c40832492c371c300f013c3bf2f60"
         }
       ]
     },
@@ -109,24 +118,6 @@
           "sha256": "aa7125705d28a933b01eb4232c8972be4d94116bf84edb3721869bd53b213f97",
           "sha1": "9f4ddfe1e2cea91ebe357abfad3ec6dd91a9bb0a",
           "md5": "6eff76fae3d4a40fbebd8fd7c52b0e2b"
-        }
-      ]
-    },
-    {
-      "name": "samplessources",
-      "attributes": {
-        "org.gradle.category": "documentation",
-        "org.gradle.docstype": "samplessources"
-      },
-      "files": [
-        {
-          "name": "lib-3.0-samplesources.jar",
-          "url": "lib-3.0-samplesources.jar",
-          "size": 706,
-          "sha512": "df874a3b57e78291fa7832028795d33617a08f8e4cf2607aa4bb704ee68ae67542d780f4d28da50a53813f823d1a4425f0c862783e52f6779bad13ccc89b864d",
-          "sha256": "44b980f2f33d2303a035818d8c120a4ac180d62786566094482a6fb837b89bf8",
-          "sha1": "83d14763d328fb33d717cd1d5b20487652a5c191",
-          "md5": "741c40832492c371c300f013c3bf2f60"
         }
       ]
     }

@@ -17,19 +17,21 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
+import com.android.tools.deployer.Activator
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
-import com.android.tools.idea.execution.common.AppRunConfiguration
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.run.configuration.isDebug
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
@@ -39,7 +41,7 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.indicatorRunBlockingCancellable
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Disposer
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import kotlinx.coroutines.async
@@ -51,37 +53,38 @@ abstract class AndroidConfigurationExecutorBase(
   protected val appRunSettings: AppRunSettings,
   protected val applicationIdProvider: ApplicationIdProvider,
   protected val apkProvider: ApkProvider,
+  protected val applicationContext: ApplicationProjectContext,
   protected val applicationDeployer: ApplicationDeployer
 ) : AndroidConfigurationExecutor {
 
   private val LOG = Logger.getInstance(this::class.java)
+  val logger = LogWrapper(LOG)
 
   override val configuration: RunConfiguration = environment.runProfile as RunConfiguration
 
   protected val project = environment.project
-  protected val appId
-    get() = applicationIdProvider.packageName
 
-  protected val isDebug = environment.executor.isDebug
+  internal fun getActivator(app: App) : Activator {
+    return Activator(app, logger)
+  }
 
   @WorkerThread
-  override fun run(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
-    val devices = getDevices(deviceFutures, indicator, RunStats.from(environment))
+  override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
+    val (applicationId, devices) = getApplicationIdAndDevices(environment, deviceFutures, applicationIdProvider, indicator)
+    RunStats.from(environment).setPackage(applicationId)
     val console = createConsole()
-    val processHandler = AndroidProcessHandler(appId, getStopCallback(console, false))
-
+    val processHandler = AndroidProcessHandler(applicationId, getStopCallback(console, applicationId, false))
 
     val onDevice = { device: IDevice ->
       LOG.info("Launching on device ${device.name}")
-
-      terminatePreviousAppInstance(device)
 
       val result = try {
         // ApkProvider provides multiple ApkInfo only for instrumented tests.
         val app = apkProvider.getApks(device).single()
         applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, indicator)
-      } catch (e: DeployerException) {
-        throw ExecutionException("Failed to install app '$appId'. ${e.details.orEmpty()}", e)
+      }
+      catch (e: DeployerException) {
+        throw ExecutionException("Failed to install app '$applicationId'. ${e.details.orEmpty()}", e)
       }
       launch(device, result.app, console, false, indicator)
       processHandler.addTargetDevice(device)
@@ -89,48 +92,46 @@ abstract class AndroidConfigurationExecutorBase(
 
     devices.map { async { onDevice(it) } }.joinAll()
 
-    environment.putCopyableUserData(AppRunConfiguration.KEY, object : AppRunConfiguration {
-      override val appId: String = this@AndroidConfigurationExecutorBase.appId
-    })
-
+    AndroidSessionInfo.create(processHandler, devices, applicationId)
     createRunContentDescriptor(processHandler, console, environment)
   }
 
   @WorkerThread
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor =
-    indicatorRunBlockingCancellable(indicator) {
-      val devices = getDevices(deviceFutures, indicator, RunStats.from(environment))
-      if (devices.size > 1) {
-        throw ExecutionException("Debugging is allowed only for single device")
-      }
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
+    val (applicationId, devices) = getApplicationIdAndDevices(environment, deviceFutures, applicationIdProvider, indicator)
+    RunStats.from(environment).setPackage(applicationId)
+    if (devices.size > 1) {
+      throw ExecutionException("Debugging is allowed only for single device")
+    }
 
-      val console = createConsole()
-      val device = devices.single()
+    val console = createConsole()
+    val device = devices.single()
 
-      terminatePreviousAppInstance(device)
+    // ApkProvider provides multiple ApkInfo only for instrumented tests.
+    val app = apkProvider.getApks(device).single()
+    val deployResult = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, indicator)
 
-      // ApkProvider provides multiple ApkInfo only for instrumented tests.
-      val app = apkProvider.getApks(device).single()
-      val deployResult = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, indicator)
+    val runContentDescriptorDeferred = async {
+      startDebugSession(device, applicationContext, console, indicator).runContentDescriptor
+    }
 
-      val runContentDescriptorDeferred = async {
-        startDebugSession(device, console, indicator).runContentDescriptor
-      }
-
-      launch(device, deployResult.app, console, true, indicator)
+    launch(device, deployResult.app, console, true, indicator)
 
     try {
-      return@indicatorRunBlockingCancellable runContentDescriptorDeferred.await()
-    } catch (e: ExecutionException) {
+      runContentDescriptorDeferred.await()
+    }
+    catch (e: ExecutionException) {
       if (!device.isOffline) {
         try {
-          getStopCallback(console, isDebug).invoke(device)
-        } catch (e: Exception) {
+          getStopCallback(console, applicationId, true).invoke(device)
+        }
+        catch (e: Exception) {
           LOG.warn(e)
         }
         try {
-          ApplicationTerminator(device, appId).killApp()
-        } catch (e: Exception) {
+          ApplicationTerminator(device, applicationId).killApp()
+        }
+        catch (e: Exception) {
           LOG.warn(e)
         }
       }
@@ -139,20 +140,18 @@ abstract class AndroidConfigurationExecutorBase(
   }
 
   @Throws(ExecutionException::class)
-  protected abstract fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit
+  protected abstract fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean): (IDevice) -> Unit
 
   @VisibleForTesting
   @Throws(ExecutionException::class)
   abstract fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator)
 
-  protected abstract suspend fun startDebugSession(device: IDevice, console: ConsoleView, indicator: ProgressIndicator): XDebugSessionImpl
+  protected abstract suspend fun startDebugSession(
+    device: IDevice,
+    applicationContext: ApplicationProjectContext,
+    console: ConsoleView, indicator: ProgressIndicator
+  ): XDebugSessionImpl
 
-  private fun terminatePreviousAppInstance(device: IDevice) {
-    val terminator = ApplicationTerminator(device, appId)
-    if (!terminator.killApp()) {
-      throw ExecutionException("Could not terminate running app $appId")
-    }
-  }
 
   private fun createConsole(): ConsoleView {
     val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console

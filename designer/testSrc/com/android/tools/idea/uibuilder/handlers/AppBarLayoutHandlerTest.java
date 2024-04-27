@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static org.mockito.Mockito.mock;
-
 import com.android.tools.idea.common.model.NlComponent;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.mockito.Mockito.mock;
 
 public class AppBarLayoutHandlerTest {
   @Test

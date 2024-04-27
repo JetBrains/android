@@ -85,6 +85,7 @@ class GradleModuleSystemIntegrationTest {
       assertThat(foundDependency.lowerBoundVersion!!.major).isEqualTo(28)
 
       // TODO: b/129297171
+      @Suppress("ConstantConditionIf")
       if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
         // When we were checking the parsed gradle file we were able to detect a specified "+" in the version.
         assertThat(foundDependency.acceptsGreaterRevisions()).isTrue()
@@ -262,7 +263,7 @@ class GradleModuleSystemIntegrationTest {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
 
-      val moduleSystem = project.findAppModule().getModuleSystem()
+      val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
 
       // Verify that the module system returns a path.
       assertThat(moduleSystem.getDependencyPath(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))).isNotNull()

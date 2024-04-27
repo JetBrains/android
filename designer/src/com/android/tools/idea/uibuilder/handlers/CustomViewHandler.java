@@ -15,22 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_CLASS;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-import static com.android.SdkConstants.VIEW_TAG;
-
-import com.android.tools.idea.common.model.NlComponent;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.xml.XmlBuilder;
 import com.intellij.openapi.util.text.StringUtil;
-import java.util.List;
-import javax.swing.Icon;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 public class CustomViewHandler extends DelegatingViewHandler {
   private final Icon myIcon16;
@@ -40,7 +38,6 @@ public class CustomViewHandler extends DelegatingViewHandler {
   private final String myXml;
   @Language("XML")
   private final String myPreviewXml;
-  private final String myLibraryCoordinate;
   private final String myPreferredProperty;
   private final List<String> myProperties;
 
@@ -50,7 +47,6 @@ public class CustomViewHandler extends DelegatingViewHandler {
                            @NotNull String className,
                            @Nullable @Language("XML") String xml,
                            @Nullable @Language("XML") String previewXml,
-                           @NotNull String libraryCoordinate,
                            @Nullable String preferredProperty,
                            @NotNull List<String> properties) {
     super(handler);
@@ -59,7 +55,6 @@ public class CustomViewHandler extends DelegatingViewHandler {
     myClassName = className;
     myXml = xml;
     myPreviewXml = previewXml;
-    myLibraryCoordinate = libraryCoordinate;
     myPreferredProperty = preferredProperty;
     myProperties = properties;
   }
@@ -78,9 +73,9 @@ public class CustomViewHandler extends DelegatingViewHandler {
   }
 
   @Override
-  @NotNull
-  public String getGradleCoordinateId(@NotNull String tagName) {
-    return tagName.equals(myTagName) ? myLibraryCoordinate : super.getGradleCoordinateId(tagName);
+  @Nullable
+  public GoogleMavenArtifactId getGradleCoordinateId(@NotNull String tagName) {
+    return tagName.equals(myTagName) ? null : super.getGradleCoordinateId(tagName);
   }
 
   @Override

@@ -19,8 +19,8 @@ import static com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.NlComponentTag;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.actions.ClickOrSwipeAction;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.actions.PanelAction;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.actions.ClickOrSwipeAction;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
@@ -31,6 +31,8 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateConstraintSet;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnClick;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnSwipe;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateTransition;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector.TimeLineListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
@@ -43,6 +45,7 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;

@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.Detect
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.NOT_ENABLED
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.NOT_USED
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.OLD_GRADLE
-import com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.findGradleSettingsFile
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.PROJECT_SYSTEM
@@ -35,6 +35,9 @@ import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.S
 import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.IMPLICIT
 import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.NONE
 import com.google.wireless.android.sdk.stats.GradleVersionCatalogDetectorEvent.State.UNSUPPORTED
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
@@ -47,10 +50,10 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import org.gradle.util.GradleVersion
-import org.jetbrains.android.util.AndroidSlowOperations
+import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
@@ -80,6 +83,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
   private var _settingsVisitorResults: SettingsVisitorResults? = null
 
   private val fileDocumentManager = FileDocumentManager.getInstance()
+
   init {
     val documentListener = object : DocumentListener {
       override fun documentChanged(event: DocumentEvent) {
@@ -112,21 +116,25 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
     val EMPTY_SETTINGS = object : SettingsVisitorResults {
       override val enableFeaturePreview = false
       override val versionCatalogsCall = false
+      override val catalogEntry = false
     }
+
+    val CATALOG_ENTRY_FUNCTION_NAMES = setOf("version", "library", "plugin", "bundle")
   }
 
   private val gradleVersion: GradleVersion
     get() {
       _gradleVersion?.let { return it }
-      return runReadAction {
+      val gradleWrapper = runReadAction {
         if (project.isDisposed) throw ProcessCanceledException()
         val gradleWrapper = GradleWrapper.find(project)
         ProgressManager.checkCanceled()
-        val gradleVersion = gradleWrapper?.gradleVersion
-                              ?.let { runCatching { GradleVersion.version(it) }.getOrNull() }
-                            ?: MISSING_GRADLE_VERSION
-        return@runReadAction gradleVersion.also { _gradleVersion = gradleVersion }
+        gradleWrapper
       }
+      val gradleVersion = gradleWrapper?.gradleVersion
+                            ?.let { runCatching { GradleVersion.version(it) }.getOrNull() }
+                          ?: MISSING_GRADLE_VERSION
+      return gradleVersion.also { _gradleVersion = gradleVersion }
     }
 
   private val settingsVisitorResults: SettingsVisitorResults
@@ -136,15 +144,14 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
         if (project.isDisposed) throw ProcessCanceledException()
         val baseDir = project.baseDir ?: return@runReadAction EMPTY_SETTINGS.also { _settingsVisitorResults = it }
         val settingsFile = findGradleSettingsFile(baseDir) ?: return@runReadAction EMPTY_SETTINGS.also { _settingsVisitorResults = it }
-        val settingsPsiFile = AndroidSlowOperations.allowSlowOperationsInIdea<PsiFile?, Throwable> {
-          PsiManager.getInstance(project).findFile(settingsFile)
-        }
-        val settingsVisitorResults = when (settingsPsiFile) {
+        val settingsVisitorResults = when (val settingsPsiFile = PsiManager.getInstance(project).findFile(settingsFile)) {
           is GroovyFile -> visitGroovySettings(settingsPsiFile)
           is KtFile -> visitKtSettings(settingsPsiFile)
           else -> EMPTY_SETTINGS
         }
-        return@runReadAction settingsVisitorResults.also { _settingsVisitorResults = settingsVisitorResults }
+        return@runReadAction settingsVisitorResults.also {
+          _settingsVisitorResults = settingsVisitorResults
+        }
       }
     }
 
@@ -184,10 +191,35 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
       result
     }
 
-
   interface SettingsVisitorResults {
     val enableFeaturePreview: Boolean
     val versionCatalogsCall: Boolean
+    val catalogEntry: Boolean
+  }
+
+  @get:VisibleForTesting
+  val isSettingsCatalogEntry: Boolean
+    get() = isVersionCatalogProject && settingsVisitorResults.catalogEntry
+
+  class VersionCatalogTomlSuggestion : Notification("Gradle Version Catalog DSL",
+                                                    AndroidBundle.message("project.gradle.catalog.settings.dsl"),
+                                                    NotificationType.INFORMATION) {
+    init {
+      isSuggestionType = true
+    }
+  }
+
+  fun maybeSuggestToml(project: Project) {
+    val notificationsManager = NotificationsManager.getNotificationsManager()
+    val existing = notificationsManager.getNotificationsOfType(VersionCatalogTomlSuggestion::class.java, project)
+    if (isSettingsCatalogEntry) {
+      if (existing.isEmpty()) {
+        VersionCatalogTomlSuggestion().notify(project)
+      }
+    }
+    else {
+      existing.forEach { it.expire() }
+    }
   }
 
   enum class DetectorResult(val result: Boolean, val state: GradleVersionCatalogDetectorEvent.State) {
@@ -202,6 +234,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
     val visitor = object : GroovyRecursiveElementVisitor(), SettingsVisitorResults {
       override var enableFeaturePreview = false
       override var versionCatalogsCall = false
+      override var catalogEntry = false
       override fun visitElement(element: GroovyPsiElement) {
         ProgressManager.checkCanceled()
         super.visitElement(element)
@@ -209,7 +242,30 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
       override fun visitMethodCall(call: GrMethodCall) {
         val callee = call.invokedExpression
         val name = callee.text
-        if (name == "versionCatalogs") versionCatalogsCall = true
+        if (name == "versionCatalogs") {
+          versionCatalogsCall = true
+          val arguments = call.closureArguments
+          if (arguments.size == 1) {
+            val versionCatalogsClosure = arguments[0]
+            val versionCatalogsClosureVisitor = object : GroovyRecursiveElementVisitor() {
+              override fun visitMethodCall(call: GrMethodCall) {
+                val arguments = call.closureArguments
+                if (arguments.size == 1) { // foo { ... } but also create('foo') { ... }
+                  val catalogClosure = arguments[0]
+                  val catalogClosureVisitor = object : GroovyRecursiveElementVisitor() {
+                    override fun visitMethodCall(call: GrMethodCall) {
+                      if (CATALOG_ENTRY_FUNCTION_NAMES.contains(call.invokedExpression.text)) {
+                        catalogEntry = true
+                      }
+                    }
+                  }
+                  catalogClosure.accept(catalogClosureVisitor)
+                }
+              }
+            }
+            versionCatalogsClosure.accept(versionCatalogsClosureVisitor)
+          }
+        }
         if (name == "enableFeaturePreview") {
           val arguments = call.argumentList.allArguments
           if (arguments.size == 1) {
@@ -234,6 +290,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
     val visitor = object : KtTreeVisitorVoid(), SettingsVisitorResults {
       override var enableFeaturePreview = false
       override var versionCatalogsCall = false
+      override var catalogEntry = false
       override fun visitElement(element: PsiElement) {
         ProgressManager.checkCanceled()
         super.visitElement(element)
@@ -242,7 +299,33 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
         val callee = expression.calleeExpression
         if (callee != null && callee is KtNameReferenceExpression) {
           val name = callee.getReferencedName()
-          if (name == "versionCatalogs") versionCatalogsCall = true
+          if (name == "versionCatalogs") {
+            versionCatalogsCall = true
+            val arguments = expression.lambdaArguments
+            if (arguments.size == 1) {
+              val versionCatalogsAction = arguments[0]
+              val versionCatalogsActionVisitor = object : KtTreeVisitorVoid() {
+                override fun visitCallExpression(expression: KtCallExpression) { // create("foo") etc.
+                  val arguments = expression.lambdaArguments
+                  if (arguments.size == 1) {
+                    val catalogAction = arguments[0]
+                    val catalogActionVisitor = object : KtTreeVisitorVoid() {
+                      override fun visitCallExpression(expression: KtCallExpression) {
+                        val callee = expression.calleeExpression
+                        if (callee != null && callee is KtNameReferenceExpression) {
+                          if (CATALOG_ENTRY_FUNCTION_NAMES.contains(callee.getReferencedName())) {
+                            catalogEntry = true
+                          }
+                        }
+                      }
+                    }
+                    catalogAction.accept(catalogActionVisitor)
+                  }
+                }
+              }
+              versionCatalogsAction.accept(versionCatalogsActionVisitor)
+            }
+          }
           if (name == "enableFeaturePreview") {
             val arguments = expression.valueArguments
             if (arguments.size == 1) {

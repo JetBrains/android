@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.adtui.model.AspectModel
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.RangedContinuousSeries
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.TooltipModel

@@ -53,7 +53,7 @@ import com.android.emulator.control.WheelEvent
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
 import com.android.sdklib.repository.targets.SystemImageManager
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
 import com.android.tools.idea.io.grpc.ForwardingServerCall.SimpleForwardingServerCall
 import com.android.tools.idea.io.grpc.ForwardingServerCallListener.SimpleForwardingServerCallListener
@@ -74,10 +74,13 @@ import com.android.tools.idea.protobuf.MessageOrBuilder
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.interpolate
+import com.android.tools.idea.streaming.core.normalizedRotation
+import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
+import com.android.utils.FileUtils.copyDirectory
 import com.google.common.base.Predicates.alwaysTrue
 import com.google.common.util.concurrent.SettableFuture
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.concurrency.ConcurrentCollectionFactory
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -96,16 +99,11 @@ import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.CopyOption
-import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.CREATE_NEW
-import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingDeque
@@ -116,6 +114,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Predicate
 import javax.imageio.ImageIO
+import kotlin.math.min
 import kotlin.math.roundToInt
 import com.android.emulator.control.DisplayMode as DisplayModeMessage
 import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
@@ -142,14 +141,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   @Volatile private var notificationStreamObserver: StreamObserver<Notification>? = null
   private var displays = listOf(DisplayConfiguration.newBuilder().setWidth(config.displayWidth).setHeight(config.displayHeight).build())
 
-  private var posture: PostureValue? = config.postures.lastOrNull()?.posture
-    set(value) {
+  @Volatile var devicePosture: PostureValue? = config.postures.lastOrNull()?.posture
+    private set(value) {
       if (value != null && value != field) {
         field = value
-        executor.execute {
-          notificationStreamObserver?.sendStreamingResponse(createPostureNotification(value))
-          foldedDisplay = if (value == PostureValue.POSTURE_CLOSED) foldedDisplayRegion else null
-        }
+        notificationStreamObserver?.sendStreamingResponse(createPostureNotification(value))
+        foldedDisplay = if (value == PostureValue.POSTURE_CLOSED) foldedDisplayRegion else null
       }
     }
 
@@ -157,11 +154,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     set(value) {
       if (field != value) {
         field = value
-        executor.execute {
-          val screenshotObserver = screenshotStreamObserver ?: return@execute
-          val request = screenshotStreamRequest ?: return@execute
-          sendScreenshot(request, screenshotObserver)
-        }
+        val screenshotObserver = screenshotStreamObserver ?: return
+        val request = screenshotStreamRequest ?: return
+        sendScreenshot(request, screenshotObserver)
       }
     }
 
@@ -191,7 +186,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
   @Volatile var extendedControlsVisible = false
 
-  private var frameNumber = 0
+  @Volatile var frameNumber: UInt = 0u
+    private set
   /** Ids of snapshots that were created by calling the [createIncompatibleSnapshot] method. */
   private val incompatibleSnapshots = ConcurrentCollectionFactory.createConcurrentSet<String>()
 
@@ -293,7 +289,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val newDisplays = ArrayList<DisplayConfiguration>(secondaryDisplays.size + 1)
       newDisplays.add(displays[0])
       for (display in secondaryDisplays) {
-        if (display.display > 0) {
+        if (display.display != PRIMARY_DISPLAY_ID) {
           newDisplays.add(display)
         }
       }
@@ -311,10 +307,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   /**
    * Folds/unfolds the primary display.
    */
-  fun setFolded(folded: Boolean) {
-    executor.execute {
-      foldedDisplay = if (folded) foldedDisplayRegion else null
-    }
+  fun setPosture(posture: PostureValue) {
+    executor.submit {
+      devicePosture = posture
+    }.get()
   }
 
   /**
@@ -324,8 +320,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
    */
   @UiThread
   @Throws(TimeoutException::class)
-  fun getNextGrpcCall(timeout: Long, unit: TimeUnit, filter: Predicate<GrpcCallRecord> = defaultCallFilter): GrpcCallRecord
-    = grpcCallLog.get(timeout, unit, filter)
+  fun getNextGrpcCall(timeout: Long, unit: TimeUnit, filter: Predicate<GrpcCallRecord> = defaultCallFilter): GrpcCallRecord =
+      grpcCallLog.get(timeout, unit, filter)
 
   /**
    * Clears the gRPC call log.
@@ -473,7 +469,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     val response = Image.newBuilder()
       .setImage(ByteString.copyFrom(imageBytes))
       .setFormat(imageFormat)
-      .setSeq(++frameNumber)
+      .setSeq((++frameNumber).toInt())
     responseObserver.sendStreamingResponse(response.build())
   }
 
@@ -492,8 +488,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
     val aspectRatio = displayHeight.toDouble() / displayWidth
-    val w = if (width == 0) displayWidth else width
-    val h = if (height == 0) displayHeight else height
+    val w = if (width == 0) displayWidth else min(width, displayWidth)
+    val h = if (height == 0) displayHeight else min(height, displayHeight)
     return if (displayRotation.number % 2 == 0) {
       Dimension(w.coerceAtMost((h / aspectRatio).toInt()), h.coerceAtMost((w * aspectRatio).toInt()))
     }
@@ -537,21 +533,22 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     override fun setPhysicalModel(request: PhysicalModelValue, responseObserver: StreamObserver<Empty>) {
       executor.execute {
         val target = request.target
-        when {
-          target == PhysicalType.ROTATION -> {
-            val zAngle = request.value.getData(2)
-            displayRotation = SkinRotation.forNumber(((zAngle / 90).roundToInt() + 4) % 4)
+        val value = request.value
+        when (target) {
+          PhysicalType.ROTATION -> {
+            val zAngle = value.getData(2)
+            displayRotation = SkinRotation.forNumber(normalizedRotation((zAngle / 90).roundToInt()))
           }
-          target == PhysicalType.HINGE_ANGLE0 && config.isFoldable || target == PhysicalType.ROLLABLE0 && config.isRollable -> {
-            findPosture(request.value.getData(0))?.let { posture = it }
-          }
+          PhysicalType.HINGE_ANGLE0 -> findPosture(PostureDescriptor.ValueType.HINGE_ANGLE, value.getData(0))?.let { devicePosture = it }
+          PhysicalType.ROLLABLE0 -> findPosture(PostureDescriptor.ValueType.ROLL_PERCENTAGE, value.getData(0))?.let { devicePosture = it }
+          else -> {}
         }
         sendEmptyResponse(responseObserver)
       }
     }
 
-    private fun findPosture(value: Float): PostureValue? =
-        config.postures.find { it.minValue <= value && value <= it.maxValue }?.posture
+    private fun findPosture(valueType: PostureDescriptor.ValueType, value: Float): PostureValue? =
+        config.postures.find { it.valueType == valueType && it.minValue <= value && value <= it.maxValue }?.posture
 
     override fun getStatus(request: Empty, responseObserver: StreamObserver<EmulatorStatus>) {
       executor.execute {
@@ -584,7 +581,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         if (virtualSceneCameraActive) {
           responseObserver.sendStreamingResponse(createVirtualSceneCameraNotification(true, PRIMARY_DISPLAY_ID))
         }
-        posture?.let {
+        devicePosture?.let {
           responseObserver.sendStreamingResponse(createPostureNotification(it))
         }
       }
@@ -805,16 +802,16 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val forwardingCall = object : SimpleForwardingServerCall<ReqT, RespT>(call) {
         override fun sendMessage(response: RespT) {
           grpcSemaphore.withPermit {
-            callRecord.responseMessageCounter.add(Unit)
             super.sendMessage(response)
+            callRecord.responseMessageCounter.add(Unit)
           }
         }
       }
       return object : SimpleForwardingServerCallListener<ReqT>(handler.startCall(forwardingCall, headers)) {
         override fun onMessage(request: ReqT) {
           grpcSemaphore.withPermit {
-            callRecord.requestMessages.put(request as MessageOrBuilder)
             super.onMessage(request)
+            callRecord.requestMessages.put(request as MessageOrBuilder)
           }
         }
 
@@ -878,7 +875,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     fun getNextRequest(timeout: Long, unit: TimeUnit): MessageOrBuilder = requestMessages.get(timeout, unit)
 
     override fun toString(): String {
-      return "$methodName(${shortDebugString(request)})"
+      return requestMessages.firstOrNull()?.let { "$methodName(${shortDebugString(it)})" } ?: methodName
     }
   }
 
@@ -997,7 +994,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val avdName = avdId.replace('_', ' ')
       val skinName = "nexus_10"
       val skinFolder = getSkinFolder(skinName)
-      copyDir(skinFolder, Files.createDirectories(sdkFolder.resolve("skins")).resolve(skinName))
+      copyDirectory(skinFolder, sdkFolder.resolve("skins").resolve(skinName), false)
       val systemImage = "system-images/android-$api/google_apis_playstore/x86_64/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
@@ -1085,13 +1082,14 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     /**
-     * Creates a fake "Pixel Fold" AVD.
+     * Creates a fake "Pixel Fold" AVD. The skin path in config.ini is absolute.
      */
     @JvmStatic
     fun createFoldableAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 33): Path {
       val avdId = "Pixel_Fold_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
+      val skinFolder = getSkinFolder("pixel_fold")
       val systemImage = "system-images/android-$api/google_apis_playstore/x86_64/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
@@ -1146,10 +1144,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           runtime.network.speed=full
           sdcard.path=${avdFolder}/sdcard.img
           sdcard.size=512M
-          showDeviceFrame=no
+          showDeviceFrame=yes
           skin.dynamic=yes
-          skin.name = 2208x1840
-          skin.path = _no_skin
+          skin.name=${skinFolder.fileName}
+          skin.path=${skinFolder}
           tag.display=Google PLay
           tag.id=google_apis_playstore
           """.trimIndent()
@@ -1381,11 +1379,20 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.lcd.width = 1080
           hw.mainKeys=no
           hw.ramSize=1536
+          hw.resizable.configs = phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160
           hw.sdCard=yes
+          hw.sensor.hinge = yes
+          hw.sensor.hinge.areas = 884-0-1-2208
+          hw.sensor.hinge.count = 1
+          hw.sensor.hinge.defaults = 180
+          hw.sensor.hinge.ranges = 0-180
+          hw.sensor.hinge.sub_type = 1
+          hw.sensor.hinge.type = 1
+          hw.sensor.hinge_angles_posture_definitions = 0-30, 30-150, 150-180
+          hw.sensor.posture_list = 1, 2, 3
           hw.sensors.orientation=yes
           hw.sensors.proximity=no
           hw.trackBall=no
-          hw.resizable.configs = phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160
           image.sysdir.1 = $systemImage
           runtime.network.latency=none
           runtime.network.speed=full
@@ -1416,6 +1423,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.gyroscope = true
           hw.audioInput = true
           hw.audioOutput = true
+          hw.sensor.hinge.resizable.config = 1
           hw.sdCard = true
           hw.sdCard.path = ${avdFolder}/sdcard.img
           android.sdk.root = $sdkFolder
@@ -1571,26 +1579,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     @JvmStatic
-    private fun copyDir(from: Path, to: Path) {
-      val options = arrayOf<CopyOption>(StandardCopyOption.COPY_ATTRIBUTES)
-      Files.walkFileTree(from, object : SimpleFileVisitor<Path>() {
-        override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
-          if (dir !== from || !Files.exists(to)) {
-            val copy = to.resolve(from.relativize(dir).toString())
-            Files.createDirectory(copy)
-          }
-          return FileVisitResult.CONTINUE
-        }
-
-        override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-          val copy = to.resolve(from.relativize(file).toString())
-          Files.copy(file, copy, *options)
-          return FileVisitResult.CONTINUE
-        }
-      })
-    }
-
-    @JvmStatic
     fun getSkinFolder(skinName: String): Path = getRootSkinFolder().resolve(skinName)
 
     @JvmStatic
@@ -1600,8 +1588,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     fun grpcServerName(port: Int) = "FakeEmulator@${port}"
 
     @JvmStatic
-    fun getSdkFolder(avdRootFolder: Path): Path =
-        avdRootFolder.resolve("Sdk")
+    fun getSdkFolder(avdRootFolder: Path): Path = avdRootFolder.resolve("Sdk")
 
     /**
      * Waits for the next queued item while dispatching UI events. Returns the next item and removes

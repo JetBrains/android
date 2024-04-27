@@ -1,0 +1,5 @@
+# Enable parallel compilation by default. This affects the IntelliJ
+# setting at Build > Compiler > Compile independent modules in parallel.
+# See IntelliJ commits 5d8bc23cf2 and 2eff8542db for details.
+compiler:
+  parallelCompilation: true

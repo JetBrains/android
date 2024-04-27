@@ -24,24 +24,30 @@ import com.intellij.openapi.project.DumbAwareAction
 /**
  * An action that toggles between Compact and Standard views
  *
- * This action is registered in the plugin XML and is not visible. It's only available as a KB shortcut. Since it's registered with the
- * plugin, it's discoverable via Ctrl-Shift-A and the shortcut is configurable via the Keymap settings
+ * This action is registered in the plugin XML and is not visible. It's only available as a KB
+ * shortcut. Since it's registered with the plugin, it's discoverable via Ctrl-Shift-A and the
+ * shortcut is configurable via the Keymap settings
  */
 internal class ToggleViewFormatAction : DumbAwareAction() {
 
   override fun update(e: AnActionEvent) {
     val formattingOptions = e.getLogcatPresenter()?.formattingOptions
-    e.presentation.isVisible = formattingOptions === COMPACT.formattingOptions || formattingOptions === STANDARD.formattingOptions
+    e.presentation.isVisible =
+      formattingOptions === COMPACT.formattingOptions ||
+        formattingOptions === STANDARD.formattingOptions
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val logcatPresenter = e.getLogcatPresenter() ?: return
 
-    logcatPresenter.formattingOptions = when {
-      logcatPresenter.formattingOptions === COMPACT.formattingOptions -> STANDARD.formattingOptions
-      logcatPresenter.formattingOptions === STANDARD.formattingOptions -> COMPACT.formattingOptions
-      else -> return
-    }
+    logcatPresenter.formattingOptions =
+      when {
+        logcatPresenter.formattingOptions === COMPACT.formattingOptions ->
+          STANDARD.formattingOptions
+        logcatPresenter.formattingOptions === STANDARD.formattingOptions ->
+          COMPACT.formattingOptions
+        else -> return
+      }
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT

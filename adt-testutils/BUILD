@@ -4,7 +4,8 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.adt.testutils",
     data = [
-        ":test-log.xml",  # Used for idea.log.config.file.
+        ":test-log.properties",  # Used for idea.log.config.properties.file.
+        "//prebuilts/studio/jdk:mock-jdk17",  # Used by test descriptors.
         "//tools/adt/idea/studio:required_jvm_args",  # Used to compute JNA path
     ],
     iml_files = ["intellij.android.adt.testutils.iml"],
@@ -20,6 +21,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

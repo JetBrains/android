@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.gallery
 
-import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
+import com.android.tools.preview.PreviewElement
 
 /** [TitledKey] for [GalleryTabs]. */
-data class PreviewElementKey(val element: ComposePreviewElementInstance) : TitledKey {
+data class PreviewElementKey(val element: PreviewElement) : TitledKey {
   override val title: String = element.displaySettings.name
 }

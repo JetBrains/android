@@ -49,8 +49,8 @@ fun getSubmodules(project: Project, parent: Module?): Collection<Module> {
     // Remove the root module if it is the only one. This hides the root module node when only one
     // project is present.
     if (rootModuleCount == 1 && module.isIgnoredRootModule()) return@moduleForEach
-    for (size in groupPath.indices) {
-      if (seenParents.contains(groupPath.subList(0, size))) return@moduleForEach
+    for (size in 0 until groupPath.size) {
+      if (groupPath.isNotEmpty() && seenParents.contains(groupPath.subList(0, size))) return@moduleForEach
     }
     seenParents.add(groupPath)
     submodules.add(module)
@@ -63,5 +63,5 @@ private fun Module.isIgnoredRootModule() =
 
 private fun List<String>.startsWith(prefix: List<String>): Boolean {
   if (size < prefix.size) return false
-  return prefix.indices.all { index -> this[index] == prefix[index] }
+  return (0 until prefix.size).all { index -> this[index] == prefix[index] }
 }

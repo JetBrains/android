@@ -19,12 +19,12 @@ import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerConfigurable;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
+import com.google.common.collect.Maps;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.SimpleListCellRenderer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -39,7 +39,7 @@ public class AndroidDebuggerPanel {
 
   private JPanel myOptionPanel;
   private JComponent myOptionComponent;
-  private final Map<String, AndroidDebuggerConfigurable<AndroidDebuggerState>> myConfigurables = new HashMap<>();
+  private final Map<String, AndroidDebuggerConfigurable<AndroidDebuggerState>> myConfigurables = Maps.newHashMap();
 
   public AndroidDebuggerPanel(@NotNull RunConfiguration runConfiguration, @NotNull AndroidDebuggerContext androidDebuggerContext) {
     myAndroidDebuggerContext = androidDebuggerContext;
@@ -96,7 +96,7 @@ public class AndroidDebuggerPanel {
     AndroidDebuggerConfigurable<AndroidDebuggerState> configurable = getConfigurable(androidDebugger);
 
     if (configurable != null) {
-      configurable.applyTo(myAndroidDebuggerContext.getAndroidDebuggerState(androidDebugger.getId()));
+      configurable.applyTo(androidDebuggerContext.getAndroidDebuggerState(androidDebugger.getId()));
     }
   }
 

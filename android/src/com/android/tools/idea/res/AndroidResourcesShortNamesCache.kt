@@ -30,29 +30,47 @@ import com.intellij.util.Processor
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Superclass for [PsiShortNamesCache] implementations that only provide class names. This is used for code completion of R and Manifest
- * classes, i.e. showing all available R classes after typing "R" in the editor.
+ * Superclass for [PsiShortNamesCache] implementations that only provide class names. This is used
+ * for code completion of R and Manifest classes, i.e. showing all available R classes after typing
+ * "R" in the editor.
  */
-sealed class OnlyClassesShortNamesCache(private vararg val classNames: String) : PsiShortNamesCache() {
+sealed class OnlyClassesShortNamesCache(private vararg val classNames: String) :
+  PsiShortNamesCache() {
   override fun getAllClassNames() = classNames
+
   override fun getAllMethodNames() = ArrayUtil.EMPTY_STRING_ARRAY
+
   override fun getAllFieldNames() = ArrayUtil.EMPTY_STRING_ARRAY
+
   override fun getFieldsByName(name: String, scope: GlobalSearchScope) = PsiField.EMPTY_ARRAY
-  override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int) = PsiField.EMPTY_ARRAY
+
+  override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int) =
+    PsiField.EMPTY_ARRAY
+
   override fun getMethodsByName(name: String, scope: GlobalSearchScope) = PsiMethod.EMPTY_ARRAY
-  override fun getMethodsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int) = PsiMethod.EMPTY_ARRAY
-  override fun processMethodsWithName(name: String, scope: GlobalSearchScope, processor: Processor<in PsiMethod>) = true
+
+  override fun getMethodsByNameIfNotMoreThan(
+    name: String,
+    scope: GlobalSearchScope,
+    maxCount: Int
+  ) = PsiMethod.EMPTY_ARRAY
+
+  override fun processMethodsWithName(
+    name: String,
+    scope: GlobalSearchScope,
+    processor: Processor<in PsiMethod>
+  ) = true
 }
 
-/**
- * [PsiShortNamesCache] that provides names of known light R classes.
- */
-class AndroidResourcesShortNamesCache(private val project: Project) : OnlyClassesShortNamesCache(SdkConstants.R_CLASS) {
+/** [PsiShortNamesCache] that provides names of known light R classes. */
+class AndroidResourcesShortNamesCache(private val project: Project) :
+  OnlyClassesShortNamesCache(SdkConstants.R_CLASS) {
 
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
     if (name != SdkConstants.R_CLASS) return PsiClass.EMPTY_ARRAY
 
-    return project.getProjectSystem()
+    return project
+      .getProjectSystem()
       .getLightResourceClassService()
       .allLightRClasses
       .filter { PsiSearchScopeUtil.isInScope(scope, it) }
@@ -60,15 +78,15 @@ class AndroidResourcesShortNamesCache(private val project: Project) : OnlyClasse
   }
 }
 
-/**
- * [PsiShortNamesCache] that provides names of known light Manifest classes.
- */
-class AndroidManifestShortNamesCache(private val project: Project) : OnlyClassesShortNamesCache(SdkConstants.FN_MANIFEST_BASE) {
+/** [PsiShortNamesCache] that provides names of known light Manifest classes. */
+class AndroidManifestShortNamesCache(private val project: Project) :
+  OnlyClassesShortNamesCache(SdkConstants.FN_MANIFEST_BASE) {
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
     if (name != SdkConstants.FN_MANIFEST_BASE) return PsiClass.EMPTY_ARRAY
 
     val finder = AndroidManifestClassPsiElementFinder.getInstance(project)
-    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
+    return ProjectFacetManager.getInstance(project)
+      .getFacets(AndroidFacet.ID)
       .mapNotNull { finder.getManifestClassForFacet(it) }
       .toTypedArray()
   }

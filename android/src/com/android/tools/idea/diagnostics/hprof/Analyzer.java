@@ -87,7 +87,7 @@ public class Analyzer {
 
     String report;
     try (FileChannel channel = FileChannel.open(hprofPath, StandardOpenOption.READ)) {
-      report = new HProfAnalysis(channel, new SystemTempFilenameSupplier()).analyze(progress);
+      report = new HProfAnalysis(channel, new SystemTempFilenameSupplier()).analyze(progress).getReport();
       progress.setText("DONE");
     }
     out.println(report);

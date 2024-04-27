@@ -17,6 +17,7 @@ package com.android.emulator;
 
 import static com.android.tools.idea.util.StudioPathManager.isRunningFromSources;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.protobuf.UnsafeByteOperations;
 import com.android.tools.idea.util.StudioPathManager;
@@ -105,9 +106,15 @@ public class ImageConverter {
     String libName = getLibName();
     Path homePath = Paths.get(PathManager.getHomePath());
     // Installed Studio.
-    Path libFile = homePath.resolve("plugins/android/resources/native")
-      .resolve(getPlatformName())
-      .resolve(libName);
+    Path libFile;
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      libFile = homePath.resolve("plugins/android/resources/native").resolve(libName);
+    } else  {
+      libFile = homePath
+        .resolve("plugins/android/resources/native")
+        .resolve(getPlatformName())
+        .resolve(libName);
+    }
     if (Files.exists(libFile)) {
       return libFile;
     }

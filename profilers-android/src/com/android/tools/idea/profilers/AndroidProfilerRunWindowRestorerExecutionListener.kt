@@ -31,7 +31,7 @@ import com.intellij.openapi.wm.ToolWindowManager
  *
  * This listener's purpose is to restore the Run window's stripe title to "Run" after it gets overridden.
  */
-class AndroidProfilerRunWindowRestorerExecutionListener(val project: Project) : ExecutionListener {
+class AndroidProfilerRunWindowRestorerExecutionListener constructor(val project: Project) : ExecutionListener {
 
   override fun processStartScheduled(executorId: String, env: ExecutionEnvironment) {
     super.processStartScheduled(executorId, env)

@@ -21,9 +21,7 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.runBlocking
 import java.io.Closeable
 
-/**
- * A fake implementation of [IDeviceComboBoxDeviceTracker] for tests
- */
+/** A fake implementation of [IDeviceComboBoxDeviceTracker] for tests */
 internal class FakeDeviceComboBoxDeviceTracker : IDeviceComboBoxDeviceTracker, Closeable {
 
   private var eventChannel = Channel<DeviceEvent>(Channel.UNLIMITED)

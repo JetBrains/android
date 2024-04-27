@@ -18,8 +18,7 @@ package com.android.tools.idea.uibuilder.motion;
 import static junit.framework.TestCase.assertTrue;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.GifWriter;
-import java.awt.Color;
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;

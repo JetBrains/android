@@ -25,6 +25,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
+import com.fasterxml.aalto.UncheckedStreamException
+import com.fasterxml.aalto.WFCException
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
@@ -44,11 +46,13 @@ import com.intellij.execution.testframework.sm.SmRunnerBundle
 import com.intellij.execution.testframework.sm.runner.history.ImportedTestRunnableState
 import com.intellij.execution.testframework.sm.runner.history.actions.AbstractImportTestsAction
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.JDOMUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
+import org.jdom.JDOMException
 import org.xml.sax.Attributes
 import org.xml.sax.InputSource
 import org.xml.sax.helpers.DefaultHandler
@@ -60,6 +64,9 @@ import java.nio.charset.StandardCharsets
 import java.time.Duration
 import javax.xml.parsers.SAXParserFactory
 
+private val logger: Logger
+  get() = Logger.getInstance("ImportUtils")
+
 /**
  * Imports AndroidTestMatrixResult results from given [xmlFile].
  *
@@ -69,7 +76,18 @@ import javax.xml.parsers.SAXParserFactory
 @UiThread
 fun importAndroidTestMatrixResultXmlFile(project: Project, xmlFile: VirtualFile,
                                          onExecutionStarted: (ExecutionEnvironment) -> Unit = {}): Boolean {
-  val rootElement = JDOMUtil.load(VfsUtilCore.virtualToIoFile(xmlFile))
+  val rootElement = try {
+    JDOMUtil.load(VfsUtilCore.virtualToIoFile(xmlFile))
+  } catch (e: JDOMException) {
+    logger.warn(e)
+    return false
+  } catch (e: WFCException) {
+    logger.warn(e)
+    return false
+  } catch (e: UncheckedStreamException) {
+    logger.warn(e)
+    return false
+  }
   if (rootElement.getChild("androidTestMatrix") == null) {
     return false
   }
@@ -138,7 +156,7 @@ private class ImportAndroidTestMatrixRunProfileState(
     handler.detachProcess()
 
     ApplicationManager.getApplication().executeOnPooledThread {
-      val saxParser = SAXParserFactory.newDefaultInstance().newSAXParser()
+      val saxParser = SAXParserFactory.newInstance().newSAXParser()
       saxParser.parse(
         InputSource(InputStreamReader(FileInputStream(historyXmlFile), StandardCharsets.UTF_8)),
         object: DefaultHandler() {

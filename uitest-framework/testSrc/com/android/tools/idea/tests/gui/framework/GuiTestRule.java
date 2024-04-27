@@ -331,6 +331,11 @@ public class GuiTestRule implements TestRule {
   }
 
   @NotNull
+  public IdeFrameFixture importModuleVariantConflictsApplication() throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish("ModuleVariantConflicts");
+  }
+
+  @NotNull
   public IdeFrameFixture importMultiModule() throws IOException {
     return importProjectAndWaitForProjectSyncToFinish("MultiModule");
   }

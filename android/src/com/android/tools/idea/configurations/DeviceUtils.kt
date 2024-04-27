@@ -29,13 +29,12 @@ import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
-import com.intellij.util.containers.CollectionFactory
+import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
 import kotlin.math.hypot
-import kotlin.math.roundToInt
 
-private val DEVICE_CACHES = CollectionFactory.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
+private val DEVICE_CACHES = ContainerUtil.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
 
 enum class DeviceGroup {
   NEXUS,
@@ -153,7 +152,7 @@ fun isUseWearDeviceAsDefault(module: Module): Boolean {
     return false
   }
   val manifestXml = runReadAction { facet.getPrimaryManifestXml() } ?: return false
-  return manifestXml.usesFeature.contains(WEAR_OS_USE_FEATURE_TAG)
+  return runReadAction { manifestXml.usesFeature }.contains(WEAR_OS_USE_FEATURE_TAG)
 }
 
 enum class CanonicalDeviceType(val id: String) {
@@ -198,23 +197,6 @@ fun isUseWearDeviceAsDefault(configuration: Configuration): Boolean {
   val module = (configuration.configModule as StudioConfigurationModelModule).module
   return isUseWearDeviceAsDefault(module)
 }
-/**
- * Convert dp to px.
- * The formula is "px = dp * (dpi / 160)"
- */
-internal fun Double.toPx(density: Density): Int = (this * (density.dpiValue / 160.0)).roundToInt()
-
-/**
- * Convert dp to px.
- * The formula is "px = dp * (dpi / 160)"
- */
-internal fun Int.toPx(density: Density): Int = this.toDouble().toPx(density)
-
-/**
- * Convert px to dp.
- * The formula is "px = dp * (dpi / 160)"
- */
-internal fun Int.toDp(density: Density): Double = (this.toDouble() * 160 / density.dpiValue)
 
 const val DEVICE_CLASS_PHONE_TOOLTIP = "This reference device uses the COMPACT width size class," +
                                        " which represents 99% of Android phones in portrait orientation."

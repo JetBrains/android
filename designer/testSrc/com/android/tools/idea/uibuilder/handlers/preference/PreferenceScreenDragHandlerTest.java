@@ -15,27 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
-import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
-import static com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN;
-
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.DragType;
-import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
-import java.awt.Rectangle;
-import java.util.Collections;
-import java.util.List;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
+
+import java.awt.*;
+import java.util.Collections;
+import java.util.List;
+
+import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
+import static com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN;
 
 public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestCase {
   public void testUpdate() {

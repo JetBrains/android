@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker

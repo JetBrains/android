@@ -121,17 +121,27 @@ abstract class BaseSelectionModel : SelectionModel
 /** Empty implementation of [SelectionModel] to be used when no selection management is needed. */
 object NopSelectionModel : BaseSelectionModel() {
   override fun setSelection(components: List<NlComponent>, primary: NlComponent?) {}
+
   override val selection: List<NlComponent> = emptyList()
   override val primary: NlComponent? = null
+
   override fun addListener(selectionListener: SelectionListener) {}
+
   override fun removeListener(selectionListener: SelectionListener) {}
+
   override fun clear() {}
+
   override fun toggle(component: NlComponent) {}
+
   override val secondarySelection: Any? = null
+
   override fun clearSecondary() {}
+
   override fun setSecondarySelection(component: NlComponent?, secondary: Any?) {}
+
   override fun isHighlighted(component: NlComponent): Boolean {
     return false
   }
+
   override fun setHighlightSelection(highlighted: List<NlComponent>, selected: List<NlComponent>) {}
 }

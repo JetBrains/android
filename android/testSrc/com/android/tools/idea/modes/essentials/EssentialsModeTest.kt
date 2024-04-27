@@ -1,14 +1,15 @@
 package com.android.tools.idea.modes.essentials
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.ide.EssentialHighlightingMode
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.notification.NotificationsManager
 import com.intellij.testFramework.LightPlatform4TestCase
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -64,7 +65,7 @@ class EssentialsModeTest : LightPlatform4TestCase() {
     EssentialsMode.setEnabled(true, project)
 
     Truth.assertThat(tracker.usages.size > 0)
-    Truth.assertThat(tracker.usages[0].studioEvent.kind == AndroidStudioEvent.EventKind.ESSENTIALS_MODE_EVENT)
+    Truth.assertThat(tracker.usages[0].studioEvent.kind == AndroidStudioEvent.EventKind.ESSENTIALS_MODE_EVENT).isTrue()
     Truth.assertThat(tracker.usages[0].studioEvent.essentialsModeEvent.enabled).isTrue()
 
     EssentialsMode.setEnabled(false, project)

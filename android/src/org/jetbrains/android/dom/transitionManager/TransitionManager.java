@@ -17,8 +17,9 @@ package org.jetbrains.android.dom.transitionManager;
 
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.SubTagList;
-import java.util.List;
 import org.jetbrains.android.dom.AndroidDomElement;
+
+import java.util.List;
 
 @DefinesXml
 public interface TransitionManager extends AndroidDomElement {

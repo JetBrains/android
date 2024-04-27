@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConf
 import com.android.tools.idea.gradle.structure.configurables.ContainerConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.NamedConfigurable
@@ -52,7 +52,7 @@ abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
 
   protected abstract fun createPanel(): PanelT
 
-  final override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback? = modulePanel.navigateTo(place, requestFocus)!!
+  final override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = modulePanel.navigateTo(place, requestFocus)!!
   final override fun queryPlace(place: Place) = modulePanel.queryPlace(place)
   final override fun createOptionsPanel(): JComponent = modulePanel
   final override fun restoreUiState() = modulePanel.restoreUiState()
@@ -74,11 +74,16 @@ abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
   }
 
   override fun getChildrenModels(): Collection<PsModule> {
-    val currentModuleGradlePath = module.gradlePath
+    val currentModuleGradlePath = getModule().gradlePath
     return if (currentModuleGradlePath == null) emptyList()
     else context.project.modules
       .filter { it.gradlePath != null }
-      .filter { GradleUtil.isDirectChild(it.gradlePath, currentModuleGradlePath) }
+      .filter {
+        GradleProjectSystemUtil.isDirectChild(
+          it.gradlePath,
+          currentModuleGradlePath
+        )
+      }
   }
 
   override fun createChildConfigurable(model: PsModule): NamedConfigurable<out PsModule> =

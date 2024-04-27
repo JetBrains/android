@@ -22,6 +22,7 @@ import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
 import com.android.ide.common.rendering.api.RenderSession
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.rendering.classloading.ModuleClassLoader
+import com.android.tools.rendering.compose.RECOMPOSER_CLASS
 import com.intellij.openapi.diagnostic.Logger
 import java.lang.ref.WeakReference
 import java.lang.reflect.Field
@@ -30,7 +31,6 @@ import java.lang.reflect.Method
 import java.util.Arrays
 import java.util.Optional
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 
 /**
@@ -65,8 +65,9 @@ private const val COMBINED_CONTEXT_FQN = "${INTERNAL_PACKAGE}kotlin.coroutines.C
  */
 fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Void> {
   var disposeMethod = Optional.empty<Method>()
-  val applyObserversRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
-  val toRunTrampolinedRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
+  var applyObserversRef: WeakReference<MutableCollection<*>?>? = null
+  var globalWriteObserversRef: WeakReference<MutableCollection<*>?>? = null
+  var toRunTrampolinedRef: WeakReference<MutableCollection<*>?>? = null
   if (classLoader.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
     try {
       val composeViewAdapter: Class<*> = classLoader.loadClass(CLASS_COMPOSE_VIEW_ADAPTER)
@@ -95,8 +96,16 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
       // ignore.
       LOG.debug("Unable to dispose the recompose animationScale", ex)
     }
-    applyObserversRef.set(WeakReference(findApplyObservers(classLoader)))
-    toRunTrampolinedRef.set(WeakReference(findToRunTrampolined(classLoader)))
+    applyObserversRef = WeakReference(findSnapshotKtObserversField(classLoader, "applyObservers"))
+    globalWriteObserversRef =
+      WeakReference(findSnapshotKtObserversField(classLoader, "globalWriteObservers"))
+    toRunTrampolinedRef = WeakReference(findToRunTrampolined(classLoader))
+
+    // Run an early clean-up of the snapshot and global write observers. These hold a lot of
+    // information and can cause memory pressure if the render queue is slow to process events.
+    runCatching { applyObserversRef.get()?.clear() }
+    runCatching { globalWriteObserversRef.get()?.clear() }
+    runCatching { toRunTrampolinedRef.get()?.clear() }
   }
 
   val broadcastManagerInstanceField = WeakReference(findLocalBroadcastManagerInstance(classLoader))
@@ -113,16 +122,9 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
         }
       )
     }
-    val weakApplyObservers = applyObserversRef.get()
-    if (weakApplyObservers != null) {
-      val applyObservers = weakApplyObservers.get()
-      applyObservers?.clear()
-    }
-    val weakToRunTrampolined = toRunTrampolinedRef.get()
-    if (weakToRunTrampolined != null) {
-      val toRunTrampolined = weakToRunTrampolined.get()
-      toRunTrampolined?.clear()
-    }
+    applyObserversRef?.get()?.clear()
+    globalWriteObserversRef?.get()?.clear()
+    toRunTrampolinedRef?.get()?.clear()
     broadcastManagerInstanceField.get()?.set(null, null)
     this@dispose.dispose()
   }
@@ -175,18 +177,21 @@ private fun findToRunTrampolined(classLoader: ModuleClassLoader): MutableCollect
   return null
 }
 
-private fun findApplyObservers(classLoader: ModuleClassLoader): MutableCollection<*>? {
+private fun findSnapshotKtObserversField(
+  classLoader: ModuleClassLoader,
+  fieldName: String
+): MutableCollection<*>? {
   try {
     val snapshotKt = classLoader.loadClass(SNAPSHOT_KT_FQN)
-    val applyObserversField = snapshotKt.getDeclaredField("applyObservers")
-    applyObserversField.isAccessible = true
-    val applyObservers = applyObserversField[null]
+    val observersField = snapshotKt.getDeclaredField(fieldName)
+    observersField.isAccessible = true
+    val applyObservers = observersField[null]
     if (applyObservers is MutableCollection<*>) {
       return applyObservers
     }
-    LOG.warn("SnapshotsKt.applyObservers found but it is not a List")
+    LOG.warn("SnapshotsKt.$fieldName found but it is not a Collection")
   } catch (ex: ReflectiveOperationException) {
-    LOG.warn("Unable to find SnapshotsKt.applyObservers", ex)
+    LOG.warn("Unable to find SnapshotsKt.$fieldName", ex)
   }
   return null
 }
@@ -244,6 +249,36 @@ fun clearGapWorkerCache(classLoader: ModuleClassLoader) {
       } catch (e: IllegalAccessException) {
         LOG.debug(e)
       }
+    }
+  } catch (t: Throwable) {
+    LOG.debug(t)
+  }
+}
+
+/** Clear any pending re-compositions */
+fun clearCompositions(classLoader: ModuleClassLoader) {
+  if (!classLoader.hasLoadedClass(RECOMPOSER_CLASS)) return
+
+  try {
+    val recomposerClass = classLoader.loadClass(RECOMPOSER_CLASS)
+    val runningRecomposers =
+      recomposerClass
+        .getDeclaredField("_runningRecomposers")
+        .apply { isAccessible = true }
+        .get(null)
+    val currentRunningSet =
+      runningRecomposers::class
+        .java
+        .getMethod("getValue")
+        .apply { isAccessible = true }
+        .invoke(runningRecomposers) as Set<*>
+    if (currentRunningSet.isNotEmpty()) {
+      val recomposerCompanion = recomposerClass.getField("Companion").get(null)
+      val recomposerCompanionClass =
+        classLoader.loadClass("androidx.compose.runtime.Recomposer\$Companion")
+      val removeRunning =
+        recomposerCompanionClass.methods.single { it.name.contains("removeRunning") }
+      currentRunningSet.forEach { removeRunning.invoke(null, recomposerCompanion, it) }
     }
   } catch (t: Throwable) {
     LOG.debug(t)

@@ -21,7 +21,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
@@ -35,7 +35,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
 import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import java.nio.file.Path
@@ -146,11 +146,11 @@ DONE.
     whenever(client.device).thenReturn(mock())
     whenever(
         client.dumpViewHierarchy(
-          ArgumentMatchers.eq(windowName),
-          ArgumentMatchers.anyBoolean(),
-          ArgumentMatchers.anyBoolean(),
-          ArgumentMatchers.anyBoolean(),
-          ArgumentMatchers.any(DebugViewDumpHandler::class.java)
+          Mockito.eq(windowName),
+          Mockito.anyBoolean(),
+          Mockito.anyBoolean(),
+          Mockito.anyBoolean(),
+          Mockito.any(DebugViewDumpHandler::class.java)
         )
       )
       .thenAnswer { invocation ->
@@ -173,9 +173,9 @@ DONE.
 
     whenever(
         client.captureView(
-          ArgumentMatchers.eq(windowName),
-          ArgumentMatchers.any(),
-          ArgumentMatchers.any()
+          Mockito.eq(windowName),
+          Mockito.any(),
+          Mockito.any()
         )
       )
       .thenAnswer { invocation ->

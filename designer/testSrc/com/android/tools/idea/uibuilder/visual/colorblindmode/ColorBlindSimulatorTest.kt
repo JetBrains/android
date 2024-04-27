@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.visual.colorblindmode
 
-import junit.framework.TestCase
 import java.util.function.Function
+import junit.framework.TestCase
 import kotlin.math.pow
 
 private const val ERROR_THRESHOLD = 0.0001

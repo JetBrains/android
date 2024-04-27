@@ -32,7 +32,6 @@ import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.events.ExplicitRefresh
-import com.android.tools.idea.insights.events.actions.AppInsightsActionQueueImpl
 import com.android.tools.idea.insights.getHolderModules
 import com.android.tools.idea.insights.isAndroidApp
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
@@ -40,15 +39,17 @@ import com.android.tools.idea.vitals.client.VitalsClient
 import com.android.tools.idea.vitals.createVitalsFilters
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.google.gct.login.LoginState
+import com.google.gct.login.LoginStatus
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
 import java.time.Clock
-import java.util.concurrent.ConcurrentLinkedQueue
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -61,6 +62,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 @Service(Service.Level.PROJECT)
@@ -68,9 +70,7 @@ class VitalsConfigurationService(project: Project) : Disposable {
   private val cache = AppInsightsCacheImpl()
 
   val manager: AppInsightsConfigurationManager =
-    VitalsConfigurationManager(project, cache, VitalsClient(this, cache)).also {
-      Disposer.register(this, it)
-    }
+    VitalsConfigurationManager(project, cache, parentDisposable = this)
 
   override fun dispose() = Unit
 }
@@ -78,25 +78,28 @@ class VitalsConfigurationService(project: Project) : Disposable {
 class VitalsConfigurationManager(
   override val project: Project,
   @VisibleForTesting val cache: AppInsightsCache,
-  private val client: AppInsightsClient,
-  loginState: Flow<Boolean> = LoginState.loggedIn
+  loginState: Flow<LoginStatus> = service<LoginState>().loginStatus,
+  parentDisposable: Disposable,
+  @TestOnly private val testClient: AppInsightsClient? = null
 ) : AppInsightsConfigurationManager, Disposable {
 
   private val logger = Logger.getInstance(VitalsConfigurationManager::class.java)
   private val scope = AndroidCoroutineScope(this)
   private val refreshConfigurationFlow =
     MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+  private val loader = ComponentLoader()
 
   private val queryConnectionsFlow =
     flow {
+        // Wait for the client and controller to finish initializing before emitting from this flow.
+        loader.getController()
         refreshConfigurationFlow
-          .combine(loginState) { _, loggedIn -> loggedIn }
-          .collect { loggedIn ->
-            if (loggedIn) {
-              val connections = client.listConnections()
+          .combine(loginState) { _, loginStatus -> loginStatus }
+          .collect { loginStatus ->
+            if (loginStatus is LoginStatus.LoggedIn) {
+              val connections = loader.getClient().listConnections()
               if (connections is LoadingState.Ready) {
-                Logger.getInstance(VitalsConfigurationManager::class.java)
-                  .info("Accessible Android Vitals connections: ${connections.value}")
+                logger.info("Accessible Android Vitals connections: ${connections.value}")
               }
               emit(connections)
             } else {
@@ -108,34 +111,20 @@ class VitalsConfigurationManager(
 
   override val offlineStatusManager = OfflineStatusManagerImpl()
 
-  private val controller =
-    AppInsightsProjectLevelControllerImpl(
-      key = VITALS_KEY,
-      AndroidCoroutineScope(this, AndroidDispatchers.uiThread),
-      AndroidDispatchers.workerThread,
-      client,
-      queryConnectionsFlow.mapConnectionsToVariantConnectionsIfReady(),
-      offlineStatusManager,
-      onIssuesChanged = { DaemonCodeAnalyzer.getInstance(project).restart() },
-      tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS),
-      clock = Clock.systemDefaultZone(),
-      project = project,
-      queue = AppInsightsActionQueueImpl(ConcurrentLinkedQueue()),
-      onErrorAction = { msg, hyperlinkListener ->
-        AppInsightsToolWindowFactory.showBalloon(project, MessageType.ERROR, msg, hyperlinkListener)
-      },
-      defaultFilters = createVitalsFilters(),
-      cache = cache
-    )
-
   override val configuration =
     queryConnectionsFlow
       .mapAvailableAppsToModel()
       .stateIn(scope, SharingStarted.Eagerly, AppInsightsModel.Uninitialized)
 
   init {
+    Disposer.register(parentDisposable, this)
+    loader.start()
     scope.launch {
-      controller.eventFlow.filter { it is ExplicitRefresh }.collect { refreshConfiguration() }
+      loader
+        .getController()
+        .eventFlow
+        .filter { it is ExplicitRefresh }
+        .collect { refreshConfiguration() }
     }
   }
 
@@ -172,11 +161,54 @@ class VitalsConfigurationManager(
     when (it) {
       is LoadingState.Ready,
       is LoadingState.NetworkFailure -> {
-        AppInsightsModel.Authenticated(controller)
+        AppInsightsModel.Authenticated(loader.getController())
       }
       // TODO(b/274775776): disambiguate between different failures. Ex: authentication, grpc, etc.
       is LoadingState.Failure -> {
         AppInsightsModel.Unauthenticated
+      }
+    }
+  }
+
+  private inner class ComponentLoader {
+    private val clientDeferred = CompletableDeferred<AppInsightsClient>()
+    private val controllerDeferred = CompletableDeferred<AppInsightsProjectLevelControllerImpl>()
+
+    suspend fun getClient() = clientDeferred.await()
+
+    suspend fun getController() = controllerDeferred.await()
+
+    fun start() {
+      scope.launch {
+        if (testClient == null) {
+          clientDeferred.complete(VitalsClient(this@VitalsConfigurationManager, cache))
+        } else {
+          clientDeferred.complete(testClient)
+        }
+        val vitalsController =
+          AppInsightsProjectLevelControllerImpl(
+            key = VITALS_KEY,
+            AndroidCoroutineScope(this@VitalsConfigurationManager, AndroidDispatchers.uiThread),
+            AndroidDispatchers.workerThread,
+            clientDeferred.await(),
+            queryConnectionsFlow.mapConnectionsToVariantConnectionsIfReady(),
+            offlineStatusManager,
+            onIssuesChanged = { DaemonCodeAnalyzer.getInstance(project).restart() },
+            tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS),
+            clock = Clock.systemDefaultZone(),
+            project = project,
+            onErrorAction = { msg, hyperlinkListener ->
+              AppInsightsToolWindowFactory.showBalloon(
+                project,
+                MessageType.ERROR,
+                msg,
+                hyperlinkListener
+              )
+            },
+            defaultFilters = createVitalsFilters(),
+            cache = cache
+          )
+        controllerDeferred.complete(vitalsController)
       }
     }
   }

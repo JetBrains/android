@@ -179,6 +179,7 @@ private constructor(
   /** Interface for injecting dependencies to PairedDevicesPanel. */
   interface PairingManager {
     fun showPairDeviceWizard(pairingId: String)
+
     suspend fun removeDevice(phonePairingId: String, wearPairingId: String)
   }
 

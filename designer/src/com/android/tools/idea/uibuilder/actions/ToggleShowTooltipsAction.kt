@@ -33,6 +33,7 @@ class ToggleShowTooltipsAction(label: String = "Show Tooltips") :
   ): Boolean {
     return Scene.getTooltipVisibility()
   }
+
   override fun setSelected(
     editor: ViewEditor,
     handler: ViewHandler,

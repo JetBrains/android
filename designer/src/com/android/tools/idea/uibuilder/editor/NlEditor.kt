@@ -66,12 +66,7 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
           .setSupportedActions(LAYOUT_EDITOR_SUPPORTED_ACTIONS)
           .setSceneManagerProvider { surface, model ->
             NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
-              visualLintMode =
-                if (StudioFlags.NELE_VISUAL_LINT_ALWAYS_RUN.get()) {
-                  VisualLintMode.RUN_IN_BACKGROUND
-                } else {
-                  VisualLintMode.DISABLED
-                }
+              visualLintMode = VisualLintMode.RUN_IN_BACKGROUND
             }
           }
           .build()

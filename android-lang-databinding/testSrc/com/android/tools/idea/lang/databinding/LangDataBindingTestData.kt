@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.openapi.application.ex.PathManagerEx
 import java.nio.file.Files
 

@@ -15,25 +15,21 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.error.IssuePanelService.Companion.SELECTED_ISSUES
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintSettings
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
-import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.ScrollPaneFactory
@@ -53,7 +49,6 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.TreeModelEvent
-import javax.swing.event.TreeSelectionListener
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 
@@ -63,15 +58,26 @@ private const val TOOLBAR_ACTIONS_ID = "Android.Designer.IssuePanel.ToolbarActio
 private const val POPUP_HANDLER_ACTION_ID = "Android.Designer.IssuePanel.TreePopup"
 private val KEY_DETAIL_VISIBLE = DesignerCommonIssuePanel::class.java.name + "_detail_visibility"
 
-/** The issue panel to load the issues from Layout Editor and Layout Validation Tool. */
+val DESIGNER_COMMON_ISSUE_PANEL =
+  DataKey.create<DesignerCommonIssuePanel>("DesignerCommonIssuePanel")
+
+/**
+ * The issue panel to load the issues from Layout Editor and Layout Validation Tool.
+ *
+ * @param additionalDataProvider A [DataProvider] used to pass information from the creator of this
+ *   panel, that will allow to link the panel with the previews from which it displays the errors.
+ */
 class DesignerCommonIssuePanel(
   parentDisposable: Disposable,
   private val project: Project,
   private val treeModel: DesignerCommonIssueModel,
   nodeFactoryProvider: () -> NodeFactory,
   val issueProvider: DesignerCommonIssueProvider<Any>,
-  private val emptyMessageProvider: () -> String
+  private val emptyMessageProvider: () -> String,
+  private val additionalDataProvider: DataProvider? = null
 ) : Disposable {
+
+  private val issueListeners = mutableListOf<IssueListener>()
 
   var sidePanelVisible =
     PropertiesComponent.getInstance(project).getBoolean(KEY_DETAIL_VISIBLE, true)
@@ -90,7 +96,10 @@ class DesignerCommonIssuePanel(
         }
 
       override fun getData(dataId: String): Any? {
-        val node = getSelectedNode() ?: return null
+        if (DESIGNER_COMMON_ISSUE_PANEL.`is`(dataId)) {
+          return this@DesignerCommonIssuePanel
+        }
+        val node = getSelectedNode() ?: return additionalDataProvider?.getData(dataId)
         if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
           return DataProvider { getDataInBackground(it, node) }
         }
@@ -100,16 +109,7 @@ class DesignerCommonIssuePanel(
         if (PlatformDataKeys.VIRTUAL_FILE.`is`(dataId)) {
           return node.getVirtualFile()
         }
-        if (SELECTED_ISSUES.`is`(dataId)) {
-          return when (node) {
-            is IssuedFileNode -> node.getChildren().map { it.issue }.toList()
-            is NoFileNode -> node.getChildren().map { it.issue }.toList()
-            is IssueNode -> listOf(node.issue)
-            is NavigatableFileNode -> listOfNotNull((node.parentDescriptor as? IssueNode)?.issue)
-            else -> emptyList()
-          }
-        }
-        return null
+        return additionalDataProvider?.getData(dataId)
       }
     }
 
@@ -121,12 +121,7 @@ class DesignerCommonIssuePanel(
   init {
     Disposer.register(parentDisposable, this)
     treeModel.root = DesignerCommonIssueRoot(project, issueProvider, nodeFactoryProvider)
-    val problemsViewState = ProblemsViewState.getInstance(project)
-    setIssueNodeOrder(problemsViewState.sortBySeverity, problemsViewState.sortByName)
-    issueProvider.registerUpdateListener {
-      updateTree()
-      updateEmptyMessageIfNeed()
-    }
+    updateIssueOrder()
 
     val asyncModel = AsyncTreeModel(treeModel, this)
     tree = Tree(asyncModel)
@@ -172,31 +167,17 @@ class DesignerCommonIssuePanel(
     )
 
     tree.addTreeSelectionListener(RestoreSelectionListener())
-    tree.addTreeSelectionListener {
-      val newSelectedNode = it?.newLeadSelectionPath?.lastPathComponent
+    tree.addTreeSelectionListener { event ->
+      val newSelectedNode = event?.newLeadSelectionPath?.lastPathComponent
       if (newSelectedNode == null) {
         updateSidePanel(null, false) // force hide the side panel even the sidePanelVisible is true.
+        issueListeners.forEach { it.onIssueSelected(null) }
         return@addTreeSelectionListener
       }
       val selectedNode = newSelectedNode as DesignerCommonIssueNode
       updateSidePanel(selectedNode, sidePanelVisible)
-      // TODO(b/222110455): Can we have better way to trigger the refreshing of Layout Validation or
-      // other design tools?
-      //                    Refactor to remove the dependency of VisualizationToolWindowFactory.
-      val window =
-        ToolWindowManager.getInstance(project)
-          .getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)
-      if (window != null) {
-        DataManager.getInstance().getDataContext(window.component).getData(DESIGN_SURFACE)?.let {
-          surface ->
-          (selectedNode as? IssueNode)?.issue?.let { issue ->
-            if (issue.source is VisualLintIssueProvider.VisualLintIssueSource) {
-              surface.issueListener.onIssueSelected(issue)
-            }
-          }
-          surface.revalidateScrollArea()
-          surface.repaint()
-        }
+      (selectedNode as? IssueNode)?.issue.let { issue ->
+        issueListeners.forEach { it.onIssueSelected(issue) }
       }
     }
 
@@ -204,12 +185,17 @@ class DesignerCommonIssuePanel(
     tree.addTreeSelectionListener {
       val newSelection = it?.newLeadSelectionPath?.lastPathComponent
       val oldSelection = it?.oldLeadSelectionPath?.lastPathComponent
-      if (newSelection !is IssueNode && newSelection != oldSelection) {
+      if (newSelection is IssueNode && newSelection != oldSelection) {
         DesignerCommonIssuePanelUsageTracker.getInstance().trackSelectingIssue(project)
       }
     }
 
     updateSidePanel(getSelectedNode(), sidePanelVisible)
+
+    issueProvider.registerUpdateListener {
+      updateTree()
+      updateEmptyMessageIfNeed()
+    }
   }
 
   fun setSelectedNode(visitor: TreeVisitor) {
@@ -236,11 +222,27 @@ class DesignerCommonIssuePanel(
     issueProvider.viewOptionFilter = filter
   }
 
-  fun setIssueNodeOrder(sortedBySeverity: Boolean, sortedByName: Boolean) {
+  fun updateIssueOrder() {
+    val state = ProblemsViewState.getInstance(project)
     (treeModel.root as? DesignerCommonIssueRoot)?.setComparator(
-      DesignerCommonIssueNodeComparator(sortedBySeverity, sortedByName)
+      DesignerCommonIssueNodeComparator(state.sortBySeverity, state.sortByName)
     )
     treeModel.structureChanged(null)
+  }
+
+  fun updateIssueVisibility() {
+    val hiddenSeverities = ProblemsViewState.getInstance(project).hideBySeverity
+    val showVisualLint = VisualLintSettings.getInstance(project).isVisualLintFilterSelected
+
+    val filter =
+      DesignerCommonIssueProvider.Filter { issue ->
+        when {
+          issue is VisualLintRenderIssue -> showVisualLint
+          hiddenSeverities.contains(issue.severity.myVal) -> false
+          else -> true
+        }
+      }
+    setViewOptionFilter(filter)
   }
 
   private fun getSelectedNode(): DesignerCommonIssueNode? {
@@ -257,15 +259,18 @@ class DesignerCommonIssuePanel(
     splitter.revalidate()
   }
 
-  fun addIssueSelectionListener(listener: TreeSelectionListener) {
-    tree.addTreeSelectionListener(listener)
+  fun addIssueSelectionListener(listener: IssueListener, parentDisposable: Disposable) {
+    Disposer.register(parentDisposable) { issueListeners.remove(listener) }
+    issueListeners.add(listener)
   }
 
-  fun removeIssueSelectionListener(listener: TreeSelectionListener) {
-    tree.removeTreeSelectionListener(listener)
+  fun removeIssueSelectionListener(listener: IssueListener) {
+    issueListeners.remove(listener)
   }
 
-  override fun dispose() = Unit
+  override fun dispose() {
+    issueListeners.clear()
+  }
 }
 
 /**

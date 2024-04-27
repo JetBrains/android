@@ -77,7 +77,7 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     assertSame(resolver1b, configuration2.getResourceResolver());
 
     // Test project resource changes, should invalidate
-    LocalResourceRepository resources = StudioResourceRepositoryManager.getModuleResources(myFacet);
+    LocalResourceRepository<?> resources = StudioResourceRepositoryManager.getModuleResources(myFacet);
     assertNotNull(resources);
     assertEquals("Cancel", configuration1.getResourceResolver().findResValue("@string/cancel", false).getValue());
     long generation = resources.getModificationCount();

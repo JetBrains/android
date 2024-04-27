@@ -31,8 +31,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class IdeFileUtils {
   /**
-   * Returns the Desktop directory for the current user, or {@code null} if it doesn't exist.
-   * Copied from {@link com.intellij.openapi.fileChooser.actions.GotoDesktopDirAction} with minor changes.
+   * Returns the Desktop directory for the current user, or null if it doesn't exist.
+   * Copied from {@link GotoDesktopDirAction} with minor changes.
    */
   @Nullable
   public static Path getDesktopDirectory() {

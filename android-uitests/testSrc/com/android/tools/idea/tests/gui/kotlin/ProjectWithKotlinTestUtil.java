@@ -128,8 +128,8 @@ public class ProjectWithKotlinTestUtil {
 
     String fileName = name + KOTLIN_EXTENSION;
 
-    // The flakiness here is 1/1000. Increase the timeout from 5s to 10s to stabilize it.
-    Wait.seconds(10).expecting(fileName + " file should be opened")
+    // The flakiness here is 1/1000. Increase the timeout from 10s to 15s to stabilize it.
+    Wait.seconds(15).expecting(fileName + " file should be opened")
         .until(() -> fileName.equals(ideFrameFixture.getEditor().getCurrentFileName()));
   }
 

@@ -361,7 +361,6 @@ MODULE                        : MultiFlavor.app
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-        EnableVcsInfo                 : false
     - basicVariant:               : firstAbcSecondAbcDebug
         applicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
         testApplicationId             : com.example.multiflavor.firstAbc.secondAbc.debug.test
@@ -772,10 +771,6 @@ MODULE                        : MultiFlavor.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/firstAbcSecondAbcDebug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createFirstAbcSecondAbcDebugVariantModel
-                    File                          : <ROOT>/app/build/intermediates/variant_model/firstAbcSecondAbcDebug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileFirstAbcSecondAbcDebugAndroidTestSources

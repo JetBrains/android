@@ -44,7 +44,7 @@ class PsSdkIndexCheckerDaemon(
 
   private inner class RefreshSdkIndexIssues : Update(project) {
     override fun run() {
-      IdeGooglePlaySdkIndex.initializeAndSetFlags()
+      IdeGooglePlaySdkIndex.initializeAndSetFlags();
       resultsUpdaterQueue.queue(SdkIndexAvailable())
     }
   }

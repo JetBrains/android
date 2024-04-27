@@ -128,6 +128,7 @@ class SkiaParserServerConnection(private val serverPath: Path) {
         }
 
         override fun onError(error: Throwable?) {}
+
         override fun onCompleted() {}
       }
     )
@@ -172,6 +173,7 @@ class SkiaParserServerConnection(private val serverPath: Path) {
               error?.printStackTrace()
               lastException = error
             }
+
             override fun onCompleted() {}
           }
         )

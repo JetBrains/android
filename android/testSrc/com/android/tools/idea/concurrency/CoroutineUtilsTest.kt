@@ -25,7 +25,6 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
@@ -42,7 +41,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -196,11 +194,12 @@ class CoroutineUtilsTest {
 
   @Test
   fun disposing() {
+
     val computationStarted = CountDownLatch(1)
     val computationFinished = CountDownLatch(1)
     val done = CountDownLatch(1)
     val exception = AtomicReference<Exception>(null)
-    val uiUpdated = AtomicReference(false)
+    val uiUpdated = AtomicReference<Boolean>(false)
 
     class FooManager : UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
       override fun dispose() {}
@@ -378,7 +377,7 @@ class CoroutineUtilsTest {
   fun `disposable callback flow`() {
     val parentDisposable = Disposer.newDisposable(projectRule.testRootDisposable, "parent")
     val callbackDeferred = CompletableDeferred<TestCallback>()
-    val disposableFlow = disposableCallbackFlow("Test", null, parentDisposable) {
+    val disposableFlow = disposableCallbackFlow<Unit>("Test", null, parentDisposable) {
       callbackDeferred.complete(object : TestCallback {
         override fun send() {
           this@disposableCallbackFlow.trySend(Unit)
@@ -429,10 +428,13 @@ class CoroutineUtilsTest {
 
     runBlocking { connected.await() }
 
-    val isDumb = arrayOf(true, true, false, true, false, true)
     val publisher = project.messageBus.syncPublisher(DumbService.DUMB_MODE)
-    isDumb.forEach {
-      runInEdtAndWait { if (it) publisher.enteredDumbMode() else publisher.exitDumbMode() }
+    val dumbModeEvents = arrayOf(true, true, false, true, false, true)
+    for (isDumb in dumbModeEvents) {
+      runInEdtAndWait {
+        if (isDumb) publisher.enteredDumbMode()
+        else publisher.exitDumbMode()
+      }
     }
 
     // Wait for the changes to be processed.
@@ -443,147 +445,6 @@ class CoroutineUtilsTest {
       job.cancel() // Stop the channel
       job.join()
       assertEquals(expectedModeChanges, flowReceiverCount.get()) // ensure that no more of expectedModeChanges have been received
-    }
-  }
-
-  @Test(timeout = 500)
-  fun `read action with write priority yields to write actions`() {
-    val readActionIsRunning = CompletableDeferred<Unit>()
-    var keepReadActionRunning = true
-    runBlocking {
-      val job = launch {
-        runReadActionWithWritePriority(
-          maxRetries = Int.MAX_VALUE,
-          maxWaitTime = Long.MAX_VALUE,
-          maxWaitTimeUnit = TimeUnit.DAYS, // No timeout
-          callable = {
-            ApplicationManager.getApplication().assertReadAccessAllowed()
-            readActionIsRunning.complete(Unit)
-            while (keepReadActionRunning) {
-              it()
-              Thread.sleep(50)
-            }
-          }
-        )
-      }
-
-      launch {
-        readActionIsRunning.await()
-
-        var executedWriteActions = 0
-        repeat(5) {
-          runWriteActionAndWait { executedWriteActions++ }
-        }
-        keepReadActionRunning = false
-        job.join()
-
-        assertEquals(5, executedWriteActions)
-      }
-    }
-  }
-
-  @Test(timeout = 500)
-  fun `read action with write priority stops after x retries`() {
-    val readActionIsRunning = CompletableDeferred<Unit>()
-    runBlocking {
-      var retries = 0
-      val job = launch {
-        try {
-          runReadActionWithWritePriority(
-            maxRetries = 3,
-            maxWaitTime = Long.MAX_VALUE,
-            maxWaitTimeUnit = TimeUnit.DAYS, // No timeout
-            callable = { checkCancelled ->
-              readActionIsRunning.complete(Unit)
-              retries++
-              thread {
-                com.intellij.openapi.application.runWriteActionAndWait { }
-              }
-              while (true) {
-                checkCancelled()
-                Thread.sleep(50)
-              }
-            }
-          )
-          fail("runReadActionWithWritePriority should never return")
-        }
-        catch (ignore: RetriesExceededException) {
-        }
-        catch (t: Throwable) {
-          fail("Unexpected exception $t")
-        }
-      }
-      readActionIsRunning.await()
-      job.join()
-      assertEquals(3, retries)
-    }
-  }
-
-  @Test(timeout = 2500)
-  fun `read action with write priority stops after timeout`() {
-    val readActionIsRunning = CompletableDeferred<Unit>()
-    runBlocking {
-      var retries = 0
-      val job = launch {
-        try {
-          runReadActionWithWritePriority(
-            maxWaitTime = 1,
-            maxWaitTimeUnit = TimeUnit.SECONDS,
-            callable = { checkCancelled ->
-              readActionIsRunning.complete(Unit)
-              retries++
-              while (true) {
-                checkCancelled()
-                Thread.sleep(50)
-              }
-            }
-          )
-          fail("runReadActionWithWritePriority should never return")
-        }
-        catch (ignore: TimeoutException) {
-        }
-        catch (t: Throwable) {
-          fail("Unexpected exception $t")
-        }
-      }
-      readActionIsRunning.await()
-
-      delay(TimeUnit.SECONDS.toMillis(2))
-
-      job.join()
-      assertEquals(1, retries)
-    }
-  }
-
-  @Test(timeout = 500)
-  fun `read action with write priority stops if cancelled`() {
-    val readActionIsRunning = CompletableDeferred<Unit>()
-    runBlocking {
-      val job = launch {
-        try {
-          runReadActionWithWritePriority(
-            maxRetries = Int.MAX_VALUE,
-            maxWaitTime = Long.MAX_VALUE,
-            maxWaitTimeUnit = TimeUnit.DAYS, // No timeout
-            callable = { checkCancelled ->
-              readActionIsRunning.complete(Unit)
-              while (true) {
-                checkCancelled()
-                Thread.sleep(50)
-              }
-            }
-          )
-          fail("runReadActionWithWritePriority should never return")
-        }
-        catch (ignore: ProcessCanceledException) {
-        }
-        catch (t: Throwable) {
-          fail("Unexpected exception $t")
-        }
-      }
-      readActionIsRunning.await()
-      job.cancel()
-      job.join()
     }
   }
 

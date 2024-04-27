@@ -28,21 +28,21 @@ import com.intellij.ui.dsl.builder.labelTable
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.selected
 import com.intellij.util.messages.Topic
-import org.jetbrains.android.uipreview.AndroidEditorSettings
-import org.jetbrains.annotations.Nls
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.GraphicsEnvironment
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JSlider
+import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val CONFIGURABLE_ID = "nele.options"
 private val DISPLAY_NAME =
-  if (IdeInfo.getInstance().isAndroidStudio) "Design Tools" else AndroidDesignerActionsBundle.message("android.uibuilder.nloptionsconfigurable.displayName")
+  if (IdeInfo.getInstance().isAndroidStudio) "Design Tools"
+  else AndroidDesignerBundle.message("android.uibuilder.nloptionsconfigurable.displayName")
 
-@Nls @VisibleForTesting val LABEL_TRACK_PAD = AndroidDesignerActionsBundle.message("title.track.pad")
-@Nls @VisibleForTesting
- val LABEL_MAGNIFY_ZOOMING_SENSITIVITY = AndroidDesignerActionsBundle.message("label.zooming.sensitivity")
+@VisibleForTesting const val LABEL_TRACK_PAD = "Track Pad"
+@VisibleForTesting
+const val LABEL_MAGNIFY_ZOOMING_SENSITIVITY = "Magnify zooming (pinch) sensitivity"
 
 private val MAGNIFY_SUPPORTED =
   SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
@@ -100,19 +100,26 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
     val showMagnify = MAGNIFY_SUPPORTED && !GraphicsEnvironment.isHeadless()
 
     return panel {
-      group(AndroidDesignerActionsBundle.message("title.default.editor.mode")) {
-        row(AndroidDesignerActionsBundle.message("combobox.drawables")) { preferredDrawablesEditorMode = editorModeComboBox().component }
-        row(AndroidDesignerActionsBundle.message("combobox.other.resources")) {
+      group("Default Editor Mode") {
+        row("Drawables:") { preferredDrawablesEditorMode = editorModeComboBox().component }
+        row("Other Resources (e.g. Layout, Menu, Navigation):") {
           preferredEditorMode = editorModeComboBox().component
         }
-        row(AndroidDesignerActionsBundle.message("combobox.compose.files")) {
+        row("Compose files with previews:") {
           editorModeComboBox()
             .bindItem(
-              { state.preferredComposableEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
+              { state.preferredPreviewableEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
+              state::setPreferredPreviewableEditorMode
+            )
+        }
+        row("Compose files without previews:") {
+          editorModeComboBox()
+            .bindItem(
+              { state.preferredComposableEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
               state::setPreferredComposableEditorMode
             )
         }
-        row(AndroidDesignerActionsBundle.message("combobox.other.kotlin.files")) {
+        row("Other Kotlin files:") {
           editorModeComboBox()
             .bindItem(
               { state.preferredKotlinEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
@@ -139,9 +146,9 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                 )
                 .labelTable(
                   mapOf(
-                    minSensitivityPercentage to JLabel(AndroidDesignerActionsBundle.message("label.slow")),
-                    defaultSensitivityPercentage to JLabel(AndroidDesignerActionsBundle.message("label.default")),
-                    maxSensitivityPercentage to JLabel(AndroidDesignerActionsBundle.message("label.fast"))
+                    minSensitivityPercentage to JLabel("Slow"),
+                    defaultSensitivityPercentage to JLabel("Default"),
+                    maxSensitivityPercentage to JLabel("Fast")
                   )
                 )
                 .applyToComponent { value = percentageValue }

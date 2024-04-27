@@ -28,10 +28,11 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
-import java.util.Collections;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A parser for BUILD.gradle files. Used to build up a {@link GradleBuildModel} from the underlying file.

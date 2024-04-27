@@ -42,13 +42,12 @@ class ProfileWithCompleteDataTest : ProfilersTestBase() {
   @Test
   fun testProfileAppWithComplete() {
     profileApp(
-      systemImage = Emulator.SystemImage.API_29,
+      systemImage = Emulator.SystemImage.API_31,
       testFunction = { studio, _ ->
         profileWithCompleteData(studio)
         verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 300)
         verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 300)
 
-        studio.waitForComponentByClass("TooltipLayeredPane", "StreamingScrollbar")
         studio.waitForComponentByClass("TooltipLayeredPane", "InstructionsPanel", "InstructionsComponent") // Specific to profiling with complete data
 
         stopProfilingSession(studio)

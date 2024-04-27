@@ -15,9 +15,7 @@
  */
 package com.android.tools.asdriver.tests;
 
-import com.android.testutils.TestUtils;
-import com.intellij.openapi.util.SystemInfoRt;
-import java.io.File;
+import com.android.test.testutils.TestUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,7 +39,6 @@ public class XvfbServer implements Display {
    */
   private String display;
 
-  private Boolean cachedCanCallImport = null;
   private Process recorder;
 
   public XvfbServer() throws IOException {
@@ -57,72 +54,6 @@ public class XvfbServer implements Display {
     }
   }
 
-  /**
-   * Helper function for {@link XvfbServer#debugTakeScreenshot}.
-   */
-  private boolean canCallImport() {
-    if (cachedCanCallImport == null) {
-      try {
-        ProcessBuilder pb = new ProcessBuilder("import");
-        Process p = pb.start();
-        p.waitFor(1, TimeUnit.SECONDS);
-        cachedCanCallImport = true;
-      }
-      catch (IOException | InterruptedException e) {
-        cachedCanCallImport = false;
-      }
-    }
-
-    return cachedCanCallImport;
-  }
-
-  /**
-   * Takes a screenshot of the headless display from Xvfb on Linux.
-   * @param fileName A file name for the screenshot, e.g. "before" or "after".
-   */
-  @Override
-  public void debugTakeScreenshot(String fileName) throws IOException {
-    if (!SystemInfoRt.isLinux) {
-      throw new RuntimeException("debugTakeScreenshot is only available on Linux since it uses \"import\"");
-    } else if (!canCallImport()) {
-      throw new RuntimeException("Can't take a screenshot on Linux without \"import\"");
-    }
-
-    if (fileName == null) {
-      fileName = "screenshot";
-    }
-
-    Path screenshotsDir = Paths.get(System.getProperty("java.io.tmpdir"),"e2e_screenshots");
-    try {
-      Files.createDirectories(screenshotsDir);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      throw e;
-    }
-    File tempDest = Paths.get(screenshotsDir.toString(), fileName + ".png").toFile();
-    try {
-      System.out.println("Taking a screenshot and saving it to " + tempDest);
-      ProcessBuilder pb = new ProcessBuilder(
-        "import",
-        "-display",
-        display,
-        "-window",
-        "root",
-        tempDest.toString()
-      );
-      pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-      pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-      Process p = pb.start();
-      p.waitFor(2, TimeUnit.SECONDS);
-      System.out.println("Successfully captured " + tempDest);
-    }
-    catch (IOException | InterruptedException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
-    }
-  }
-
   @Override
   public String getDisplay() {
     return display;
@@ -135,7 +66,14 @@ public class XvfbServer implements Display {
 
     // Note that -pix_fmt is required by some players:
     // https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
-    ProcessBuilder pb = new ProcessBuilder(ffmpeg.toString(), "-framerate", "25", "-f", "x11grab", "-i", display, "-pix_fmt", "yuv420p", mp4.toString());
+    ProcessBuilder pb = new ProcessBuilder(
+      ffmpeg.toString(),
+      "-framerate", "25",
+      "-f", "x11grab",
+      "-i", display,
+      "-pix_fmt", "yuv420p",
+      "-movflags", "faststart",
+      mp4.toString());
     pb.redirectOutput(dir.resolve("ffmpeg_stdout.txt").toFile());
     pb.redirectError(dir.resolve("ffmpeg_stderr.txt").toFile());
     return pb.start();

@@ -1,8 +1,14 @@
 <component name="libraryTable">
   <library name="perfetto-proto" type="repository">
-    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:perfetto-protos:231.0.26.0" />
+    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:perfetto-protos:232.1.23.0">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/perfetto-protos/232.1.23.0/perfetto-protos-232.1.23.0.jar">
+          <sha256sum>cb294a0402b6fbfef35641a69ec29ca6f2ecdef07bc326913cdcf6a5cafd29c3</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/perfetto-protos/231.0.26.0/perfetto-protos-231.0.26.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/perfetto-protos/232.1.23.0/perfetto-protos-232.1.23.0.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

@@ -28,7 +28,6 @@ import com.android.SdkConstants.ATTR_LAYOUT_MARGIN
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.BOTTOM_APP_BAR
 import com.android.SdkConstants.ID_PREFIX
-import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlComponent
@@ -36,8 +35,6 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.common.scene.target.Target
-import com.android.tools.idea.uibuilder.api.DragHandler
-import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.handlers.ScrollViewHandler
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.handlers.frame.FrameResizeTarget
@@ -47,13 +44,6 @@ import com.google.common.collect.ImmutableList
 
 /** Handler for android.support.design.widget.CoordinatorLayout */
 class CoordinatorLayoutHandler : ScrollViewHandler() {
-
-  enum class InteractionState {
-    NORMAL,
-    DRAGGING
-  }
-
-  var interactionState: InteractionState = InteractionState.NORMAL
 
   override fun handlesPainting() = true
 
@@ -88,24 +78,6 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
       }
   }
 
-  override fun createDragHandler(
-    editor: ViewEditor,
-    layout: SceneComponent,
-    components: List<NlComponent>,
-    type: DragType
-  ): DragHandler? {
-    // The {@link CoordinatorDragHandler} handles the logic for anchoring a
-    // single component to an existing component in the CoordinatorLayout.
-    // If we are moving several components we probably don't want them to be
-    // anchored to the same place, so instead we use the FrameLayoutHandler in
-    // this case.
-    return if (components.size == 1) {
-      CoordinatorDragHandler(editor, this, layout, components, type)
-    } else {
-      super.createDragHandler(editor, layout, components, type)
-    }
-  }
-
   /**
    * Return a new ConstraintInteraction instance to handle a mouse interaction
    *
@@ -126,7 +98,6 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
 
     if (childComponent !is TemporarySceneComponent) {
       listBuilder.add(
-        CoordinatorDragTarget(),
         CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
         CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT),
         CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
@@ -138,20 +109,11 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
       )
     }
 
-    if (!childComponent.isSelected && interactionState == InteractionState.DRAGGING) {
-      listBuilder.add(
-        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT),
-        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.TOP),
-        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT),
-        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.BOTTOM),
-        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT_TOP),
-        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT_BOTTOM),
-        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT_TOP),
-        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT_BOTTOM)
-      )
-    }
-
     return listBuilder.build()
+  }
+
+  override fun shouldAddCommonDragTarget(component: SceneComponent): Boolean {
+    return component !is TemporarySceneComponent
   }
 
   override fun acceptsChild(layout: NlComponent, newChild: NlComponent) = true

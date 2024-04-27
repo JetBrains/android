@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
@@ -25,6 +26,7 @@ import java.awt.Point;
 import java.util.Collection;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * {@link PositionableContentLayoutManager} for the {@link NlDesignSurface}. It uses a delegated {@link SurfaceLayoutManager} to layout the
@@ -59,8 +61,9 @@ public class NlDesignSurfacePositionableContentLayoutManager extends Positionabl
     return dimension;
   }
 
+  @VisibleForTesting
   @NotNull
-  SurfaceLayoutManager getLayoutManager() {
+  public SurfaceLayoutManager getLayoutManager() {
     return myLayoutManager;
   }
 
@@ -69,6 +72,7 @@ public class NlDesignSurfacePositionableContentLayoutManager extends Positionabl
     return myLayoutManager.equals(manager);
   }
 
+  @UiThread
   @Override
   public void setLayoutManager(@NotNull SurfaceLayoutManager manager, @NotNull DesignSurface.SceneViewAlignment sceneViewAlignment) {
     myLayoutManager = manager;
@@ -76,7 +80,6 @@ public class NlDesignSurfacePositionableContentLayoutManager extends Positionabl
     myDesignSurface.setScrollPosition(0, 0);
     myDesignSurface.revalidateScrollArea();
   }
-
 
   @NotNull
   @Override

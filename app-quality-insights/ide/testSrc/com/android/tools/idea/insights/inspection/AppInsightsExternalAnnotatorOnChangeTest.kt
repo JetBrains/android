@@ -20,12 +20,12 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Frame
+import com.android.tools.idea.insights.GenerateErrorReason
 import com.android.tools.idea.insights.PROJECT_ROOT_PREFIX
 import com.android.tools.idea.insights.RepoInfo
 import com.android.tools.idea.insights.VCS_CATEGORY
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
-import com.android.tools.idea.insights.vcs.updateVcsInfoFlagInModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.Before
 import org.junit.Rule
@@ -35,32 +35,110 @@ import org.junit.rules.RuleChain
 class AppInsightsExternalAnnotatorOnChangeTest {
   private val projectRule = AndroidProjectRule.onDisk()
   private val vcsInsightsRule = InsightsVcsTestRule(projectRule)
-  private val flagRule = FlagRule(StudioFlags.APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT, true)
+  private val changeAwareFlagRule =
+    FlagRule(StudioFlags.APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT, true)
 
-  @get:Rule val rule = RuleChain.outerRule(projectRule).around(vcsInsightsRule).around(flagRule)
+  @get:Rule
+  val rule: RuleChain =
+    RuleChain.outerRule(projectRule).around(vcsInsightsRule).around(changeAwareFlagRule)
 
-  private lateinit var appVcsInfo: AppVcsInfo
-
-  private val document
-    get() = projectRule.fixture.editor.document
+  private lateinit var validAppVcsInfo: AppVcsInfo.ValidInfo
+  private lateinit var errorAppVcsInfo: AppVcsInfo.Error
 
   @Before
   fun setUp() {
-    projectRule.fixture.module.updateVcsInfoFlagInModel(true)
-
-    appVcsInfo =
-      AppVcsInfo(
+    validAppVcsInfo =
+      AppVcsInfo.ValidInfo(
         listOf(
           RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "1")
         )
       )
+
+    errorAppVcsInfo = AppVcsInfo.Error(GenerateErrorReason.NO_VALID_GIT_FOUND)
+  }
+
+  private val document
+    get() = projectRule.fixture.editor.document
+
+  @Test
+  fun `annotations are not shifted if error vcs info`() {
+    val original =
+      listOf(
+        buildAppInsight(Frame(line = 4), buildIssue(errorAppVcsInfo)),
+      )
+
+    withFakedInsights(original)
+
+    checkAnnotationsOnChange(
+      fileName = "MainActivity.kt",
+      beforeSource =
+        """
+          package test.simple
+
+          class MainActivity {
+              fun onCreate() {
+              }
+          }
+      """
+          .trimIndent(),
+      afterSource =
+        """
+          package test.simple
+
+          class MainActivity {
+              // TODO:
+              fun onCreate() {
+              }
+          }
+      """
+          .trimIndent(),
+      beforeLineToInsights = listOf(LineToInsights(3, original)),
+      afterLineToInsights = listOf(LineToInsights(3, original))
+    )
+  }
+
+  @Test
+  fun `annotations are not shifted if no vcs info`() {
+    val original =
+      listOf(
+        buildAppInsight(Frame(line = 4), buildIssue(AppVcsInfo.NONE)),
+      )
+
+    withFakedInsights(original)
+
+    checkAnnotationsOnChange(
+      fileName = "MainActivity.kt",
+      beforeSource =
+        """
+          package test.simple
+
+          class MainActivity {
+              fun onCreate() {
+              }
+          }
+      """
+          .trimIndent(),
+      afterSource =
+        """
+          package test.simple
+
+          class MainActivity {
+              // TODO:
+              fun onCreate() {
+              }
+          }
+      """
+          .trimIndent(),
+      beforeLineToInsights = listOf(LineToInsights(3, original)),
+      afterLineToInsights = listOf(LineToInsights(3, original))
+    )
   }
 
   @Test
   fun `annotations are shifted when adding a line`() {
     val original =
       listOf(
-        buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)),
+        buildAppInsight(Frame(line = 4), buildIssue(validAppVcsInfo)),
       )
 
     withFakedInsights(original)
@@ -97,7 +175,7 @@ class AppInsightsExternalAnnotatorOnChangeTest {
   fun `annotations are shifted when deleting a line`() {
     val original =
       listOf(
-        buildAppInsight(Frame(line = 5), buildIssue(appVcsInfo)),
+        buildAppInsight(Frame(line = 5), buildIssue(validAppVcsInfo)),
       )
 
     withFakedInsights(original)
@@ -134,7 +212,7 @@ class AppInsightsExternalAnnotatorOnChangeTest {
   fun `annotations are gone when touching the line`() {
     val expected =
       listOf(
-        buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)),
+        buildAppInsight(Frame(line = 4), buildIssue(validAppVcsInfo)),
       )
 
     withFakedInsights(expected)

@@ -24,6 +24,7 @@ import java.io.File
 
 sealed class LintResult {
   open fun getModule(): Module? = null
+
   abstract fun getIssues(): Set<Issue>
 }
 
@@ -32,7 +33,7 @@ sealed class LintResult {
  * infrastructure (such as [ApiLookup] and need to construct a client but you don't need to record
  * any potential warnings.
  */
-class LintIgnoredResult : LintResult() {
+class LintIgnoredResult() : LintResult() {
   override fun getIssues(): Set<Issue> = emptySet()
 }
 
@@ -47,7 +48,8 @@ data class LintBatchResult(
   }
 }
 
-class LintEditorResult(
+class LintEditorResult
+constructor(
   private val myModule: Module,
   val mainFile: VirtualFile,
   val mainFileContent: String,

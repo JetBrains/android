@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
-
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 public final class TreeSearchUtil {
 

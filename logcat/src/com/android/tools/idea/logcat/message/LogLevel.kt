@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.logcat.message
 
-
-/**
- * Log Level enum.
- */
-
+/** Log Level enum. */
 enum class LogLevel(val stringValue: String, val priorityLetter: Char) {
   VERBOSE("verbose", 'V'),
   DEBUG("debug", 'D'),
@@ -32,6 +28,7 @@ enum class LogLevel(val stringValue: String, val priorityLetter: Char) {
   companion object {
     /**
      * Returns the [LogLevel] enum matching the specified string value.
+     *
      * @param value the string matching a `LogLevel` enum
      * @return a `LogLevel` object or `null` if no match were found.
      */
@@ -46,6 +43,7 @@ enum class LogLevel(val stringValue: String, val priorityLetter: Char) {
 
     /**
      * Returns the [LogLevel] enum matching the specified letter.
+     *
      * @param letter the letter matching a `LogLevel` enum
      * @return a `LogLevel` object or `null` if no match were found.
      */

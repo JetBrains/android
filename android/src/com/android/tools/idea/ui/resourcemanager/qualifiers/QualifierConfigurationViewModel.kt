@@ -43,6 +43,7 @@ import com.android.ide.common.resources.configuration.TouchScreenQualifier
 import com.android.ide.common.resources.configuration.UiModeQualifier
 import com.android.ide.common.resources.configuration.VersionQualifier
 import com.android.ide.common.resources.configuration.WideGamutColorQualifier
+import com.android.resources.Density
 import com.android.resources.ResourceEnum
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.ui.resourcemanager.CollectionParam
@@ -122,7 +123,7 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
     return when (qualifier) {
       is LocaleQualifier -> LocaleQualifierConfiguration(qualifier.language, qualifier.region)
       is CountryCodeQualifier -> IntConfiguration(::CountryCodeQualifier, COUNTRY_CODE_RANGE, qualifier.code)
-      is DensityQualifier -> enumConfiguration(::DensityQualifier, qualifier.value)
+      is DensityQualifier -> DensityConfiguration(qualifier.value)
       is HighDynamicRangeQualifier -> enumConfiguration(::HighDynamicRangeQualifier, qualifier.value)
       is KeyboardStateQualifier -> enumConfiguration(::KeyboardStateQualifier, qualifier.value)
       is LayoutDirectionQualifier -> enumConfiguration(::LayoutDirectionQualifier, qualifier.value)
@@ -286,5 +287,13 @@ internal class ScreenDimensionConfiguration(value1: Int, value2: Int) : Qualifie
     val width = widthParam.paramValue ?: return null
     val height = heightParam.paramValue ?: return null
     return ScreenDimensionQualifier(width, height)
+  }
+}
+
+internal class DensityConfiguration(value: Density) : QualifierConfiguration {
+  override val parameters = listOf(CollectionParam(Density.values().toList()).apply { paramValue = value })
+  override fun buildQualifier(): DensityQualifier? {
+    val density = parameters.first().paramValue ?: return null
+    return DensityQualifier(density)
   }
 }

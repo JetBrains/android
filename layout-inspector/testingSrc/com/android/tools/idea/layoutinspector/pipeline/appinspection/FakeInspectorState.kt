@@ -863,9 +863,9 @@ class FakeInspectorState(
         propertyGroups[command.getPropertiesCommand.rootViewId]!!.firstOrNull {
           it.viewId == command.getPropertiesCommand.viewId
         }
-        // As this test data is hand defined, treat undefined view IDs as views with an empty
-        // properties group
-        ?: PropertyGroup { viewId = command.getPropertiesCommand.viewId }
+          // As this test data is hand defined, treat undefined view IDs as views with an empty
+          // properties group
+          ?: PropertyGroup { viewId = command.getPropertiesCommand.viewId }
       LayoutInspectorViewProtocol.Response.newBuilder()
         .setGetPropertiesResponse(
           LayoutInspectorViewProtocol.GetPropertiesResponse.newBuilder().apply {

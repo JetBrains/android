@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.observable.constraints;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.IntValueProperty;
 import org.junit.Test;
+
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link AbstractProperty.Constraint}

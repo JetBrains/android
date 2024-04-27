@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.rendering;
 
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class TestRenderingUtils {
   @NotNull

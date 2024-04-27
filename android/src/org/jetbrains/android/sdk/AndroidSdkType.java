@@ -1,7 +1,6 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.sdk;
 
-import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName;
@@ -92,7 +91,7 @@ public class AndroidSdkType extends SdkType implements JavaSdkType {
 
   @Override
   public boolean setupSdkPaths(@NotNull Sdk sdk, @NotNull SdkModel sdkModel) {
-    AndroidSdkData sdkData = getSdkData(sdk);
+    AndroidSdkData sdkData = AndroidSdks.getSdkData(sdk);
     if (sdkData == null) {
       Messages.showErrorDialog(AndroidBundle.message("cannot.parse.sdk.error"), "SDK Parsing Error");
       return false;

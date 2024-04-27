@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose
 
-
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -27,14 +26,13 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Test for [ComposeFoldingBuilder].
- */
+/** Test for [ComposeFoldingBuilder]. */
 class ComposeFoldingBuilderTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private val myFixture: CodeInsightTestFixtureImpl by lazy { projectRule.fixture as CodeInsightTestFixtureImpl }
+  private val myFixture: CodeInsightTestFixtureImpl by lazy {
+    projectRule.fixture as CodeInsightTestFixtureImpl
+  }
 
   @Before
   fun setUp() {
@@ -52,17 +50,19 @@ class ComposeFoldingBuilderTest {
         fun adjust():Modifier {}
       }
     }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
   }
 
   @Test
   fun test() {
-    // We can't use standard [myFixture.testFolding] because we need properly load file to be able resolve references inside
+    // We can't use standard [myFixture.testFolding] because we need properly load file to be able
+    // resolve references inside
     // [ComposeFoldingBuilder].
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
@@ -75,12 +75,15 @@ class ComposeFoldingBuilderTest {
           .adjust()
           .adjust()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val res = myFixture.getFoldingDescription(false)
 
-    assertThat(res).isEqualTo("""
+    assertThat(res)
+      .isEqualTo(
+        """
       package com.example
 
       import <fold text='...'>androidx.compose.runtime.Composable
@@ -92,6 +95,8 @@ class ComposeFoldingBuilderTest {
           .adjust()
           .adjust()</fold>
       }</fold>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 }

@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.scene.draw.DisplayList;
+import org.jetbrains.annotations.NotNull;
+
+import java.awt.image.BufferedImage;
+
 import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
-
-import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.scene.draw.DisplayList;
-import java.awt.image.BufferedImage;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Check that connections to parent if referenced by an id still works, also check the display list sorted result.

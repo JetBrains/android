@@ -41,4 +41,7 @@ interface IdeBuildType : IdeBaseConfig {
 
   /** Whether zipalign is enabled for this build type. */
   val isZipAlignEnabled: Boolean
+
+  /** Whether this build type is specified as a default by the user*/
+  val isDefault: Boolean?
 }

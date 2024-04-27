@@ -1,4 +1,18 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.dom.converters;
 
 import static com.android.SdkConstants.ID_PREFIX;
@@ -20,7 +34,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.dom.attrs.AttributeDefinition;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -28,7 +41,6 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNamespaceContext;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
-import com.android.tools.res.LocalResourceRepository;
 import com.android.utils.DataBindingUtils;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CodeCompletionHandlerBase;
@@ -66,6 +78,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
+import com.android.tools.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.drawable.DrawableStateListItem;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -338,7 +351,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @NotNull
   public static Set<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
     StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(facet);
-    LocalResourceRepository repository = repositoryManager.getAppResources();
+    ResourceRepository repository = repositoryManager.getAppResources();
     return repository.getResourceTypes(repositoryManager.getNamespace());
   }
 
@@ -404,7 +417,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
     else {
       StudioResourceRepositoryManager repoManager = StudioResourceRepositoryManager.getInstance(facet);
-      LocalResourceRepository appResources = repoManager.getAppResources();
+      ResourceRepository appResources = repoManager.getAppResources();
 
       if (onlyNamespace == ResourceNamespace.ANDROID || (onlyNamespace == null && !StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get())) {
         ResourceRepository frameworkResources = repoManager.getFrameworkResources(ImmutableSet.of());
@@ -451,7 +464,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     String namespacePrefix = resolver.uriToPrefix(namespace.getXmlNamespaceUri());
     List<Module> modules = androidModuleSystem.getDynamicFeatureModules();
     for (Module module : modules) {
-      LocalResourceRepository moduleResources = StudioResourceRepositoryManager.getModuleResources(module);
+      ResourceRepository moduleResources = StudioResourceRepositoryManager.getModuleResources(module);
       if (moduleResources == null) {
         continue;
       }
@@ -675,7 +688,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       DomElement domElement = context.getInvocationElement();
 
       if (domElement instanceof GenericDomValue) {
-        String value = ((GenericDomValue<?>)domElement).getStringValue();
+        String value = ((GenericDomValue)domElement).getStringValue();
 
         if (value != null) {
           ResourceValue resourceValue = ResourceValue.parse(value, false, myWithPrefix, true);

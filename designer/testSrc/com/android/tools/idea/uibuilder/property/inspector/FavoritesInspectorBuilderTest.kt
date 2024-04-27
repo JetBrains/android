@@ -43,13 +43,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.runReadAction
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
 import javax.swing.JTable
 import javax.swing.TransferHandler
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 class FavoritesInspectorBuilderTest {
   @get:Rule val projectRule = AndroidProjectRule.withSdk()

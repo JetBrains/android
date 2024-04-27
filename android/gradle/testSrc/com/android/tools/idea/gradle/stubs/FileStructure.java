@@ -17,9 +17,10 @@ package com.android.tools.idea.gradle.stubs;
 
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
-import java.io.File;
 import junit.framework.Assert;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 
 /**
  * Structure, in the file system, of an Android-Gradle project.

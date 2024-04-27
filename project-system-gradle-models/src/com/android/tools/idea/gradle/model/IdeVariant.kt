@@ -97,6 +97,8 @@ interface IdeVariantCore : IdeVariantHeader {
   val testInstrumentationRunnerArguments: Map<String, String>
 
   val testedTargetVariants: List<IdeTestedTargetVariant>
+  /** True when "android.experimental.self-instrumenting" experimental flag is enabled. */
+  val runTestInSeparateProcess: Boolean
 
   // TODO(b/178961768); Review usages and replace with the correct alternatives or rename.
   val deprecatedPreMergedApplicationId: String?

@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
 
 # managed by go/iml_to_build
@@ -108,6 +109,7 @@ kotlin_test(
         "//tools/adt/idea/profilers:test_data",
     ],
     jvm_flags = ["-Dtest.suite.jar=intellij.android.profilersAndroid.performance.captureDetails.jar"],
+    lint_baseline = "lint_baseline_captureDetails.xml",
     tags = [
         "no_test_mac",  # b/168793471
     ],
@@ -126,8 +128,6 @@ kotlin_test(
         "//tools/base/testutils:studio.android.sdktools.testutils",
     ],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(

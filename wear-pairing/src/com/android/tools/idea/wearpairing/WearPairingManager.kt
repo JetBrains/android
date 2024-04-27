@@ -16,13 +16,14 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.annotations.concurrency.Slow
+import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.EmulatorConsole
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IDevice.HardwareFeature
+import com.android.sdklib.SystemImageTags
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
@@ -31,20 +32,14 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
-import com.android.tools.idea.project.AndroidNotification
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
-import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.wireless.android.sdk.stats.WearPairingEvent
-import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.util.concurrency.NonUrgentExecutor
 import com.intellij.util.net.NetUtils
 import kotlinx.coroutines.Dispatchers
@@ -71,7 +66,9 @@ private val LOG get() = logger<WearPairingManager>()
 @Service(
   Service.Level.APP
 )
-class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, ObservablePairedDevicesList {
+class WearPairingManager(
+  private val notificationsManager: WearPairingNotificationManager = WearPairingNotificationManager.getInstance()
+) : AndroidDebugBridge.IDeviceChangeListener, ObservablePairedDevicesList {
   enum class PairingState {
     UNKNOWN,
     OFFLINE, // One or both device are offline/disconnected
@@ -211,9 +208,6 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, ObservableP
   @Synchronized
   override fun addDevicePairingStatusChangedListener(listener: PairingStatusChangedListener) {
     pairingStatusListeners.addIfAbsent(listener)
-    if (pairingStatusListeners.size > 2) { // We should have no more than two pairing details panels listening
-      LOG.error("Memory leak adding listeners")
-    }
 
     pairedDevicesList.forEach(listener::pairingStatusChanged)
   }
@@ -324,13 +318,20 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, ObservableP
       }
 
       val connectedDevices = getConnectedDevices()
-      connectedDevices[phoneWearPair.phone.deviceID]?.apply {
+      val phoneDevice = connectedDevices[phoneWearPair.phone.deviceID]
+      val wearDevice = connectedDevices[phoneWearPair.wear.deviceID]
+      phoneDevice?.apply {
         LOG.warn("[$name] Remove AUTO-forward")
         runCatching { removeForward(5601) } // Make sure there is no manual connection hanging around
         runCatching { if (phoneWearPair.hostPort > 0) removeForward(phoneWearPair.hostPort) }
+        if (wearDevice?.getCompanionAppIdForWatch() == PIXEL_COMPANION_APP_ID) {
+          // The Pixel OEM app will re-connect via CloudSync even if we unpair. This will ensure
+          // that the data for the Companion app is cleared forcing unpair to happen.
+          runShellCommand("pm clear com.google.android.apps.wear.companion")
+        }
       }
 
-      connectedDevices[phoneWearPair.wear.deviceID]?.apply {
+      wearDevice?.apply {
         LOG.warn("[$name] Remove AUTO-reverse")
         runCatching { removeReverse(5601) }
         if (restartWearGmsCore) {
@@ -455,7 +456,7 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, ObservableP
         if (phoneWearPair.pairingStatus == PairingState.OFFLINE) {
           // Both devices are online, and before one (or both) were offline. Time to bridge.
           createPairedDeviceBridge(phoneWearPair.phone, onlinePhone, phoneWearPair.wear, onlineWear)
-          showReconnectMessageBalloon(phoneWearPair.phone.displayName, phoneWearPair.wear.displayName, wizardAction)
+          notificationsManager.showReconnectMessageBalloon(phoneWearPair, wizardAction)
         }
         else {
           // Check if pairing was removed from the companion app and if pairing is still OK.
@@ -466,7 +467,7 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, ObservableP
         // One (or both) devices are offline, and before were online. Show "connection dropped" message
         updatePairingStatus(phoneWearPair, PairingState.OFFLINE)
         val offlineName = if (onlinePhone == null) phoneWearPair.phone.displayName else phoneWearPair.wear.displayName
-        showConnectionDroppedBalloon(offlineName, phoneWearPair.phone.displayName, phoneWearPair.wear.displayName, wizardAction)
+        notificationsManager.showConnectionDroppedBalloon(offlineName, phoneWearPair, wizardAction)
       }
     }
     catch (ex: Throwable) {
@@ -486,7 +487,8 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, ObservableP
     }
   }
 
-  object WearPairingManagerStartupActivity : AndroidStartupActivity {
+  class WearPairingManagerStartupActivity : AndroidStartupActivity {
+    @UiThread
     override fun runActivity(project: Project, disposable: Disposable) {
       val wearPairingManager = getInstance()
       NonUrgentExecutor.getInstance().execute {
@@ -525,7 +527,7 @@ private fun AvdInfo.toPairingDevice(deviceID: String): PairingDevice {
     displayName = displayName,
     apiLevel = androidVersion.featureLevel,
     isEmulator = true,
-    isWearDevice = SystemImage.WEAR_TAG == tag,
+    isWearDevice = SystemImageTags.WEAR_TAG == tag,
     state = ConnectionState.OFFLINE,
     hasPlayStore = hasPlayStore(),
   ).apply {
@@ -542,13 +544,13 @@ private fun IDevice.isPhysicalPhone(): Boolean = when {
 }
 
 internal fun AvdInfo.isWearOrPhone(): Boolean = when (tag) {
-  SystemImage.WEAR_TAG -> true
-  SystemImage.DESKTOP_TAG -> false
-  SystemImage.ANDROID_TV_TAG -> false
-  SystemImage.GOOGLE_TV_TAG -> false
-  SystemImage.AUTOMOTIVE_TAG -> false
-  SystemImage.AUTOMOTIVE_PLAY_STORE_TAG -> false
-  SystemImage.CHROMEOS_TAG -> false
+  SystemImageTags.WEAR_TAG -> true
+  SystemImageTags.DESKTOP_TAG -> false
+  SystemImageTags.ANDROID_TV_TAG -> false
+  SystemImageTags.GOOGLE_TV_TAG -> false
+  SystemImageTags.AUTOMOTIVE_TAG -> false
+  SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG -> false
+  SystemImageTags.CHROMEOS_TAG -> false
   else -> true
 }
 
@@ -587,36 +589,6 @@ private fun updateSelectedDevice(deviceList: List<PairingDevice>, device: Option
   val currentDevice = device.valueOrNull ?: return
   // Assign the new value from the list, or if missing, update the current state to DISCONNECTED
   device.value = deviceList.firstOrNull { currentDevice.deviceID == it.deviceID } ?: currentDevice.disconnectedCopy()
-}
-
-private fun showReconnectMessageBalloon(phoneName: String, wearName: String, wizardAction: WizardAction?) {
-  showMessageBalloon(
-    message("wear.assistant.device.connection.reconnected.title"),
-    message("wear.assistant.device.connection.reconnected.message", wearName, phoneName),
-    wizardAction
-  )
-
-  WearPairingUsageTracker.log(WearPairingEvent.EventKind.AUTOMATIC_RECONNECT)
-}
-
-private fun showConnectionDroppedBalloon(offlineName: String, phoneName: String, wearName: String, wizardAction: WizardAction?) =
-  showMessageBalloon(
-    message("wear.assistant.device.connection.dropped.title"),
-    message("wear.assistant.device.connection.dropped.message", offlineName, wearName, phoneName),
-    wizardAction
-  )
-
-private fun showMessageBalloon(title: String, text: String, wizardAction: WizardAction?) {
-  val hyperlink = object : NotificationHyperlink("launchAssistant", message("wear.assistant.device.connection.balloon.link")) {
-    override fun execute(project: Project) {
-      wizardAction?.restart(project)
-    }
-  }
-
-  LOG.warn(text)
-  ProjectManager.getInstance().openProjects.forEach {
-    AndroidNotification.getInstance(it).showBalloon(title, "$text<br/>", INFORMATION, hyperlink)
-  }
 }
 
 /**

@@ -37,7 +37,6 @@ import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
-import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
@@ -73,9 +72,13 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
+import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
+import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinTaskProperties
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
@@ -171,20 +174,52 @@ fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(gradleAndroidModel: Grad
 }
 
 private val jbModelDumpers = listOf(
-  SpecializedDumper(property = CommonCompilerArguments::pluginOptions) {
+  SpecializedDumper(property = CommonCompilerArguments::pluginOptions),
+  SpecializedDumper<IdeaKotlinDependency> { dependency ->
+    prop(propertyName, dependency.coordinates.toString())
   },
-  SpecializedDumper(property = KotlinMPPGradleModel::kotlinNativeHome) {
-    // Do nothing as it is a machine specific path to `~/.konan` directory, where `~` is the true user home path rather than the one used
-    // in tests.
+  SpecializedDumper(property = KotlinCompilation::compilerArguments) { _, compilerArguments ->
+    prop(propertyName, parseCommandLineArguments<K2JVMCompilerArguments>(compilerArguments))
   },
-  SpecializedDumper(property = KotlinMPPGradleModel::dependencyMap) { dependencyMap ->
-    prop(propertyName, dependencyMap.entries.sortedBy { it.key }.associate { it.key to it.value })
+  SpecializedDumper(property = KotlinGradleModel::compilerArgumentsBySourceSet) { _, compilerArgumentsBySourceSet ->
+    head(propertyName)
+    nest {
+      compilerArgumentsBySourceSet.forEach { (sourceSet, compilerArguments) ->
+        head(sourceSet)
+        nest {
+          prop("compilerArguments", parseCommandLineArguments<K2JVMCompilerArguments>(compilerArguments))
+        }
+      }
+    }
   },
-  SpecializedDumper(property = KotlinTaskProperties::pluginVersion) {
+  SpecializedDumper(property = KotlinMPPGradleModel::dependencies) { holder, dependencies ->
+    head(propertyName)
+    nest {
+      holder.sourceSetsByName.keys.forEach { sourceSet ->
+        head(sourceSet)
+        nest {
+          prop("dependency", dependencies[sourceSet].sortedBy { it.coordinates.toString() })
+        }
+      }
+    }
+  },
+  // Do nothing as it is a machine specific path to `~/.konan` directory, where `~` is the true user home path rather than the one used
+  // in tests.
+  SpecializedDumper(property = KotlinMPPGradleModel::kotlinNativeHome),
+  SpecializedDumper(property = KotlinTaskProperties::pluginVersion) { _, _ ->
     // We do not have access to `TestUtils.KOTLIN_VERSION_FOR_TESTS` here. Remove the property.
     prop(propertyName, "<CUT>")
-  }
+  },
+  SpecializedDumper(property = KotlinMPPGradleModel::kotlinGradlePluginVersion) { _, kgpVersion ->
+    head(propertyName)
+    nest {
+      prop("versionString", kgpVersion.versionString.replaceKgpForTestVersion())
+    }
+  },
 )
+
+const val KOTLIN_VERSION_FOR_TESTS = "1.9.20"
+fun String.replaceKgpForTestVersion(): String = replace(KOTLIN_VERSION_FOR_TESTS, "<KGP_VERSION>")
 
 private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
   val modelDumper = ModelDumper(jbModelDumpers)
@@ -356,9 +391,13 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     }
 
     fun dump(libraryTable: IdeResolvedLibraryTable) {
-      libraryTable.libraries.forEach { library ->
-        modelDumper.dumpModel(projectDumper, "library", library)
-      }
+      val libraryComparator = compareBy<IdeLibrary?> { it?.toLibraryType() }.thenBy { it?.toDisplayString() }
+      libraryTable.libraries
+        .map { it.sortedWith (libraryComparator) } // sort each list first
+        .sortedWith(compareBy(libraryComparator) { it.firstOrNull() } ) // then compare the min elements of lists
+        .forEach { library ->
+           modelDumper.dumpModel(projectDumper, "library", library)
+        }
     }
 
     fun dump(compositeBuildMap: IdeCompositeBuildMap) {
@@ -377,22 +416,9 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideAndroidArtifact.additionalRuntimeApks.forEach { prop("AdditionalRuntimeApks") { it.path.toPrintablePath() } }
       ideAndroidArtifact.testOptions?.let { dump(it) }
       ideAndroidArtifact.abiFilters.forEach { prop("AbiFilters") { it } }
-      ideAndroidArtifact.modelSyncFiles.forEach { dump(it) }
     }
 
     private fun dump(property: String, ideDependencies: IdeDependencies) {
-      fun IdeLibrary.toDisplayString(): String = when (this) {
-        is IdeArtifactLibrary -> artifactAddress
-        is IdeModuleLibrary -> "${buildId}-${projectPath}-${sourceSet}"
-        is IdeUnknownLibrary -> key
-      }.replaceKnownPaths()
-
-      fun IdeLibrary.toLibraryType(): String = when (this) {
-        is IdeAndroidLibrary -> "androidLibrary"
-        is IdeJavaLibrary -> "javaLibrary"
-        is IdeModuleLibrary -> "module"
-        is IdeUnknownLibrary -> "unknown"
-      }
 
       head(property)
       nest {
@@ -440,34 +466,32 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         dump("compileClasspath", ideBaseArtifact.compileClasspath)
         dump("runtimeClasspath", ideBaseArtifact.runtimeClasspath)
       }
-      val runtimeNames =
-        (ideBaseArtifact.runtimeClasspath.androidLibraries + ideBaseArtifact.runtimeClasspath.javaLibraries).map { it.target.name }.toSet()
-      val compileTimeNames =
-        (ideBaseArtifact.compileClasspath.androidLibraries + ideBaseArtifact.compileClasspath.javaLibraries).map { it.target.name }.toSet()
-      val providedDependencies =
-        (ideBaseArtifact.compileClasspath.androidLibraries + ideBaseArtifact.compileClasspath.javaLibraries)
-          .filter { it.target.name !in runtimeNames }
+      val runtimeNames = ideBaseArtifact.runtimeClasspath.libraries.filterIsInstance<IdeArtifactLibrary>().map { it.name }.toSet()
+      val compileTimeNames = ideBaseArtifact.compileClasspath.libraries.filterIsInstance<IdeArtifactLibrary>().map { it.name }.toSet()
+      val providedDependencies = ideBaseArtifact.compileClasspath.libraries.filterIsInstance<IdeArtifactLibrary>()
+        .filter { it.name !in runtimeNames }
       if (providedDependencies.isNotEmpty()) {
         head("ProvidedDependencies")
         nest {
           providedDependencies
-            .sortedBy { it.target.name }
+            .sortedBy { it.name }
             .forEach {
-              prop("- provided") { it.target.name.replaceKnownPatterns().replaceKnownPaths() }
+              prop("- provided") { it.name.replaceKnownPatterns().replaceKnownPaths() }
             }
         }
       }
       val runtimeOnlyClasses =
-        (
-          ideBaseArtifact.runtimeClasspath.androidLibraries
-            .filter { it.target.name !in compileTimeNames }
-            .flatMap { it.target.runtimeJarFiles } +
-
-            ideBaseArtifact.runtimeClasspath.javaLibraries
-              .filter { it.target.name !in compileTimeNames }
-              .map { it.target.artifact }
-          ).distinct()
-
+        ideBaseArtifact.runtimeClasspath.libraries
+          .filterIsInstance<IdeArtifactLibrary>()
+          .filter { it.name !in compileTimeNames }
+          .flatMap {
+            when (it) {
+              is IdeAndroidLibrary -> it.runtimeJarFiles
+              is IdeJavaLibrary -> listOf(it.artifact)
+              else -> emptyList()
+            }
+          }
+          .distinct()
       if (runtimeOnlyClasses.isNotEmpty()) {
         head("RuntimeOnlyClasses")
         nest {
@@ -729,7 +753,6 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("UseAndroidX") { agpFlags.useAndroidX.toString() }
         prop("UsesCompose") { agpFlags.usesCompose.toString() }
         prop("MlModelBindingEnabled") { agpFlags.mlModelBindingEnabled.toString() }
-        prop("EnableVcsInfo") { agpFlags.enableVcsInfo.toString() }
       }
     }
 
@@ -780,15 +803,6 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
-    private fun dump(modelSyncFile: IdeModelSyncFile) {
-      head("ModelSyncFile")
-      nest {
-        prop("Type") { modelSyncFile.modelSyncType.toString() }
-        prop("TaskName") { modelSyncFile.taskName }
-        prop("File") { modelSyncFile.syncFile.path.toPrintablePath() }
-      }
-    }
-
     fun dump(model: GradleModuleModel) {
       head("GradleModuleModel")
       nest {
@@ -819,6 +833,19 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
 
     fun dump(externalProject: ExternalProject) {
       modelDumper.dumpModel(this@with, "externalProject", externalProject)
+    }
+
+    fun IdeLibrary.toDisplayString(): String = when (this) {
+      is IdeArtifactLibrary -> artifactAddress
+      is IdeModuleLibrary -> "${buildId}-${projectPath}-${sourceSet}"
+      is IdeUnknownLibrary -> key
+    }.replaceKnownPaths()
+
+    fun IdeLibrary.toLibraryType(): String = when (this) {
+      is IdeAndroidLibrary -> "androidLibrary"
+      is IdeJavaLibrary -> "javaLibrary"
+      is IdeModuleLibrary -> "module"
+      is IdeUnknownLibrary -> "unknown"
     }
   }
 }

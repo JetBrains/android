@@ -18,6 +18,7 @@ package com.android.tools.idea.lint.inspections;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.ide.common.util.PathString;
@@ -35,7 +36,6 @@ import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.detector.api.LintFix;
-import com.android.tools.res.LocalResourceRepository;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
@@ -221,7 +221,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
     }
 
     private static void mergeResourceFolder(@NotNull Project project, @NotNull VirtualFile dir,
-                                            @NotNull String targetDir, @NotNull LocalResourceRepository repository) {
+                                            @NotNull String targetDir, @NotNull ResourceRepository repository) {
       Object requestor = AndroidLintInspectionBase.class;
 
       FolderConfiguration oldConfig = FolderConfiguration.getConfigForFolder(dir.getName());

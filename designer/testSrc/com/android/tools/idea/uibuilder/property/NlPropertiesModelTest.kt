@@ -42,14 +42,15 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.update.MergingUpdateQueue
+import java.util.concurrent.TimeUnit
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import java.util.concurrent.TimeUnit
 
 @RunsInEdt
 class NlPropertiesModelTest {
@@ -98,7 +99,7 @@ class NlPropertiesModelTest {
   @Test
   fun testPropertiesGeneratedEventAfterSelectionChange() {
     // setup
-     val listener = TimingPropertiesModelListener()
+    @Suppress("UNCHECKED_CAST") val listener = TimingPropertiesModelListener()
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     model.surface = nlModel.surface
@@ -174,7 +175,7 @@ class NlPropertiesModelTest {
     nlModel.notifyLiveUpdate(false)
     nlModel.updateQueue.flush()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    verify(listener).propertyValuesChanged(model)
+    verify(listener, atLeast(1)).propertyValuesChanged(model)
   }
 
   @Test

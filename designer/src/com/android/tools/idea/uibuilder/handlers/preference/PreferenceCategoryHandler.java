@@ -15,26 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_TITLE;
-import static com.android.SdkConstants.AUTO_URI;
-
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
+import com.android.xml.XmlBuilder;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.XmlType;
-import com.android.xml.XmlBuilder;
 import com.google.common.base.Strings;
-import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 public final class PreferenceCategoryHandler extends ViewGroupHandler {
   @Language("XML")

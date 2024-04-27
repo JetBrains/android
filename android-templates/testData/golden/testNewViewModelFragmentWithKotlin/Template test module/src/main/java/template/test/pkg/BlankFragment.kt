@@ -1,6 +1,6 @@
 package template.test.pkg
 
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -14,17 +14,16 @@ class BlankFragment : Fragment() {
         fun newInstance() = BlankFragment()
     }
 
-    private lateinit var viewModel: BlankViewModel
+    private val viewModel: BlankViewModel by viewModels()
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_blank, container, false)
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(BlankViewModel::class.java)
         // TODO: Use the ViewModel
     }
 
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View {
+        return inflater.inflate(R.layout.fragment_blank, container, false)
+    }
 }

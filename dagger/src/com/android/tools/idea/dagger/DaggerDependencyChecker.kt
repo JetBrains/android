@@ -37,6 +37,6 @@ class DaggerDependencyChecker(private val project: Project) {
 
   private fun calculateIsDaggerPresent(): Boolean {
     return JavaPsiFacade.getInstance(project)
-      .findClass(DAGGER_MODULE_ANNOTATION, GlobalSearchScope.allScope(project)) != null
+      .findClass(DaggerClasses.Module.fqNameString, GlobalSearchScope.allScope(project)) != null
   }
 }

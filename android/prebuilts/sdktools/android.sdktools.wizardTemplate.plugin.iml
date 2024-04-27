@@ -4,43 +4,40 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-wizardTemplate.plugin" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.intellij.android.wizardTemplate.plugin:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.intellij.android.wizardTemplate.plugin:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin/231.0.26.0/studio.intellij.android.wizardTemplate.plugin-231.0.26.0.jar">
-              <sha256sum>80f7bf20ec2620d633abfe4fcdb06ed7b3c8f93633be146dddabcb4a1ab19772</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin/232.1.23.0/studio.intellij.android.wizardTemplate.plugin-232.1.23.0.jar">
+              <sha256sum>8ca92f180c32ff676a5f2d8c0c10e9f75364ce6841ae9071f7dddf550557d385</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin/231.0.26.0/studio.intellij.android.wizardTemplate.plugin-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin/232.1.23.0/studio.intellij.android.wizardTemplate.plugin-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin/231.0.26.0/studio.intellij.android.wizardTemplate.plugin-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-wizardTemplate.plugin-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.intellij.android.wizardTemplate.plugin_test:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.intellij.android.wizardTemplate.plugin_test:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin_test/231.0.26.0/studio.intellij.android.wizardTemplate.plugin_test-231.0.26.0.jar">
-              <sha256sum>a2308ab31279fdd37ce5ba12665cffbd0357cdc05d5399f56a1f6c48c6b18bf2</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin_test/232.1.23.0/studio.intellij.android.wizardTemplate.plugin_test-232.1.23.0.jar">
+              <sha256sum>32510b09c415a590c1c62286aa2520b604db12664fd6a86fd38eeb78686a517c</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin_test/231.0.26.0/studio.intellij.android.wizardTemplate.plugin_test-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin_test/232.1.23.0/studio.intellij.android.wizardTemplate.plugin_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin_test/231.0.26.0/studio.intellij.android.wizardTemplate.plugin_test-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
   </component>
 </module>

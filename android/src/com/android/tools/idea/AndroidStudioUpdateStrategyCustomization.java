@@ -1,6 +1,7 @@
 package com.android.tools.idea;
 
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.updateSettings.UpdateStrategyCustomization;
 import com.intellij.openapi.updateSettings.impl.ChannelStatus;
 import com.intellij.openapi.updateSettings.impl.UpdateChannel;
@@ -77,7 +78,7 @@ public class AndroidStudioUpdateStrategyCustomization extends UpdateStrategyCust
   }
 
   protected ChannelStatus versionNameToChannelStatus(String versionName) {
-    if (versionNameContainsChannel(versionName, "nightly")) {
+    if (versionNameContainsChannel(versionName, "nightly") || versionNameContainsChannel(versionName, "dev")) {
       return ChannelStatus.MILESTONE;
     }
     if (versionNameContainsChannel(versionName, "canary")) {

@@ -706,8 +706,11 @@ class TableViewImpl : TableView {
     override fun preferredLayoutSize(parent: Container): Dimension =
       if (parent.isPreferredSizeSet) parent.preferredSize
       else Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
+
     override fun minimumLayoutSize(parent: Container): Dimension = Dimension(0, 0)
+
     override fun addLayoutComponent(name: String?, comp: Component?) {}
+
     override fun removeLayoutComponent(comp: Component?) {}
   }
 

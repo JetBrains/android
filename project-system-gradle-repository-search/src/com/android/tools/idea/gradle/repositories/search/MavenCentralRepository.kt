@@ -20,11 +20,11 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_MAVEN_CENTRAL
 import com.intellij.openapi.util.JDOMUtil.load
 import com.intellij.util.io.HttpRequests
+import com.intellij.util.io.encodeUrlQueryParameter
 import org.jdom.Element
 import org.jdom.JDOMException
 import java.io.IOException
 import java.io.Reader
-import java.net.URLEncoder
 
 object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPOSITORY_MAVEN_CENTRAL) {
   override val name: String = "Maven Central"
@@ -116,10 +116,11 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
 
     val queryGroupId = request.query.groupId?.takeUnless { it.isBlank() }
     val queryArtifactId = request.query.artifactName?.takeUnless { it.isBlank() }
-    val query = URLEncoder.encode(
-      listOfNotNull(queryGroupId?.let { "g:${it.escapeQueryExpression()}" }, queryArtifactId?.let { "a:${it.escapeQueryExpression()}" })
-        .joinToString(separator = " AND "),
-      Charsets.UTF_8)!!
+    val query =
+      listOfNotNull(queryGroupId?.let { "g:${it.escapeQueryExpression()}" },
+                    queryArtifactId?.let { "a:${it.escapeQueryExpression()}" })
+        .joinToString(separator = " AND ")
+        .encodeUrlQueryParameter()
 
     append("https://search.maven.org/solrsearch/select?")
     append("rows=${request.rowCount}&")

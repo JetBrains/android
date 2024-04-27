@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.SdkUtils;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ArrayUtil;
@@ -39,6 +38,7 @@ import java.util.ArrayList;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

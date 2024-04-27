@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.notification.NotificationType.ERROR;
 import static org.mockito.Mockito.any;
@@ -25,18 +25,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
-import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -44,7 +41,7 @@ import org.mockito.Mock;
  * Tests for {@link SupportedModuleChecker}.
  */
 public class SupportedModuleCheckerTest extends PlatformTestCase {
-  @Mock private GradleProjectInfo myGradleProjectInfo;
+  @Mock private Info myGradleProjectInfo;
   private SupportedModuleChecker myModuleChecker;
 
   @Override
@@ -53,7 +50,7 @@ public class SupportedModuleCheckerTest extends PlatformTestCase {
     initMocks(this);
 
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
+    new IdeComponents(project).replaceProjectService(Info.class, myGradleProjectInfo);
     myModuleChecker = new SupportedModuleChecker();
   }
 
@@ -68,28 +65,19 @@ public class SupportedModuleCheckerTest extends PlatformTestCase {
     verify(androidNotification, never()).showBalloon(any(), any(), any());
   }
 
-  private static void setupMixedGradleJpsProject(Project project) {
-    // These will be the "unsupported" modules, since they are not marked as "Gradle" modules.
-    doCreateRealModuleIn("lib1", project, StdModuleTypes.JAVA);
-    doCreateRealModuleIn("lib2", project, StdModuleTypes.JAVA);
-
-    Module supportedModule = doCreateRealModuleIn("gradleModule", project, StdModuleTypes.JAVA);
-    ExternalSystemModulePropertyManager.getInstance(supportedModule).setExternalId(GRADLE_SYSTEM_ID);
-  }
-
-  public void testCheckForSupportedModulesWithNonGradleModulesInAndroidStudio() {
+  public void testCheckForSupportedModulesWithNonGradleModules() {
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
 
     Project project = getProject();
     AndroidNotificationStub androidNotification = new AndroidNotificationStub(project);
     new IdeComponents(project).replaceProjectService(AndroidNotification.class, androidNotification);
-    IdeInfo androidIdeInfo = mock(IdeInfo.class);
-    when(androidIdeInfo.isAndroidStudio()).thenReturn(true);
 
-    ServiceContainerUtil.replaceService(project, AndroidNotification.class, androidNotification, getTestRootDisposable());
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), IdeInfo.class, androidIdeInfo, getTestRootDisposable());
+    // These will be the "unsupported" modules, since they are not marked as "Gradle" modules.
+    doCreateRealModuleIn("lib1", myProject, StdModuleTypes.JAVA);
+    doCreateRealModuleIn("lib2", myProject, StdModuleTypes.JAVA);
 
-    setupMixedGradleJpsProject(project);
+    Module supportedModule = doCreateRealModuleIn("gradleModule", myProject, StdModuleTypes.JAVA);
+    ExternalSystemModulePropertyManager.getInstance(supportedModule).setExternalId(GRADLE_SYSTEM_ID);
 
     myModuleChecker.checkForSupportedModules(project);
 
@@ -97,24 +85,6 @@ public class SupportedModuleCheckerTest extends PlatformTestCase {
     assertThat(androidNotification.displayedText).contains("lib1");
     assertThat(androidNotification.displayedText).contains("lib2");
     assertEquals(ERROR, androidNotification.displayedType);
-  }
-
-  public void testCheckForSupportedModulesWithNonGradleModulesInIdea() {
-    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
-
-    Project project = getProject();
-    AndroidNotification androidNotification = mock(AndroidNotification.class);
-    IdeInfo androidIdeInfo = mock(IdeInfo.class);
-    when(androidIdeInfo.isAndroidStudio()).thenReturn(false);
-    ServiceContainerUtil.replaceService(project, AndroidNotification.class, androidNotification, getTestRootDisposable());
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), IdeInfo.class, androidIdeInfo, getTestRootDisposable());
-
-    setupMixedGradleJpsProject(project);
-
-    myModuleChecker.checkForSupportedModules(project);
-
-    // it is allowed to have Android module as a linked Gradle project in JPS/maven/whatever project
-    verify(androidNotification, never()).showBalloon(any(), any(), any());
   }
 
   private static class AndroidNotificationStub extends AndroidNotification {

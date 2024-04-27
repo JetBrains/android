@@ -79,8 +79,7 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
   private fun findConstraintSet(id: String): MotionSceneTag {
     return motionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET).firstOrNull {
       id == Utils.stripID(it.getAttributeValue(SdkConstants.ATTR_ID))
-    } as? MotionSceneTag
-      ?: throw error("ConstraintSet not found: $id")
+    } as? MotionSceneTag ?: throw error("ConstraintSet not found: $id")
   }
 
   private fun findTransition(start: String, end: String): MotionSceneTag {
@@ -89,8 +88,7 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
         Utils.stripID(it.getAttributeValue(MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START)) &&
         end ==
           Utils.stripID(it.getAttributeValue(MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_END))
-    } as? MotionSceneTag
-      ?: throw error("Transition not found: start=$start, end=$end")
+    } as? MotionSceneTag ?: throw error("Transition not found: start=$start, end=$end")
   }
 
   private fun findKeyFrameSet(start: String, end: String): MotionSceneTag {

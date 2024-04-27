@@ -16,14 +16,13 @@
 package com.android.tools.idea.common.scene;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.CommonDragTarget;
 import com.android.tools.idea.common.scene.target.Target;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
@@ -860,12 +859,14 @@ public class SceneComponent {
       myTargets.clear();
     }
 
+    boolean shouldAddDragTarget = false;
     // update the Targets created by parent's TargetProvider
     SceneComponent parent = myParent;
     if (parent != null) {
       TargetProvider provider = parent.getTargetProvider();
       if (provider != null) {
         provider.createChildTargets(parent, this).forEach(this::addTarget);
+        shouldAddDragTarget = provider.shouldAddCommonDragTarget(this);
       }
     }
 
@@ -873,6 +874,7 @@ public class SceneComponent {
     TargetProvider provider = myTargetProvider;
     if (provider != null) {
       provider.createTargets(this).forEach(this::addTarget);
+      shouldAddDragTarget = shouldAddDragTarget || provider.shouldAddCommonDragTarget(this);
     }
 
     // update the Targets of children
@@ -880,19 +882,12 @@ public class SceneComponent {
       child.updateTargets();
     }
 
-    if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
-      boolean hasDragTarget;
-      synchronized (myTargets) {
-        // TODO: http://b/120497918 Remove this when removing flag.
-        hasDragTarget = myTargets.removeIf(CommonDragTarget::isSupported);
+    if (shouldAddDragTarget && myScene.getRoot() != this) {
+      if (myDragTarget == null) {
+        // Drag Target is reusable.
+        myDragTarget = new CommonDragTarget(this);
       }
-      if (hasDragTarget && myScene.getRoot() != this) {
-        if (myDragTarget == null) {
-          // Drag Target is reusable.
-          myDragTarget = new CommonDragTarget(this);
-        }
-        addTarget(myDragTarget);
-      }
+      addTarget(myDragTarget);
     }
   }
 }

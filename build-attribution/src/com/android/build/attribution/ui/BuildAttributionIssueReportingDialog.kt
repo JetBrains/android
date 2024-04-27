@@ -73,7 +73,7 @@ class BuildAttributionIssueReportingDialog(
   }
 
   override fun createActions(): Array<Action> {
-    return arrayOf(CopyToClipboardAction(), cancelAction)
+    return arrayOf(CopyToClipboardAction(), getCancelAction())
   }
 
   override fun doCancelAction() {

@@ -1,7 +1,7 @@
+load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "generate_old_agp_tests_from_list", "get_agp_versions_from_tests_list")
+load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "AGP_7_3", "AGP_DATA")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
-load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "AGP_7_3", "AGP_DATA")
 
 # managed by go/iml_to_build
 iml_module(
@@ -68,6 +68,7 @@ iml_module(
     name = "intellij.android.projectSystem.gradle.upgrade",
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.gradle.upgrade.iml"],
+    lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -121,7 +122,9 @@ maven_repository(
         "@maven//:com.google.guava.guava_28.1-jre",
         "@maven//:com.google.jimfs.jimfs_1.1",
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
+        "@maven//:com.google.protobuf.protobuf-bom_3.19.3",
         "@maven//:com.sun.activation.javax.activation_1.2.0",
+        "@maven//:commons-io.commons-io_2.4",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:de.undercouch.gradle-download-task_4.0.2",
         "@maven//:it.unimi.dsi.fastutil_7.2.0",
@@ -143,224 +146,216 @@ maven_repository(
 )
 
 # Tests can't currently run on windows because full jar path is passed by the rule instead of just jar name like in iml rule.
-old_agp_test(
+tests_list = [
+    dict(
+        timeout = "long",
+        agp_version = AGP_4_0,
+        data = [
+            "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/sdk:platforms/latest",
+            "//tools/adt/idea/project-system-gradle-upgrade/testData",
+            "//tools/base/build-system:gradle-distrib-6.1.1",
+        ] + AGP_DATA[AGP_4_0],
+        gradle_version = "6.1.1",
+        ignore_other_tests = True,
+        maven_deps = [
+            ":test_deps",
+            "//tools/base/build-system:android_gradle_plugin.zip",
+            "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+            "//tools/base/build-system/previous-versions:4.0.0",
+            "//tools/base/build-system/previous-versions:kgp1.3.72",
+        ],
+        tags = [
+            "block-network",
+            "no_test_mac",  # b/215483578
+            "no_test_windows",
+        ],
+        test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+    ),
+    dict(
+        timeout = "long",
+        agp_version = AGP_4_1,
+        data = [
+            "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/sdk:platforms/latest",
+            "//tools/adt/idea/project-system-gradle-upgrade/testData",
+            "//tools/base/build-system:gradle-distrib-6.5",
+        ] + AGP_DATA[AGP_4_1],
+        gradle_version = "6.5",
+        ignore_other_tests = True,
+        maven_deps = [
+            ":test_deps",
+            "//tools/base/build-system:android_gradle_plugin.zip",
+            "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+            "//tools/base/build-system/previous-versions:4.1.0",
+            "//tools/base/build-system/previous-versions:kgp1.3.72",
+        ],
+        tags = [
+            "block-network",
+            "no_test_mac",  # b/215483578
+            "no_test_windows",
+        ],
+        test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+    ),
+    dict(
+        timeout = "long",
+        agp_version = AGP_4_2,
+        data = [
+            "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/sdk:platforms/latest",
+            "//tools/adt/idea/project-system-gradle-upgrade/testData",
+            "//tools/base/build-system:gradle-distrib-6.7.1",
+        ] + AGP_DATA[AGP_4_2],
+        gradle_version = "6.7.1",
+        ignore_other_tests = True,
+        maven_deps = [
+            ":test_deps",
+            "//tools/base/build-system:android_gradle_plugin.zip",
+            "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+            "//tools/base/build-system/previous-versions:4.2.0",
+            "//tools/base/build-system/previous-versions:kgp1.3.72",
+        ],
+        tags = [
+            "block-network",
+            "no_test_mac",  # b/215483578
+            "no_test_windows",
+        ],
+        test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+    ),
+    dict(
+        timeout = "long",
+        agp_version = AGP_7_0,
+        data = [
+            "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/sdk:platforms/latest",
+            "//tools/adt/idea/android/testData:snapshots",
+            "//tools/adt/idea/project-system-gradle-upgrade/testData",
+            "//tools/base/build-system:gradle-distrib-7.0.2",
+        ] + AGP_DATA[AGP_7_0],
+        gradle_version = "7.0.2",
+        ignore_other_tests = True,
+        maven_deps = [
+            ":test_deps",
+            "//tools/base/build-system:android_gradle_plugin.zip",
+            "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+            "//tools/base/build-system/previous-versions:7.0.0",
+            "//tools/base/build-system/previous-versions:kgp1.3.72",
+        ],
+        tags = [
+            "block-network",
+            "no_test_mac",  # b/215483578
+            "no_test_windows",
+        ],
+        test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+    ),
+    dict(
+        timeout = "long",
+        agp_version = AGP_7_1,
+        data = [
+            "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/sdk:platforms/latest",
+            "//tools/adt/idea/project-system-gradle-upgrade/testData",
+            "//tools/base/build-system:gradle-distrib-7.2",
+        ] + AGP_DATA[AGP_7_1],
+        gradle_version = "7.2",
+        ignore_other_tests = True,
+        maven_deps = [
+            ":test_deps",
+            "//tools/base/build-system:android_gradle_plugin.zip",
+            "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+            "//tools/base/build-system/previous-versions:7.1.0",
+            "//tools/base/build-system/previous-versions:kgp1.3.72",
+        ],
+        tags = [
+            "block-network",
+            "no_test_mac",  # b/215483578
+            "no_test_windows",
+        ],
+        test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+    ),
+    dict(
+        timeout = "long",
+        agp_version = AGP_7_2,
+        data = [
+            "//prebuilts/studio/jdk:jdk11",
+            "//prebuilts/studio/sdk:platforms/latest",
+            "//tools/adt/idea/project-system-gradle-upgrade/testData",
+            "//tools/base/build-system:gradle-distrib-7.3.3",
+        ] + AGP_DATA[AGP_7_2],
+        gradle_version = "7.3.3",
+        ignore_other_tests = True,
+        maven_deps = [
+            ":test_deps",
+            "//tools/base/build-system:android_gradle_plugin.zip",
+            "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+            "//tools/base/build-system/previous-versions:7.2.0",
+            "//tools/base/build-system/previous-versions:kgp1.3.72",
+        ],
+        tags = [
+            "block-network",
+            "no_test_mac",  # b/215483578
+            "no_test_windows",
+        ],
+        test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+    ),
+    dict(
+        timeout = "long",
+        agp_version = AGP_7_3,
+        data = [
+            "//prebuilts/studio/jdk:jdk11",
+            "//tools/adt/idea/project-system-gradle-upgrade/testData",
+            "//tools/base/build-system:gradle-distrib-7.4",
+        ] + AGP_DATA[AGP_7_3],
+        gradle_version = "7.4",
+        ignore_other_tests = True,
+        maven_deps = [
+            ":test_deps",
+            "//tools/base/build-system:android_gradle_plugin.zip",
+            "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+            "//tools/base/build-system/previous-versions:7.3.0",
+            "//tools/base/build-system/previous-versions:kgp1.3.72",
+        ],
+        tags = [
+            "block-network",
+            "no_test_mac",  # b/215483578
+            "no_test_windows",
+        ],
+        test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+    ),
+    dict(
+        timeout = "long",
+        agp_version = "LATEST",
+        data = [
+            "//prebuilts/studio/sdk:build-tools/latest",
+            "//prebuilts/studio/sdk:platforms/latest",
+            "//tools/adt/idea/project-system-gradle-upgrade/testData",
+            "//tools/base/build-system:gradle-distrib",
+        ],
+        gradle_version = "LATEST",
+        ignore_other_tests = True,
+        maven_deps = [
+            ":test_deps",
+            "//tools/base/build-system:android_gradle_plugin.zip",
+            "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+        ],
+        tags = [
+            "block-network",
+            "no_test_mac",  # b/215483578
+            "no_test_windows",
+        ],
+        test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+    ),
+]
+
+generate_old_agp_tests_from_list(
     name = "ProjectUpgradeTests_From",
-    timeout = "long",
-    agp_version = AGP_4_0,
-    data = [
-        "//prebuilts/studio/jdk:jdk11",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/project-system-gradle-upgrade/testData",
-        "//tools/base/build-system:gradle-distrib-6.1.1",
-    ] + AGP_DATA[AGP_4_0],
-    gradle_version = "6.1.1",
-    ignore_other_tests = True,
     iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
-    maven_deps = [
-        ":test_deps",
-        "//tools/base/build-system:android_gradle_plugin.zip",
-        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/base/build-system/previous-versions:4.0.0",
-        "//tools/base/build-system/previous-versions:kgp1.3.72",
-    ],
-    tags = [
-        "block-network",
-        "no_test_mac",  # b/215483578
-        "no_test_windows",
-    ],
-    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+    tests_list = tests_list,
 )
 
-old_agp_test(
-    name = "ProjectUpgradeTests_From",
-    timeout = "long",
-    agp_version = AGP_4_1,
-    data = [
-        "//prebuilts/studio/jdk:jdk11",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/project-system-gradle-upgrade/testData",
-        "//tools/base/build-system:gradle-distrib-6.5",
-    ] + AGP_DATA[AGP_4_1],
-    gradle_version = "6.5",
-    ignore_other_tests = True,
-    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
-    maven_deps = [
-        ":test_deps",
-        "//tools/base/build-system:android_gradle_plugin.zip",
-        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/base/build-system/previous-versions:4.1.0",
-        "//tools/base/build-system/previous-versions:kgp1.3.72",
-    ],
-    tags = [
-        "block-network",
-        "no_test_mac",  # b/215483578
-        "no_test_windows",
-    ],
-    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
-)
-
-old_agp_test(
-    name = "ProjectUpgradeTests_From",
-    timeout = "long",
-    agp_version = AGP_4_2,
-    data = [
-        "//prebuilts/studio/jdk:jdk11",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/project-system-gradle-upgrade/testData",
-        "//tools/base/build-system:gradle-distrib-6.7.1",
-    ] + AGP_DATA[AGP_4_2],
-    gradle_version = "6.7.1",
-    ignore_other_tests = True,
-    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
-    maven_deps = [
-        ":test_deps",
-        "//tools/base/build-system:android_gradle_plugin.zip",
-        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/base/build-system/previous-versions:4.2.0",
-        "//tools/base/build-system/previous-versions:kgp1.3.72",
-    ],
-    tags = [
-        "block-network",
-        "no_test_mac",  # b/215483578
-        "no_test_windows",
-    ],
-    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
-)
-
-old_agp_test(
-    name = "ProjectUpgradeTests_From",
-    timeout = "long",
-    agp_version = AGP_7_0,
-    data = [
-        "//prebuilts/studio/jdk:jdk11",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/android/testData:snapshots",
-        "//tools/adt/idea/project-system-gradle-upgrade/testData",
-        "//tools/base/build-system:gradle-distrib-7.0.2",
-    ] + AGP_DATA[AGP_7_0],
-    gradle_version = "7.0.2",
-    ignore_other_tests = True,
-    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
-    maven_deps = [
-        ":test_deps",
-        "//tools/base/build-system:android_gradle_plugin.zip",
-        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/base/build-system/previous-versions:7.0.0",
-        "//tools/base/build-system/previous-versions:kgp1.3.72",
-    ],
-    tags = [
-        "block-network",
-        "no_test_mac",  # b/215483578
-        "no_test_windows",
-    ],
-    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
-)
-
-old_agp_test(
-    name = "ProjectUpgradeTests_From",
-    timeout = "long",
-    agp_version = AGP_7_1,
-    data = [
-        "//prebuilts/studio/jdk:jdk11",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/project-system-gradle-upgrade/testData",
-        "//tools/base/build-system:gradle-distrib-7.2",
-    ] + AGP_DATA[AGP_7_1],
-    gradle_version = "7.2",
-    ignore_other_tests = True,
-    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
-    maven_deps = [
-        ":test_deps",
-        "//tools/base/build-system:android_gradle_plugin.zip",
-        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/base/build-system/previous-versions:7.1.0",
-        "//tools/base/build-system/previous-versions:kgp1.3.72",
-    ],
-    tags = [
-        "block-network",
-        "no_test_mac",  # b/215483578
-        "no_test_windows",
-    ],
-    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
-)
-
-old_agp_test(
-    name = "ProjectUpgradeTests_From",
-    timeout = "long",
-    agp_version = AGP_7_2,
-    data = [
-        "//prebuilts/studio/jdk:jdk11",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/project-system-gradle-upgrade/testData",
-        "//tools/base/build-system:gradle-distrib-7.3.3",
-    ] + AGP_DATA[AGP_7_2],
-    gradle_version = "7.3.3",
-    ignore_other_tests = True,
-    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
-    maven_deps = [
-        ":test_deps",
-        "//tools/base/build-system:android_gradle_plugin.zip",
-        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/base/build-system/previous-versions:7.2.0",
-        "//tools/base/build-system/previous-versions:kgp1.3.72",
-    ],
-    tags = [
-        "block-network",
-        "no_test_mac",  # b/215483578
-        "no_test_windows",
-    ],
-    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
-)
-
-old_agp_test(
-    name = "ProjectUpgradeTests_From",
-    timeout = "long",
-    agp_version = AGP_7_3,
-    data = [
-        "//prebuilts/studio/jdk:jdk11",
-        "//tools/adt/idea/project-system-gradle-upgrade/testData",
-        "//tools/base/build-system:gradle-distrib-7.4",
-    ] + AGP_DATA[AGP_7_3],
-    gradle_version = "7.4",
-    ignore_other_tests = True,
-    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
-    maven_deps = [
-        ":test_deps",
-        "//tools/base/build-system:android_gradle_plugin.zip",
-        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/base/build-system/previous-versions:7.3.0",
-        "//tools/base/build-system/previous-versions:kgp1.3.72",
-    ],
-    tags = [
-        "block-network",
-        "no_test_mac",  # b/215483578
-        "no_test_windows",
-    ],
-    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
-)
-
-old_agp_test(
-    name = "ProjectUpgradeTests_From",
-    timeout = "long",
-    agp_version = "LATEST",
-    data = [
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/project-system-gradle-upgrade/testData",
-        "//tools/base/build-system:gradle-distrib",
-    ],
-    gradle_version = "LATEST",
-    ignore_other_tests = True,
-    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
-    maven_deps = [
-        ":test_deps",
-        "//tools/base/build-system:android_gradle_plugin.zip",
-        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-    ],
-    tags = [
-        "block-network",
-        "no_test_mac",  # b/215483578
-        "no_test_windows",
-    ],
-    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+java_test(
+    name = "BaseProjectsMatchingTargetsTest",
+    jvm_flags = ["-Dagp.version.targets=%s" % ":".join(get_agp_versions_from_tests_list(tests_list))],
+    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.BaseProjectsMatchingTargetsTest",
+    runtime_deps = [":intellij.android.projectSystem.gradle.upgrade.tests_testlib"],
 )

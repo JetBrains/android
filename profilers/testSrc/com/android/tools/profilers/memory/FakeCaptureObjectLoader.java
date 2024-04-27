@@ -20,9 +20,10 @@ import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
-import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.Executor;
 
 /**
  * A CaptureObjectLoader which supports running and canceling tasks manually.

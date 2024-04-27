@@ -46,13 +46,15 @@ private val logger: Logger get() = logger<PathValidator>()
  */
 @Immutable
 class PathValidator
-/**
- * Constructs a class that will validate a path against the various passed in rules, returning
- * a readable message if something goes wrong. A name describing the purpose of the path should
- * be included as it will be used in the error messages when applicable.
- */ private constructor(private val pathName: String,
+    /**
+     * Constructs a class that will validate a path against the various passed in rules, returning
+     * a readable message if something goes wrong. A name describing the purpose of the path should
+     * be included as it will be used in the error messages when applicable.
+     */
+    private constructor(val pathName: String,
                         @get:TestOnly val errors: Iterable<Rule>,
                         private val warnings: Iterable<Rule>) : Validator<Path> {
+
   /**
    * Validate that the target location passes all tests.
    *

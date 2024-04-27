@@ -4,44 +4,41 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-binary-resources" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.binary-resources:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.binary-resources:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources/231.0.26.0/studio.android.sdktools.binary-resources-231.0.26.0.jar">
-              <sha256sum>92ddc3cc96b38ebf07d9b76f599e365eefcfae8573e9b70f7cefde8abf391a3a</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources/232.1.23.0/studio.android.sdktools.binary-resources-232.1.23.0.jar">
+              <sha256sum>60cf8637c23f630c7e3663fdd9796ef0c6c6f4be773ebf36e545118f849784e9</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources/231.0.26.0/studio.android.sdktools.binary-resources-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources/232.1.23.0/studio.android.sdktools.binary-resources-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources/231.0.26.0/studio.android.sdktools.binary-resources-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-binary-resources-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.binary-resources_test:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.binary-resources_test:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources_test/231.0.26.0/studio.android.sdktools.binary-resources_test-231.0.26.0.jar">
-              <sha256sum>3a1a9b57fb4cec5a8af5563edfa9b908010a5dd83814e9f292cfae9ae6b83390</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources_test/232.1.23.0/studio.android.sdktools.binary-resources_test-232.1.23.0.jar">
+              <sha256sum>ff59a527f6091f00e024547085925ad1ea3b953be1e9113267651de5681f0f44</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources_test/231.0.26.0/studio.android.sdktools.binary-resources_test-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources_test/232.1.23.0/studio.android.sdktools.binary-resources_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources_test/231.0.26.0/studio.android.sdktools.binary-resources_test-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
   </component>
 </module>

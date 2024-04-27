@@ -17,7 +17,7 @@ package com.android.tools.idea.welcome.install
 
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.CpuVendor
 import com.google.common.truth.Truth.assertThat
@@ -39,9 +39,9 @@ class AndroidSdkTest {
     if (SystemInfo.isWindows && CpuVendor.isIntel) {
       assertThat(Haxm.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.HAXM_REQUIRES_WINDOWS);
     } else if (SystemInfo.isWindows && !CpuVendor.isIntel) {
-      assertThat(Haxm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.HAXM_REQUIRES_INTEL_CPU)
+      assertThat(Haxm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.HAXM_REQUIRES_INTEL_CPU);
     } else {
-      assertThat(Haxm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.HAXM_REQUIRES_WINDOWS)
+      assertThat(Haxm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.HAXM_REQUIRES_WINDOWS);
     }
   }
 

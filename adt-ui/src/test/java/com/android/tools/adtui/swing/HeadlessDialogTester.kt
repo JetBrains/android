@@ -69,8 +69,8 @@ import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.locks.ReentrantLock
-import java.util.function.Consumer
 import java.util.function.Predicate
 import javax.swing.JComponent
 import javax.swing.JDialog
@@ -81,6 +81,9 @@ import javax.swing.JTable
 import javax.swing.JTree
 import javax.swing.UIManager
 import kotlin.concurrent.withLock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 /**
  * Enables showing of dialogs in a headless test environment.
@@ -99,28 +102,33 @@ fun enableHeadlessDialogs(disposable: Disposable) {
 fun findModelessDialog(predicate: Predicate<DialogWrapper>): DialogWrapper? = modelessDialogs.find { predicate.test(it) }
 
 /**
- * Calls the [dialogCreator] function that opens a modal dialog and then the [dialogInteractor]
+ * Calls the [dialogTrigger] function that shows a modal dialog and then the [dialogInteractor]
  * function that interacts with it. This function returns when the dialog is closed.
  *
- * @param dialogCreator user code that opens a modal dialog
+ * @param dialogTrigger user code that shows a modal dialog
+ * @param timeout total time allowed for opening and interaction with the dialog
  * @param dialogInteractor user code for interacting with the dialog
+ * @throws TimeoutException if the dialog was not closed within the specified [timeout]
  */
-fun createModalDialogAndInteractWithIt(dialogCreator: Runnable, dialogInteractor: Consumer<DialogWrapper>) {
-  createModalDialogAndInteractWithIt(modalDialogStack.size + 1, dialogCreator, dialogInteractor::accept)
+fun createModalDialogAndInteractWithIt(dialogTrigger: Runnable, timeout: Duration = 10.seconds, dialogInteractor: (DialogWrapper) -> Unit) {
+  createModalDialogAndInteractWithIt(modalDialogStack.size + 1, dialogTrigger, timeout, dialogInteractor)
 }
 
-private fun createModalDialogAndInteractWithIt(modalDepth: Int, dialogCreator: Runnable, dialogInteractor: Consumer<DialogWrapper>) {
+private fun createModalDialogAndInteractWithIt(modalDepth: Int, dialogTrigger: Runnable, timeout: Duration,
+                                               dialogInteractor: (DialogWrapper) -> Unit) {
   val dialogClosed = CountDownLatch(1)
+  var dialogShown = false
 
   val futureTask = ListenableFutureTask.create {
     modalityChangeLock.lock()
     try {
       while (true) {
         if (modalDialogStack.size == modalDepth) {
+          dialogShown = true
           val dialog = modalDialogStack.last()
           EventQueue.invokeLater {
             try {
-              dialogInteractor.accept(dialog)
+              dialogInteractor(dialog)
             }
             finally {
               if (dialog.isShowing) {
@@ -141,9 +149,14 @@ private fun createModalDialogAndInteractWithIt(modalDepth: Int, dialogCreator: R
   getApplication().executeOnPooledThread(futureTask)
 
   try {
-    dialogCreator.run()
+    val deadline = System.currentTimeMillis() + timeout.toLong(DurationUnit.MILLISECONDS)
+    dialogTrigger.run()
 
     while (dialogClosed.count > 0) {
+      if (System.currentTimeMillis() > deadline) {
+        val unmetExpectation = if (dialogShown) "closed" else "shown"
+        throw TimeoutException("Dialog wasn't $unmetExpectation within $timeout")
+      }
       if (dispatchNextInvocationEventIfAny() == null) {
         dialogClosed.await(10, TimeUnit.MILLISECONDS)
       }

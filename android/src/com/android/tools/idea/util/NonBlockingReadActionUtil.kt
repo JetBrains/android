@@ -71,7 +71,7 @@ fun <T> CompletableFuture<T>.waitInterruptibly(): T {
           // For unknown reasons the statement above does not always throw `ProcessCanceledException` when a write action is pending even
           // though it is running via `NonBlockingReadAction`. See b/171914220.
           if (application.isWriteActionPending) {
-            // The indicator needs to be canceled to avoid ProcessCanceledException being treated as an error.
+            // The indicator needs to be cancelled to avoid ProcessCancelledException being treated as an error.
             ProgressManager.getGlobalProgressIndicator()?.cancel()
               ?: error("waitInterruptibly() is supposed to be called under a progress indicator")
             ProgressManager.checkCanceled()

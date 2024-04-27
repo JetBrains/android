@@ -36,7 +36,7 @@ import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.components.JBLayeredPane;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.accessibility.ScreenReader;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -53,6 +53,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
@@ -144,6 +145,21 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
                    @NotNull T context,
                    @NotNull List<ToolWindowDefinition<T>> definitions,
                    boolean minimizedWindows) {
+    mySplitter.setInnerComponent(content);
+    init(context, definitions, minimizedWindows);
+  }
+
+  /**
+   * Initializes a {@link WorkBench} with context and tool windows.
+   * The main content is not provided, so only the tool windows will be added.
+   *
+   * @param context an instance identifying the data the {@link WorkBench} is manipulating
+   * @param definitions a list of tool windows associated with this {@link WorkBench}
+   * @param minimizedWindows whether the tool windows should be minimized by default.
+   */
+  public void init(@NotNull T context,
+                   @NotNull List<ToolWindowDefinition<T>> definitions,
+                   boolean minimizedWindows) {
     LOG.debug("init");
     if (ScreenReader.isActive()) {
       setFocusCycleRoot(true);
@@ -151,7 +167,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     }
     myLoadingPanel.stopLoading();
     myMainPanel.setVisible(true);
-    mySplitter.setInnerComponent(content);
     mySplitter.addDividerResizeListener(createWidthUpdater());
     myToolDefinitions.addAll(definitions);
     mySplitter.setFirstSize(getInitialSideWidth(Side.LEFT));
@@ -163,6 +178,10 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
     }
     myDetachedToolWindowManager.updateToolWindowsForWorkBench(this);
+    if (mySplitter.getInnerComponent() == null) {
+      // Remove the borders from one of the side panels if there is no center component:
+      Objects.requireNonNull(mySplitter.getFirstComponent()).setBorder(JBUI.Borders.empty());
+    }
   }
 
   @NotNull
@@ -284,6 +303,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
 
     // Clean up all the children panels to avoid accidental memory leaks.
     myMainPanel.removeAll();
+    mySplitter.setInnerComponent(null);
+    mySplitter.setFirstComponent(null);
+    mySplitter.setLastComponent(null);
     mySplitter.removeAll();
     myLoadingPanel.removeAll();
   }
@@ -404,7 +426,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private int getSideWidth(@NotNull Layout layout, @NotNull Side side) {
     int width = myPropertiesComponent.getInt(getUnscaledWidthPropertyName(layout, side), -1);
     if (width != -1) {
-      return JBUIScale.scale(width);
+      return JBUI.scale(width);
     }
     int scaledWidth = myPropertiesComponent.getInt(getScaledWidthPropertyName(layout, side), -1);
     if (scaledWidth != -1) {
@@ -684,8 +706,20 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     return myName;
   }
 
+  @TestOnly
+  @Nullable
+  public List<JComponent> getTopComponents(Side side) {
+    return myModel.getTopTools(side).stream().map(AttachedToolWindow::getComponent).toList();
+  }
+
+  @TestOnly
+  @Nullable
+  public List<JComponent> getBottomComponents(Side side) {
+    return myModel.getBottomTools(side).stream().map(AttachedToolWindow::getComponent).toList();
+  }
+
   private class MyButtonDragListener implements ButtonDragListener<T> {
-    private final int BUTTON_PANEL_WIDTH = JBUIScale.scale(21);
+    private final int BUTTON_PANEL_WIDTH = JBUI.scale(21);
 
     private boolean myIsDragging;
     private MinimizedPanel<T> myPreviousButtonPanel;

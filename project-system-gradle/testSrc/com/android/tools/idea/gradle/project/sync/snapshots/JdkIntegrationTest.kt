@@ -30,6 +30,7 @@ import com.google.common.truth.Expect
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import org.junit.rules.TemporaryFolder
 import java.io.File
 import kotlin.reflect.KClass
@@ -56,11 +57,14 @@ class JdkIntegrationTest(
       tempDir = temporaryFolder.newFolder()
     )
 
-    body(ProjectRunnable(
-      expect = expect,
-      preparedProject = preparedProject
-    ))
-    cleanTestEnvironment()
+    try {
+      body(ProjectRunnable(
+        expect = expect,
+        preparedProject = preparedProject
+      ))
+    } finally {
+      cleanTestEnvironment()
+    }
   }
 
   private fun prepareTestEnvironment(
@@ -81,6 +85,7 @@ class JdkIntegrationTest(
 
   private fun cleanTestEnvironment() {
     StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME.clearOverride()
+    JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
   }
 
   data class TestEnvironment(

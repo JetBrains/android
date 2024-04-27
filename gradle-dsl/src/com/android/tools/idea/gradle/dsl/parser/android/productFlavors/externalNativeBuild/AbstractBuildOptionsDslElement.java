@@ -62,9 +62,17 @@ public abstract class AbstractBuildOptionsDslElement extends GradleDslBlockEleme
     {"targets", atLeast(0), TARGETS, AUGMENT_LIST}
   }).collect(toModelMap());
 
+  public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"abiFilters", property, ABI_FILTERS, VAR},
+    {"arguments", property, ARGUMENTS, VAR},
+    {"cFlags", property, C_FLAGS, VAR},
+    {"cppFlags", property, CPP_FLAGS, VAR},
+    {"targets", property, TARGETS, VAR},
+  }).collect(toModelMap());
+
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
   protected AbstractBuildOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {

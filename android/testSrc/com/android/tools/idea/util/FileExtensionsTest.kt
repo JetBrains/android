@@ -16,7 +16,7 @@
 package com.android.tools.idea.util
 
 import com.android.resources.TEST_DATA_DIR
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.google.common.truth.Truth.assertThat

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.run.activity;
 
-import static com.android.tools.idea.instantapp.InstantApps.isPostO;
-
 import com.android.ddmlib.IDevice;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.instantapp.InstantApps.isPostO;
 
 public class InstantAppStartActivityFlagsProvider implements StartActivityFlagsProvider {
 

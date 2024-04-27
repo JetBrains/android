@@ -18,13 +18,13 @@ package com.android.tools.idea.compose.preview.scene
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
+import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.preview.ComposePreviewElementInstance
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.annotations.VisibleForTesting
@@ -42,7 +42,7 @@ fun updateAnimationInspectorToolbarIcon(
   previewElement: ComposePreviewElementInstance,
   animationToolingUsageTrackerFactory: () -> AnimationToolingUsageTracker
 ) {
-  if (!previewManager.isInNormalMode) return
+  if (!previewManager.mode.value.isNormal) return
   try {
     val hasAnimationsMethod =
       viewObj::class
@@ -74,8 +74,7 @@ fun updateAnimationInspectorToolbarIcon(
 class ComposeSceneUpdateListener : SceneManager.SceneUpdateListener {
   override fun onUpdate(component: NlComponent, designSurface: DesignSurface<*>) {
     val previewManager = component.model.dataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
-    val previewElementInstance =
-      component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) ?: return
+    val previewElementInstance = component.model.dataContext.previewElement() ?: return
     val viewObj = component.viewInfo?.viewObject ?: return
     updateAnimationInspectorToolbarIcon(viewObj, previewManager, previewElementInstance) {
       AnimationToolingUsageTracker.getInstance(designSurface)

@@ -192,7 +192,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
-  @Ignore
+  @Ignore("b/303108815")
   public void testGetDataInvalidSession() {
     MemoryRequest request = MemoryRequest
       .newBuilder().setSession(Common.Session.getDefaultInstance()).setStartTime(0).setEndTime(Long.MAX_VALUE).build();

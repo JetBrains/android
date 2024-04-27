@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.GarbageCollectionData
@@ -89,7 +90,8 @@ interface BuildEventsAnalysisResult {
  */
 class BuildEventsAnalyzersProxy(
   val taskContainer: TaskContainer,
-  val pluginContainer: PluginContainer
+  val pluginContainer: PluginContainer,
+  storageManager: BuildAnalyzerStorageManager
 ) {
   val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(taskContainer, pluginContainer)
   val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(taskContainer, pluginContainer)
@@ -99,7 +101,7 @@ class BuildEventsAnalyzersProxy(
   val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(pluginContainer)
   val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(taskContainer)
   val configurationCachingCompatibilityAnalyzer = ConfigurationCachingCompatibilityAnalyzer()
-  val jetifierUsageAnalyzer = JetifierUsageAnalyzer()
+  val jetifierUsageAnalyzer = JetifierUsageAnalyzer(storageManager.getCachedCheckJetifierResultData())
   val downloadsAnalyzer = if (StudioFlags.BUILD_ANALYZER_DOWNLOADS_ANALYSIS.get()) DownloadsAnalyzer() else null
   val taskCategoryWarningsAnalyzer = TaskCategoryWarningsAnalyzer()
 

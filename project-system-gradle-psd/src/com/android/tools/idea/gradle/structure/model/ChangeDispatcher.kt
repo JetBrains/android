@@ -19,7 +19,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.util.EventDispatcher
 import java.util.EventListener
 
-class ChangeDispatcher {
+class ChangeDispatcher() {
   private val dispatcher = EventDispatcher.create(ChangeListener::class.java)
 
   fun changed() = dispatcher.multicaster.changed()

@@ -15,32 +15,51 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.welcome.wizard.FirstRunModel.InstallationType
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
-import com.intellij.openapi.application.ApplicationNamesInfo
-import com.intellij.ui.dsl.builder.TopGap
-import com.intellij.ui.dsl.builder.bind
 import com.intellij.ui.dsl.builder.panel
 import javax.swing.JComponent
+import javax.swing.JRadioButton
 
 /**
  * Wizard step for selecting installation types
  */
 class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model, "Install Type") {
+  private lateinit var standardRadioBtn: JRadioButton
+  private lateinit var customRadioBtn : JRadioButton
 
   private val panel = panel {
-    buttonsGroup("Choose the type of setup you want for ${ApplicationNamesInfo.getInstance().fullProductName}:") {
-      row {
-        radioButton("Standard", InstallationType.STANDARD)
-          .comment("${ApplicationNamesInfo.getInstance().fullProductName} will be installed with the most common settings and options.<br>Recommended for most users.")
-          .focused()
-      }.topGap(TopGap.MEDIUM)
-      row {
-        radioButton("Custom", InstallationType.CUSTOM)
-          .comment("You can customize installation settings and components installed.")
-      }.topGap(TopGap.MEDIUM)
-    }.bind({ model.installationType.get() }, { model.installationType.set(it) })
+    // TODO: supposed to migrate this to Kotlin UI DSL v2 (b/310238109), but this class is not being used (b/311256502)
+    /*
+    row {
+      label("Choose the type of setup you want for ${ApplicationNamesInfo.getInstance().fullProductName}:")
+    }
+    row {
+      Spacer()()
+    }
+    row {
+      standardRadioBtn = installationTypeRadioButton(
+        "Standard",
+        "${ApplicationNamesInfo.getInstance().fullProductName} will be installed with the most common settings and options.\nRecommended for most users.",
+        InstallationType.STANDARD
+      ).component
+    }
+    row {
+      Spacer()()
+    }
+    row {
+      customRadioBtn = installationTypeRadioButton(
+        "Custom",
+        "You can customize installation settings and components installed.",
+        InstallationType.CUSTOM
+      ).component
+    }
+
+    ButtonGroup().apply {
+      add(standardRadioBtn)
+      add(customRadioBtn)
+    }
+    */
   }
 
   private val rootPanel = wrapWithVScroll(panel)
@@ -49,5 +68,15 @@ class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRu
     panel.apply()
   }
 
+  override fun getPreferredFocusComponent(): JComponent? = standardRadioBtn
+
   override fun getComponent(): JComponent = rootPanel
+
+  /*
+  private fun Cell.installationTypeRadioButton(text: String, comment: String, installationType: InstallationType) =
+    radioButton(text, comment).withSelectedBinding(PropertyBinding(
+      get = { model.installationType.get() == installationType },
+      set = { if (it) model.installationType.set(installationType) }
+    ))
+  */
 }

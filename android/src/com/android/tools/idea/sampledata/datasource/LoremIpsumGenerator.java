@@ -16,6 +16,7 @@
 package com.android.tools.idea.sampledata.datasource;
 
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
+
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Random;

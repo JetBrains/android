@@ -21,6 +21,7 @@ import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.intellij.openapi.diagnostic.Logger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,14 @@ public class ApplicationIdResolver implements IDebugBridgeChangeListener, IDevic
     AndroidDebugBridge.removeDeviceChangeListener(this);
 
     myApplicationIdResolverExecutor.shutdownNow();
+    try {
+      if (!myApplicationIdResolverExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+        Logger.getInstance(ApplicationIdResolver.class).warn("ApplicationIdResolver failed to shut down its executor within the time limit.");
+      }
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 
 

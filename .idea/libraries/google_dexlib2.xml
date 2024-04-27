@@ -1,6 +1,12 @@
 <component name="libraryTable">
   <library name="google-dexlib2" type="repository">
-    <properties include-transitive-deps="false" maven-id="com.android.tools.smali:smali-dexlib2:3.0.3" />
+    <properties include-transitive-deps="false" maven-id="com.android.tools.smali:smali-dexlib2:3.0.3">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/com/android/tools/smali/smali-dexlib2/3.0.3/smali-dexlib2-3.0.3.jar">
+          <sha256sum>2f13d0fd29f4b4ea9a67a8cd3025f1052d1b5ba8cdb5caf36a1616d5c1f30692</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/smali/smali-dexlib2/3.0.3/smali-dexlib2-3.0.3.jar!/" />
     </CLASSES>

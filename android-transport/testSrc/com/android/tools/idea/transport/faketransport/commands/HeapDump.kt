@@ -25,7 +25,7 @@ import com.android.tools.profiler.proto.Memory
  * set to be |SUCCUESS|, also generates the start and end event pair for the heap dump. The start event's timestamp
  * is the current timer's timestamp and the end event's timestamp is +1 of that.
  */
-class HeapDump(timer: FakeTimer) : CommandHandler(timer) {
+class HeapDump(timer: FakeTimer, isTaskBasedUxEnabled: Boolean) : CommandHandler(timer, isTaskBasedUxEnabled) {
   var dumpStatus = Memory.HeapDumpStatus.Status.UNSPECIFIED
 
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
@@ -68,6 +68,8 @@ class HeapDump(timer: FakeTimer) : CommandHandler(timer) {
           }.build()
         }.build()
       }.build())
+
+      addSessionEndedEvent(command, events)
     }
   }
 }

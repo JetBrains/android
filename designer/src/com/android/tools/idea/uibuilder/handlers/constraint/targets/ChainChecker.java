@@ -15,17 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.findChainHead;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.isInChain;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourBottomAttributes;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourEndAttributes;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourLeftAttributes;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourRightAttributes;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourStartAttributes;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourTopAttributes;
-
 import com.android.tools.idea.common.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.*;
 
 /**
  * Check if the component is in a chain and remembers it

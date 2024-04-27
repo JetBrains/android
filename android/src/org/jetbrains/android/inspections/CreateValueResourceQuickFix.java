@@ -3,7 +3,6 @@ package org.jetbrains.android.inspections;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -20,15 +19,17 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.DomFileDescription;
 import com.intellij.util.xml.DomManager;
-import java.util.Collections;
-import java.util.List;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
+import java.util.List;
 
 public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionAction, HighPriorityAction {
   private final AndroidFacet myFacet;

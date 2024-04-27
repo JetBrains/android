@@ -17,6 +17,8 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.vcs.InsightsAttachInlayDiffLinkFilter
+import com.android.tools.idea.insights.ui.vcs.InsightsExceptionInfoCache
+import com.google.common.truth.Truth
 import com.intellij.execution.filters.ExceptionFilters
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.impl.ConsoleViewImpl
@@ -28,6 +30,8 @@ import com.intellij.openapi.editor.event.VisibleAreaListener
 import com.intellij.openapi.editor.impl.event.EditorEventMulticasterImpl
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.LoggedErrorProcessor
+import java.util.EnumSet
 
 /**
  * Creates a console that's for APP Insights specific.
@@ -41,8 +45,9 @@ fun initConsoleWithFilters(project: Project, tracker: AppInsightsTracker): Conso
     }
 
   val console = (consoleBuilder.console as ConsoleViewImpl)
+  val exceptionInfoCache = InsightsExceptionInfoCache(project, GlobalSearchScope.allScope(project))
 
-  console.addMessageFilter(InsightsAttachInlayDiffLinkFilter(console, tracker))
+  console.addMessageFilter(InsightsAttachInlayDiffLinkFilter(exceptionInfoCache, console, tracker))
   console.component // call to init editor
 
   return console
@@ -74,8 +79,7 @@ fun cleanUpListenersFromEditorMouseHoverPopupManager() {
             it.javaClass.name.startsWith(
               "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$"
             )
-          } as? CaretListener
-            ?: return@onEach
+          } as? CaretListener ?: return@onEach
         editorEventMulticaster.removeCaretListener(listener)
       }
       VisibleAreaListener::class.java -> {
@@ -84,10 +88,28 @@ fun cleanUpListenersFromEditorMouseHoverPopupManager() {
             it.javaClass.name.startsWith(
               "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$"
             )
-          } as? VisibleAreaListener
-            ?: return@onEach
+          } as? VisibleAreaListener ?: return@onEach
         editorEventMulticaster.removeVisibleAreaListener(listener)
       }
     }
   }
+}
+
+fun executeWithErrorProcessor(job: () -> Unit) {
+  var error: String? = null
+  val errorProcessor =
+    object : LoggedErrorProcessor() {
+      override fun processError(
+        category: String,
+        message: String,
+        details: Array<out String>,
+        t: Throwable?,
+      ): Set<Action> {
+        error = message
+        return EnumSet.allOf(Action::class.java)
+      }
+    }
+
+  LoggedErrorProcessor.executeWith<Throwable>(errorProcessor, job)
+  Truth.assertThat(error).isNull()
 }

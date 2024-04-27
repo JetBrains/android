@@ -28,15 +28,26 @@ import java.awt.Color
 import java.awt.Dimension
 import javax.swing.JComponent
 
-/** An expandable text field containing tags.
+/**
+ * An expandable text field containing tags.
  *
  * Autocomplete uses tags from all active Logcat panels.
  */
 internal class IgnoreTagsTextField(tags: Set<String>) {
   private val project = ProjectManager.getInstance().defaultProject
   private val completionProvider = StringsCompletionProvider(loadTagsFromPanels(), null)
-  val component = TextFieldWithCompletion(project, completionProvider, tags.joinToString(" "), true, true, false, true)
-  private val expandedComponent = TextFieldWithCompletion(project, completionProvider, "", false, true, false, true)
+  val component =
+    TextFieldWithCompletion(
+      project,
+      completionProvider,
+      tags.joinToString(" "),
+      true,
+      true,
+      false,
+      true
+    )
+  private val expandedComponent =
+    TextFieldWithCompletion(project, completionProvider, "", false, true, false, true)
 
   init {
     ExpandableSupport(component)
@@ -44,11 +55,16 @@ internal class IgnoreTagsTextField(tags: Set<String>) {
 
   fun getIgnoredTags() = component.text.splitAndRemoveBlanks().toSet()
 
-  private inner class ExpandableSupport(editor: EditorTextField)
-    : ExpandableEditorSupport(editor, Function { it.splitAndRemoveBlanks() }, Function { it.joinToString(" ") }) {
+  private inner class ExpandableSupport(editor: EditorTextField) :
+    ExpandableEditorSupport(
+      editor,
+      Function { it.splitAndRemoveBlanks() },
+      Function { it.joinToString(" ") }
+    ) {
 
     /**
-     * This code is copied form [ExpandableEditorSupport.prepare] and fixes copyCaretPosition behavior.
+     * This code is copied form [ExpandableEditorSupport.prepare] and fixes copyCaretPosition
+     * behavior.
      */
     @Suppress("UnstableApiUsage") // ExpandableSupport is marked @Internal
     override fun prepare(field: EditorTextField, onShow: Function<in String?, String?>): Content {
@@ -91,7 +107,10 @@ internal class IgnoreTagsTextField(tags: Set<String>) {
 }
 
 private fun loadTagsFromPanels(): List<String> =
-  LogcatToolWindowFactory.logcatPresenters.flatMapTo(HashSet()) { it.getTags() }.filter { it.isNotBlank() }.map { "$it " }
+  LogcatToolWindowFactory.logcatPresenters
+    .flatMapTo(HashSet()) { it.getTags() }
+    .filter { it.isNotBlank() }
+    .map { "$it " }
 
 private fun copyCaretPosition(source: Editor?, destination: Editor?) {
   val offset = source?.caretModel?.offset ?: return

@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.persistence.InsightsFilterSettings
@@ -26,14 +27,14 @@ class RestoreFilterFromSettings(
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
-    val transition = delegate.transition(state, tracker)
+    val transition = delegate.transition(state, tracker, key)
     val selectConnection =
       transition.newState.connections.items.firstOrNull {
         settings.connection?.equalsConnection(it) ?: false
-      }
-        ?: return transition
+      } ?: return transition
     return transition.copy(
       newState =
         transition.newState.copy(

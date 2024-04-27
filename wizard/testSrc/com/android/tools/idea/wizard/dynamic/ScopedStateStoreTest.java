@@ -24,7 +24,6 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import junit.framework.TestCase;
@@ -39,7 +38,7 @@ public class ScopedStateStoreTest extends TestCase {
   private ScopedStateStore myPathState;
   private ScopedStateStore myWizardState;
 
-  private List<Key> myUpdateHistory = new LinkedList<>();
+  private List<Key> myUpdateHistory = Lists.newLinkedList();
 
   private ScopedStateStore.ScopedStoreListener myScopedStoreListener = new ScopedStateStore.ScopedStoreListener() {
     @Override

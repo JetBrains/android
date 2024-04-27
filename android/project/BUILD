@@ -39,5 +39,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
     ],
 )

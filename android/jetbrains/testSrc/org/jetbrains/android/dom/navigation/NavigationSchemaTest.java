@@ -278,8 +278,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
                       true);
   }
 
-  // b/117295488
-  public void ignore_testQuickValidateWithDelete() throws Exception {
+  public void testQuickValidateWithDelete() throws Exception {
     @Language("JAVA")
     String content = "import androidx.navigation.*;\n" +
                      "@Navigator.Name(\"fragment_sub\")\n" +
@@ -293,7 +292,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     WriteCommandAction.runWriteCommandAction(getProject(), () -> navigator.getContainingFile().delete());
     WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
     DumbService dumbService = DumbService.getInstance(getProject());
-    new UnindexedFilesScanner(getProject()).queue();
+    new UnindexedFilesScanner(getProject(), "Test").queue();
     dumbService.completeJustSubmittedTasks();
 
     assertFalse(schema.quickValidate());

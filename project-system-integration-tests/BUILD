@@ -1,6 +1,6 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
-load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
+load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 common_data = [
     ":sdkindexapp",
@@ -86,15 +86,26 @@ iml_studio_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.OldProjectAppTest",
 )
 
+iml_studio_test(
+    name = "GradleTokensTest",
+    timeout = "long",
+    module = ":intellij.android.projectSystem.integration.tests",
+    tags_linux = ["block-network"],
+    # Commented out due to b/242358149
+    # tags_mac = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.projectsystem.gradle.GradleTokensTest",
+)
+
 maven_repository(
     name = "sdkindexproject_deps",
     # keep sorted: for buildifier
     artifacts = [
         "@maven//:com.android.tools.build.gradle_7.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.20-Beta",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],

@@ -32,17 +32,7 @@ public final class HeapProfdArtifactView extends SessionArtifactView<HeapProfdSe
   @Override
   @NotNull
   protected JComponent buildComponent() {
-    var artifact = getArtifact();
-    return buildCaptureArtifactView(artifact.getName(), HprofArtifactView.getSubtitle(artifact), StudioIcons.Profiler.Sessions.HEAP, artifact.isOngoing());
-  }
-
-  @Override
-  protected void exportArtifact() {
-    assert !getArtifact().isOngoing();
-    getSessionsView().getIdeProfilerComponents().createExportDialog().open(
-      () -> "Export As",
-      () -> MemoryProfiler.generateCaptureFileName(),
-      () -> "heapprofd",
-      file -> getSessionsView().getProfilers().getIdeServices().saveFile(file, outputStream -> getArtifact().export(outputStream), null));
+    return buildCaptureArtifactView(getArtifact().getName(), getArtifact().getSubtitle(), StudioIcons.Profiler.Sessions.HEAP,
+                                    getArtifact().isOngoing());
   }
 }

@@ -17,7 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.roots.DependencyScope

@@ -19,6 +19,7 @@ import com.android.adblib.DevicePropertyNames
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
@@ -29,7 +30,6 @@ import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.override
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
@@ -38,7 +38,6 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.popup.FakeListPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
-import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.concurrency.AndroidExecutors
@@ -54,9 +53,7 @@ import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.ToolWindowHeadlessManagerImpl
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.ClipboardSynchronizationDisablementRule
-import com.android.tools.idea.streaming.device.DeviceToolWindowPanel
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
-import com.android.tools.idea.streaming.device.assumeFFmpegAvailable
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.EmulatorView
@@ -66,7 +63,7 @@ import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.DisposerExplorer
-import com.android.tools.idea.testing.flags.override
+import com.android.tools.idea.testing.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.runners.IndicatorIcon
@@ -89,7 +86,6 @@ import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQu
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.content.ContentManager
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
@@ -126,11 +122,7 @@ class StreamingToolWindowManagerTest {
                             EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule)
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
-  private var nullableToolWindow: TestToolWindow? = null
-  private val toolWindow: TestToolWindow
-    get() {
-      return nullableToolWindow ?: createToolWindow().also { nullableToolWindow = it }
-    }
+  private val toolWindow: TestToolWindow by lazy { createToolWindow() }
   private val contentManager: ContentManager by lazy { toolWindow.contentManager }
 
   private val deviceMirroringSettings: DeviceMirroringSettings by lazy { DeviceMirroringSettings.getInstance() }
@@ -150,8 +142,6 @@ class StreamingToolWindowManagerTest {
     val mockLafManager = mock<LafManager>()
     whenever(mockLafManager.currentLookAndFeel).thenReturn(UIManager.LookAndFeelInfo("IntelliJ Light", "Ignored className"))
     ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, testRootDisposable)
-
-    deviceMirroringSettings.deviceMirroringEnabled = true
     deviceMirroringSettings.confirmationDialogShown = true
   }
 
@@ -160,6 +150,7 @@ class StreamingToolWindowManagerTest {
     Disposer.dispose(toolWindow.disposable)
     dispatchAllEventsInIdeEventQueue() // Finish asynchronous processing triggered by hiding the tool window.
     deviceMirroringSettings.loadState(DeviceMirroringSettings()) // Reset device mirroring settings to defaults.
+    ApplicationManager.getApplication().service<DeviceClientRegistry>().clear()
   }
 
   @Test
@@ -205,25 +196,25 @@ class StreamingToolWindowManagerTest {
 
     waitForCondition(3, SECONDS) { contentManager.contents.size == 2 }
 
-    // The second emulator panel is added but the first one is still selected.
-    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator3.avdName)
-    assertThat(contentManager.contents[0].description).isEqualTo(
-        "${emulator3.avdName} <font color=808080>(${emulator3.serialNumber})</font>")
-    assertThat(contentManager.contents[1].displayName).isEqualTo(emulator1.avdName)
-    assertThat(contentManager.contents[1].description).isEqualTo(
+    val emulator1Index = if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) 0 else 1
+    val emulator3Index = 1 - emulator1Index
+    assertThat(contentManager.contents[emulator1Index].displayName).isEqualTo(emulator1.avdName)
+    assertThat(contentManager.contents[emulator1Index].description).isEqualTo(
         "${emulator1.avdName} <font color=808080>(${emulator1.serialNumber})</font>")
-    assertThat(contentManager.contents[1].isSelected).isTrue()
-
+    // The panel for emulator3 is added but the emulator1 is still selected.
+    assertThat(contentManager.contents[emulator1Index].isSelected).isTrue()
+    assertThat(contentManager.contents[emulator3Index].displayName).isEqualTo(emulator3.avdName)
+    assertThat(contentManager.contents[emulator3Index].description).isEqualTo(
+        "${emulator3.avdName} <font color=808080>(${emulator3.serialNumber})</font>")
+    // Deploying an app activates the corresponding emulator panel.
     for (emulator in listOf(emulator2, emulator3)) {
       project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(emulator.serialNumber, project)
     }
-
-    // Deploying an app activates the corresponding emulator panel.
-    waitForCondition(2, SECONDS) { contentManager.contents[0].isSelected }
+    waitForCondition(2, SECONDS) { contentManager.contents[emulator3Index].isSelected }
 
     assertThat(contentManager.contents).hasLength(2)
 
-    // Stop the second emulator.
+    // Stop the second embedded emulator.
     emulator3.stop()
 
     // The panel corresponding to the second emulator goes away.
@@ -246,7 +237,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testEmulatorCrash() {
-
     val tempFolder = emulatorRule.avdRoot
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
@@ -270,7 +260,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testUiStatePreservation() {
-
     val tempFolder = emulatorRule.avdRoot
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
@@ -292,32 +281,21 @@ class StreamingToolWindowManagerTest {
     // Wait for the extended controls to show.
     waitForCondition(2, SECONDS) { emulator.extendedControlsVisible }
 
-    var panel = contentManager.contents[0].component as EmulatorToolWindowPanel
-
-    val notificationPanel = EditorNotificationPanel(EditorNotificationPanel.Status.Info).apply { text = "Test notification" }
-    panel.addNotification(notificationPanel)
+    val panel = contentManager.contents[0].component as EmulatorToolWindowPanel
 
     toolWindow.hide()
-
     // Wait for the extended controls to close.
     waitForCondition(4, SECONDS) { !emulator.extendedControlsVisible }
     // Wait for the prior visibility state of the extended controls to propagate to Studio.
     waitForCondition(2, SECONDS) { panel.lastUiState?.extendedControlsShown ?: false }
-    assertThat(panel.lastUiState?.activeNotifications).containsExactly(notificationPanel)
 
     toolWindow.show()
-    waitForCondition(1, SECONDS) { contentManager.contentCount != 0 }
-    panel = contentManager.contents[0].component as EmulatorToolWindowPanel
-
     // Wait for the extended controls to show.
     waitForCondition(2, SECONDS) { emulator.extendedControlsVisible }
-    assertThat(panel.primaryDisplayView?.findContainingComponent<NotificationHolderPanel>()?.notificationPanels)
-        .containsExactly(notificationPanel)
   }
 
   @Test
   fun testZoomStatePreservation() {
-
     val tempFolder = emulatorRule.avdRoot
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
@@ -338,7 +316,7 @@ class StreamingToolWindowManagerTest {
     panel.setSize(250, 500)
     val ui = FakeUi(panel)
     val emulatorView = ui.getComponent<EmulatorView>()
-    waitForCondition(2, SECONDS) { renderAndGetFrameNumber(ui, emulatorView) > 0 }
+    waitForCondition(2, SECONDS) { renderAndGetFrameNumber(ui, emulatorView) > 0u }
 
     // Zoom in.
     emulatorView.zoom(ZoomType.IN)
@@ -363,7 +341,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testPhysicalDevice() {
-    assumeFFmpegAvailable()
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
@@ -383,28 +360,24 @@ class StreamingToolWindowManagerTest {
 
     // Check that PhysicalDeviceWatcher gets disposed after disabling device mirroring.
     // DisposerExplorer is used because alternative ways of testing this are pretty slow.
-    val physicalDeviceWatcherClassName = "com.android.tools.idea.streaming.core.StreamingToolWindowManager\$PhysicalDeviceWatcher"
-    assertThat(DisposerExplorer.findAll { it.javaClass.name == physicalDeviceWatcherClassName }).hasSize(1)
-    if (!StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-      deviceMirroringSettings.deviceMirroringEnabled = false
-      assertThat(DisposerExplorer.findAll { it.javaClass.name == physicalDeviceWatcherClassName }).isEmpty()
-    }
+    assertThat(DisposerExplorer.findAll { it.javaClass.name.endsWith("\$PhysicalDeviceWatcher") }).hasSize(1)
   }
 
   @Test
   fun testRemoteDevice() {
-    val properties = DeviceProperties.build {
+    val properties = DeviceProperties.buildForTest {
       icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR
       model = "Pixel 9000"
     }
     val device = provisionerRule.deviceProvisionerPlugin.newDevice(properties = properties)
     device.sourceTemplate = object: DeviceTemplate {
+      override val id = DeviceId("TEST", true, "")
       override val properties = properties
       override val activationAction: TemplateActivationAction = mock()
       override val editAction = null
     }
     device.stateFlow.value = DeviceState.Disconnected(
-      properties, false, "offline", Reservation(ReservationState.ACTIVE, "active", null, null))
+      properties, false, "offline", Reservation(ReservationState.ACTIVE, "active", null, null, null))
     provisionerRule.deviceProvisionerPlugin.addDevice(device)
 
     val provisionerService: DeviceProvisionerService = mock()
@@ -425,7 +398,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testPhysicalDeviceActivateOnConnection() {
-    assumeFFmpegAvailable()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -442,8 +414,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testPhysicalDeviceRequestsAttention() {
-    assumeFFmpegAvailable()
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     deviceMirroringSettings::activateOnAppLaunch.override(true, testRootDisposable)
     deviceMirroringSettings::activateOnTestLaunch.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
@@ -462,7 +432,12 @@ class StreamingToolWindowManagerTest {
 
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device1.serialNumber, project)
     waitForCondition(15, SECONDS) { contentManager.contents.size == 2 }
-    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
+      assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 4 API 30")
+    }
+    else {
+      assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    }
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
     deviceMirroringSettings.activateOnAppLaunch = false
@@ -472,94 +447,10 @@ class StreamingToolWindowManagerTest {
     agentRule.disconnectDevice(device1)
     agentRule.disconnectDevice(device2)
     waitForCondition(10, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
-  }
-
-  @Test
-  fun testPhysicalDeviceRequestsAttentionWithoutAdvancedTabControl() {
-    assumeFFmpegAvailable()
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
-    deviceMirroringSettings::activateOnAppLaunch.override(true, testRootDisposable)
-    assertThat(contentManager.contents).isEmpty()
-    assertThat(toolWindow.isVisible).isFalse()
-    assertThat(toolWindow.isActive).isFalse()
-
-    val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
-    val device2 = agentRule.connectDevice("Pixel 6", 32, Dimension(1080, 2400))
-    project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device2.serialNumber, project)
-
-    waitForCondition(15, SECONDS) { contentManager.contents.size == 2 }
-    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
-    assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 6 API 32")
-    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 6 API 32")
-    assertThat(toolWindow.isVisible).isTrue()
-    assertThat(toolWindow.isActive).isFalse()
-
-    deviceMirroringSettings.activateOnTestLaunch = true
-    project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device1.serialNumber, project)
-    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
-
-    deviceMirroringSettings.activateOnAppLaunch = false
-    project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device2.serialNumber, project)
-    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
-
-    agentRule.disconnectDevice(device1)
-    agentRule.disconnectDevice(device2)
-    waitForCondition(10, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
-  }
-
-  @Test
-  fun testPhysicalDeviceRequestsAttentionMirroringDisabled() {
-    assumeFFmpegAvailable()
-    deviceMirroringSettings.deviceMirroringEnabled = false
-    assertThat(contentManager.contents).isEmpty()
-    assertThat(toolWindow.isVisible).isFalse()
-
-    val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
-    project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(device1.serialNumber, project)
-
-    dispatchAllEventsInIdeEventQueue()
-    awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
-    dispatchAllEventsInIdeEventQueue()
-    assertThat(toolWindow.isVisible).isFalse()
-  }
-
-  @Test
-  fun testMirroringDisablementEnablement() {
-    assumeFFmpegAvailable()
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
-    assertThat(contentManager.contents).isEmpty()
-    assertThat(toolWindow.isVisible).isFalse()
-    toolWindow.show()
-
-    val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
-
-    waitForCondition(15, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
-    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
-
-    // Wait until the first frame is rendered before disabling mirroring.
-    val panel = contentManager.contents[0].component as DeviceToolWindowPanel
-    panel.setSize(250, 500)
-    val ui = FakeUi(panel)
-    val displayView = ui.getComponent<AbstractDisplayView>()
-    waitForCondition(2, SECONDS) { renderAndGetFrameNumber(ui, displayView) > 0 }
-
-    deviceMirroringSettings.deviceMirroringEnabled = false
-    waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
-    waitForCondition(2, SECONDS) { !device.agent.isRunning }
-
-    deviceMirroringSettings.deviceMirroringEnabled = true
-    waitForCondition(15, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
-    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
-
-    agentRule.disconnectDevice(device)
-    waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
-    waitForCondition(2, SECONDS) { !device.agent.isRunning }
   }
 
   @Test
   fun testMirroringStoppingStarting() {
-    assumeFFmpegAvailable()
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
@@ -610,7 +501,12 @@ class StreamingToolWindowManagerTest {
     // Activate mirroring of Pixel 4 API 30.
     executeStreamingAction(popup.actions[1], toolWindow.component, project)
     waitForCondition(2, SECONDS) { contentManager.contents.size == 2 }
-    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
+      assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 4 API 30")
+    }
+    else {
+      assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    }
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
     executeStreamingAction(newTabAction, toolWindow.component, project)
@@ -621,8 +517,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testMirroringManager() {
-    assumeFFmpegAvailable()
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -666,8 +560,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testLivenessIndicator() {
-    assumeFFmpegAvailable()
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -683,7 +575,7 @@ class StreamingToolWindowManagerTest {
 
     runBlocking { mirroringManager.mirroringHandles.value[device]?.toggleMirroring() }
     waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
-    assertThat((toolWindow.icon as LayeredIcon).getIcon(1)).isInstanceOf(IndicatorIcon::class.java) // Liveness indicator is on.
+    assertThat((toolWindow.icon as? LayeredIcon)?.getIcon(1)).isInstanceOf(IndicatorIcon::class.java) // Liveness indicator is on.
 
     toolWindow.hide()
     runBlocking { mirroringManager.mirroringHandles.value[device]?.toggleMirroring() }
@@ -693,8 +585,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testAvdStarting() {
-    assumeFFmpegAvailable()
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     EmulatorSettings.getInstance()::launchInToolWindow.override(false, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
@@ -729,15 +619,9 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testMirroringUserInvolvementRequired() {
-    assumeFFmpegAvailable()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
-    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-      deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
-    }
-    else {
-      toolWindow.show()
-    }
+    deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
 
     agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     waitForCondition(15, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
@@ -755,7 +639,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testMirroringConfirmationDialogAccept() {
-    assumeFFmpegAvailable()
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -775,13 +658,10 @@ class StreamingToolWindowManagerTest {
     waitForCondition(10, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
 
     assertThat(deviceMirroringSettings.confirmationDialogShown).isTrue()
-    assertThat(deviceMirroringSettings.deviceMirroringEnabled).isTrue()
   }
 
   @Test
   fun testMirroringConfirmationDialogReject() {
-    assumeFFmpegAvailable()
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
@@ -797,29 +677,7 @@ class StreamingToolWindowManagerTest {
   }
 
   @Test
-  fun testMirroringConfirmationDialogRejectWithoutAdvancedTabControl() {
-    assumeFFmpegAvailable()
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
-    deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
-    assertThat(contentManager.contents).isEmpty()
-    assertThat(toolWindow.isVisible).isFalse()
-
-    deviceMirroringSettings.confirmationDialogShown = false
-
-    agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
-
-    createModalDialogAndInteractWithIt(toolWindow::show) { dlg ->
-      val ui = FakeUi(dlg.rootPane)
-      ui.clickOn(ui.getComponent<JButton> { it.text == "Disable Mirroring" })
-    }
-
-    assertThat(deviceMirroringSettings.confirmationDialogShown).isFalse()
-    assertThat(deviceMirroringSettings.deviceMirroringEnabled).isFalse()
-  }
-
-  @Test
   fun testUnsupportedPhysicalPhone() {
-    assumeFFmpegAvailable()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -835,7 +693,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testUnsupportedPhysicalWatch() {
-    assumeFFmpegAvailable()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -891,7 +748,7 @@ class StreamingToolWindowManagerTest {
     return toolWindow
   }
 
-  private fun renderAndGetFrameNumber(fakeUi: FakeUi, displayView: AbstractDisplayView): Int {
+  private fun renderAndGetFrameNumber(fakeUi: FakeUi, displayView: AbstractDisplayView): UInt {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return displayView.frameNumber
   }

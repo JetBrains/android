@@ -16,8 +16,9 @@
 package com.android.tools.idea.structure.dialog;
 
 import com.intellij.openapi.Disposable;
-import java.util.EventListener;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.EventListener;
 
 public interface CounterDisplayConfigurable {
   int getCount();

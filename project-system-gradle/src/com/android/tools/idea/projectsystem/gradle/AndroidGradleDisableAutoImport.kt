@@ -15,21 +15,12 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectAware
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectId
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
-import com.intellij.openapi.util.registry.Registry
-import kotlinx.coroutines.CoroutineScope
 
-internal class AndroidGradleDisableAutoImportInitializer : ApplicationInitializedListener {
-  override suspend fun execute(asyncScope: CoroutineScope) {
-    Registry.get("external.system.auto.import.disabled").setValue(true)
-  }
-}
-
-class RefreshOnlyAutoImportProjectTracker : ExternalSystemProjectTracker {
+class RefreshOnlyAutoImportProjectTracker(): ExternalSystemProjectTracker {
   override fun activate(id: ExternalSystemProjectId) = Unit
   override fun markDirty(id: ExternalSystemProjectId) = Unit
   override fun markDirtyAllProjects() = Unit

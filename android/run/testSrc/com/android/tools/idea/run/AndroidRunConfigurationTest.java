@@ -18,9 +18,9 @@ package com.android.tools.idea.run;
 import static com.android.tools.idea.run.configuration.execution.TestUtilsKt.createApp;
 import static com.android.tools.idea.util.ModuleExtensionsKt.getAndroidFacet;
 import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 

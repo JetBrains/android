@@ -16,27 +16,33 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.model.scaleBy
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
+import com.android.tools.idea.uibuilder.surface.layout.PositionablePanel
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.margin
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.Disposable
-import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBLabel
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.launch
+import com.intellij.util.ui.accessibility.ScreenReader
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Insets
 import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
@@ -53,8 +59,7 @@ import javax.swing.SwingUtilities
 /** Minimum allowed width for the model name label. */
 @SwingCoordinate private const val MODEL_NAME_LABEL_MIN_WIDTH = 20
 
-private data class LayoutData
-private constructor(
+data class LayoutData(
   val scale: Double,
   val modelName: String?,
   val modelTooltip: String?,
@@ -89,9 +94,6 @@ private constructor(
   }
 }
 
-private val nameLabelDefaultColor = JBColor(0x6c707e, 0xdfe1e5)
-private val nameLabelHoverColor = JBColor(0x5a5d6b, 0xf0f1f2)
-
 /**
  * A Swing component associated to the given [SceneView]. There will be one of this components in
  * the [DesignSurface] per every [SceneView] available. This panel will be positioned on the
@@ -99,17 +101,14 @@ private val nameLabelHoverColor = JBColor(0x5a5d6b, 0xf0f1f2)
  */
 class SceneViewPeerPanel(
   val sceneView: SceneView,
-  disposable: Disposable,
-  private val sceneViewStatusIcon: JComponent?,
-  private val sceneViewToolbar: JComponent?,
-  private val sceneViewBottomBar: JComponent?,
-  private val sceneViewLeftBar: JComponent?,
-  private val sceneViewRightBar: JComponent?,
+  private val labelPanel: LabelPanel,
+  private val sceneViewStatusIconAction: AnAction?,
+  private val sceneViewToolbarActions: List<AnAction>,
+  sceneViewBottomBar: JComponent?,
+  sceneViewLeftBar: JComponent?,
+  sceneViewRightBar: JComponent?,
   private val sceneViewErrorsPanel: JComponent?,
-  private val onLabelClicked: (suspend (SceneView, Boolean) -> Boolean)
-) : JPanel() {
-
-  private val scope = AndroidCoroutineScope(disposable)
+) : JPanel(), PositionablePanel, DataProvider {
 
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
@@ -121,42 +120,19 @@ class SceneViewPeerPanel(
   private val cachedScaledContentSize = Dimension()
   private val cachedPreferredSize = Dimension()
 
-  /** This label displays the [SceneView] model if there is any */
-  private val modelNameLabel =
-    JBLabel().apply {
-      maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
-      foreground = nameLabelDefaultColor
-      addMouseListener(
-        object : MouseAdapter() {
-          override fun mouseEntered(e: MouseEvent?) {
-            foreground = nameLabelHoverColor
-          }
-
-          override fun mouseExited(e: MouseEvent?) {
-            foreground = nameLabelDefaultColor
-          }
-
-          override fun mouseClicked(e: MouseEvent?) {
-            scope.launch { onLabelClicked(sceneView, false) }
-          }
-        }
-      )
-    }
-
-  val positionableAdapter =
+  override val positionableAdapter =
     object : PositionableContent {
-      override val groupId: String?
-        get() = this@SceneViewPeerPanel.sceneView.sceneManager.model.groupId
+      override val organizationGroup: String?
+        get() = sceneView.sceneManager.model.organizationGroup
 
       override val scale: Double
         get() = sceneView.scale
 
       override val x: Int
         get() = sceneView.x
+
       override val y: Int
         get() = sceneView.y
-      override val isVisible: Boolean
-        get() = sceneView.isVisible
 
       override fun getMargin(scale: Double): Insets {
         val contentSize = getContentSize(null).scaleBy(scale)
@@ -164,11 +140,11 @@ class SceneViewPeerPanel(
           sceneView.margin.also {
             // Extend top to account for the top toolbar
             it.top += sceneViewTopPanel.preferredSize.height
+            it.bottom += sceneViewBottomPanel.preferredSize.height
+            it.left += sceneViewLeftPanel.preferredSize.width
+            it.right += sceneViewRightPanel.preferredSize.width
             if (sceneViewErrorsPanel?.isVisible == true) {
-              // Calculating panel margins to always keep shown the error panel when zooming
               it.bottom += sceneViewCenterPanel.preferredSize.height
-              it.left += sceneViewLeftPanel.preferredSize.width
-              it.right += sceneViewRightPanel.preferredSize.width
             }
           }
 
@@ -225,6 +201,26 @@ class SceneViewPeerPanel(
   fun PositionableContent.isEmptyContent() =
     scaledContentSize.let { it.height == 0 && it.width == 0 }
 
+  private fun createToolbar(
+    actions: List<AnAction>,
+    toolbarCustomization: (ActionToolbar) -> Unit
+  ): JComponent? {
+    if (actions.isEmpty()) {
+      return null
+    }
+    return ActionManager.getInstance()
+      .createActionToolbar("sceneView", DefaultActionGroup(actions), true)
+      .apply {
+        toolbarCustomization(this)
+        targetComponent = this@SceneViewPeerPanel
+      }
+      .component
+      .apply {
+        isOpaque = false
+        border = JBUI.Borders.empty()
+      }
+  }
+
   /**
    * This panel wraps both the label and the toolbar and puts them left aligned (label) and right
    * aligned (the toolbar).
@@ -235,17 +231,31 @@ class SceneViewPeerPanel(
       border = JBUI.Borders.emptyBottom(TOP_BAR_BOTTOM_MARGIN)
       isOpaque = false
       // Make the status icon be part of the top panel
+      val sceneViewStatusIcon =
+        sceneViewStatusIconAction?.let {
+          createToolbar(listOf(sceneViewStatusIconAction)) {
+            (it as? ActionToolbarImpl)?.setForceMinimumSize(true)
+            it.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
+          }
+        }
       val sceneViewStatusIconSize = sceneViewStatusIcon?.minimumSize?.width ?: 0
       if (sceneViewStatusIcon != null && sceneViewStatusIconSize > 0) {
         add(sceneViewStatusIcon, BorderLayout.LINE_START)
         sceneViewStatusIcon.isVisible = true
       }
-      add(modelNameLabel, BorderLayout.CENTER)
+      add(labelPanel, BorderLayout.CENTER)
+      val sceneViewToolbar =
+        createToolbar(sceneViewToolbarActions) {
+          // Do not allocate space for the "see more" chevron if not needed
+          it.setReservePlaceAutoPopupIcon(false)
+          it.setShowSeparatorTitles(true)
+        }
       if (sceneViewToolbar != null) {
         add(sceneViewToolbar, BorderLayout.LINE_END)
-        // Initialize the toolbar as invisible. Its visibility will be controlled by hovering the
-        // sceneViewTopPanel.
-        sceneViewToolbar.isVisible = false
+        // Initialize the toolbar as invisible if ScreenReader is not active. In this case, its
+        // visibility will be controlled by hovering the sceneViewTopPanel. When the screen reader
+        // is active, the toolbar is always visible, so it can be focusable.
+        sceneViewToolbar.isVisible = defaultToolbarVisibility || ScreenReader.isActive()
       }
       // The space of name label is sacrificed when there is no enough width to display the toolbar.
       // When it happens, the label will be trimmed and show the ellipsis at its tail.
@@ -269,14 +279,14 @@ class SceneViewPeerPanel(
       minimumSize = Dimension(minWidth, minHeight)
       preferredSize = sceneViewToolbar?.let { Dimension(minWidth, minHeight) }
 
-      setUpTopPanelMouseListeners()
+      setUpTopPanelMouseListeners(sceneViewToolbar)
     }
 
   /**
    * Creates and adds the [MouseAdapter]s required to show the [sceneViewToolbar] when the mouse is
    * hovering the [sceneViewTopPanel], and hide it otherwise.
    */
-  private fun JPanel.setUpTopPanelMouseListeners() {
+  private fun JPanel.setUpTopPanelMouseListeners(sceneViewToolbar: JComponent?) {
     // MouseListener to show the sceneViewToolbar when the mouse enters the target component, and to
     // hide it when the mouse exits the bounds
     // of sceneViewTopPanel.
@@ -315,8 +325,7 @@ class SceneViewPeerPanel(
                 }
               }
             }
-          }
-            ?: hideToolbar()
+          } ?: hideToolbar()
         }
 
         private fun JPanel.designSurfaceContains(p: Point): Boolean {
@@ -343,48 +352,29 @@ class SceneViewPeerPanel(
         }
 
         private fun hideToolbar() {
-          sceneViewToolbar?.let { toolbar -> toolbar.isVisible = false }
+          sceneViewToolbar?.let { toolbar ->
+            // Only hide the toolbar if the screen reader is not active
+            toolbar.isVisible = ScreenReader.isActive()
+          }
         }
       }
 
     addMouseListener(hoverTopPanelMouseListener)
-    modelNameLabel.addMouseListener(hoverTopPanelMouseListener)
+    labelPanel.addMouseListener(hoverTopPanelMouseListener)
   }
 
-  val sceneViewBottomPanel =
-    JPanel(BorderLayout()).apply {
-      border = JBUI.Borders.emptyTop(BOTTOM_BAR_TOP_MARGIN)
-      isOpaque = false
-      isVisible = true
-      if (sceneViewBottomBar != null) {
-        add(sceneViewBottomBar, BorderLayout.CENTER)
-      }
-    }
+  private val sceneViewBottomPanel =
+    wrapPanel(sceneViewBottomBar).apply { border = JBUI.Borders.emptyTop(BOTTOM_BAR_TOP_MARGIN) }
+  val sceneViewLeftPanel = wrapPanel(sceneViewLeftBar)
+  val sceneViewRightPanel = wrapPanel(sceneViewRightBar)
+  val sceneViewCenterPanel = wrapPanel(sceneViewErrorsPanel)
 
-  val sceneViewLeftPanel =
+  private fun wrapPanel(panel: JComponent?) =
     JPanel(BorderLayout()).apply {
       isOpaque = false
       isVisible = true
-      if (sceneViewLeftBar != null) {
-        add(sceneViewLeftBar, BorderLayout.CENTER)
-      }
-    }
-
-  val sceneViewRightPanel =
-    JPanel(BorderLayout()).apply {
-      isOpaque = false
-      isVisible = true
-      if (sceneViewRightBar != null) {
-        add(sceneViewRightBar, BorderLayout.CENTER)
-      }
-    }
-
-  val sceneViewCenterPanel =
-    JPanel(BorderLayout()).apply {
-      isOpaque = false
-      isVisible = true
-      if (sceneViewErrorsPanel != null) {
-        add(sceneViewErrorsPanel, BorderLayout.CENTER)
+      if (panel != null) {
+        add(panel, BorderLayout.CENTER)
       }
     }
 
@@ -409,29 +399,33 @@ class SceneViewPeerPanel(
 
   override fun doLayout() {
     layoutData = LayoutData.fromSceneView(sceneView)
+    labelPanel.layoutData = layoutData
 
-    // If there is a model name, we manually assign the content of the modelNameLabel and position
-    // it here.
-    // Once this panel gets more functionality, we will need the use of a layout manager. For now,
-    // we just lay out the component manually.
-    if (layoutData.modelName == null) {
-      modelNameLabel.text = ""
-      modelNameLabel.toolTipText = ""
-      sceneViewTopPanel.isVisible = false
-    } else {
-      modelNameLabel.text = layoutData.modelName
-      // Use modelName for tooltip if none has been specified.
-      modelNameLabel.toolTipText = layoutData.modelTooltip ?: layoutData.modelName
-      // We layout the top panel. We make the width to match the SceneViewPanel width and we let it
-      // choose its own
-      // height.
+    //      SceneViewPeerPanel layout:
+    //
+    //      |--------------------------------------------|
+    //      |             sceneViewTopPanel              |    ↕ preferredHeight
+    //      |---------------------------------------------
+    //      |         |                       |          |    ↑
+    //      |  scene  |                       |  scene   |    |
+    //      |  View   |  sceneViewCenterPanel |  View    |    | centerPanelHeight
+    //      |  Left   |                       |  Right   |    |
+    //      |  Panel  |                       |  Panel   |    ↓
+    //      |---------------------------------------------
+    //      |            sceneViewBottomPanel            |    ↕ preferredHeight
+    //      |---------------------------------------------
+    //
+    //       ←-------→                         ←--------→
+    //       preferredWidth                    preferredWidth
+
+    sceneViewTopPanel.isVisible = labelPanel.isVisible
+    if (labelPanel.isVisible) {
       sceneViewTopPanel.setBounds(
         0,
         0,
         width + insets.horizontal,
         sceneViewTopPanel.preferredSize.height
       )
-      sceneViewTopPanel.isVisible = true
     }
     val leftSectionWidth = sceneViewLeftPanel.preferredSize.width
     val centerPanelHeight =
@@ -459,7 +453,7 @@ class SceneViewPeerPanel(
       centerPanelHeight
     )
     sceneViewRightPanel.setBounds(
-      sceneViewLeftPanel.preferredSize.width + sceneViewCenterPanel.width,
+      sceneViewLeftPanel.preferredSize.width + positionableAdapter.scaledContentSize.width,
       sceneViewTopPanel.preferredSize.height,
       sceneViewRightPanel.preferredSize.width,
       centerPanelHeight
@@ -497,5 +491,24 @@ class SceneViewPeerPanel(
 
   override fun isVisible(): Boolean {
     return sceneView.isVisible
+  }
+
+  override fun getData(dataId: String): Any? {
+    return if (SCENE_VIEW.`is`(dataId)) {
+      sceneView
+    } else {
+      sceneView.sceneManager.model.dataContext.getData(dataId)
+    }
+  }
+
+  companion object {
+    /** Default initial visibility for the SceneView toolbars */
+    internal var defaultToolbarVisibility = false
+  }
+}
+
+private class ShowSceneViewToolbarAction : AnAction("Show SceneView Toolbars") {
+  override fun actionPerformed(e: AnActionEvent) {
+    SceneViewPeerPanel.defaultToolbarVisibility = true
   }
 }

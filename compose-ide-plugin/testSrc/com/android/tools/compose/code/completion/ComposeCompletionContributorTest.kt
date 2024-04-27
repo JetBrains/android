@@ -27,18 +27,16 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [ComposeCompletionContributor].
- */
+/** Tests for [ComposeCompletionContributor]. */
 class ComposeCompletionContributorTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -67,23 +65,29 @@ class ComposeCompletionContributorTest {
       fun FoobarTwo(required: Int, optional: Int = 42) {}
 
       @Composable
-      fun FoobarThree(optional: Int = 42, children: @Composable() () -> Unit) {}
+      fun FoobarThree(optional: Int = 42, children: @Composable () -> Unit) {}
 
       @Composable
-      fun FoobarFour(children: @Composable() () -> Unit) {}
+      fun FoobarFour(children: @Composable () -> Unit) {}
 
       @Composable
       fun FoobarFive(icon: String, onClick: () -> Unit) {}
-      """.trimIndent()
+
+      @Composable
+      fun FoobarSix(icon: String, optionalOnClick: () -> Unit = {}) {}
+      """
+        .trimIndent()
     )
 
-    val expectedLookupItems = listOf(
-      "FoobarOne(required: Int)",
-      "FoobarTwo(required: Int, ...)",
-      "FoobarThree(...) {...}",
-      "FoobarFour {...}",
-      "FoobarFive(icon: String, onClick: () -> Unit)"
-    )
+    val expectedLookupItems =
+      listOf(
+        "FoobarOne(required: Int)",
+        "FoobarTwo(required: Int, ...)",
+        "FoobarThree(...) {...}",
+        "FoobarFour {...}",
+        "FoobarFive(icon: String) {...}",
+        "FoobarSix(icon: String, ...)",
+      )
 
     // Given:
     myFixture.loadNewFile(
@@ -98,14 +102,16 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         Foobar${caret}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // When:
     myFixture.completeBasic()
 
     // Then:
-    // Order doesn't matter here, since we're just validating that the elements are displayed with the correct signature text.
+    // Order doesn't matter here, since we're just validating that the elements are displayed with
+    // the correct signature text.
     assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(expectedLookupItems)
 
     // Given:
@@ -126,14 +132,16 @@ class ComposeCompletionContributorTest {
           }
         }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // When:
     myFixture.completeBasic()
 
     // Then:
-    // Order doesn't matter here, since we're just validating that the elements are displayed with the correct signature text.
+    // Order doesn't matter here, since we're just validating that the elements are displayed with
+    // the correct signature text.
     assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(expectedLookupItems)
   }
 
@@ -151,13 +159,15 @@ class ComposeCompletionContributorTest {
       @Composable
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val file = myFixture.addFileToProject(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -166,8 +176,9 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         Foobar${caret}
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     // When:
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -185,7 +196,8 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         FoobarOne(first = , second = )
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -203,13 +215,15 @@ class ComposeCompletionContributorTest {
       @Composable
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    var file = myFixture.addFileToProject(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    var file =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -218,8 +232,9 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         Foobar${caret}()
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     // When:
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -237,15 +252,16 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         FoobarOne()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-
     // Check completion with tab
-    file = myFixture.addFileToProject(
-      "src/com/example/Test2.kt",
-      // language=kotlin
-      """
+    file =
+      myFixture.addFileToProject(
+        "src/com/example/Test2.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -254,8 +270,9 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         ${caret}()
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     // When:
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -274,7 +291,8 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         FoobarOne()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -295,13 +313,15 @@ class ComposeCompletionContributorTest {
       @Composable
       fun FoobarTwo(children: () -> Unit) {}
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val file = myFixture.addFileToProject(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -310,8 +330,9 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         FoobarO${caret}
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     // When:
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -331,13 +352,16 @@ class ComposeCompletionContributorTest {
 
         }
       }
-      """.trimIndent()
-      , true)
-
-    val file2 = myFixture.loadNewFile(
-      "src/com/example/Test2.kt",
-      // language=kotlin
       """
+        .trimIndent(),
+      true
+    )
+
+    val file2 =
+      myFixture.loadNewFile(
+        "src/com/example/Test2.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -346,8 +370,9 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         FoobarT${caret}
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     // When:
     myFixture.configureFromExistingVirtualFile(file2.virtualFile)
@@ -367,8 +392,10 @@ class ComposeCompletionContributorTest {
           
         }
       }
-      """.trimIndent()
-      , true)
+      """
+        .trimIndent(),
+      true
+    )
   }
 
   @Test
@@ -385,13 +412,15 @@ class ComposeCompletionContributorTest {
       @Composable
       fun FoobarOne(children: @Composable() () -> Unit) {}
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    var file = myFixture.addFileToProject(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    var file =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -403,8 +432,9 @@ class ComposeCompletionContributorTest {
 
         }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     // When:
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -426,14 +456,17 @@ class ComposeCompletionContributorTest {
 
         }
       }
-      """.trimIndent()
-      , true)
+      """
+        .trimIndent(),
+      true
+    )
 
     // Given:
-    file = myFixture.addFileToProject(
-      "src/com/example/Test2.kt",
-      // language=kotlin
-      """
+    file =
+      myFixture.addFileToProject(
+        "src/com/example/Test2.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -445,8 +478,9 @@ class ComposeCompletionContributorTest {
 
         }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     // When:
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -468,8 +502,10 @@ class ComposeCompletionContributorTest {
 
         }
       }
-      """.trimIndent()
-      , true)
+      """
+        .trimIndent(),
+      true
+    )
   }
 
   @Test
@@ -486,13 +522,15 @@ class ComposeCompletionContributorTest {
       @Composable
       fun FoobarOne(optional: String? = null, children: @Composable() () -> Unit) {}
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val file = myFixture.addFileToProject(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -501,8 +539,9 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         Foobar${caret}
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     // When:
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -522,8 +561,10 @@ class ComposeCompletionContributorTest {
 
         }
       }
-      """.trimIndent()
-      , true)
+      """
+        .trimIndent(),
+      true
+    )
   }
 
   @Test
@@ -540,13 +581,15 @@ class ComposeCompletionContributorTest {
       @Composable
       fun AppBarIcon(icon: String, onClick: () -> Unit) {}
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val file = myFixture.addFileToProject(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -555,8 +598,9 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         AppBarIcon${caret}
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     // When:
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -576,8 +620,10 @@ class ComposeCompletionContributorTest {
           
         }
       }
-      """.trimIndent()
-      , true)
+      """
+        .trimIndent(),
+      true
+    )
   }
 
   @Test
@@ -594,13 +640,15 @@ class ComposeCompletionContributorTest {
       @Composable
       fun RadioButton(text: String, onClick: () -> Unit, label: String = "label") {}
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val file = myFixture.addFileToProject(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -609,8 +657,9 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         RadioButton${caret}
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     // When:
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -628,8 +677,10 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         RadioButton(text = , onClick = { /*TODO*/ })
       }
-      """.trimIndent()
-      , true)
+      """
+        .trimIndent(),
+      true
+    )
   }
 
   @Test
@@ -646,13 +697,15 @@ class ComposeCompletionContributorTest {
       @Composable
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val file = myFixture.addFileToProject(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -661,8 +714,9 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         Foobar${caret}
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     try {
       // When:
@@ -671,6 +725,7 @@ class ComposeCompletionContributorTest {
       myFixture.completeBasic()
 
       // Then:
+      val indentation = if (KotlinPluginModeProvider.isK2Mode()) "  " else ""
       myFixture.checkResult(
         // language=kotlin
         """
@@ -680,9 +735,10 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne()
+        ${indentation}FoobarOne()
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     } finally {
       ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = true
@@ -703,13 +759,15 @@ class ComposeCompletionContributorTest {
       @Composable
       fun FoobarOne(first: Int, second: String, third: String? = null) {}
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val file = myFixture.addFileToProject(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -720,8 +778,9 @@ class ComposeCompletionContributorTest {
       @Composable
       fun HomeScreen() {
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     // When:
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -741,14 +800,15 @@ class ComposeCompletionContributorTest {
       @Composable
       fun HomeScreen() {
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
   /**
-   * Regression test for b/153769933. The Compose insertion handler adds the parameters automatically when completing the name
-   * of a Composable. This is incorrect if the insertion point is not a call statement. This ensures that the insertion is not triggered
-   * for imports.
+   * Regression test for b/153769933. The Compose insertion handler adds the parameters
+   * automatically when completing the name of a Composable. This is incorrect if the insertion
+   * point is not a call statement. This ensures that the insertion is not triggered for imports.
    */
   @Test
   fun testImportCompletionDoesNotTriggerInsertionHandler() {
@@ -763,8 +823,8 @@ class ComposeCompletionContributorTest {
       // This simulates the Canvas composable
       @Composable
       fun Canvas(children: @Composable() () -> Unit) {}
-    """)
-
+    """
+    )
 
     // Given:
     myFixture.loadNewFile(
@@ -779,7 +839,8 @@ class ComposeCompletionContributorTest {
       @Composable
       fun Test() {
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // When:
@@ -797,12 +858,15 @@ class ComposeCompletionContributorTest {
       @Composable
       fun Test() {
       }
-      """.trimIndent()
-      , true)
+      """
+        .trimIndent(),
+      true
+    )
   }
 
   /**
-   * Regression test for b/209672710. Ensure that completing Composables that are not top-level does not fully qualify them incorrectly.
+   * Regression test for b/209672710. Ensure that completing Composables that are not top-level does
+   * not fully qualify them incorrectly.
    */
   @Test
   fun testCompletingComposablesWithinObjects() {
@@ -819,8 +883,8 @@ class ComposeCompletionContributorTest {
         @Composable
         fun TestMethod(children: @Composable() () -> Unit) {}
       }
-    """)
-
+    """
+    )
 
     // Given:
     myFixture.loadNewFile(
@@ -835,16 +899,18 @@ class ComposeCompletionContributorTest {
       fun Test() {
         ObjectWithComposables.Test${caret}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // When:
     myFixture.completeBasic()
 
     // Then:
-    myFixture.checkResult(
-      // language=kotlin
-      """
+    if (!KotlinPluginModeProvider.isK2Mode()) {
+      myFixture.checkResult(
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -855,13 +921,35 @@ class ComposeCompletionContributorTest {
 
         }
       }
-      """.trimIndent()
-      , true)
+      """
+          .trimIndent(),
+        true
+      )
+    } else {
+      myFixture.checkResult(
+        // language=kotlin
+        """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import com.example.ObjectWithComposables.TestMethod
+
+      @Composable
+      fun Test() {
+          TestMethod {
+
+          }
+      }
+      """
+          .trimIndent(),
+        true
+      )
+    }
   }
 
   /**
-   * Regression test for b/209060418. Autocomplete should not treat required composable method specially if it's not the final argument (ie,
-   * there are optional arguments specified after it.
+   * Regression test for b/209060418. Autocomplete should not treat required composable method
+   * specially if it's not the final argument (ie, there are optional arguments specified after it.
    */
   @Test
   fun testSignaturesWithRequiredComposableBeforeOptionalArgs() {
@@ -890,17 +978,21 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun FoobarSix(optionalArg: Int = 0) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val expectedLookupItems = listOf(
-      "FoobarOne(requiredArg: () -> Unit, ...)",
-      "FoobarTwo(...)",
-      "FoobarThree(requiredArg: () -> Unit, optionalArg: Int = ...) (com.example) Unit",
-      "FoobarFour(optionalArg: Int = ...) (com.example) Unit",
-      "FoobarFive(requiredArg: () -> Unit, ...)",
-      "FoobarSix(...)",
-    )
+    val parameterWithComposeAnnotation =
+      if (KotlinPluginModeProvider.isK2Mode()) "@Composable (() -> Unit)" else "() -> Unit"
+    val expectedLookupItems =
+      listOf(
+        "FoobarOne(requiredArg: $parameterWithComposeAnnotation, ...)",
+        "FoobarTwo(...)",
+        "FoobarThree(requiredArg: $parameterWithComposeAnnotation, optionalArg: Int = ...) (com.example) Unit",
+        "FoobarFour(optionalArg: Int = ...) (com.example) Unit",
+        "FoobarFive(requiredArg: () -> Unit, ...)",
+        "FoobarSix(...)",
+      )
 
     // Given:
     myFixture.loadNewFile(
@@ -915,20 +1007,22 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         Foobar${caret}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // When:
     myFixture.completeBasic()
 
     // Then:
-    // Order doesn't matter here, since we're just validating that the elements are displayed with the correct signature text.
+    // Order doesn't matter here, since we're just validating that the elements are displayed with
+    // the correct signature text.
     assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(expectedLookupItems)
   }
 
   /**
-   * Regression test for b/209060418. Autocomplete should not treat required composable method specially if it's not the final argument (ie,
-   * there are optional arguments specified after it.
+   * Regression test for b/209060418. Autocomplete should not treat required composable method
+   * specially if it's not the final argument (ie, there are optional arguments specified after it.
    */
   @Test
   fun testInsertHandlerWithRequiredComposableBeforeOptionalArgs() {
@@ -944,7 +1038,8 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun FoobarOne(requiredArg: @Composable () -> Unit, optionalArg: Int = 0) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Given:
@@ -960,7 +1055,8 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         Foobar${caret}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // When:
@@ -978,13 +1074,13 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         FoobarOne(requiredArg = { /*TODO*/ })
       }
-      """.trimIndent()
-      , true)
+      """
+        .trimIndent(),
+      true
+    )
   }
 
-  /**
-   * Regression test for b/182564317. Autocomplete should not treat varargs as required.
-   */
+  /** Regression test for b/182564317. Autocomplete should not treat varargs as required. */
   @Test
   fun testInsertHandlerWithVarArgs() {
     myFixture.addFileToProject(
@@ -999,7 +1095,8 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun FoobarOne(vararg inputs: Any?, children: @Composable () -> Unit) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Given:
@@ -1015,7 +1112,8 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         Foobar${caret}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // When:
@@ -1035,13 +1133,13 @@ class ComposeCompletionContributorTest {
 
         }
       }
-      """.trimIndent()
-      , true)
+      """
+        .trimIndent(),
+      true
+    )
   }
 
-  /**
-   * Regression test for b/182564317. Autocomplete should not treat varargs as required.
-   */
+  /** Regression test for b/182564317. Autocomplete should not treat varargs as required. */
   @Test
   fun testInsertHandlerWithVarArgsLambda() {
     myFixture.addFileToProject(
@@ -1056,7 +1154,8 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun FoobarOne(vararg children: @Composable () -> Unit) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Given:
@@ -1072,7 +1171,8 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         Foobar${caret}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // When:
@@ -1090,20 +1190,24 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         FoobarOne()
       }
-      """.trimIndent()
-      , true)
+      """
+        .trimIndent(),
+      true
+    )
   }
 
   /**
-   * Regression test for b/271675885. Autocomplete changes should apply to function invocations, not function definitions.
+   * Regression test for b/271675885. Autocomplete changes should apply to function invocations, not
+   * function definitions.
    */
   @Test
   fun testInsertHandler_functionDefinition() {
     // Given:
-    val file = myFixture.addFileToProject(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -1117,8 +1221,9 @@ class ComposeCompletionContributorTest {
       class MyComposablesImpl : MyComposables {
           override fun Foo${caret}
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     // When:
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1143,7 +1248,8 @@ class ComposeCompletionContributorTest {
               TODO("Not yet implemented")
           }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -1161,7 +1267,8 @@ class ComposeCompletionContributorTest {
       .isEqualTo("images/material/icons/materialiconsoutlined/adb/outline_adb_24.xml")
 
     assertThat("androidx.compose.material.icons.unknown.Adb".resourcePathFromFqName()).isNull()
-    assertThat("androidx.compose.material.icons.filled.extrapackage.Adb".resourcePathFromFqName()).isNull()
+    assertThat("androidx.compose.material.icons.filled.extrapackage.Adb".resourcePathFromFqName())
+      .isNull()
 
     // Ensure numbers in camel case are converted as expected.
     assertThat("androidx.compose.material.icons.filled.Shop2".resourcePathFromFqName())
@@ -1181,7 +1288,8 @@ class ComposeCompletionContributorTest {
       package androidx.compose.ui.graphics.vector
 
       class ImageVector
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.addFileToProject(
@@ -1193,7 +1301,8 @@ class ComposeCompletionContributorTest {
       object Icons {
         object Filled
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.loadNewFile(
@@ -1207,7 +1316,8 @@ class ComposeCompletionContributorTest {
       val androidx.compose.material.icons.Icons.Filled.Accoun<caret>tBox: ImageVector
         get() = ImageVector()
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val accountBox = runReadAction { myFixture.elementAtCaret }
@@ -1225,7 +1335,8 @@ class ComposeCompletionContributorTest {
       package androidx.compose.ui.graphics.vector
 
       class ImageVector
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.addFileToProject(
@@ -1237,7 +1348,8 @@ class ComposeCompletionContributorTest {
       object Icons {
         object Unknown
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.loadNewFile(
@@ -1251,7 +1363,8 @@ class ComposeCompletionContributorTest {
       val androidx.compose.material.icons.Icons.Unknown.Accoun<caret>tBox: ImageVector
         get() = ImageVector()
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val accountBox = runReadAction { myFixture.elementAtCaret }
@@ -1263,10 +1376,14 @@ class ComposeCompletionContributorTest {
   @Test
   fun composeMaterialIconLookupElement_getIcon() {
     assertThat(
-      ComposeMaterialIconLookupElement.getIcon("androidx.compose.material.icons.filled.AccountBox"))
+        ComposeMaterialIconLookupElement.getIcon(
+          "androidx.compose.material.icons.filled.AccountBox"
+        )
+      )
       .isNotNull()
     assertThat(
-      ComposeMaterialIconLookupElement.getIcon("androidx.compose.material.icons.filled.Unknown"))
+        ComposeMaterialIconLookupElement.getIcon("androidx.compose.material.icons.filled.Unknown")
+      )
       .isNull()
   }
 

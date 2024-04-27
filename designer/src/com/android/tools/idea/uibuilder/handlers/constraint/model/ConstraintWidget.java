@@ -491,7 +491,7 @@ public class ConstraintWidget {
     /**
      * Return the array of anchors of this widget
      *
-     * @return list of anchors
+     * @return array of anchors
      */
     public ArrayList<ConstraintAnchor> getAnchors() {
         return mAnchors;

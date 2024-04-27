@@ -33,7 +33,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +76,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
         }
       }
     }
-    myList = new JBList((Object[])ArrayUtilRt.toStringArray(deepLinks));
+    myList = new JBList((Object[])ArrayUtil.toStringArray(deepLinks));
     myList.setEmptyText("None found in AndroidManifest.xml");
     init();
   }
@@ -94,7 +94,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
     myList.setSelectedIndex(0);
     new DoubleClickListener() {
       @Override
-      protected boolean onDoubleClick(@NotNull MouseEvent e) {
+      protected boolean onDoubleClick(MouseEvent e) {
         int index = myList.locationToIndex(e.getPoint());
         if (index != -1 && myList.getModel().getElementAt(index) != null) {
           myList.setSelectedIndex(index);

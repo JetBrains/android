@@ -44,6 +44,6 @@ internal fun loadClass(output: LiveEditCompilerOutput, target : String = output.
 /**
  * Invoke a given function of a given class and return the return value.
  */
-internal fun invokeStatic(name: String, clazz: Class<*>) : Any {
+internal fun invokeStatic(name: String, clazz: Class<*>) : Any? {
   return clazz.getMethod(name).invoke(null)
 }

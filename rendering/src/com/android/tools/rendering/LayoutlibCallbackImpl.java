@@ -81,6 +81,7 @@ import com.android.utils.XmlUtils;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
@@ -95,7 +96,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -141,6 +141,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable private final Object myCredential;
   private final boolean myHasLegacyAppCompat;
   private final boolean myHasAndroidXAppCompat;
+  private final boolean myShouldUseCustomInflater;
   private final ResourceNamespacing myNamespacing;
   private final ModuleClassLoader myClassLoader;
   @NotNull private IRenderLogger myLogger;
@@ -187,7 +188,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @Nullable Object credential,
                                @Nullable ActionBarHandler actionBarHandler,
                                @Nullable ILayoutPullParserFactory parserFactory,
-                               @NotNull ModuleClassLoader moduleClassLoader) {
+                               @NotNull ModuleClassLoader moduleClassLoader,
+                               boolean shouldUseCustomInflater) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myRenderModule = renderModule;
@@ -199,6 +201,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myLayoutPullParserFactory = parserFactory;
     myHasLegacyAppCompat = renderModule.getDependencies().dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7);
     myHasAndroidXAppCompat = renderModule.getDependencies().dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
+    myShouldUseCustomInflater = shouldUseCustomInflater;
 
     myNamespacing = renderModule.getResourceRepositoryManager().getNamespacing();
     if (myNamespacing == ResourceNamespacing.DISABLED) {
@@ -531,7 +534,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     // For included layouts, create a LayoutFilePullParser such that we get the
     // layout editor behavior in included layouts as well - which for example
     // replaces <fragment> tags with <include>.
-    return LayoutFilePullParser.create(xml, namespace);
+    return LayoutFilePullParser.create(xml, namespace, myRenderModule.getResourceIdManager());
   }
 
   /**
@@ -640,7 +643,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     if (includes != null && !includes.isEmpty()) {
       for (String include : includes) {
         if (visiting.contains(include)) {
-          List<String> list = new LinkedList<>();
+          List<String> list = Lists.newLinkedList();
           list.add(include);
           list.add(from);
           return list;
@@ -845,6 +848,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   public boolean isResourceNamespacingRequired() {
     return myNamespacing == ResourceNamespacing.REQUIRED;
+  }
+
+  @Override
+  public boolean shouldUseCustomInflater() {
+    return myShouldUseCustomInflater;
   }
 
   @Override

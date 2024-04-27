@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager

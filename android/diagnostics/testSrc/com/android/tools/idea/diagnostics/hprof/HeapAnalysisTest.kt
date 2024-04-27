@@ -19,6 +19,7 @@ import com.android.tools.idea.diagnostics.hprof.analysis.AnalysisConfig
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import org.junit.After
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -44,10 +45,11 @@ class HeapAnalysisTest {
     baselineFileName: String,
     nominatedClassNames: List<String>? = null,
     classNameMapping: ((Class<*>) -> String)? = null,
-    config: AnalysisConfig? = null) {
+    config: AnalysisConfig? = null,
+    summaryBaselineFileName: String? = null) {
     object : HProfScenarioRunner(tmpFolder, remapInMemory) {
       override fun mapClassName(clazz: Class<*>): String = classNameMapping?.invoke(clazz) ?: super.mapClassName(clazz)
-    }.run(scenario, baselineFileName, nominatedClassNames, config = config)
+    }.run(scenario, baselineFileName, nominatedClassNames, config = config, summaryBaselineFileName = summaryBaselineFileName)
   }
 
   @Test
@@ -267,6 +269,61 @@ class HeapAnalysisTest {
       scenario, "testInnerClassSection.txt", null, shouldMapClassNames = false,
       config = configWithInnerClassSectionOnly())
   }
+
+  @Test
+  fun testMissingObjectInObjectArray() {
+    val scenario: HProfBuilder.() -> Unit = {
+      class A(val x: Any) {
+      }
+      val s = "object excluded from hprof"
+      setObjectFilter { o ->
+        if (o === s)
+          HProfBuilder.FilterResult.INCLUDE_REFERENCES_ONLY
+        else
+          HProfBuilder.FilterResult.INCLUDE_REFERENCES_AND_INSTANCE
+      }
+      // This will keep a reference to the object from the array, but object itself will not be
+      //   included.
+      val a = A(listOf("", s))
+      addRootGlobalJNI(a)
+    }
+    // Check if the hprof can be parsed without throwing an exception
+    val report = HProfScenarioRunner(tmpFolder, remapInMemory).createReport(scenario, null)
+    Assert.assertTrue(report.mainReport.isNotEmpty())
+  }
+
+  @Test
+  fun testReportSummary() {
+    val scenario: HProfBuilder.() -> Unit = {
+      class A(val x: Any)
+      class B(val x: Any)
+      val a = A("string")
+      val b = B("another string")
+      val c = listOf(a, b)
+      addRootGlobalJNI(c)
+    }
+    HProfScenarioRunner(tmpFolder, remapInMemory).run(
+      scenario, "testReportSummary_report.txt", listOf("A", "B"),
+      config = configWithSummary("A", "B"),
+      summaryBaselineFileName = "testReportSummary_summary.txt")
+  }
+
+  private fun configWithSummary(vararg classes: String) = AnalysisConfig(
+    AnalysisConfig.PerClassOptions(
+      classNames = classes.asList(),
+      includeClassList = false
+    ),
+    AnalysisConfig.HistogramOptions(includeByCount = false,
+                                    includeBySize = false,
+                                    includeSummary = false),
+    summaryOptions = AnalysisConfig.SummaryOptions(
+      minimumSubgraphSize = 0,
+      maximumTreeDepth = 40
+    ),
+    metaInfoOptions = AnalysisConfig.MetaInfoOptions(
+      include = false
+    )
+  )
 
   private fun configWithDisposerTreeSummaryOnly() = AnalysisConfig(
     AnalysisConfig.PerClassOptions(

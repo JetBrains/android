@@ -45,7 +45,6 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -113,7 +112,7 @@ public class ExternalAnnotationsSupport {
 
     String path = finalSdk.getHomePath();
     String text = "No IDEA annotations attached to the Android SDK " + finalSdk.getName() + (path == null ? "" : " (" +
-                   FileUtilRt.toSystemDependentName(path) + ")") + ", some issues will not be found";
+                   FileUtil.toSystemDependentName(path) + ")") + ", some issues will not be found";
     holder.registerProblem(file, text, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, new LocalQuickFix() {
       @NotNull
       @Override
@@ -215,7 +214,7 @@ public class ExternalAnnotationsSupport {
   public static void addAnnotations(@NotNull Sdk sdk) {
     SdkModificator modifier = sdk.getSdkModificator();
     attachJdkAnnotations(modifier);
-    ApplicationManager.getApplication().runWriteAction(() -> modifier.commitChanges());
+    modifier.commitChanges();
   }
 
   public static void addAnnotationsIfNecessary(@NotNull Sdk sdk) {

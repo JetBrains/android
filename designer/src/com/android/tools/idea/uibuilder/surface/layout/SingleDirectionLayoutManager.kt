@@ -17,9 +17,6 @@ package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.surface.SurfaceScale
-import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager.Alignment
-import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager.Alignment.END
-import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager.Alignment.START
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max

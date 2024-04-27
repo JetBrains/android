@@ -21,6 +21,6 @@ import com.intellij.ide.ui.customization.CustomizableActionGroupProvider
 class EmulatorCustomizableActionGroupProvider : CustomizableActionGroupProvider() {
 
   override fun registerGroups(registrar: CustomizableActionGroupRegistrar) {
-    registrar.addCustomizableActionGroup(EMULATOR_MAIN_TOOLBAR_ID, "Emulator Toolbar")
+    registrar.addCustomizableActionGroup(EMULATOR_MAIN_TOOLBAR_ID, "Virtual Device Toolbar")
   }
 }

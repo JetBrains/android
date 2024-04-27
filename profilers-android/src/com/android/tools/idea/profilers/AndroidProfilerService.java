@@ -131,7 +131,8 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
         configBuilder.getCommonBuilder()
           .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
           .setProfilerUnifiedPipeline(true)
-          .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get()))
+          .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get())
+          .setProfilerTaskBasedUx(StudioFlags.PROFILER_TASK_BASED_UX.get()))
       .setCpu(
         Transport.DaemonConfig.CpuConfig.newBuilder()
           .setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC)
@@ -151,7 +152,8 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
           .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
           .setProfilerUnifiedPipeline(true)
           .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get())
-          .setProfilerKeyboardEvent(StudioFlags.PROFILER_KEYBOARD_EVENT.get()))
+          .setProfilerKeyboardEvent(StudioFlags.PROFILER_KEYBOARD_EVENT.get())
+          .setProfilerTaskBasedUx(StudioFlags.PROFILER_TASK_BASED_UX.get()))
       .setMem(
         Agent.AgentConfig.MemoryConfig.newBuilder()
           .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)

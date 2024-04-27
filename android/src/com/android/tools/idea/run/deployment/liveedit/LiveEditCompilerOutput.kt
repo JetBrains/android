@@ -18,14 +18,14 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.intellij.openapi.module.Module
 
-enum class LiveEditClassType {
+internal enum class LiveEditClassType {
   NORMAL_CLASS,
   SUPPORT_CLASS,
 }
 
-class LiveEditCompiledClass(val name: String, var data: ByteArray, val module: Module?, val type: LiveEditClassType)
+internal class LiveEditCompiledClass(val name: String, var data: ByteArray, val module: Module?, val type: LiveEditClassType)
 
-data class LiveEditCompilerOutput internal constructor (val classes: List<LiveEditCompiledClass> = emptyList(),
+data class LiveEditCompilerOutput internal constructor (internal val classes: List<LiveEditCompiledClass> = emptyList(),
                                                         val irClasses: List<IrClass> = emptyList(),
                                                         val groupIds: List<Int> = emptyList(),
                                                         val resetState: Boolean = false) {

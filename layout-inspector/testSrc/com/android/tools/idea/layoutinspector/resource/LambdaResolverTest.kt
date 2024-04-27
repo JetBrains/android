@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.resource
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction

@@ -26,6 +26,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionSupport
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -57,6 +58,8 @@ class SelectDeviceAction(
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
     return super.createCustomComponent(presentation, place).also { button = it }
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     val selectedDevice = deviceModel.selectedDevice
@@ -126,6 +129,8 @@ class SelectDeviceAction(
       return deviceModel.selectedDevice != null || deviceModel.selectedProcess != null
     }
 
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = isEnabled()
     }
@@ -140,6 +145,8 @@ class SelectDeviceAction(
     private val device: DeviceDescriptor,
   ) : ToggleAction(device.buildDeviceName(), null, device.toIcon()) {
     override fun displayTextInToolbar() = true
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun update(event: AnActionEvent) {
       super.update(event)
@@ -202,6 +209,8 @@ class SelectDeviceAction(
     override fun setSelected(event: AnActionEvent, state: Boolean) {
       onProcessSelected(processDescriptor)
     }
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
   }
 }
 

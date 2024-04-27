@@ -55,6 +55,7 @@ abstract class LintIdeSupport {
   init {
     LintClient.clientName = CLIENT_STUDIO
   }
+
   companion object {
     @JvmStatic
     fun get(): LintIdeSupport =
@@ -80,7 +81,9 @@ abstract class LintIdeSupport {
   }
 
   open fun getPlatforms(): EnumSet<Platform> = Platform.JDK_SET
+
   open fun getSeverityOverrides(module: Module): Map<String, Int>? = null
+
   open fun askForAttributeValue(attributeName: String, context: PsiElement): String? = null
   /** Whether or not the given file should be annotated on the fly in the editor */
   open fun canAnnotate(file: PsiFile, module: Module): Boolean {
@@ -154,17 +157,24 @@ abstract class LintIdeSupport {
 
   // Gradle
   open fun updateToLatestStable(module: Module, externalModule: ExternalModule) {}
+
   open fun recommendedAgpVersion(project: Project): AgpVersion? = null
+
   open fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean = false
+
   open fun updateAgpToLatest(project: Project) {}
+
   open fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project): Boolean = false
+
   open fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {}
+
   open fun resolveDynamicDependency(project: Project, dependency: Dependency): String? = null
 
   // Analytics
   open fun canRequestFeedback(): Boolean = false
 
   open fun requestFeedbackFix(issue: Issue): LocalQuickFix = error("Not supported")
+
   open fun requestFeedbackIntentionAction(issue: Issue): IntentionAction = error("Not supported")
   // Editor session
   open fun logSession(lint: LintDriver, lintResult: LintEditorResult) {}
@@ -172,6 +182,7 @@ abstract class LintIdeSupport {
   open fun logSession(lint: LintDriver, module: Module?, lintResult: LintBatchResult) {}
 
   open fun logQuickFixInvocation(project: Project, issue: Issue, fixDescription: String) {}
+
   open fun logTooltipLink(url: String, issue: Issue, project: Project) {}
 
   // XML processing

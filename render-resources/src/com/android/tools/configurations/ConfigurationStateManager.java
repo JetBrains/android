@@ -15,14 +15,15 @@
  */
 package com.android.tools.configurations;
 
-import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.*;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xmlb.annotations.Property;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XMap;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.HashMap;
 import java.util.Map;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Persistent state management for configurations.

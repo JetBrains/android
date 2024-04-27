@@ -21,32 +21,40 @@ import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.Memor
 import static org.junit.Assert.assertThat;
 
 import com.android.annotations.NonNull;
+import com.android.test.testutils.TestUtils;
+import com.android.testutils.classloader.SingleClassLoader;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.TruncatingStringBuilder;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.ide.PowerSaveMode;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.testFramework.PlatformLiteFixture;
+import com.intellij.util.TriConsumer;
 import com.intellij.util.containers.WeakList;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.assertj.core.util.Sets;
 import org.hamcrest.core.SubstringMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,8 +64,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class HeapAnalyzerTest extends PlatformLiteFixture {
-
-  private static final int MAX_DEPTH = 100;
 
   @Before
   public void setUp() throws Exception {
@@ -70,7 +76,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
   private void checkObjectsUntagged(Object[] objects) {
     for (Object object : objects) {
-      Assert.assertEquals(0, HeapSnapshotTraverse.getObjectTag(object));
+      Assert.assertEquals(0, MemoryReportJniHelper.getObjectTag(object));
     }
   }
 
@@ -90,18 +96,18 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
     A a = new A();
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(a)));
+                        new MemoryReportCollector(stats).walkObjects(List.of(a)));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(3, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
-    Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
+    Assert.assertEquals("A", componentStats.get(1).getCluster().getLabel());
     // instance of A, boxed int
     Assert.assertEquals(2, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
 
     Assert.assertEquals(40, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
-    Assert.assertEquals("B", componentStats.get(2).getComponent().getComponentLabel());
+    Assert.assertEquals("B", componentStats.get(2).getCluster().getLabel());
     // instance of B
     Assert.assertEquals(1, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(16, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
@@ -119,13 +125,13 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
     A a = new A();
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(a, C.class)));
+                        new MemoryReportCollector(stats).walkObjects(List.of(a, C.class)));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
-    Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
+    Assert.assertEquals("A", componentStats.get(1).getCluster().getLabel());
     // A, B, Integer
     Assert.assertEquals(3, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(56, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
@@ -146,21 +152,19 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     // to initialize C class.
     C c = new C();
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(new TestTraverseChildProcessor(stats), stats).walkObjects(MAX_DEPTH,
-                                                                                                           List.of(new A(new B()),
-                                                                                                                   c.getClass())));
+    Assert.assertEquals(StatusCode.NO_ERROR, new MemoryReportCollector(new TestTraverseChildProcessor(stats), stats).walkObjects(
+      List.of(new A(new B()), c.getClass())));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(3, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
-    Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
+    Assert.assertEquals("A", componentStats.get(1).getCluster().getLabel());
     // A instance and B instance
     Assert.assertEquals(2, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(40, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
 
-    Assert.assertEquals("C", componentStats.get(2).getComponent().getComponentLabel());
+    Assert.assertEquals("C", componentStats.get(2).getCluster().getLabel());
     // C class object and boxed 0 static field
     Assert.assertEquals(2, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     checkObjectsUntagged(new Object[]{c, C.STATIC_INT});
@@ -179,16 +183,16 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     D d = new D(b);
     A a = new A(b);
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(d, a)));
+                        new MemoryReportCollector(stats).walkObjects(List.of(d, a)));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
 
     Assert.assertEquals(2, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(40, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
-    Assert.assertEquals("D", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals("D", componentStats.get(1).getCluster().getLabel());
     Assert.assertEquals(3, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(56, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
     checkObjectsUntagged(new Object[]{a, b, d, a.myB, a.myInt, d.myArray});
@@ -210,17 +214,17 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     A a = new A(b);
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(d, a)));
+                        new MemoryReportCollector(stats).walkObjects(List.of(d, a)));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(3, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
 
-    Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals("A", componentStats.get(1).getCluster().getLabel());
     Assert.assertEquals(3, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(56, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
-    Assert.assertEquals("D", componentStats.get(2).getComponent().getComponentLabel());
+    Assert.assertEquals("D", componentStats.get(2).getCluster().getLabel());
     Assert.assertEquals(2, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(40, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
     checkObjectsUntagged(new Object[]{a, b, d, a.myB, a.myInt, d.myArray});
@@ -238,14 +242,14 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
     F f = new F();
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(f)));
+                        new MemoryReportCollector(stats).walkObjects(List.of(f)));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
 
-    Assert.assertEquals("F", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals("F", componentStats.get(1).getCluster().getLabel());
     // F, WeakReference, ReferenceQueue$Null and ReferenceQueue$Lock
     Assert.assertEquals(4, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(96, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
@@ -267,15 +271,15 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new D(new B()))));
+                        new MemoryReportCollector(stats).walkObjects(List.of(new D(new B()))));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(3, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
 
-    Assert.assertEquals("B", componentStats.get(1).getComponent().getComponentLabel());
-    Assert.assertEquals("D", componentStats.get(2).getComponent().getComponentLabel());
+    Assert.assertEquals("B", componentStats.get(1).getCluster().getLabel());
+    Assert.assertEquals("D", componentStats.get(2).getCluster().getLabel());
 
     Assert.assertEquals(2, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(40, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
@@ -287,10 +291,10 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   public void testTraverseMetadata() {
     ComponentsSet componentsSet = new ComponentsSet();
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    HeapSnapshotTraverse traverse = new HeapSnapshotTraverse(stats);
+    MemoryReportCollector traverse = new MemoryReportCollector(stats);
 
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        traverse.walkObjects(MAX_DEPTH, List.of(new A())));
+                        traverse.walkObjects(List.of(new A())));
     Assert.assertEquals(stats.maxFieldsCacheSize, 2);
     Assert.assertEquals(stats.maxObjectsQueueSize, 2);
     Assert.assertEquals(stats.enumeratedGarbageCollectedObjects, 0);
@@ -302,12 +306,12 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   public void testTraverseReturnLowMemoryError() {
     ComponentsSet componentsSet = new ComponentsSet();
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    HeapSnapshotTraverse traverse = new HeapSnapshotTraverse(stats);
+    MemoryReportCollector traverse = new MemoryReportCollector(stats);
 
     LowMemoryWatcher.onLowMemorySignalReceived(false);
 
     Assert.assertEquals(StatusCode.LOW_MEMORY,
-                        traverse.walkObjects(MAX_DEPTH, List.of(new A())));
+                        traverse.walkObjects(List.of(new A())));
   }
 
   @Test
@@ -322,16 +326,16 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
     B b = new B();
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A(b), new D(b))));
+                        new MemoryReportCollector(stats).walkObjects(List.of(new A(b), new D(b))));
 
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
 
     // HeapAnalyzerTest$A and underlying Integer
     Assert.assertEquals(2, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals("D", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals("D", componentStats.get(1).getCluster().getLabel());
     // HeapAnalyzerTest$D, underlying array and HeapAnalyzerTest$B
     Assert.assertEquals(3, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
   }
@@ -350,7 +354,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
 
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
-    Assert.assertEquals(StatusCode.NO_ERROR, new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(new A())));
+    Assert.assertEquals(StatusCode.NO_ERROR, new MemoryReportCollector(stats).walkObjects(List.of(new A())));
 
     HeapSnapshotStatistics.ClusterObjectsStatistics categoryComponentStats =
       stats.getCategoryComponentStats().get(defaultCategory.getId());
@@ -369,16 +373,16 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
     @Override
     void processChildObjects(@Nullable final Object obj,
-                             @NotNull final BiConsumer<Object, HeapTraverseNode.RefWeight> consumer,
+                             @NotNull final TriConsumer<Object, HeapTraverseNode.RefWeight, String> consumer,
                              @NotNull final FieldCache fieldCache) throws HeapSnapshotTraverseException {
-      super.processChildObjects(obj, (Object value, HeapTraverseNode.RefWeight ownershipWeight) -> {
+      super.processChildObjects(obj, (Object value, HeapTraverseNode.RefWeight ownershipWeight, String label) -> {
         if (value == null) {
           return;
         }
         if (!ALLOWED_CLASSES.contains(value.getClass())) {
           return;
         }
-        consumer.accept(value, ownershipWeight);
+        consumer.accept(value, ownershipWeight, label);
       }, fieldCache);
     }
   }
@@ -395,13 +399,13 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                           "com.android.tools.idea.diagnostics"),
                                                         Collections.emptyList());
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(
-                          new HeapSnapshotStatistics(componentsSet)).walkObjects(MAX_DEPTH, List.of(
+                        new MemoryReportCollector(
+                          new HeapSnapshotStatistics(componentsSet)).walkObjects(List.of(
                           new E(new TruncatingStringBuilder(0, "")))));
 
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(componentsSet);
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, List.of(
+                        new MemoryReportCollector(stats).walkObjects(List.of(
                           new E(new TruncatingStringBuilder(0, "")))));
     MemoryUsageReportEvent event =
       stats.buildMemoryUsageReportEvent(StatusCode.NO_ERROR, 1500, 1000, 200);
@@ -442,7 +446,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   @Test
   public void testGetStaticFieldsNoSideEffect() throws
                                                 ClassNotFoundException {
-    if (Arrays.stream(HeapSnapshotTraverse.getClasses())
+    if (Arrays.stream(MemoryReportJniHelper.getClasses())
       .anyMatch(c -> "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$H".equals(c.getName()))) {
       throw new AssumptionViolatedException("One of the tests loaded HeapAnalyzerTest$H class");
     }
@@ -457,8 +461,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     Class<?> gClass = Class.forName(G.class.getName());
     HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(componentsSet);
     ClassNameRecordingChildProcessor processor = new ClassNameRecordingChildProcessor(statistics);
-    Assert.assertEquals(StatusCode.NO_ERROR, new HeapSnapshotTraverse(processor, statistics).walkObjects(MAX_DEPTH, List.of(gClass)));
-    for (Class<?> aClass : HeapSnapshotTraverse.getClasses()) {
+    Assert.assertEquals(StatusCode.NO_ERROR, new MemoryReportCollector(processor, statistics).walkObjects(List.of(gClass)));
+    for (Class<?> aClass : MemoryReportJniHelper.getClasses()) {
       Assert.assertNotEquals("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$H", aClass.getName());
     }
 
@@ -478,7 +482,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
       /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/false));
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(statistics).walkObjects(MAX_DEPTH, List.of(new D(new B(), new B(), new B()))));
+                        new MemoryReportCollector(statistics).walkObjects(List.of(new D(new B(), new B(), new B()))));
     Assert.assertNotNull(statistics.getExtendedReportStatistics());
     ExtendedReportStatistics.ClusterHistogram histogram0 = statistics.getExtendedReportStatistics().categoryHistograms.get(0);
     ExtendedReportStatistics.ClusterHistogram histogram1 = statistics.getExtendedReportStatistics().categoryHistograms.get(1);
@@ -505,7 +509,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   private static class FakeCrushReporter extends StudioCrashReporter {
 
     @NotNull
-    List<CrashReport> crashReports = new ArrayList<>();
+    List<CrashReport> crashReports = Lists.newArrayList();
 
     @Override
     @NonNull
@@ -516,23 +520,31 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   }
 
   @Test
-  public void testTrackedFQNs() throws IOException {
+  public void testTrackedFQNs() {
     ComponentsSet componentsSet = new ComponentsSet();
 
-    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
-    componentsSet.addComponentWithPackagesAndClassNames("diagnostics_main",
+    ComponentsSet.ComponentCategory defaultCategory =
+      componentsSet.registerCategory("diagnostics", Long.MAX_VALUE, List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B",
+                                                                            "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+    componentsSet.addComponentWithPackagesAndClassNames("B",
                                                         Long.MAX_VALUE,
                                                         defaultCategory,
-                                                        List.of(
-                                                          "com.android.tools.idea.diagnostics"),
                                                         Collections.emptyList(),
+                                                        List.of(
+                                                          "com.android.tools.idea.diagnostics$B"),
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B",
-                                                                "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+                                                                "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
+                                                        Collections.emptyList());
+    componentsSet.addComponentWithPackagesAndClassNames("D",
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of(
+                                                          "com.android.tools.idea.diagnostics$D"));
 
     HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
       /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/false));
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(statistics).walkObjects(MAX_DEPTH, List.of(new D(new B(), new B(), new B()))));
+                        new MemoryReportCollector(statistics).walkObjects(List.of(new D(new B(), new B(), new B()))));
     Assert.assertEquals(3, statistics.getComponentStats().get(1).getTrackedFQNInstanceCounter()
       .getInt("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
     Assert.assertEquals(1, statistics.getComponentStats().get(1).getTrackedFQNInstanceCounter()
@@ -545,7 +557,153 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
       .getInstanceCountPerClassNameOrThrow("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
     Assert.assertTrue(event.getComponentStats(0).getInstanceCountPerClassNameMap().isEmpty());
     Assert.assertTrue(event.getComponentCategoryStats(0).getInstanceCountPerClassNameMap().isEmpty());
-    Assert.assertTrue(event.getComponentCategoryStats(1).getInstanceCountPerClassNameMap().isEmpty());
+    Assert.assertEquals(3, event.getComponentCategoryStats(1)
+      .getInstanceCountPerClassNameOrThrow("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
+    Assert.assertEquals(1, event.getComponentCategoryStats(1)
+      .getInstanceCountPerClassNameOrThrow("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+  }
+
+  @Test
+  public void testExtendedReportNodesOrdering() throws IOException {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("TestComponent",
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of(
+                                                          "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray",
+                                                          "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2"));
+    FakeCrushReporter crushReporter = new FakeCrushReporter();
+    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+
+    WeakList<Object> roots = new WeakList<>();
+    roots.add(new ReferenceToObjectArray(new int[]{1}, new int[]{2}, new int[]{3}));
+    roots.add(new ReferenceToObjectArray.ReferenceToObjectArray2(new int[]{1, 2, 3, 4, 5, 6}, new int[]{7, 8, 9, 10, 11, 12}));
+
+    MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots, 0);
+    assertSize(1, crushReporter.crashReports);
+    CrashReport report = crushReporter.crashReports.get(0);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
+    serializedExtendedReport = replaceNewlines(serializedExtendedReport);
+    assertExtendedMemoryReport("testExtendedReportNodesOrdering", serializedExtendedReport);
+    assertExtendedMemoryReportSummary("testExtendedReportNodesOrdering", serializedExtendedReport);
+  }
+
+  @Test
+  public void testExtendedReportRepeatedNodes()  throws IOException {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("D",
+                                                        1,
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("java.util.LinkedList"),
+                                                        Collections.emptyList(),
+                                                        Collections.emptyList());
+    FakeCrushReporter crushReporter = new FakeCrushReporter();
+    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+
+    List<String> strings = new LinkedList<>();
+    strings.add("hello1");
+    strings.add("hello2");
+    strings.add("hello3");
+    strings.add(String.join("", Collections.nCopies(100000, "hello4")));
+    strings.add("hello5");
+    WeakList<Object> roots = new WeakList<>();
+    roots.add(strings);
+
+    MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots, 0);
+    assertSize(1, crushReporter.crashReports);
+    CrashReport report = crushReporter.crashReports.get(0);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
+    serializedExtendedReport = replaceNewlines(serializedExtendedReport);
+    assertExtendedMemoryReport("testExtendedReportRepeatedNodes", serializedExtendedReport);
+    assertExtendedMemoryReportSummary("testExtendedReportRepeatedNodes", serializedExtendedReport);
+  }
+
+  @Test
+  public void testExtendedReportNominatedClassesTree() throws IOException {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("D",
+                                                        1,
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
+                                                        Collections.emptyList());
+    FakeCrushReporter crushReporter = new FakeCrushReporter();
+    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+
+    WeakList<Object> roots = new WeakList<>();
+    B b = new B();
+    B b2 = new B();
+    roots.add(new D(b));
+    roots.add(new D(b));
+    roots.add(new ReferenceToB(b));
+    roots.add(new D(b2, new B()));
+    roots.add(new D(b2));
+    Disposer.register(b, b2);
+    Disposer.dispose(b);
+
+    MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots, 0);
+    assertSize(1, crushReporter.crashReports);
+    CrashReport report = crushReporter.crashReports.get(0);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
+    serializedExtendedReport = replaceNewlines(serializedExtendedReport);
+    assertExtendedMemoryReport("testExtendedReportNominatedClassesTree", serializedExtendedReport);
+    assertExtendedMemoryReportSummary("testExtendedReportNominatedClassesTree", serializedExtendedReport);
+  }
+
+  @Test
+  public void testDisposedObjectsInExtendedReport() throws IOException {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("D",
+                                                        1,
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
+                                                        Collections.emptyList());
+    FakeCrushReporter crushReporter = new FakeCrushReporter();
+    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+
+    WeakList<Object> roots = new WeakList<>();
+    B b = new B();
+    B b2 = new B();
+    D d1 = new D(b);
+    D d2 = new D(b);
+    D d3 = new D(b2);
+
+    roots.add(d1);
+    roots.add(List.of(d2));
+    roots.add(d3);
+
+    Disposer.register(d1, b);
+    Disposer.register(d1, d3);
+    Disposer.register(d1, b2);
+    Disposer.dispose(d1);
+
+    MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots, 0);
+    assertSize(1, crushReporter.crashReports);
+    CrashReport report = crushReporter.crashReports.get(0);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
+    serializedExtendedReport = replaceNewlines(serializedExtendedReport);
+    assertExtendedMemoryReport("testDisposedObjectsInExtendedReport", serializedExtendedReport);
+    assertExtendedMemoryReportSummary("testDisposedObjectsInExtendedReport", serializedExtendedReport);
   }
 
   @Test
@@ -558,86 +716,226 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                         defaultCategory,
                                                         Collections.emptyList(),
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"),
-                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"));
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"),
+                                                        Collections.emptyList());
     componentsSet.addComponentWithPackagesAndClassNames("B",
                                                         2,
                                                         defaultCategory,
                                                         Collections.emptyList(),
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"),
-                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
-    HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
-      /*collectHistograms=*/false, /*collectDisposerTreeInfo=*/false));
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"),
+                                                        Collections.emptyList());
     FakeCrushReporter crushReporter = new FakeCrushReporter();
     getApplication().registerService(StudioCrashReporter.class, crushReporter);
 
     WeakList<Object> roots = new WeakList<>();
     A a = new A(new B());
     roots.add(a);
-    Assert.assertEquals(StatusCode.NO_ERROR,
-                        HeapSnapshotTraverse.collectMemoryReport(statistics, () -> roots));
+    MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1),
+                                                                                    componentsSet.getComponents().get(2)), () -> roots, 0);
+    assertSize(2, crushReporter.crashReports);
+    CrashReport report = crushReporter.crashReports.get(0);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
+    serializedExtendedReport = replaceNewlines(serializedExtendedReport);
+    assertRequestContainsField(serializedExtendedReport, "All clusters that exceeded the memory usage threshold", "A,B");
+    assertRequestContainsField(serializedExtendedReport, "Target exceeded cluster", "A");
+    assertRequestContainsField(serializedExtendedReport, "Total used memory", "56B/3 objects");
+
+    assertExtendedMemoryReport("testExtendedReportCollectionA", serializedExtendedReport);
+    assertExtendedMemoryReportSummary("testExtendedReportCollectionA", serializedExtendedReport);
+
+    report = crushReporter.crashReports.get(1);
+    builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
+    serializedExtendedReport = replaceNewlines(serializedExtendedReport);
+    assertRequestContainsField(serializedExtendedReport, "All clusters that exceeded the memory usage threshold", "A,B");
+    assertRequestContainsField(serializedExtendedReport, "Target exceeded cluster", "B");
+    assertRequestContainsField(serializedExtendedReport, "Total used memory", "56B/3 objects");
+
+    assertExtendedMemoryReport("testExtendedReportCollectionB", serializedExtendedReport);
+    assertExtendedMemoryReportSummary("testExtendedReportCollectionB", serializedExtendedReport);
+  }
+
+  @Test
+  public void testEssentialNominatedTypesInSummary() throws IOException {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("D",
+                                                        1,
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
+                                                        Collections.emptyList());
+    FakeCrushReporter crushReporter = new FakeCrushReporter();
+    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+
+    WeakList<Object> roots = new WeakList<>();
+    B b = new B();
+    D d = new D(b, new B());
+
+    roots.add(List.of(d, "test"));
+
+    Disposer.dispose(b);
+
+    MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots,
+                                                             200);
     assertSize(1, crushReporter.crashReports);
     CrashReport report = crushReporter.crashReports.get(0);
     MultipartEntityBuilder builder = MultipartEntityBuilder.create();
     report.serialize(builder);
     String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
-    assertRequestContainsField(serializedExtendedReport, "Clusters that exceeded the memory usage threshold", "A,B");
-    assertRequestContainsField(serializedExtendedReport, "Total used memory", "56/3 objects");
-    assertRequestContainsField(serializedExtendedReport, "Category android:uncategorized", """
-      Owned: 0/0 objects
-            Histogram:
-            Studio objects histogram:
-            Category roots histogram:
-      Platform object: 0/0 objects[0/0 objects]""");
-    assertRequestContainsField(serializedExtendedReport, "Category diagnostics", """
-      Owned: 56/3 objects
-            Histogram:
-              24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
-              16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
-              16/1 objects: java.lang.Integer
-            Studio objects histogram:
-              24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
-              16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
-            Category roots histogram:
-              24/1 objects[56/3 objects]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
-              16/1 objects[16/1 objects]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
-      Platform object: 0/0 objects[0/0 objects]""");
-    assertRequestContainsField(serializedExtendedReport, "Component uncategorized_main", """
-      Owned: 0/0 objects
-            Histogram:
-            Studio objects histogram:
-            Component roots histogram:
-      Platform object: 0/0 objects[0/0 objects]""");
-    assertRequestContainsField(serializedExtendedReport, "Component A", """
-      Owned: 40/2 objects
-            Histogram:
-              24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
-              16/1 objects: java.lang.Integer
-            Studio objects histogram:
-              24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
-            Component roots histogram:
-              24/1 objects[40/2 objects]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
-      Number of instances of tracked classes:
-            com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A:1
-      Platform object: 0/0 objects[0/0 objects]""");
-    assertRequestContainsField(serializedExtendedReport, "Component B", """
-      Owned: 16/1 objects
-            Histogram:
-              16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
-            Studio objects histogram:
-              16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
-            Component roots histogram:
-              16/1 objects[16/1 objects]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
-      Number of instances of tracked classes:
-            com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B:1
-      Platform object: 0/0 objects[0/0 objects]""");
-    assertRequestContainsFieldWithPattern(serializedExtendedReport, "Disposer tree information", "Disposer tree size: \\d+\n" +
-                                                                                                 "Total number of disposed but strong referenced objects: 0");
+    serializedExtendedReport = replaceNewlines(serializedExtendedReport);
+    assertExtendedMemoryReport("testEssentialNominatedTypesInSummary", serializedExtendedReport);
+    assertExtendedMemoryReportSummary("testEssentialNominatedTypesInSummary", serializedExtendedReport);
+  }
+
+  @Test
+  public void testCustomClassLoaderInNonExceedingComponent() throws
+                                                      IOException,
+                                                      ClassNotFoundException,
+                                                      NoSuchMethodException,
+                                                      InvocationTargetException,
+                                                      InstantiationException,
+                                                      IllegalAccessException {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("B",
+                                                        2,
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.SampleClass"),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.SampleClass"),
+                                                        List.of("com.android.testutils.classloader.MultiClassLoader"));
+    HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
+      /*collectHistograms=*/false, /*collectDisposerTreeInfo=*/false));
+    FakeCrushReporter crushReporter = new FakeCrushReporter();
+    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+
+    WeakList<Object> roots = new WeakList<>();
+    SingleClassLoader sampleClassLoader = new SingleClassLoader(SampleClass.class.getName());
+    Class<?> sampleClass = sampleClassLoader.load();
+
+    Constructor<?> sampleClassConstructor = sampleClass.getDeclaredConstructor();
+    sampleClassConstructor.setAccessible(true);
+    Object sampleClassObject = sampleClassConstructor.newInstance();
+    Object[] objects = new Object[]{sampleClassObject, "test"};
+    roots.add(objects);
+
+
+    MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(0)), () -> roots, 0);
+    assertSize(1, crushReporter.crashReports);
+    CrashReport report = crushReporter.crashReports.get(0);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
+    serializedExtendedReport = replaceNewlines(serializedExtendedReport);
+    assertRequestContainsField(serializedExtendedReport, "Target exceeded cluster", "uncategorized_main");
+    assertRequestContainsField(serializedExtendedReport, "Total used memory", "88B/4 objects");
+  }
+
+  @Test
+  public void testExtendedReportCustomClassLoaders() throws
+                                                     IOException,
+                                                     ClassNotFoundException,
+                                                     NoSuchMethodException,
+                                                     InvocationTargetException,
+                                                     InstantiationException,
+                                                     IllegalAccessException {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("B",
+                                                        2,
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.SampleClass"),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.SampleClass"),
+                                                        Collections.emptyList());
+    FakeCrushReporter crushReporter = new FakeCrushReporter();
+    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+
+    WeakList<Object> roots = new WeakList<>();
+    Object[] objects = new Object[22];
+
+    for (int i = 0; i < 20; i++) {
+      SingleClassLoader sampleClassLoader = new SingleClassLoader(SampleClass.class.getName());
+      Class<?> sampleClass = sampleClassLoader.load();
+
+      Constructor<?> sampleClassConstructor = sampleClass.getDeclaredConstructor();
+      sampleClassConstructor.setAccessible(true);
+      objects[i] = sampleClassConstructor.newInstance();
+    }
+    objects[20] = "test";
+
+    roots.add(objects);
+
+    MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots, 0);
+    assertSize(1, crushReporter.crashReports);
+    CrashReport report = crushReporter.crashReports.get(0);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
+    serializedExtendedReport = replaceNewlines(serializedExtendedReport);
+    assertRequestContainsField(serializedExtendedReport, "Target exceeded cluster", "B");
+    assertRequestContainsField(serializedExtendedReport, "Total used memory", "472B/23 objects");
+
+    assertExtendedMemoryReport("testExtendedReportCustomClassLoaders", serializedExtendedReport);
+    assertExtendedMemoryReportSummary("testExtendedReportCustomClassLoaders", serializedExtendedReport);
   }
 
   private static void assertRequestContainsField(final String requestBody, final String name, final String value) {
     assertRequestContainsFieldWithPattern(requestBody, name, Pattern.quote(value));
   }
 
+  private static void assertExtendedMemoryReportSummary(@NotNull final String fileName,
+                                                        @NotNull final String requestBody) throws IOException {
+    assertRequestContainsField(requestBody, "heapSummary", getBaselineContents(getBaselinePath(fileName + "_summary")));
+  }
+
+  private static void assertExtendedMemoryReport(@NotNull final String fileName, @NotNull final String requestBody) throws IOException {
+    assertExtendedMemoryReportFile(requestBody, "extendedMemoryReport", getBaselineContents(getBaselinePath(fileName)));
+  }
+
+  /**
+   * Returns path to a baseline file. Baselines may be different for different runtime versions.
+   */
+  @NotNull
+  private static Path getBaselinePath(@NotNull final String fileName) {
+    return TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/profiling/memory-usage-reports-baseline/" + fileName + ".txt");
+  }
+
+  /**
+   * Get the contents of the baseline file, with system-dependent line endings
+   */
+  @NotNull
+  private static String getBaselineContents(@NotNull final Path path) throws IOException {
+    return replaceNewlines(Files.readString(path));
+  }
+
+  @NotNull
+  private static String replaceNewlines(@NotNull final String s) {
+    return s.replaceAll("(\r\n|\n)", System.lineSeparator());
+  }
+
+  private static void assertExtendedMemoryReportFile(final String requestBody, final String name, final String value) {
+    assertExtendedMemoryReportFileWithPattern(requestBody, name, Pattern.quote(value));
+  }
+
+  private static void assertExtendedMemoryReportFileWithPattern(final String requestBody, final String name, final String pattern) {
+    assertThat(requestBody, new RegexMatcher(
+      "(?s).*\r?\nContent-Disposition: form-data; name=\"" + Pattern.quote(name) + "\"; filename=\"extendedMemoryReport.txt\"\r?\n" +
+      "Content-Type: [^\r\n]*?\r?\n" +
+      "Content-Transfer-Encoding: binary\r?\n" +
+      "\r?\n" +
+      pattern + "\r?\n.*"
+    ));
+  }
   private static void assertRequestContainsFieldWithPattern(final String requestBody, final String name, final String pattern) {
     assertThat(requestBody, new RegexMatcher(
       "(?s).*\r?\nContent-Disposition: form-data; name=\"" + Pattern.quote(name) + "\"\r?\n" +
@@ -650,7 +948,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
   private static class RegexMatcher extends SubstringMatcher {
 
-    private Pattern myPattern;
+    private final Pattern myPattern;
 
     public RegexMatcher(@NonNull String patternString) {
       super(patternString);
@@ -679,7 +977,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
     @Override
     void processChildObjects(@Nullable final Object obj,
-                             @NotNull final BiConsumer<Object, HeapTraverseNode.RefWeight> consumer,
+                             @NotNull final TriConsumer<Object, HeapTraverseNode.RefWeight, String> consumer,
                              @NotNull final FieldCache fieldCache) throws HeapSnapshotTraverseException {
       if (obj instanceof Class) {
         visitedClassesNames.add(((Class<?>)obj).getName());
@@ -711,114 +1009,26 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     B b2 = new B();
 
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(statistics).walkObjects(MAX_DEPTH, List.of(new A(b1), new A(b2), new ReferenceToB(b1),
-                                                                                            new ReferenceToB(b2))));
+                        new MemoryReportCollector(statistics).walkObjects(List.of(new A(b1), new A(b2), new ReferenceToB(b1),
+                                                                                  new ReferenceToB(b2))));
     Assert.assertNotNull(statistics.getExtendedReportStatistics());
 
     Assert.assertEquals(1, statistics.getExtendedReportStatistics().sharedClustersHistograms.size());
     ExtendedReportStatistics.ClusterHistogram sharedHistogram =
       statistics.getExtendedReportStatistics().sharedClustersHistograms.values().iterator().next();
-    Assert.assertEquals(1, sharedHistogram.rootHistograms.size());
-    Assert.assertTrue(sharedHistogram.rootClassNameToId.containsKey("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
-    Assert.assertEquals(2, sharedHistogram.rootHistograms.get(
-        sharedHistogram.rootClassNameToId.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"))
-      .getObjectsStatistics().getObjectsCount());
+    Assert.assertEquals(1, sharedHistogram.rootHistogram.size());
+    Assert.assertEquals(2,
+                        sharedHistogram.rootHistogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B").getObjectsCount());
 
     Assert.assertEquals(3, statistics.getExtendedReportStatistics().componentHistograms.size());
     ExtendedReportStatistics.ClusterHistogram histogram1 = statistics.getExtendedReportStatistics().componentHistograms.get(1);
     Assert.assertEquals(2,
-                        histogram1.rootHistograms.get(
-                            histogram1.rootClassNameToId.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"))
-                          .getObjectsStatistics().getObjectsCount());
+                        histogram1.rootHistogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A")
+                          .getObjectsCount());
     ExtendedReportStatistics.ClusterHistogram histogram2 = statistics.getExtendedReportStatistics().componentHistograms.get(2);
     Assert.assertEquals(2,
-                        histogram2.rootHistograms.get(
-                            histogram2.rootClassNameToId.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB"))
-                          .getObjectsStatistics().getObjectsCount());
-  }
-
-  @Test
-  public void testComponentRootSubtree() {
-    ComponentsSet componentsSet = new ComponentsSet();
-
-    ComponentsSet.ComponentCategory categoryA = componentsSet.registerCategory("A");
-    componentsSet.addComponentWithPackagesAndClassNames("A",
-                                                        categoryA,
-                                                        Collections.emptyList(),
-                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A",
-                                                                "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B",
-                                                                "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
-    HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
-      /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/false));
-
-    B b1 = new B();
-
-    Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(statistics).walkObjects(MAX_DEPTH, List.of(new A(b1), new D(b1, new B()))));
-    Assert.assertNotNull(statistics.getExtendedReportStatistics());
-    Assert.assertEquals(2, statistics.getExtendedReportStatistics().componentHistograms.size());
-    Assert.assertEquals(3, statistics.getExtendedReportStatistics().componentHistograms.get(1).rootHistograms.size());
-    ObjectsStatistics dSubtree = statistics.getExtendedReportStatistics().componentHistograms.get(1).rootHistograms.get(0).getSubtree();
-    ObjectsStatistics bSubtree = statistics.getExtendedReportStatistics().componentHistograms.get(1).rootHistograms.get(1).getSubtree();
-    ObjectsStatistics aSubtree = statistics.getExtendedReportStatistics().componentHistograms.get(1).rootHistograms.get(2).getSubtree();
-    Assert.assertEquals(3, dSubtree.getObjectsCount());
-    Assert.assertEquals(56, dSubtree.getTotalSizeInBytes());
-    Assert.assertEquals(2, bSubtree.getObjectsCount());
-    Assert.assertEquals(32, bSubtree.getTotalSizeInBytes());
-    Assert.assertEquals(3, aSubtree.getObjectsCount());
-    Assert.assertEquals(56, aSubtree.getTotalSizeInBytes());
-  }
-
-  public void testCategoryRootSubtree() {
-    ComponentsSet componentsSet = new ComponentsSet();
-
-    ComponentsSet.ComponentCategory category = componentsSet.registerCategory("Main");
-    componentsSet.addComponentWithPackagesAndClassNames("A",
-                                                        category,
-                                                        Collections.emptyList(),
-                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"));
-    componentsSet.addComponentWithPackagesAndClassNames("D",
-                                                        category,
-                                                        Collections.emptyList(),
-                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
-    componentsSet.addComponentWithPackagesAndClassNames("B",
-                                                        category,
-                                                        Collections.emptyList(),
-                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
-
-    HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
-      /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/false));
-
-    B b1 = new B();
-
-    Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(statistics).walkObjects(MAX_DEPTH, List.of(new A(b1), new D(b1))));
-    Assert.assertNotNull(statistics.getExtendedReportStatistics());
-    ExtendedReportStatistics.CategoryHistogram categoryHistogram = statistics.getExtendedReportStatistics().categoryHistograms.get(1);
-    Assert.assertEquals(3, categoryHistogram.rootHistograms.size());
-    Assert.assertEquals("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D",
-                        categoryHistogram.rootHistograms.get(0).getRootObjectClassName());
-    Assert.assertEquals(2,
-                        categoryHistogram.rootHistograms.get(0).getSubtree().getObjectsCount());
-    Assert.assertEquals(40,
-                        categoryHistogram.rootHistograms.get(0).getSubtree().getTotalSizeInBytes());
-
-    Assert.assertEquals("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A",
-                        categoryHistogram.rootHistograms.get(1).getRootObjectClassName());
-    // HeapAnalyzerTest$B instance, that is attributed to a different component then HeapAnalyzerTest$A will still be included here, since
-    // they are in the same category.
-    Assert.assertEquals(3,
-                        categoryHistogram.rootHistograms.get(1).getSubtree().getObjectsCount());
-    Assert.assertEquals(56,
-                        categoryHistogram.rootHistograms.get(1).getSubtree().getTotalSizeInBytes());
-
-    ExtendedReportStatistics.ClusterHistogram componentAHistogram = statistics.getExtendedReportStatistics().componentHistograms.get(1);
-    ExtendedReportStatistics.ClusterHistogram componentDHistogram = statistics.getExtendedReportStatistics().componentHistograms.get(2);
-    Assert.assertEquals(1, componentAHistogram.rootHistograms.size());
-    Assert.assertEquals(2, componentAHistogram.rootHistograms.get(0).getSubtree().getObjectsCount());
-
-    Assert.assertEquals(1, componentDHistogram.rootHistograms.size());
-    Assert.assertEquals(2, componentDHistogram.rootHistograms.get(0).getSubtree().getObjectsCount());
+                        histogram2.rootHistogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB")
+                          .getObjectsCount());
   }
 
   public void testPlatformObjectsTracking() {
@@ -838,7 +1048,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
     ReferenceToPlatformObject ref = new ReferenceToPlatformObject(new WeakList<>());
     Assert.assertEquals(StatusCode.NO_ERROR,
-                        new HeapSnapshotTraverse(statistics).walkObjects(MAX_DEPTH, List.of(ref, new A(new B()))));
+                        new MemoryReportCollector(statistics).walkObjects(List.of(ref, new A(new B()))));
 
     Assert.assertEquals(1, statistics.totalStats.getPlatformObjectsSelfStats().getObjectsCount());
     Assert.assertEquals(32, statistics.totalStats.getPlatformObjectsSelfStats().getTotalSizeInBytes());
@@ -860,10 +1070,12 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     Assert.assertEquals(0, statistics.getComponentStats().get(2).getOwnedClusterStat().getPlatformRetainedObjectsStats()
       .getTotalSizeInBytes());
 
-    Assert.assertEquals(1, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats().getObjectsCount());
+    Assert.assertEquals(1, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats()
+      .getObjectsCount());
     Assert.assertEquals(32, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats()
       .getTotalSizeInBytes());
-    Assert.assertEquals(5, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats().getObjectsCount());
+    Assert.assertEquals(5, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
+      .getObjectsCount());
     Assert.assertEquals(120, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
       .getTotalSizeInBytes());
   }
@@ -896,11 +1108,30 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     }
   }
 
-  private static class D {
+  private static class D implements Disposable {
     private final B[] myArray;
 
     private D(B... b) {
       myArray = b;
+    }
+
+    @Override
+    public void dispose() {
+
+    }
+  }
+
+  private static class ReferenceToObjectArray {
+    private final Object[] myArray;
+
+    private ReferenceToObjectArray(Object... b) {
+      myArray = b;
+    }
+
+    private static class ReferenceToObjectArray2 extends ReferenceToObjectArray {
+      private ReferenceToObjectArray2(Object... b) {
+        super(b);
+      }
     }
   }
 
@@ -918,16 +1149,16 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   }
 
   private static class G {
-    private static Integer ourInt = 0;
+    private static final Integer ourInt = 0;
     private H myH;
   }
 
   private static class H {
-    private int myInt = 1;
+    private final int myInt = 1;
   }
 
   private static class ReferenceToB {
-    private B myB;
+    private final B myB;
 
     private ReferenceToB(B b) {
       myB = b;

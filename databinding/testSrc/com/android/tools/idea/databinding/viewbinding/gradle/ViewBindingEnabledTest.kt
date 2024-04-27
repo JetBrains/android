@@ -26,11 +26,11 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 /**
  * Test which verifies that enabling view binding in a Gradle project causes its layout's light
@@ -41,11 +41,9 @@ class ViewBindingEnabledTest {
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -77,7 +75,8 @@ class ViewBindingEnabledTest {
       preLoad = { projectRoot ->
         buildFile = File(projectRoot, "app/build.gradle")
         enableViewBinding(buildFile, false)
-      })
+      }
+    )
 
     // Trigger resource repository initialization
     val facet = projectRule.androidFacet(":app")
@@ -89,21 +88,41 @@ class ViewBindingEnabledTest {
     var lastModificationCount = ViewBindingEnabledTrackingService.instance.modificationCount
 
     assertThat(facet.isViewBindingEnabled()).isFalse()
-    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)).isNull()
+    assertThat(
+        fixture.findClass(
+          "com.android.example.viewbinding.databinding.ActivityMainBinding",
+          context
+        )
+      )
+      .isNull()
 
     enableViewBinding(buildFile, true)
     projectRule.requestSyncAndWait()
 
     assertThat(facet.isViewBindingEnabled()).isTrue()
-    assertThat(ViewBindingEnabledTrackingService.instance.modificationCount).isGreaterThan(lastModificationCount)
+    assertThat(ViewBindingEnabledTrackingService.instance.modificationCount)
+      .isGreaterThan(lastModificationCount)
     lastModificationCount = ViewBindingEnabledTrackingService.instance.modificationCount
-    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)).isNotNull()
+    assertThat(
+        fixture.findClass(
+          "com.android.example.viewbinding.databinding.ActivityMainBinding",
+          context
+        )
+      )
+      .isNotNull()
 
     enableViewBinding(buildFile, false)
     projectRule.requestSyncAndWait()
 
     assertThat(facet.isViewBindingEnabled()).isFalse()
-    assertThat(ViewBindingEnabledTrackingService.instance.modificationCount).isGreaterThan(lastModificationCount)
-    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)).isNull()
+    assertThat(ViewBindingEnabledTrackingService.instance.modificationCount)
+      .isGreaterThan(lastModificationCount)
+    assertThat(
+        fixture.findClass(
+          "com.android.example.viewbinding.databinding.ActivityMainBinding",
+          context
+        )
+      )
+      .isNull()
   }
 }

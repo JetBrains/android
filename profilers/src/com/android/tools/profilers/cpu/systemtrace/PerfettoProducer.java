@@ -19,12 +19,12 @@ import com.android.tools.idea.protobuf.CodedInputStream;
 import com.android.tools.idea.protobuf.DescriptorProtos;
 import com.android.tools.idea.protobuf.ExtensionRegistryLite;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Charsets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.Predicate;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
@@ -279,7 +279,7 @@ public class PerfettoProducer implements TrebuchetBufferProducer {
     }
     assert line != null;
     // Trebuchet has a bug where all lines need to be truncated to 1023 characters including the newline.
-    byte[] data = String.format("%s\n", line.substring(0, Math.min(1022, line.length()))).getBytes(StandardCharsets.UTF_8);
+    byte[] data = String.format("%s\n", line.substring(0, Math.min(1022, line.length()))).getBytes(Charsets.UTF_8);
     return new DataSlice(data);
   }
 

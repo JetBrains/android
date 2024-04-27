@@ -16,12 +16,21 @@
 @file:JvmName("IncludingLayout")
 package com.android.tools.idea.rendering
 
+import com.android.tools.idea.res.ensureNamespaceImported;
 import com.android.SdkConstants
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.xml.XmlFile
 
 fun setIncludingLayout(xmlFile: XmlFile, layout: String?) {
   xmlFile.rootTag?.let {
-    val fix = SetAttributeFix(it, SdkConstants.ATTR_SHOW_IN, SdkConstants.TOOLS_URI, layout)
-    fix.executeCommand()
+    WriteCommandAction.writeCommandAction(xmlFile.project, xmlFile)
+      .withName(String.format("Set %1\$s Attribute", StringUtil.capitalize(SdkConstants.ATTR_SHOW_IN)))
+      .run<Throwable> {
+        if (layout != null) {
+          ensureNamespaceImported(xmlFile, SdkConstants.TOOLS_URI, null)
+        }
+        it.setAttribute(SdkConstants.ATTR_SHOW_IN, SdkConstants.TOOLS_URI, layout)
+      }
   }
 }

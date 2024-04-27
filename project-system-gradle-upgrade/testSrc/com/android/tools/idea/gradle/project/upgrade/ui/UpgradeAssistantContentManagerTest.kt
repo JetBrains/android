@@ -23,6 +23,9 @@ import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.gradle.plugin.AgpVersions
+import com.android.tools.idea.gradle.project.build.BuildContext
+import com.android.tools.idea.gradle.project.build.BuildStatus
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
@@ -43,14 +46,15 @@ import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowMo
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.Loading
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.NoStepsSelected
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.ProjectFilesNotCleanWarning
-import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.ProjectUsesVersionCatalogs
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.ReadyToRun
+import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.RunningBuild
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.RunningSync
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.RunningUpgrade
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.RunningUpgradeSync
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.UpgradeSyncFailed
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.UpgradeSyncSucceeded
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.VersionSelectionInProgress
+import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -60,7 +64,6 @@ import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.GradleSyncStats
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.roots.ui.configuration.SdkListItem
@@ -74,11 +77,13 @@ import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.JBLabel
+import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import java.io.File
 
 @RunsInEdt
 class ContentManagerImplTest {
@@ -850,7 +855,7 @@ class ContentManagerImplTest {
     var changingCurrentAgpVersion = currentAgpVersion
     val toolWindowModel = UpgradeAssistantWindowModel(project, { changingCurrentAgpVersion }).listeningStatesChanges()
 
-    ApplicationManager.getApplication().runWriteAction { psiFile.virtualFile.isWritable = false }
+    runWriteAction { psiFile.virtualFile.isWritable = false }
 
     toolWindowModel.runUpgrade(false)
     changingCurrentAgpVersion = latestAgpVersion
@@ -1161,8 +1166,8 @@ class ContentManagerImplTest {
       is CaughtException,
       is InvalidVersionError,
       VersionSelectionInProgress,
-      Loading, NoStepsSelected, ProjectFilesNotCleanWarning, ProjectUsesVersionCatalogs,
-      ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync,
+      Loading, NoStepsSelected, ProjectFilesNotCleanWarning,
+      ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync, RunningBuild,
       is UpgradeSyncFailed,
       UpgradeSyncSucceeded ->
         this.hashCode()
@@ -1172,7 +1177,7 @@ class ContentManagerImplTest {
       AllDone, Blocked,
       CaughtException("one"), CaughtException("two"),
       InvalidVersionError(StatusMessage(Severity.ERROR, "one")), InvalidVersionError(StatusMessage(Severity.ERROR, "two")),
-      Loading, ProjectFilesNotCleanWarning, ProjectUsesVersionCatalogs, ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync,
+      Loading, ProjectFilesNotCleanWarning, ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync, RunningBuild,
       UpgradeSyncFailed("one"), UpgradeSyncFailed("two"),
       UpgradeSyncSucceeded
     )
@@ -1193,6 +1198,23 @@ class ContentManagerImplTest {
     // We have some functionally identical UIStates, which we can distinguish for .equals() on the basis of their class identity, but
     // have the same behaviour (given the same input error messages) and hence the same hash code.
     expect.that(unexpectedlyEqualHashes).hasSize(6)
+  }
+
+  @Test
+  fun testBuildFinishedWithoutRunningProcessor() {
+    val psiFile = addMinimalBuildGradleToProject()
+    var changingCurrentAgpVersion = currentAgpVersion
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { changingCurrentAgpVersion }).listeningStatesChanges()
+    val projectPath = File(project.basePath)
+    val request = GradleBuildInvoker.Request.builder(project, projectPath, listOf("clean"))
+      .setMode(BuildMode.CLEAN)
+      .build()
+    val buildContext = BuildContext(request)
+
+    toolWindowModel.buildStarted(buildContext)
+    toolWindowModel.buildFinished(BuildStatus.SUCCESS, buildContext)
+    assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$currentAgpVersion")
+    assertThat(uiStates).containsExactly(RunningBuild, ReadyToRun, Loading, ReadyToRun).inOrder()
   }
 
   fun treeString(tree: CheckboxTree): String {

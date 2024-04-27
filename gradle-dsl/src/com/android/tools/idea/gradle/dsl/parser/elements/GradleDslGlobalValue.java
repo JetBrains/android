@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import java.util.Collection;
-import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Represents a value that doesn't have a backing element. These are used to represent commonly used

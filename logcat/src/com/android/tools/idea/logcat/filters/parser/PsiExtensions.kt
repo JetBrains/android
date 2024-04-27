@@ -24,16 +24,17 @@ import com.intellij.psi.util.elementType
 
 private val ESCAPED_CHAR_REGEX = """\\([ :'"\\])""".toRegex()
 
-/**
- * Extension functions for [PsiElement] classes.
- */
+/** Extension functions for [PsiElement] classes. */
 internal fun PsiElement.toText(): String {
   return when (elementType) {
-    VALUE, KVALUE, STRING_KVALUE, REGEX_KVALUE -> {
+    VALUE,
+    KVALUE,
+    STRING_KVALUE,
+    REGEX_KVALUE -> {
       when {
         text.isSurroundedBy('\'') -> text.substring(1, textLength - 1).replace("\\'", "'")
         text.isSurroundedBy('"') -> text.substring(1, textLength - 1).replace("\\\"", "\"")
-        else -> text.replace(ESCAPED_CHAR_REGEX) { it.groupValues[1]}
+        else -> text.replace(ESCAPED_CHAR_REGEX) { it.groupValues[1] }
       }
     }
     else -> {

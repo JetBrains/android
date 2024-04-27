@@ -31,12 +31,20 @@ internal data class DeviceFoldingAction(val foldingState: FoldingState) : Abstra
     templatePresentation.icon = foldingState.icon
   }
 
-  override fun isEnabled(event: AnActionEvent): Boolean =
-    super.isEnabled(event) && getDeviceController(event)?.supportedFoldingStates?.isNotEmpty() ?: false
+  override fun isEnabled(event: AnActionEvent): Boolean {
+    val controller = getDeviceController(event) ?: return false
+    return super.isEnabled(event) && controller.supportedFoldingStates.isNotEmpty() &&
+           (!foldingState.flags.contains(FoldingState.Flag.CANCEL_WHEN_REQUESTER_NOT_ON_TOP) ||
+            foldingState.id == controller.currentFoldingState?.id)
+  }
 
   override fun actionPerformed(event: AnActionEvent) {
+    if (foldingState.flags.contains(FoldingState.Flag.CANCEL_WHEN_REQUESTER_NOT_ON_TOP)) {
+      return
+    }
     val controller = getDeviceController(event) ?: return
     if (foldingState.id != controller.currentFoldingState?.id) {
+      controller.setFoldingState(foldingState.id)
       val controlMessage = RequestDeviceStateMessage(foldingState.id)
       controller.sendControlMessage(controlMessage)
     }

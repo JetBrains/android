@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.adtui.model.StateChartModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.awt.Color
 import java.awt.FontMetrics
@@ -55,7 +54,7 @@ class StateChartTest {
     whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
     Mockito.verify(fakeGraphics, Mockito.times(1))
-      .drawString(ArgumentMatchers.eq("123"), ArgumentMatchers.anyFloat(), ArgumentMatchers.anyFloat())
+      .drawString(Mockito.eq("123"), Mockito.anyFloat(), Mockito.anyFloat())
   }
 
   @Test
@@ -71,7 +70,7 @@ class StateChartTest {
     whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
     Mockito.verify(fakeGraphics, Mockito.times(1))
-      .drawString(ArgumentMatchers.eq("Test"), ArgumentMatchers.anyFloat(), ArgumentMatchers.anyFloat())
+      .drawString(Mockito.eq("Test"), Mockito.anyFloat(), Mockito.anyFloat())
   }
 
   private class ToStringTestClass(private val myString: String) {
@@ -100,7 +99,7 @@ class StateChartTest {
     // This means we do not draw the first value instead we throw it out and draw only
     // the second value.
     // As such we expect 2 rectangles one with the color GREEN, the other with the color BLUE.
-    Mockito.verify(fakeGraphics, Mockito.times(2)).fill(ArgumentMatchers.any())
+    Mockito.verify(fakeGraphics, Mockito.times(2)).fill(Mockito.any())
     Mockito.verify(fakeGraphics, Mockito.times(1)).color = Color.GREEN
     Mockito.verify(fakeGraphics, Mockito.times(1)).color = Color.BLUE
     Mockito.verify(fakeGraphics, Mockito.times(0)).color = Color.RED
@@ -172,9 +171,9 @@ class StateChartTest {
     whenever(fakeGraphics.create()).thenReturn(fakeGraphics)
     stateChart.paint(fakeGraphics)
     Mockito.verify(fakeGraphics, Mockito.times(5))
-      .drawString(ArgumentMatchers.eq("hi"), ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())
+      .drawString(Mockito.eq("hi"), Mockito.anyInt(), Mockito.anyInt())
     Mockito.verify(fakeGraphics, Mockito.times(5))
-      .fill(ArgumentMatchers.any(Rectangle2D.Float::class.java))
+      .fill(Mockito.any(Rectangle2D.Float::class.java))
   }
 }
 

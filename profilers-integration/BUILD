@@ -1,7 +1,7 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
-load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
+load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
 iml_module(
@@ -32,14 +32,11 @@ iml_studio_test(
     name = "ProfileWithCompleteDataTest",
     timeout = "long",
     data = profilers_test_common_data + [
-        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+        "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
     ],
     module = ":intellij.android.profilers.integration",
-    tags_linux = [
-        "very_flaky",  # b/282881259
-        "block-network",
-    ],
-    tags_mac = ["manual"],  # b/282881259: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_linux = ["block-network"],
+    tags_mac = [],
     tags_windows = [
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
@@ -85,6 +82,25 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.SystemTraceTest",
 )
 
+iml_studio_test(
+    name = "CallstackSampleTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "very_flaky",  # b/260867011
+        "block-network",
+    ],
+    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.CallstackSampleTest",
+)
+
 maven_repository(
     name = "minapp_deps",
     # keep sorted: for buildifier
@@ -95,7 +111,7 @@ maven_repository(
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
         "@maven//:com.google.protobuf.protobuf-java-util_3.17.2",
         "@maven//:com.google.protobuf.protobuf-java_3.17.2",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.20-Beta",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",

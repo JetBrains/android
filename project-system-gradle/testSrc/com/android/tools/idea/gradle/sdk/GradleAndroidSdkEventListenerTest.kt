@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.sdk
 
-import com.android.testutils.TestUtils.getSdk
+import com.android.test.testutils.TestUtils.getSdk
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.sdk.AndroidSdkPathStore

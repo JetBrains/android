@@ -16,16 +16,15 @@
 package com.android.tools.idea.compose.pickers.preview.inspector
 
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_CHIN_SIZE
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIMENSIONS
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_HEIGHT
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_IS_ROUND
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_WIDTH
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.preview.config.PARAMETER_HARDWARE_CHIN_SIZE
+import com.android.tools.preview.config.PARAMETER_HARDWARE_DENSITY
+import com.android.tools.preview.config.PARAMETER_HARDWARE_DEVICE
+import com.android.tools.preview.config.PARAMETER_HARDWARE_DIMENSIONS
+import com.android.tools.preview.config.PARAMETER_HARDWARE_DIM_UNIT
+import com.android.tools.preview.config.PARAMETER_HARDWARE_HEIGHT
+import com.android.tools.preview.config.PARAMETER_HARDWARE_IS_ROUND
+import com.android.tools.preview.config.PARAMETER_HARDWARE_ORIENTATION
+import com.android.tools.preview.config.PARAMETER_HARDWARE_WIDTH
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertyEditorModel
@@ -85,11 +84,9 @@ internal fun addHardwareView(
 
   addSinglePropertyLine(PARAMETER_HARDWARE_ORIENTATION)
 
-  if (StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get()) {
-    addSinglePropertyLine(PARAMETER_HARDWARE_IS_ROUND)
+  addSinglePropertyLine(PARAMETER_HARDWARE_IS_ROUND)
 
-    addSinglePropertyLine(PARAMETER_HARDWARE_CHIN_SIZE)
-  }
+  addSinglePropertyLine(PARAMETER_HARDWARE_CHIN_SIZE)
 
   inspector.addComponent(panelBuilder.build()).addValueChangedListener {
     // Refresh the added editors on value changes

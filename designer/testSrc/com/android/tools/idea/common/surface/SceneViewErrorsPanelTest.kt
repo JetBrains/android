@@ -19,6 +19,9 @@ import com.android.tools.adtui.swing.FakeUi
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.ui.components.JBLabel
+import java.awt.BorderLayout
+import java.awt.Dimension
+import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -26,9 +29,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Test
-import java.awt.BorderLayout
-import java.awt.Dimension
-import javax.swing.JPanel
 
 class SceneViewErrorsPanelTest {
 
@@ -54,12 +54,12 @@ class SceneViewErrorsPanelTest {
 
   @Test
   fun testVisibilityIsControlledByConstructorParameter() {
-    var isPanelVisible = true
-    val sceneViewErrorsPanel = SceneViewErrorsPanel { isPanelVisible }
+    var panelStyle = SceneViewErrorsPanel.Style.SOLID
+    val sceneViewErrorsPanel = SceneViewErrorsPanel { panelStyle }
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
 
     assertTrue(sceneViewErrorsPanel.isVisible)
-    isPanelVisible = false
+    panelStyle = SceneViewErrorsPanel.Style.HIDDEN
     assertFalse(sceneViewErrorsPanel.isVisible)
   }
 

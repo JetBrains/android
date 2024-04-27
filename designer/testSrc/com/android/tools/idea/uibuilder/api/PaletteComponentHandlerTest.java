@@ -15,52 +15,38 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import static com.android.SdkConstants.ANDROIDX_APPCOMPAT_LIB_ARTIFACT;
-import static com.android.SdkConstants.ANDROIDX_CARD_VIEW_ARTIFACT;
-import static com.android.SdkConstants.ANDROIDX_CONSTRAINT_LAYOUT_LIB_ARTIFACT;
-import static com.android.SdkConstants.ANDROIDX_LEANBACK_ARTIFACT;
-import static com.android.SdkConstants.ANDROIDX_MATERIAL_ARTIFACT;
-import static com.android.SdkConstants.ANDROIDX_RECYCLER_VIEW_ARTIFACT;
-import static com.android.SdkConstants.ANDROIDX_SUPPORT_LIB_ARTIFACT;
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
-import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
-import static com.android.SdkConstants.LEANBACK_V17_ARTIFACT;
-import static com.android.SdkConstants.SUPPORT_LIB_ARTIFACT;
-import static com.google.common.truth.Truth.assertThat;
-
-import com.android.AndroidXConstants;
+import com.android.support.AndroidxName;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
+import static com.android.AndroidXConstants.CARD_VIEW;
+import static com.android.AndroidXConstants.CLASS_BROWSE_FRAGMENT;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER;
+import static com.android.AndroidXConstants.CLASS_FLOATING_ACTION_BUTTON;
+import static com.android.AndroidXConstants.NESTED_SCROLL_VIEW;
+import static com.android.AndroidXConstants.RECYCLER_VIEW;
+import static com.android.AndroidXConstants.TOOLBAR_V7;
+import static com.android.SdkConstants.*;
+import static com.google.common.truth.Truth.assertThat;
+
 public class PaletteComponentHandlerTest {
+  PaletteComponentHandler handler = new PaletteComponentHandler() {};
 
   @Test
   public void testGetGradleCoordinateId() {
-    PaletteComponentHandler handler = new PaletteComponentHandler() {};
-
-    assertThat(handler.getGradleCoordinateId(AndroidXConstants.NESTED_SCROLL_VIEW.oldName())).isEqualTo(SUPPORT_LIB_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(AndroidXConstants.NESTED_SCROLL_VIEW.newName())).isEqualTo(ANDROIDX_SUPPORT_LIB_ARTIFACT);
-
-    assertThat(handler.getGradleCoordinateId(
-      AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER.oldName())).isEqualTo(CONSTRAINT_LAYOUT_LIB_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(
-      AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER.newName())).isEqualTo(ANDROIDX_CONSTRAINT_LAYOUT_LIB_ARTIFACT);
-
-    assertThat(handler.getGradleCoordinateId(AndroidXConstants.CLASS_BROWSE_FRAGMENT.oldName())).isEqualTo(LEANBACK_V17_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(AndroidXConstants.CLASS_BROWSE_FRAGMENT.newName())).isEqualTo(ANDROIDX_LEANBACK_ARTIFACT);
-
-    assertThat(handler.getGradleCoordinateId(AndroidXConstants.CLASS_FLOATING_ACTION_BUTTON.oldName())).isEqualTo(DESIGN_LIB_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(AndroidXConstants.CLASS_FLOATING_ACTION_BUTTON.newName())).isEqualTo(ANDROIDX_MATERIAL_ARTIFACT);
-
+    checkGradleCoordinateId(NESTED_SCROLL_VIEW, SUPPORT_LIB_ARTIFACT, ANDROIDX_SUPPORT_LIB_ARTIFACT);
+    checkGradleCoordinateId(CLASS_CONSTRAINT_LAYOUT_BARRIER, CONSTRAINT_LAYOUT_LIB_ARTIFACT, ANDROIDX_CONSTRAINT_LAYOUT_LIB_ARTIFACT);
+    checkGradleCoordinateId(CLASS_BROWSE_FRAGMENT, LEANBACK_V17_ARTIFACT, ANDROIDX_LEANBACK_ARTIFACT);
+    checkGradleCoordinateId(CLASS_FLOATING_ACTION_BUTTON, DESIGN_LIB_ARTIFACT, ANDROIDX_MATERIAL_ARTIFACT);
     // Note: RecyclerViewHandler is overriding the default and will return RECYCLER_VIEW_LIB_ARTIFACT for non AndroidX controls
-    assertThat(handler.getGradleCoordinateId(AndroidXConstants.RECYCLER_VIEW.oldName())).isEqualTo(APPCOMPAT_LIB_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(AndroidXConstants.RECYCLER_VIEW.newName())).isEqualTo(ANDROIDX_RECYCLER_VIEW_ARTIFACT);
-
+    checkGradleCoordinateId(RECYCLER_VIEW, APPCOMPAT_LIB_ARTIFACT, ANDROIDX_RECYCLER_VIEW_ARTIFACT);
     // Note: CardViewHandler is overriding the default and will return CARD_VIEW_LIB_ARTIFACT for non AndroidX controls
-    assertThat(handler.getGradleCoordinateId(AndroidXConstants.CARD_VIEW.oldName())).isEqualTo(APPCOMPAT_LIB_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(AndroidXConstants.CARD_VIEW.newName())).isEqualTo(ANDROIDX_CARD_VIEW_ARTIFACT);
+    checkGradleCoordinateId(CARD_VIEW, APPCOMPAT_LIB_ARTIFACT, ANDROIDX_CARD_VIEW_ARTIFACT);
+    checkGradleCoordinateId(TOOLBAR_V7, APPCOMPAT_LIB_ARTIFACT, ANDROIDX_APPCOMPAT_LIB_ARTIFACT);
+  }
 
-    assertThat(handler.getGradleCoordinateId(AndroidXConstants.TOOLBAR_V7.oldName())).isEqualTo(APPCOMPAT_LIB_ARTIFACT);
-    assertThat(handler.getGradleCoordinateId(AndroidXConstants.TOOLBAR_V7.newName())).isEqualTo(ANDROIDX_APPCOMPAT_LIB_ARTIFACT);
+  private void checkGradleCoordinateId(@NotNull AndroidxName name, @NotNull String expectedOld, @NotNull String expectedNew) {
+    assertThat(handler.getGradleCoordinateId(name.oldName()).toString()).isEqualTo(expectedOld);
+    assertThat(handler.getGradleCoordinateId(name.newName()).toString()).isEqualTo(expectedNew);
   }
 }

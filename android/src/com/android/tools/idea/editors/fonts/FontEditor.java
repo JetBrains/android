@@ -17,6 +17,7 @@
 package com.android.tools.idea.editors.fonts;
 
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
+import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorState;
@@ -25,23 +26,18 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
-import java.awt.BorderLayout;
-import java.awt.Font;
-import java.awt.FontFormatException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import java.awt.*;
 import java.awt.event.MouseWheelEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.border.Border;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link FileEditor} that providers preview for TTF fonts.
@@ -52,7 +48,7 @@ class FontEditor implements FileEditor {
   private static final String NAME = "Font";
   private static final String LOREM_TEXT = new LoremGenerator().generate(50, true);
 
-  private static final float MAX_FONT_SIZE = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUIScale.scale(30f);
+  private static final float MAX_FONT_SIZE = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUI.scale(30f);
   private static final float MIN_FONT_SIZE = UIUtil.getFontSize(UIUtil.FontSize.MINI);
   private static final Border BORDER = JBUI.Borders.empty(50);
   private static final Font DEFAULT_FONT = StartupUiUtil.getLabelFont();
@@ -114,7 +110,7 @@ class FontEditor implements FileEditor {
     myFontNameLabel = new JLabel();
     myTextArea = createTextArea();
 
-    myCurrentFontSize = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUIScale.scale(15f);
+    myCurrentFontSize = UIUtil.getFontSize(UIUtil.FontSize.NORMAL) + JBUI.scale(15f);
 
     try {
       // Derive the font and set it to large
@@ -208,11 +204,25 @@ class FontEditor implements FileEditor {
   }
 
   @Override
+  public void selectNotify() {
+  }
+
+  @Override
+  public void deselectNotify() {
+  }
+
+  @Override
   public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
   }
 
   @Override
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
+  }
+
+  @Nullable
+  @Override
+  public StructureViewBuilder getStructureViewBuilder() {
+    return null;
   }
 
   @Override

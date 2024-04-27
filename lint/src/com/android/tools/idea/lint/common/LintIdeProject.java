@@ -21,6 +21,7 @@ import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
 import com.android.tools.lint.model.LintModelModule;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.DependencyScope;
@@ -37,7 +38,6 @@ import com.intellij.util.ArrayUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -64,8 +64,8 @@ public class LintIdeProject extends Project {
   static List<Project> create(@NonNull LintIdeClient client, @Nullable List<VirtualFile> files, @NonNull Module... modules) {
     List<Project> projects = new ArrayList<>();
 
-    Map<Project, Module> projectMap = new HashMap<>();
-    Map<Module, Project> moduleMap = new HashMap<>();
+    Map<Project, Module> projectMap = Maps.newHashMap();
+    Map<Module, Project> moduleMap = Maps.newHashMap();
     if (files != null && !files.isEmpty()) {
       // Wrap list with a mutable list since we'll be removing the files as we see them
       files = Lists.newArrayList(files);
@@ -106,7 +106,7 @@ public class LintIdeProject extends Project {
     // other than the metadata necessary for this file's type
     LintModuleProject project = createModuleProject(client, module);
     LintModuleProject main = null;
-    Map<Project, Module> projectMap = new HashMap<>();
+    Map<Project, Module> projectMap = Maps.newHashMap();
     if (project != null) {
       project.setDirectLibraries(Collections.emptyList());
       if (file != null) {

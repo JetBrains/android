@@ -16,12 +16,12 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.RenderSession
-import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
+import com.android.tools.idea.compose.gradle.renderer.createRenderTaskFuture
+import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.parseViewInfo
-import com.android.tools.idea.compose.preview.renderer.createRenderTaskFuture
-import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction

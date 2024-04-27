@@ -60,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SdkComponentSource implements ExternalComponentSource {
 
-  public static final String NAME = "Android SDK";
+  public static String NAME = "Android SDK";
 
   public static final String PREVIEW_CHANNEL = "Preview Channel";
   public static final String STABLE_CHANNEL = "Stable Channel";

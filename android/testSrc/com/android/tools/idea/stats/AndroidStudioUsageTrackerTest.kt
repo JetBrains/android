@@ -19,6 +19,8 @@ import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.AnalyticsSettings
+import com.android.tools.analytics.AnalyticsSettings.optedIn
+import com.android.tools.analytics.AnalyticsSettings.userId
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.analytics.HostData.graphicsEnvironment
 import com.android.tools.analytics.HostData.osBean
@@ -26,6 +28,7 @@ import com.android.tools.analytics.deviceToDeviceInfo
 import com.android.tools.analytics.stubs.StubDateProvider
 import com.android.tools.analytics.stubs.StubGraphicsDevice.Companion.withBounds
 import com.android.tools.analytics.stubs.StubGraphicsEnvironment
+import com.android.tools.analytics.stubs.StubOperatingSystemMXBean
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.buildActiveExperimentList
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfoApiLevelOnly
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.getMachineDetails
@@ -41,10 +44,10 @@ import org.junit.Assert
 import java.awt.GraphicsDevice
 import java.io.File
 import java.time.ZoneOffset
-import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.TimeZone
+import java.util.Calendar
 
 class AndroidStudioUsageTrackerTest : TestCase() {
   fun testDeviceToDeviceInfo() {
@@ -73,7 +76,15 @@ class AndroidStudioUsageTrackerTest : TestCase() {
     // (we normally use the studio install path).
     val root = File(File.separator)
     // Stub out the Operating System MX Bean to get consistent system info in the test.
-    osBean = StubOperatingSystemMXBeanImpl()
+    osBean = object : StubOperatingSystemMXBean() {
+      override fun getAvailableProcessors(): Int {
+        return 16
+      }
+
+      override fun getTotalPhysicalMemorySize(): Long {
+        return 16L * 1024 * 1024 * 1024
+      }
+    }
 
     // Stub out the Graphics Environment to get consistent screen sizes in the test.
     graphicsEnvironment = object : StubGraphicsEnvironment() {

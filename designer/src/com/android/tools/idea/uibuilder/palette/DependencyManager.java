@@ -19,6 +19,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
@@ -61,7 +62,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
 public class DependencyManager implements Disposable {
   private final Project myProject;
   private final List<DependencyChangeListener> myListeners;
-  private final AtomicReference<Set<String>> myMissingLibraries;
+  private final AtomicReference<Set<GoogleMavenArtifactId>> myMissingLibraries;
   private final AtomicBoolean myUseAndroidXDependencies;
   private final Object mySync;
   @GuardedBy("mySync")
@@ -145,10 +146,10 @@ public class DependencyManager implements Disposable {
 
   /**
    * This method will update {@link #myMissingLibraries} to the current set.
-   *
+   * <p>
    * The current set of dependencies referenced from {@link #myPalette} that are not
    * part of the dependencies in the current {@link AndroidModuleSystem}.
-   *
+   * <p>
    * The method is called from a background thread and is safe even if there are more
    * than 1 background thread running at a given time since we synchronize on the
    * calling method: checkForRelevantDependencyChanges.
@@ -158,16 +159,12 @@ public class DependencyManager implements Disposable {
   // This method is only called from checkForRelevantDependencyChanges where the mySync monitor is already held.
   @SuppressWarnings("FieldAccessNotGuarded")
   private boolean checkForNewMissingDependencies() {
-    Set<String> missing = Collections.emptySet();
+    Set<GoogleMavenArtifactId> missing = Collections.emptySet();
 
     if (myModule != null && !myModule.isDisposed() && !myProject.isDisposed()) {
       AndroidModuleSystem moduleSystem = ProjectSystemService.getInstance(myProject).getProjectSystem().getModuleSystem(myModule);
-      missing = myPalette.getGradleCoordinateIds().stream()
-        .map(id -> GradleCoordinate.parseCoordinateString(id + ":+"))
-        .filter(Objects::nonNull)
-        .filter(coordinate -> moduleSystem.getRegisteredDependency(coordinate) == null)
-        .map(coordinate -> coordinate.getId())
-        .filter(Objects::nonNull)
+      missing = myPalette.getGoogleMavenArtifactIds().stream()
+        .filter(id -> moduleSystem.getRegisteredDependency(id.getCoordinate("+")) == null)
         .collect(ImmutableSet.toImmutableSet());
 
       if (myMissingLibraries.get().equals(missing)) {
@@ -181,7 +178,7 @@ public class DependencyManager implements Disposable {
 
   /**
    * Register for project sync updates.
-   *
+   * <p>
    * The dependencies of a module for Android Studio is dictated from the {@link ProjectSystemService},
    * which will update the IJ libraries based on the build specification for the service.
    * All successful syncs means there is potentially a new set of dependencies.
@@ -205,9 +202,9 @@ public class DependencyManager implements Disposable {
 
   public void ensureLibraryIsIncluded(@NotNull Palette.Item item) {
     if (needsLibraryLoad(item)) {
-      GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(item.getGradleCoordinateId() + ":+");
-
-      if (coordinate != null) {
+      GoogleMavenArtifactId id = item.getGradleCoordinateId();
+      if (id != null) {
+        GradleCoordinate coordinate = id.getCoordinate("+");
         synchronized (mySync) {
           DependencyManagementUtil.addDependenciesWithUiConfirmation(myModule, Collections.singletonList(coordinate), true);
         }

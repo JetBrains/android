@@ -16,6 +16,8 @@
 package com.android.tools.idea.common.model;
 
 import com.android.resources.Density;
+import com.android.sdklib.AndroidCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.scene.Scene;
@@ -24,7 +26,6 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.flags.StudioFlags;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -43,10 +44,7 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingX(@NotNull SceneView view, @AndroidCoordinate int androidX) {
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      return view.getX() + view.getContentTranslationX() + (int)Math.round(view.getScale() * pxToDp(view, androidX));
-    }
-    return view.getX() + view.getContentTranslationX() + (int)Math.round(view.getScale() * androidX);
+    return view.getX() + view.getContentTranslationX() + (int)Math.round(view.getScale() * pxToDp(view, androidX));
   }
 
   /**
@@ -55,10 +53,7 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static float getSwingX(@NotNull SceneView view, @AndroidCoordinate float androidX) {
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      return view.getX() + view.getContentTranslationX() + (float)view.getScale() * pxToDp(view, androidX);
-    }
-    return view.getX() + view.getContentTranslationX() + (float)view.getScale() * androidX;
+    return view.getX() + view.getContentTranslationX() + (float)view.getScale() * pxToDp(view, androidX);
   }
 
   /**
@@ -67,10 +62,7 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingY(@NotNull SceneView view, @AndroidCoordinate int androidY) {
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      return view.getY() + view.getContentTranslationY() + (int)Math.round(view.getScale() * pxToDp(view, androidY));
-    }
-    return view.getY() + view.getContentTranslationY() + (int)Math.round(view.getScale() * androidY);
+    return view.getY() + view.getContentTranslationY() + (int)Math.round(view.getScale() * pxToDp(view, androidY));
   }
 
   /**
@@ -79,10 +71,7 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static float getSwingY(@NotNull SceneView view, @AndroidCoordinate float androidY) {
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      return view.getY() + view.getContentTranslationY() + (float)view.getScale() * pxToDp(view, androidY);
-    }
-    return view.getY() + view.getContentTranslationY() + (float)view.getScale() * androidY;
+    return view.getY() + view.getContentTranslationY() + (float)view.getScale() * pxToDp(view, androidY);
   }
 
   /**
@@ -91,10 +80,7 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingDimension(@NotNull SceneView view, @AndroidCoordinate int androidDimension) {
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      return (int)Math.round(view.getScale() * pxToDp(view, androidDimension));
-    }
-    return (int)Math.round(view.getScale() * androidDimension);
+    return (int)Math.round(view.getScale() * pxToDp(view, androidDimension));
   }
 
   /**
@@ -103,10 +89,7 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static float getSwingDimension(@NotNull SceneView view, @AndroidCoordinate float androidDimension) {
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      return (float)view.getScale() * pxToDp(view, androidDimension);
-    }
-    return (float)view.getScale() * androidDimension;
+    return (float)view.getScale() * pxToDp(view, androidDimension);
   }
 
   // DPI
@@ -259,11 +242,8 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidX(@NotNull SceneView view, @SwingCoordinate int swingX) {
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      int dpX = (int)Math.round((swingX - view.getX() - view.getContentTranslationX()) / view.getScale());
-      return dpToPx(view, dpX);
-    }
-    return (int)Math.round((swingX - view.getX() - view.getContentTranslationX()) / view.getScale());
+    int dpX = (int)Math.round((swingX - view.getX() - view.getContentTranslationX()) / view.getScale());
+    return dpToPx(view, dpX);
   }
 
   /**
@@ -281,11 +261,8 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidY(@NotNull SceneView view, @SwingCoordinate int swingY) {
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      int dpY = (int)Math.round((swingY - view.getY() - view.getContentTranslationY()) / view.getScale());
-      return dpToPx(view, dpY);
-    }
-    return (int)Math.round((swingY - view.getY() - view.getContentTranslationY()) / view.getScale());
+    int dpY = (int)Math.round((swingY - view.getY() - view.getContentTranslationY()) / view.getScale());
+    return dpToPx(view, dpY);
   }
 
   /**
@@ -312,11 +289,8 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidDimension(@NotNull SceneView view, @SwingCoordinate int swingDimension) {
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      int dpDim = (int)Math.round(swingDimension / view.getScale());
-      return dpToPx(view, dpDim);
-    }
-    return (int)Math.round(swingDimension / view.getScale());
+    int dpDim = (int)Math.round(swingDimension / view.getScale());
+    return dpToPx(view, dpDim);
   }
 
   /**
@@ -325,11 +299,8 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidDimension(@NotNull DesignSurface<?> surface, @SwingCoordinate int swingDimension) {
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      int dpDim = (int)Math.round(swingDimension / surface.getScale());
-      return dpToPx(surface.getSceneManager(), dpDim);
-    }
-    return (int)Math.round(swingDimension / surface.getScale());
+    int dpDim = (int)Math.round(swingDimension / surface.getScale());
+    return dpToPx(surface.getSceneManager(), dpDim);
   }
 
   /**

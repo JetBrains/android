@@ -20,7 +20,7 @@ import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionL
 import com.intellij.icons.AllIcons
 import javax.swing.Icon
 
-class CopyPathMenuItem(listener: DeviceFileExplorerActionListener) : TreeMenuItem(listener) {
+class CopyPathMenuItem(listener: DeviceFileExplorerActionListener) : NonToggleMenuItem(listener) {
   override fun getText(nodes: List<DeviceFileEntryNode>): String =
     if (nodes.size > 1) { "Copy Paths" } else "Copy Path"
 

@@ -20,10 +20,11 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import icons.StudioIcons;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
-import javax.swing.Icon;
-import org.jetbrains.annotations.NotNull;
 
 public final class SelectorHandler extends ViewGroupHandler {
   @NotNull

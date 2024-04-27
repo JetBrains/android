@@ -1,44 +1,11 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.uipreview;
 
 import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
 
 import com.android.ide.common.resources.LocaleManager;
-import com.android.ide.common.resources.configuration.CountryCodeQualifier;
-import com.android.ide.common.resources.configuration.DensityQualifier;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.KeyboardStateQualifier;
-import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
-import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.ide.common.resources.configuration.NavigationMethodQualifier;
-import com.android.ide.common.resources.configuration.NavigationStateQualifier;
-import com.android.ide.common.resources.configuration.NetworkCodeQualifier;
-import com.android.ide.common.resources.configuration.NightModeQualifier;
-import com.android.ide.common.resources.configuration.ResourceQualifier;
-import com.android.ide.common.resources.configuration.ScreenDimensionQualifier;
-import com.android.ide.common.resources.configuration.ScreenHeightQualifier;
-import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
-import com.android.ide.common.resources.configuration.ScreenRatioQualifier;
-import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
-import com.android.ide.common.resources.configuration.ScreenWidthQualifier;
-import com.android.ide.common.resources.configuration.SmallestScreenWidthQualifier;
-import com.android.ide.common.resources.configuration.TextInputMethodQualifier;
-import com.android.ide.common.resources.configuration.TouchScreenQualifier;
-import com.android.ide.common.resources.configuration.UiModeQualifier;
-import com.android.ide.common.resources.configuration.VersionQualifier;
-import com.android.resources.Density;
-import com.android.resources.Keyboard;
-import com.android.resources.KeyboardState;
-import com.android.resources.LayoutDirection;
-import com.android.resources.Navigation;
-import com.android.resources.NavigationState;
-import com.android.resources.NightMode;
-import com.android.resources.ResourceEnum;
-import com.android.resources.ScreenOrientation;
-import com.android.resources.ScreenRatio;
-import com.android.resources.ScreenSize;
-import com.android.resources.TouchScreen;
-import com.android.resources.UiMode;
+import com.android.ide.common.resources.configuration.*;
+import com.android.resources.*;
 import com.android.tools.idea.rendering.FlagManager;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
@@ -46,27 +13,16 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Ref;
-import com.intellij.ui.CollectionListModel;
-import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.EnumComboBoxModel;
-import com.intellij.ui.SimpleListCellRenderer;
-import com.intellij.ui.SortedListModel;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.speedSearch.ListWithFilter;
 import com.intellij.util.ui.AbstractLayoutManager;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -74,22 +30,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javax.swing.AbstractListModel;
-import javax.swing.ComboBoxModel;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.ListModel;
-import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.*;
+import javax.swing.event.*;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -191,6 +133,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       }
       else if (qualifier instanceof LayoutDirectionQualifier) {
         myEditors.put(name, new MyLayoutDirectionEditor());
+      }
+      else if (qualifier instanceof ScreenRoundQualifier) {
+        myEditors.put(name, new MyScreenRoundEditor());
       } else {
         LOG.info("Missing editor for qualifier " + qualifier);
       }
@@ -293,6 +238,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     ourIcons.put(TextInputMethodQualifier.NAME, StudioIcons.DeviceConfiguration.TEXT_INPUT);
     ourIcons.put(TouchScreenQualifier.NAME, StudioIcons.DeviceConfiguration.TOUCH_SCREEN);
     ourIcons.put(LayoutDirectionQualifier.NAME, StudioIcons.DeviceConfiguration.LAYOUT_DIRECTION);
+    ourIcons.put(ScreenRoundQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_ROUNDNESS);
 
     // TODO: Get dedicated icon for the API version
     ourIcons.put(VersionQualifier.NAME, StudioIcons.DeviceConfiguration.VERSION);
@@ -411,7 +357,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       }
     };
 
-    final JPanel leftPanel = new JPanel(new BorderLayout(JBUIScale.scale(5), JBUIScale.scale(5)));
+    final JPanel leftPanel = new JPanel(new BorderLayout(JBUI.scale(5), JBUI.scale(5)));
     myAvailableQualifiersList = new JBList<>();
     myAvailableQualifiersList.setMinimumSize(JBUI.size(10, 10));
     JBLabel label = new JBLabel(AndroidBundle.message("android.layout.preview.edit.configuration.available.qualifiers.label"));
@@ -420,7 +366,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     leftPanel.add(new JBScrollPane(myAvailableQualifiersList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
 
-    final JPanel rightPanel = new JPanel(new BorderLayout(JBUIScale.scale(5), JBUIScale.scale(5)));
+    final JPanel rightPanel = new JPanel(new BorderLayout(JBUI.scale(5), JBUI.scale(5)));
     myChosenQualifiersList = new JBList<>();
     myChosenQualifiersList.setMinimumSize(JBUI.size(10, 10));
     label = new JBLabel(AndroidBundle.message("android.layout.preview.edit.configuration.choosen.qualifiers.label"));
@@ -559,40 +505,26 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private abstract class MyEnumBasedEditor<T extends ResourceQualifier, U extends Enum<U>> extends MyQualifierEditor<T> {
+  private abstract class MyComboBoxEditor<T extends ResourceQualifier, U extends ResourceEnum> extends MyQualifierEditor<T> {
+    private final ComboBoxModel<U> myModel;
     private final ComboBox<U> myComboBox = new ComboBox<>();
-    private final Class<U> myEnumClass;
 
-    protected MyEnumBasedEditor(@NotNull Class<U> enumClass) {
-      myEnumClass = enumClass;
+    protected MyComboBoxEditor(@NotNull ComboBoxModel<U> model) {
+      myModel = model;
     }
 
     @Override
     JComponent getComponent() {
-      myComboBox.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          applyEditors();
-        }
-      });
-
-      myComboBox.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
-        if (value instanceof ResourceEnum) {
-          label.setText(((ResourceEnum)value).getShortDisplayValue());
-        }
-      }));
+      myComboBox.addActionListener(e -> applyEditors());
+      myComboBox.setRenderer(SimpleListCellRenderer.create((label, value, index) -> label.setText(value.getShortDisplayValue())));
 
       final JPanel panel = new JPanel(new VerticalFlowLayout());
       final JBLabel label = new JBLabel(getCaption());
       label.setLabelFor(myComboBox);
-      myComboBox.setModel(createModel());
+      myComboBox.setModel(myModel);
       panel.add(label);
       panel.add(myComboBox);
       return panel;
-    }
-
-    protected ComboBoxModel<U> createModel() {
-      return new EnumComboBoxModel<>(myEnumClass);
     }
 
     @NotNull
@@ -625,6 +557,25 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         throw new InvalidOptionValueException(getErrorMessage());
       }
       return getQualifier(selectedItem);
+    }
+  }
+
+  private abstract class MyEnumBasedEditor<T extends ResourceQualifier, U extends Enum<U> & ResourceEnum> extends MyComboBoxEditor<T, U> {
+    private final ComboBox<U> myComboBox = new ComboBox<>();
+
+    protected MyEnumBasedEditor(@NotNull Class<U> enumClass) {
+      super(new EnumComboBoxModel<>(enumClass));
+    }
+
+    @Override
+    void reset(@NotNull T qualifier) {
+      final U value = getValue(qualifier);
+      if (value != null) {
+        myComboBox.setSelectedItem(value);
+      }
+      else if (myComboBox.getItemCount() > 0) {
+        myComboBox.setSelectedIndex(0);
+      }
     }
   }
 
@@ -763,14 +714,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private class MyDensityEditor extends MyEnumBasedEditor<DensityQualifier, Density> {
+  private class MyDensityEditor extends MyComboBoxEditor<DensityQualifier, Density> {
     private MyDensityEditor() {
-      super(Density.class);
-    }
-
-    @Override
-    protected ComboBoxModel<Density> createModel() {
-      return new DensityComboBoxModel();
+      super(new DensityComboBoxModel());
     }
 
     @NotNull
@@ -1423,6 +1369,35 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     @Override
     protected String getErrorMessage() {
       return "Incorrect screen height";
+    }
+  }
+
+  private class MyScreenRoundEditor extends MyEnumBasedEditor<ScreenRoundQualifier, ScreenRound> {
+    private MyScreenRoundEditor() {
+      super(ScreenRound.class);
+    }
+
+    @NotNull
+    @Override
+    protected String getCaption() {
+      return "Screen roundness:";
+    }
+
+    @Override
+    protected ScreenRound getValue(@NotNull ScreenRoundQualifier qualifier) {
+      return qualifier.getValue();
+    }
+
+    @NotNull
+    @Override
+    protected ScreenRoundQualifier getQualifier(@NotNull ScreenRound value) {
+      return new ScreenRoundQualifier(value);
+    }
+
+    @NotNull
+    @Override
+    protected String getErrorMessage() {
+      return "Specify the screen shape";
     }
   }
 }

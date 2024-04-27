@@ -17,10 +17,10 @@ package com.android.tools.profilers.cpu.art;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.TraceParser;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;

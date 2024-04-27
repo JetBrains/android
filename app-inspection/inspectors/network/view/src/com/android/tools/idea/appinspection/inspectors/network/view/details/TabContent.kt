@@ -15,19 +15,21 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.JTabbedPane
+import kotlin.LazyThreadSafetyMode.NONE
 
 /**
- * Base class for all tabs shown in the [ConnectionDetailsView]. To use, construct subclass
+ * Base class for all tabs shown in the [ConnectionDataDetailsView]. To use, construct subclass
  * instances and add their title, icon, and component content to a target [JTabbedPane] using
  * [JTabbedPane.addTab]
  */
-abstract class TabContent {
+internal abstract class TabContent {
   /** Return the component associated with this tab. Guaranteed to be the same value every time. */
-  val component: JComponent by lazy { createComponent().apply { border = JBUI.Borders.empty() } }
+  val component: JComponent by
+    lazy(NONE) { createComponent().apply { border = JBUI.Borders.empty() } }
 
   abstract val title: String
 
@@ -35,7 +37,7 @@ abstract class TabContent {
    * Populates the contents of this tab with information from the target `data`. This value might
    * possibly be `null`, if the user cleared the current selection.
    */
-  abstract fun populateFor(data: HttpData?, httpDataComponentFactory: HttpDataComponentFactory)
+  abstract fun populateFor(data: ConnectionData?, dataComponentFactory: DataComponentFactory)
 
   /**
    * The subclass should create a panel that will populate a tab.

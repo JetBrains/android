@@ -48,26 +48,28 @@ import org.junit.Test
 import org.mockito.Mockito.verify
 import java.time.ZoneId
 
-/**
- * Tests for [IgnoreTagAction]
- */
+/** Tests for [IgnoreTagAction] */
 @RunsInEdt
 class IgnoreTagActionTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule
-  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule(), disposableRule)
+  @get:Rule val rule = RuleChain(projectRule, logcatEditorRule, EdtRule(), disposableRule)
 
-  private val editor get() = logcatEditorRule.editor
+  private val editor
+    get() = logcatEditorRule.editor
+
   private val logcatSettings = AndroidLogcatSettings()
   // We need to retain a reference to documentAppender so that ranges don't get GC'ed
-  private val documentAppender by lazy { DocumentAppender(projectRule.project, editor.document, 1_000_000) }
+  private val documentAppender by lazy {
+    DocumentAppender(projectRule.project, editor.document, 1_000_000)
+  }
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().replaceService(AndroidLogcatSettings::class.java, logcatSettings, disposableRule.disposable)
+    ApplicationManager.getApplication()
+      .replaceService(AndroidLogcatSettings::class.java, logcatSettings, disposableRule.disposable)
   }
 
   @After
@@ -121,8 +123,10 @@ class IgnoreTagActionTest {
 }
 
 private fun testActionEvent(editor: EditorEx): AnActionEvent {
-  return TestActionEvent.createTestEvent(MapDataContext().apply {
-    put(LogcatPresenter.EDITOR, editor)
-    put(LOGCAT_PRESENTER_ACTION, FakeLogcatPresenter())
-  })
+  return TestActionEvent.createTestEvent(
+    MapDataContext().apply {
+      put(LogcatPresenter.EDITOR, editor)
+      put(LOGCAT_PRESENTER_ACTION, FakeLogcatPresenter())
+    }
+  )
 }

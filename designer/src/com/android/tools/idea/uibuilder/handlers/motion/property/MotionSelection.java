@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property;
 
-import static com.android.AndroidXConstants.MOTION_LAYOUT;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
+import static com.android.AndroidXConstants.MOTION_LAYOUT;
 
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;

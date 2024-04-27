@@ -59,7 +59,7 @@ public class ApplyChangesTask extends AbstractDeployTask {
                                     @NotNull ApkInfo apkInfo,
                                     @NotNull Canceller canceller) throws DeployerException {
     LOG.info("Applying changes to application: " + apkInfo.getApplicationId());
-    return deployer.fullSwap(getPathsToInstall(apkInfo), canceller);
+    return deployer.fullSwap(getAppToInstall(apkInfo), canceller);
   }
 
   @NotNull

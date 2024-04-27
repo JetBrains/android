@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER;
-import static com.android.SdkConstants.ATTR_CONTENT_SCRIM;
-import static com.android.SdkConstants.ATTR_FITS_SYSTEM_WINDOWS;
-import static com.android.SdkConstants.ATTR_LAYOUT_COLLAPSE_MODE;
-import static com.android.SdkConstants.ATTR_TOOLBAR_ID;
-import static com.android.SdkConstants.PREFIX_APP;
-
 import com.android.AndroidXConstants;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 public class CollapsingToolbarLayoutHandler extends FrameLayoutHandler {
   @Override

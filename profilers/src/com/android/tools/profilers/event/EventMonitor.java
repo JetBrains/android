@@ -15,14 +15,20 @@
  */
 package com.android.tools.profilers.event;
 
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.TooltipModel;
+import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
+import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.adtui.model.event.LifecycleEventModel;
 import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 

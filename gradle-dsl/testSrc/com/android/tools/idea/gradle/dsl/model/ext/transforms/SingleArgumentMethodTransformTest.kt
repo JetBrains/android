@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model.ext.transforms
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
+import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral

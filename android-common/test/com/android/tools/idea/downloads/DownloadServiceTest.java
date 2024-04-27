@@ -23,7 +23,6 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.LightPlatformTestCase;
-import com.intellij.util.concurrency.FutureResult;
 import com.intellij.util.concurrency.Semaphore;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.FileDownloader;
@@ -31,10 +30,10 @@ import com.intellij.util.download.impl.DownloadableFileDescriptionImpl;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 public class DownloadServiceTest extends LightPlatformTestCase {
@@ -73,7 +72,7 @@ public class DownloadServiceTest extends LightPlatformTestCase {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Semaphore s = new Semaphore();
     s.down();
-    Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenAnswer(invocation -> {
+    Mockito.when(downloader.download(Mockito.any(File.class))).thenAnswer(invocation -> {
       assertThat(s.waitFor(5000)).isTrue();
       return ImmutableList.of(Pair.create(myDownloadFile, myDescription));
     });
@@ -83,7 +82,7 @@ public class DownloadServiceTest extends LightPlatformTestCase {
       assertThat(service.getLastLoadUrl()).isNotEqualTo(myFallbackFileUrl);
 
       try {
-        Mockito.verify(downloader).download(ArgumentMatchers.any(File.class));
+        Mockito.verify(downloader).download(Mockito.any(File.class));
       }
       catch (IOException e) {
         throw new RuntimeException(e);
@@ -103,7 +102,7 @@ public class DownloadServiceTest extends LightPlatformTestCase {
     s.down();
     Semaphore s2 = new Semaphore();
     s2.down();
-    Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenAnswer(invocation -> {
+    Mockito.when(downloader.download(Mockito.any(File.class))).thenAnswer(invocation -> {
       assertThat(s.waitFor(5000)).isTrue();
       return ImmutableList.of(Pair.create(myDownloadFile, myDescription));
     });
@@ -122,7 +121,7 @@ public class DownloadServiceTest extends LightPlatformTestCase {
     assertThat(service.getLastLoadUrl()).isNotEqualTo(myFallbackFileUrl);
 
     try {
-      Mockito.verify(downloader).download(ArgumentMatchers.any(File.class));
+      Mockito.verify(downloader).download(Mockito.any(File.class));
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -134,13 +133,13 @@ public class DownloadServiceTest extends LightPlatformTestCase {
    */
   public void testFailure() throws Exception {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
-    Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
+    Mockito.when(downloader.download(Mockito.any(File.class))).thenThrow(new RuntimeException("expected exception"));
 
     MyDownloadService service = new MyDownloadService(downloader, myFallbackFileUrl);
-    final FutureResult<Boolean> result = new FutureResult<>();
+    final CompletableFuture<Boolean> result = new CompletableFuture<>();
     service.refresh(() -> {
       assert false;
-    }, () -> result.set(true));
+    }, () -> result.complete(true));
     assertThat(result.get(5, TimeUnit.SECONDS)).isTrue();
     assertThat(service.getLoadedCount()).isEqualTo(1);
     assertThat(service.getLastLoadUrl()).isEqualTo(myFallbackFileUrl);
@@ -165,10 +164,10 @@ public class DownloadServiceTest extends LightPlatformTestCase {
     }
 
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
-    Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
+    Mockito.when(downloader.download(Mockito.any(File.class))).thenThrow(new RuntimeException("expected exception"));
     MyDownloadService service = new MyDownloadService(downloader, myFallbackFileUrl);
-    FutureResult<Boolean> result = new FutureResult<>();
-    service.refresh(() -> result.set(true), () -> {
+    CompletableFuture<Boolean> result = new CompletableFuture<>();
+    service.refresh(() -> result.complete(true), () -> {
       assert false;
     });
     assertThat(result.get(5, TimeUnit.SECONDS)).isTrue();

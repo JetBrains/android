@@ -157,6 +157,22 @@ class GradleVersionCatalogDetectorTest: PlatformTestCase() {
     assertEquals(UNSUPPORTED, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
   }
 
+  @Test fun testSettingsDslNoEntry() {
+    addWrapperFile("7.4")
+    addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = true, dslEntry = false)
+    assertFalse(GradleVersionCatalogDetector.getInstance(project).isSettingsCatalogEntry)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(EXPLICIT, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
+  }
+
+  @Test fun testSettingsDslEntry() {
+    addWrapperFile("7.4")
+    addSettingsFile(settingsFilename, enablePreview = false, callVersionCatalogs = true, dslEntry = true)
+    assertTrue(GradleVersionCatalogDetector.getInstance(project).isSettingsCatalogEntry)
+    val event = tracker.usages.single { it.studioEvent.kind == GRADLE_VERSION_CATALOG_DETECTOR }
+    assertEquals(EXPLICIT, event.studioEvent.gradleVersionCatalogDetectorEvent.state)
+  }
+
   private fun addWrapperFile(gradleVersion: String) {
     runWriteAction {
       val baseDir = getOrCreateProjectBaseDir()
@@ -170,8 +186,9 @@ class GradleVersionCatalogDetectorTest: PlatformTestCase() {
     }
   }
 
-  // For our purposes for now we can write the same text as valid  and Kotlinscript
-  private fun addSettingsFile(filename: String, enablePreview: Boolean, callVersionCatalogs: Boolean) {
+  // For our purposes for now we can write the same text as valid Groovy and Kotlinscript
+  private fun addSettingsFile(filename: String, enablePreview: Boolean, callVersionCatalogs: Boolean, dslEntry: Boolean = false) {
+    if (dslEntry) assertTrue(callVersionCatalogs)
     runWriteAction {
       val baseDir = getOrCreateProjectBaseDir()
       val settingsFile = baseDir.findOrCreateChildData(this, filename)
@@ -181,7 +198,9 @@ class GradleVersionCatalogDetectorTest: PlatformTestCase() {
           if (callVersionCatalogs) "" +
                                    "dependencyResolutionManagement {\n" +
                                    "  versionCatalogs {\n" +
-                                   "    getByName(\"libs\") { }\n" +
+                                   "    getByName(\"libs\") {\n" +
+                                   (if (dslEntry) "      library(\"foo\", \"com.example:example:1.2.3\")\n" else "") +
+                                   "    }\n" +
                                    "  }\n" +
                                    "}\n"
           else ""

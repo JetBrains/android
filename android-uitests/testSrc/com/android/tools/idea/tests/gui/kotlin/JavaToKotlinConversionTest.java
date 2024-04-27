@@ -24,9 +24,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.KotlinIsNotConfiguredDialogFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.event.KeyEvent;
 import java.util.List;
 import org.fest.swing.timing.Wait;
 import org.junit.Before;
@@ -44,7 +46,7 @@ public class JavaToKotlinConversionTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   private IdeFrameFixture ideFrame;
 
-  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
+  protected static final String EMPTY_VIEWS_ACTIVITY_TEMPLATE = "Empty Views Activity";
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
   protected static final int MIN_SDK_API = 30;
@@ -74,7 +76,7 @@ public class JavaToKotlinConversionTest {
   @Before
   public void setUp() throws Exception {
 
-    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Java);
+    WizardUtils.createNewProject(guiTest, EMPTY_VIEWS_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Java, BuildConfigurationLanguageForNewProject.Groovy);
     guiTest.robot().waitForIdle();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
@@ -90,11 +92,9 @@ public class JavaToKotlinConversionTest {
   public void testJavaToKotlinConversion() throws Exception {
     EditorFixture editor = ideFrame.getEditor();
 
-    // Clearing any notifications on the ideframe
-    ideFrame.clearNotificationsPresentOnIdeFrame();
-
     ideFrame.getProjectView()
-      .selectAndroidPane();
+      .selectAndroidPane()
+      .clickPath("app", "java");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     //Kotlin Not configured dialog box opens, click ok
@@ -114,8 +114,7 @@ public class JavaToKotlinConversionTest {
       .isTrue();
 
     List<String> modulesList = configureKotlinDialogBox.getSingleModuleComboBoxDetails();
-    // TODO(b/277155005): Fix pending from intellij https://youtrack.jetbrains.com/issue/KTIJ-25193
-    //assertThat(modulesList.size()).isGreaterThan(0);
+    assertThat(modulesList.size()).isGreaterThan(0);
 
     //Click on all modules again.
     assertThat(configureKotlinDialogBox.clickRadioButtonWithName("All modules"))
@@ -138,15 +137,15 @@ public class JavaToKotlinConversionTest {
     configureKotlinDialogBox.clickOkAndWaitDialogDisappear();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    assertThat(editor.open("build.gradle.kts")
+    assertThat(editor.open("build.gradle")
                  .getCurrentFileContents()
       // If created as a Kotlin language, this should be written using version catalogs, but this scenario is created as a Java project
       // first, then converted to Kotlin project. In that case, kotlin plugin isn't written using version catalogs.
                  .contains("org.jetbrains.kotlin.android"))
       .isTrue();
 
-    //Manually changing the kotlin version to the latest version, and this step needs to be updated with every new release.
-    ConversionTestUtil.changeKotlinVersion(guiTest);
+    //Manually changing the kotlin version to the latest version.
+    ConversionTestUtil.changeKotlinVersion(guiTest, "build.gradle");
 
     //Manually syncing after changing the kotlin version.
     ideFrame.requestProjectSyncAndWaitForSyncToFinish();
@@ -172,6 +171,23 @@ public class JavaToKotlinConversionTest {
     //Invoking project sync.
     ideFrame.requestProjectSyncAndWaitForSyncToFinish();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    // TODO(devtools-engprod): remove this step once b/300329659 is fixed
+    // Starting form Iguana release onwards, kotlinOptions is added in the build.gradle
+    // on configuring kotlin in java project. Above bug is raise to update the
+    // correct version of jvmTarget in kotlinOptions.
+    editor.open("app/build.gradle")
+      .select("jvmTarget.*(17)")
+      .enterText("1.8");
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    // TODO(devtools-engprod): Remove this once all libraries are migrated to kotlin-stdlib
+    // More details for this issue is found here b/278545487
+    // and here https://youtrack.jetbrains.com/issue/KT-55297
+    editor.open("app/build.gradle")
+      .moveBetween("dependencies {", "")
+      .enterText("\nimplementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.0')");
 
     //Invoking project make.
     ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300),

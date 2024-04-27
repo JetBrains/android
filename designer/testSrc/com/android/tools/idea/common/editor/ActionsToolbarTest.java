@@ -23,16 +23,13 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.error.IssueModel;
-import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.actionSystem.impl.PresentationFactory;
-import com.intellij.testFramework.PlatformTestUtil;
 import java.lang.reflect.Field;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -44,23 +41,23 @@ public class ActionsToolbarTest extends LayoutTestCase {
     ActionsToolbar toolbar = createToolbar();
     ActionToolbarImpl centerToolBar = toolbar.getCenterToolbar();
     Map<?, ?> cache = getPresentationCache(centerToolBar);
-    PlatformTestUtil.waitForFuture(centerToolBar.updateActionsAsync());
+    centerToolBar.updateActionsImmediately();
     int initialSize = cache.size();
 
     toolbar.updateActions();
-    PlatformTestUtil.waitForFuture(centerToolBar.updateActionsAsync());
+    centerToolBar.updateActionsImmediately();
     assertThat(cache.size()).isAtMost(initialSize);
 
     toolbar.updateActions();
-    PlatformTestUtil.waitForFuture(centerToolBar.updateActionsAsync());
+    centerToolBar.updateActionsImmediately();
     assertThat(cache.size()).isAtMost(initialSize);
 
     toolbar.updateActions();
-    PlatformTestUtil.waitForFuture(centerToolBar.updateActionsAsync());
+    centerToolBar.updateActionsImmediately();
     assertThat(cache.size()).isAtMost(initialSize);
 
     toolbar.updateActions();
-    PlatformTestUtil.waitForFuture(centerToolBar.updateActionsAsync());
+    centerToolBar.updateActionsImmediately();
     assertThat(cache.size()).isAtMost(initialSize);
   }
 
@@ -69,10 +66,8 @@ public class ActionsToolbarTest extends LayoutTestCase {
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
     NlActionManager actionManager = new NlActionManager(surface);
     IssueModel issueModel = new IssueModel(myFixture.getTestRootDisposable(), myFixture.getProject());
-    IssuePanel issuePanel = new IssuePanel(issueModel, new DesignSurfaceIssueListenerImpl(surface));
     doReturn(actionManager).when(surface).getActionManager();
     doReturn(LayoutFileType.INSTANCE).when(surface).getLayoutType();
-    when(surface.getIssuePanel()).thenReturn(issuePanel);
     when(surface.getIssueModel()).thenReturn(issueModel);
     return new ActionsToolbar(getTestRootDisposable(), surface);
   }

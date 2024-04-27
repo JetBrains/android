@@ -15,13 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
-import com.android.SdkConstants.ATTR_CHECKED_CHIP
-import com.android.SdkConstants.ATTR_CHIP_SPACING
-import com.android.SdkConstants.ATTR_CHIP_SPACING_HORIZONTAL
-import com.android.SdkConstants.ATTR_CHIP_SPACING_VERTICAL
-import com.android.SdkConstants.ATTR_SINGLE_LINE
-import com.android.SdkConstants.ATTR_SINGLE_SELECTION
-import com.android.SdkConstants.ATTR_STYLE
+import com.android.SdkConstants.*
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 
 class ChipGroupHandler : ViewGroupHandler() {

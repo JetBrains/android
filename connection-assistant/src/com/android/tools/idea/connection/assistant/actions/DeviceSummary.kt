@@ -21,7 +21,7 @@ import com.intellij.openapi.application.ApplicationNamesInfo
 /**
  * Identifies a category of device in the connection assistant.
  */
-enum class ConnectionAssistantSection { WORKING, POSSIBLE_PROBLEM, OTHER_USB }
+enum class ConnectionAssistantSection { WORKING, POSSIBLE_PROBLEM, OTHER_USB };
 
 /**
  * Summary of a device that is displayed in the connection assistant. Only contains fields that are actually displayed in the UI.

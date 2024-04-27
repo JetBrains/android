@@ -15,19 +15,20 @@
  */
 package org.jetbrains.android.dom;
 
-import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.google.common.annotations.VisibleForTesting;
+import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Conditions;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.android.tools.idea.res.IdeResourcesUtil;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
 
 public final class FileDescriptionUtils {
   private FileDescriptionUtils() {

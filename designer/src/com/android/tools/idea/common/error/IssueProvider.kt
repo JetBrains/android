@@ -23,9 +23,11 @@ abstract class IssueProvider {
 
   // Unfortunately we have to use Runnable here for java interop
   @VisibleForTesting val listeners = mutableListOf<Runnable>()
+
   abstract fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>)
 
   fun addListener(listener: Runnable) = listeners.add(listener)
+
   fun removeListener(listener: Runnable) = listeners.remove(listener)
 
   fun notifyModified() {

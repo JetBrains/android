@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.LocalQuickFixOnPsiElement
@@ -138,6 +138,7 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
 
   abstract val fqNameCheck: (String) -> Boolean
   abstract val animationType: String
+
   override fun buildVisitor(
     holder: ProblemsHolder,
     isOnTheFly: Boolean,
@@ -203,7 +204,7 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
             }
           }
           holder.registerProblem(
-            expression,
+            expression.children.firstOrNull() ?: expression,
             message("inspection.animation.no.label.parameter.set.description", animationType),
             ProblemHighlightType.WEAK_WARNING,
             AddLabelFieldQuickFix(expression)

@@ -19,7 +19,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.BlockingDaemonClient
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.run.deployment.liveedit.loadComposeRuntimeInClassPath
+import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Disposer
@@ -61,7 +61,7 @@ class FastPreviewUtilTest {
 
   @Test
   fun `fast compile call`() {
-    projectRule.module.loadComposeRuntimeInClassPath()
+    setUpComposeInProjectFixture(projectRule)
     runBlocking(workerThread) {
       val (result, _) =
         fastCompile(

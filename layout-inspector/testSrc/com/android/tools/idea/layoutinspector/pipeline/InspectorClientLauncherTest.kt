@@ -784,19 +784,26 @@ private open class FakeInspectorClient(
   ) {
 
   override suspend fun startFetching() = throw NotImplementedError()
+
   override suspend fun stopFetching() = throw NotImplementedError()
+
   override fun refresh() = throw NotImplementedError()
+
   override fun saveSnapshot(path: Path) = throw NotImplementedError()
 
   override suspend fun doConnect() {}
+
   override suspend fun doDisconnect() {}
 
   override val capabilities
     get() = throw NotImplementedError()
+
   override val treeLoader: TreeLoader
     get() = throw NotImplementedError()
+
   override val isCapturing: Boolean
     get() = false
+
   override val provider: PropertiesProvider
     get() = throw NotImplementedError()
 }

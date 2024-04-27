@@ -1,8 +1,23 @@
 <component name="libraryTable">
   <library name="mockito" type="repository">
-    <properties include-transitive-deps="false" maven-id="org.mockito:mockito-core:4.8.0" />
+    <properties include-transitive-deps="false" maven-id="org.mockito:mockito-core:5.6.0">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/org/mockito/mockito-core/5.6.0/mockito-core-5.6.0.jar">
+          <sha256sum>370382525f4461000794b892d561d58c938744366ee6eceeb01c9cb25270efcf</sha256sum>
+        </artifact>
+        <artifact url="file://$MAVEN_REPOSITORY$/net/bytebuddy/byte-buddy/1.14.8/byte-buddy-1.14.8.jar">
+          <sha256sum>1ba490ddaed033ef9114c14020d753b777421bcb7c1d151ea98b59c88e6859e9</sha256sum>
+        </artifact>
+        <artifact url="file://$MAVEN_REPOSITORY$/net/bytebuddy/byte-buddy-agent/1.14.8/byte-buddy-agent-1.14.8.jar">
+          <sha256sum>882dbfe2a5fab403c6c55696e936206507aca963ef8739276ffc1899009da6a9</sha256sum>
+        </artifact>
+      </verification>
+      <exclude>
+        <dependency maven-id="org.objenesis:objenesis" />
+      </exclude>
+    </properties>
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/mockito/mockito-core/4.8.0/mockito-core-4.8.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/mockito/mockito-core/5.6.0/mockito-core-5.6.0.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

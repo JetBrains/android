@@ -24,10 +24,10 @@ import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.VisualNodeCaptureNode
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.intellij.openapi.application.ApplicationManager
-import kotlin.math.max
 import com.android.tools.profilers.cpu.capturedetails.Aggregate as AggregateTree
-import com.android.tools.profilers.cpu.capturedetails.Aggregate.BottomUp as BottomUpTree
 import com.android.tools.profilers.cpu.capturedetails.Aggregate.TopDown as TopDownTree
+import com.android.tools.profilers.cpu.capturedetails.Aggregate.BottomUp as BottomUpTree
+import kotlin.math.max
 
 sealed class CaptureDetails(val clockType: ClockType, val capture: CpuCapture) {
   abstract val type: Type

@@ -32,12 +32,19 @@ import icons.GradleIcons
 class AndroidBuildScriptsGroupNode(project: Project, settings: ViewSettings)
   : ProjectViewNode<List<PsiDirectory?>?>(project, emptyList(), settings) {
 
-  override fun contains(file: VirtualFile): Boolean = buildConfigurationSourceProvider().contains(file)
+  private lateinit var cachedScripts: List<BuildConfigurationSourceProvider.ConfigurationFile>
+
+  override fun contains(file: VirtualFile): Boolean {
+    if (!::cachedScripts.isInitialized) {
+      cachedScripts = buildConfigurationSourceProvider().getBuildConfigurationFiles()
+    }
+    return cachedScripts.any { it.file == file }
+  }
 
   override fun getChildren(): Collection<AbstractTreeNode<*>?> {
-    val scripts = buildConfigurationSourceProvider().getBuildConfigurationFiles()
-    val children = ArrayList<PsiFileNode>(scripts.size)
-    scripts.forEach{ configFile ->
+    cachedScripts = buildConfigurationSourceProvider().getBuildConfigurationFiles()
+    val children = ArrayList<PsiFileNode>(cachedScripts.size)
+    cachedScripts.forEach { configFile ->
       val psiFile = PsiManager.getInstance(myProject).findFile(configFile.file)
       if (psiFile != null) {
         children.add(AndroidBuildScriptNode(myProject, psiFile, settings, configFile.displayName, configFile.groupOrder))

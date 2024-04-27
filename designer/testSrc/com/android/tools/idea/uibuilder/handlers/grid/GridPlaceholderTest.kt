@@ -23,8 +23,8 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.scene.SceneTest
-import org.mockito.Mockito
 import java.awt.Point
+import org.mockito.Mockito
 
 class GridPlaceholderTest : SceneTest() {
 

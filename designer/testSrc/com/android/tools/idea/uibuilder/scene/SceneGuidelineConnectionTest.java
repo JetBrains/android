@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.SdkConstants.BUTTON;
-
 import com.android.AndroidXConstants;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Test connecting to a guideline

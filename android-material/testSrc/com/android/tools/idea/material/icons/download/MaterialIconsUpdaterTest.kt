@@ -37,8 +37,8 @@ import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.createFile
 import kotlin.io.path.createTempDirectory
-import kotlin.io.path.readText
 import kotlin.io.path.writeText
+import kotlin.io.path.readText
 import kotlin.test.assertEquals
 
 private const val HOST = "my.host.com"

@@ -25,54 +25,12 @@ import com.google.wireless.android.sdk.stats.AtfFixDetail
 import com.google.wireless.android.sdk.stats.AtfResultDetail
 import com.google.wireless.android.sdk.stats.IgnoreAtfResultEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
-import com.intellij.lang.annotation.HighlightSeverity
 
 /** Metric tracker for results from accessibility testing framework */
 class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
 
   /** Track expanded issues so we don't log them multiple times */
   @VisibleForTesting val expanded = HashSet<Issue>()
-
-  /** Tracks all issues created by atf. */
-  fun trackIssues(issues: Set<Issue>, renderMetric: RenderResultMetricData) {
-    val atfIssues =
-      issues.filterIsInstance<NlAtfIssue>().filter {
-        it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING
-      }
-    if (atfIssues.isEmpty()) {
-      return
-    }
-
-    CommonUsageTracker.getInstance(surface).logStudioEvent(
-      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT
-    ) { event ->
-      val atfResultBuilder = AtfAuditResult.newBuilder()
-      atfIssues.forEach { issue -> atfResultBuilder.addCounts(atfResultCountBuilder(issue)) }
-      atfResultBuilder
-        .setAuditDurationMs(renderMetric.scanMs)
-        .setTotalRenderTimeMs(renderMetric.renderMs)
-        .setComponentCount(renderMetric.componentCount)
-        .setRenderResult(renderMetric.isRenderResultSuccess)
-      event.setAtfAuditResult(atfResultBuilder)
-    }
-  }
-
-  /** Track the first time the issue is expanded by user. */
-  fun trackFirstExpanded(issue: Issue) {
-    if (issue !is NlAtfIssue || expanded.contains(issue)) {
-      return
-    }
-
-    expanded.add(issue)
-
-    CommonUsageTracker.getInstance(surface).logStudioEvent(
-      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT
-    ) { event ->
-      val atfResultBuilder = AtfAuditResult.newBuilder()
-      atfResultBuilder.addCounts(atfResultCountBuilder(issue).setErrorExpanded(true))
-      event.setAtfAuditResult(atfResultBuilder)
-    }
-  }
 
   /** Track the ignore button is clicked by user. */
   fun trackIgnoreButtonClicked(issue: ValidatorData.Issue) {
@@ -123,21 +81,6 @@ class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
       is ValidatorData.CompoundFix -> AtfFixDetail.AtfFixType.COMPOUND
       else -> AtfFixDetail.AtfFixType.UNKNOWN
     }
-  }
-
-  private fun atfResultCountBuilder(issue: NlAtfIssue): AtfAuditResult.AtfResultCount.Builder {
-    val atfResultCountBuilder =
-      AtfAuditResult.AtfResultCount.newBuilder().setCheckName(issue.srcClass)
-    issue.result.mFix?.let { atfResultCountBuilder.addFixes(atfFixDetailBuilder(it)) }
-    atfResultCountBuilder.setResultType(
-      when (issue.result.mLevel) {
-        ValidatorData.Level.ERROR -> AtfAuditResult.AtfResultCount.CheckResultType.ERROR
-        ValidatorData.Level.WARNING -> AtfAuditResult.AtfResultCount.CheckResultType.WARNING
-        ValidatorData.Level.INFO -> AtfAuditResult.AtfResultCount.CheckResultType.INFO
-        else -> AtfAuditResult.AtfResultCount.CheckResultType.UNKNOWN // Should not be triggered.
-      }
-    )
-    return atfResultCountBuilder
   }
 }
 

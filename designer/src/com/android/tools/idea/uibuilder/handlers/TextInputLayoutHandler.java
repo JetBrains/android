@@ -15,44 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_BOX_BACKGROUND_COLOR;
-import static com.android.SdkConstants.ATTR_BOX_BACKGROUND_MODE;
-import static com.android.SdkConstants.ATTR_BOX_COLLAPSED_PADDING_TOP;
-import static com.android.SdkConstants.ATTR_BOX_STROKE_COLOR;
-import static com.android.SdkConstants.ATTR_BOX_STROKE_WIDTH;
-import static com.android.SdkConstants.ATTR_COUNTER_ENABLED;
-import static com.android.SdkConstants.ATTR_COUNTER_MAX_LENGTH;
-import static com.android.SdkConstants.ATTR_COUNTER_OVERFLOW_TEXT_APPEARANCE;
-import static com.android.SdkConstants.ATTR_COUNTER_TEXT_APPEARANCE;
-import static com.android.SdkConstants.ATTR_ERROR_ENABLED;
-import static com.android.SdkConstants.ATTR_ERROR_TEXT_APPEARANCE;
-import static com.android.SdkConstants.ATTR_HELPER_TEXT;
-import static com.android.SdkConstants.ATTR_HELPER_TEXT_ENABLED;
-import static com.android.SdkConstants.ATTR_HELPER_TEXT_TEXT_APPEARANCE;
-import static com.android.SdkConstants.ATTR_HINT;
-import static com.android.SdkConstants.ATTR_HINT_ANIMATION_ENABLED;
-import static com.android.SdkConstants.ATTR_HINT_ENABLED;
-import static com.android.SdkConstants.ATTR_HINT_TEXT_APPEARANCE;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_PASSWORD_TOGGLE_CONTENT_DESCRIPTION;
-import static com.android.SdkConstants.ATTR_PASSWORD_TOGGLE_DRAWABLE;
-import static com.android.SdkConstants.ATTR_PASSWORD_TOGGLE_ENABLED;
-import static com.android.SdkConstants.ATTR_PASSWORD_TOGGLE_TINT;
-import static com.android.SdkConstants.ATTR_PASSWORD_TOGGLE_TINT_MODE;
-import static com.android.SdkConstants.ATTR_TEXT_COLOR_HINT;
-import static com.android.SdkConstants.MATERIAL2_PKG;
-import static com.android.SdkConstants.VALUE_MATCH_PARENT;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-
 import com.android.AndroidXConstants;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <TextInputLayout>} layout

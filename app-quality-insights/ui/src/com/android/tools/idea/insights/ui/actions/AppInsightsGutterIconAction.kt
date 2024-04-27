@@ -20,8 +20,8 @@ import com.android.tools.adtui.ui.DynamicRendererList
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.ui.JListSimpleColoredComponent
 import com.android.tools.idea.insights.ui.ResizedSimpleColoredComponent
+import com.android.tools.idea.insights.ui.formatNumberToPrettyString
 import com.android.tools.idea.insights.ui.getDisplayTitle
-import com.android.tools.idea.insights.ui.ifZero
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
@@ -95,7 +95,10 @@ class AppInsightsGutterIconAction(
                     StudioIcons.AppQualityInsights.ISSUE,
                     UIUtil.getLabelDisabledForeground()
                   )
-                append(eventsTotal.ifZero("-"), SimpleTextAttributes.REGULAR_ATTRIBUTES)
+                append(
+                  eventsTotal.formatNumberToPrettyString(),
+                  SimpleTextAttributes.REGULAR_ATTRIBUTES
+                )
               }
 
             val usersComponent =
@@ -105,7 +108,10 @@ class AppInsightsGutterIconAction(
                     StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE,
                     UIUtil.getLabelDisabledForeground()
                   )
-                append(usersTotal.ifZero("-"), SimpleTextAttributes.REGULAR_ATTRIBUTES)
+                append(
+                  usersTotal.formatNumberToPrettyString(),
+                  SimpleTextAttributes.REGULAR_ATTRIBUTES
+                )
               }
 
             val countsPanel =
@@ -231,7 +237,7 @@ private class AppInsightsGutterListCellRenderer : ListCellRenderer<RenderInstruc
         val eventsComponent =
           JListSimpleColoredComponent(StudioIcons.AppQualityInsights.ISSUE, list, hasFocus).apply {
             append(
-              issueDetails.eventsCount.ifZero("-"),
+              issueDetails.eventsCount.formatNumberToPrettyString(),
               SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES
             )
           }
@@ -244,7 +250,7 @@ private class AppInsightsGutterListCellRenderer : ListCellRenderer<RenderInstruc
             )
             .apply {
               append(
-                issueDetails.impactedDevicesCount.ifZero("-"),
+                issueDetails.impactedDevicesCount.formatNumberToPrettyString(),
                 SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES
               )
             }

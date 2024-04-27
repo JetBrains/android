@@ -30,6 +30,7 @@ import java.util.List;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This this provides a Mock Motion attribute Panel Should not be displayed.

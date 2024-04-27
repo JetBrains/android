@@ -67,8 +67,7 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
           getTopExternalClassSimpleName(
             backgroundTaskEvent.backgroundTaskEvent.stacktrace,
             "android.os.PowerManager\$WakeLock"
-          )
-            ?: "WakeLock $id"
+          ) ?: "WakeLock $id"
         _status = State.ACQUIRED
         _startTime = timestamp
         tags.add(acquired!!.backgroundTaskEvent.wakeLockAcquired.tag)
@@ -84,7 +83,7 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
           BackgroundTaskCallStack(timestamp, backgroundTaskEvent.backgroundTaskEvent.stacktrace)
         )
       }
-      else -> { }
+      else -> {}
     }
   }
 }

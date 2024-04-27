@@ -44,20 +44,25 @@ public class AndroidStudio implements AutoCloseable {
   private final AndroidStudioInstallation install;
   private final Instant creationTime;
 
+  private VideoStitcher videoStitcher = null;
+
+  static public AndroidStudio run(AndroidStudioInstallation installation,
+                                  Display display,
+                                  Map<String, String> env,
+                                  String[] args) throws IOException, InterruptedException {
+    return run(installation, display, env, args, false);
+  }
+
   static public AndroidStudio run(AndroidStudioInstallation installation,
                        Display display,
                        Map<String, String> env,
-                       String[] args) throws IOException, InterruptedException {
+                       String[] args,
+                       boolean safeMode) throws IOException, InterruptedException {
     Path workDir = installation.getWorkDir();
 
     ArrayList<String> command = new ArrayList<>(args.length + 1);
 
-    String studioExecutable = "android-studio/bin/studio.sh";
-    if (SystemInfo.isMac) {
-      studioExecutable = "Android Studio Preview.app/Contents/MacOS/studio";
-    } else if (SystemInfo.isWindows) {
-      studioExecutable = String.format("android-studio/bin/studio%s.exe", CpuArch.isIntel32() ? "" : "64");
-    }
+    String studioExecutable = getStudioExecutable(safeMode);
     command.add(workDir.resolve(studioExecutable).toString());
     command.addAll(Arrays.asList(args));
     ProcessBuilder pb = new ProcessBuilder(command);
@@ -84,7 +89,31 @@ public class AndroidStudio implements AutoCloseable {
     // the shell process, not the idea one.
     pb.start();
     // Now we attach to the real one from the logs
-    return attach(installation);
+    AndroidStudio studio = attach(installation);
+    studio.startCapturingScreenshotsOnWindows();
+    return studio;
+  }
+
+  static private String getStudioExecutable(boolean useSafeMode) {
+    String studioExecutable;
+
+    if (useSafeMode) {
+      studioExecutable = "android-studio/bin/studio_safe.sh";
+      if (SystemInfo.isMac) {
+        studioExecutable = "Android Studio Preview.app/Contents/bin/studio_safe.sh";
+      } else if (SystemInfo.isWindows) {
+        studioExecutable = "android-studio/bin/studio_safe.bat";
+      }
+    } else {
+      studioExecutable = "android-studio/bin/studio.sh";
+      if (SystemInfo.isMac) {
+        studioExecutable = "Android Studio Preview.app/Contents/MacOS/studio";
+      } else if (SystemInfo.isWindows) {
+        studioExecutable = String.format("android-studio/bin/studio%s.exe", CpuArch.isIntel32() ? "" : "64");
+      }
+    }
+
+    return studioExecutable;
   }
 
   static AndroidStudio attach(AndroidStudioInstallation installation) throws IOException, InterruptedException {
@@ -146,6 +175,7 @@ public class AndroidStudio implements AutoCloseable {
 
   @Override
   public void close() throws Exception {
+    createVideos();
     quitAndWaitForShutdown();
     // We must terminate the process on close. If we don't and expect the test to gracefully terminate it always, it means
     // that if the test has an assertEquals, when the assertion exception is thrown the try-catch will attempt to close
@@ -242,15 +272,45 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
+  private void startCapturingScreenshotsOnWindows() throws IOException {
+    if (!SystemInfo.isWindows) {
+      return;
+    }
+
+    Path destination = VideoStitcher.getScreenshotFolder();
+    System.out.printf("Setting up screenshot capture (to %s) since this is Windows%n", destination);
+
+    ASDriver.StartCapturingScreenshotsRequest rq =
+      ASDriver.StartCapturingScreenshotsRequest.newBuilder().setDestinationPath(destination.toString())
+        .setScreenshotNameFormat(VideoStitcher.SCREENSHOT_NAME_FORMAT).build();
+    ASDriver.StartCapturingScreenshotsResponse response = androidStudio.startCapturingScreenshots(rq);
+    switch (response.getResult()) {
+      case OK -> {}
+      case ERROR -> throw new IllegalStateException(String.format("Failed to start capturing screenshots: %s",
+                                                                  formatErrorMessage(response.getErrorMessage())));
+      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+    }
+
+    videoStitcher = new VideoStitcher();
+    Runtime.getRuntime().addShutdownHook(new Thread(this::createVideos));
+  }
+
+  private void createVideos() {
+    if (videoStitcher != null) {
+      videoStitcher.createVideos();
+    }
+  }
+
   /**
-   * Invokes the "Resume Program" button. This button is only enabled when the debugger has paused
-   * execution, which means that this method can be used to ensure that the debugger had indeed hit
-   * a breakpoint (although it will change the state of the application by then resuming the
-   * program).
+   * Waits for the "Resume Program" button, which is only enabled when the debugger has hit a
+   * breakpoint.
    */
-  public void resumeProgramFromDebugging() {
-    System.out.println("Waiting for a breakpoint to be hit by the debugger, then resuming the program");
-    invokeByIcon("actions/resume.svg");
+  public void waitForDebuggerToHitBreakpoint() {
+    System.out.println("Waiting for a breakpoint to be hit by the debugger");
+
+    ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
+    builder.addSvgIconMatch(new ArrayList<>(List.of("actions/resume.svg")));
+    waitForComponent(builder, true);
   }
 
   public void invokeByIcon(String icon) {
@@ -332,14 +392,6 @@ public class AndroidStudio implements AutoCloseable {
       default:
         throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
-  }
-
-  /**
-   * @deprecated use {@link #waitForComponentWithExactText(String)} instead
-   */
-  @Deprecated
-  public void waitForComponent(String componentText) {
-    waitForComponentWithExactText(componentText);
   }
 
   /** Waits for a {@code Component} whose <b>entire</b> text matches {@code componentText}.*/

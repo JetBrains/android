@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator.nodes.apk.ndk;
 import static com.android.tools.idea.testing.ProjectFiles.createFolder;
 import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -28,7 +29,6 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
@@ -61,7 +61,7 @@ public class LibraryNodeTest extends PlatformTestCase {
     };
 
     LibraryNode libraryNode = new LibraryNode(getProject(), library, mock(ViewSettings.class));
-    List<? extends AbstractTreeNode<?>> children = new ArrayList<>(libraryNode.getChildren());
+    List<? extends AbstractTreeNode> children = new ArrayList<>(libraryNode.getChildren());
     assertThat(children).hasSize(2);
 
     assertThat(children.get(0)).isInstanceOf(LibraryFileNode.class);
@@ -83,7 +83,7 @@ public class LibraryNodeTest extends PlatformTestCase {
     VirtualFile sysrootFolder = createFolder(ndkFolder, "sysroot");
 
     List<String> sourceFolderPaths = new ArrayList<>(createSourceFolders("a", "b", "c"));
-    sourceFolderPaths.add(FileUtilRt.toSystemDependentName(sysrootFolder.getPath()));
+    sourceFolderPaths.add(toSystemDependentName(sysrootFolder.getPath()));
 
     NativeLibrary library = new NativeLibrary("test") {
       @Override
@@ -94,7 +94,7 @@ public class LibraryNodeTest extends PlatformTestCase {
     };
 
     LibraryNode libraryNode = new LibraryNode(getProject(), library, mock(ViewSettings.class));
-    List<? extends AbstractTreeNode<?>> children = new ArrayList<>(libraryNode.getChildren());
+    List<? extends AbstractTreeNode> children = new ArrayList<>(libraryNode.getChildren());
     assertThat(children).hasSize(3);
 
     assertThat(children.get(0)).isInstanceOf(LibraryFileNode.class);
@@ -103,7 +103,7 @@ public class LibraryNodeTest extends PlatformTestCase {
     assertThat(node).isInstanceOf(NdkSourceNode.class);
 
     NdkSourceNode ndkSourceNode = (NdkSourceNode)node;
-    List<? extends AbstractTreeNode<?>> ndkChildren = new ArrayList<>(ndkSourceNode.getChildren());
+    List<? extends AbstractTreeNode> ndkChildren = new ArrayList<>(ndkSourceNode.getChildren());
     assertThat(ndkChildren).hasSize(1);
 
     VirtualFile folder = getFolderFrom(ndkChildren.get(0));
@@ -126,7 +126,7 @@ public class LibraryNodeTest extends PlatformTestCase {
     VirtualFile sysrootFolder = createFolder(ndkVersionFolder, "sysroot");
 
     List<String> sourceFolderPaths = new ArrayList<>(createSourceFolders("a", "b", "c"));
-    sourceFolderPaths.add(FileUtilRt.toSystemDependentName(sysrootFolder.getPath()));
+    sourceFolderPaths.add(toSystemDependentName(sysrootFolder.getPath()));
 
     NativeLibrary library = new NativeLibrary("test") {
       @Override
@@ -137,7 +137,7 @@ public class LibraryNodeTest extends PlatformTestCase {
     };
 
     LibraryNode libraryNode = new LibraryNode(getProject(), library, mock(ViewSettings.class));
-    List<? extends AbstractTreeNode<?>> children = new ArrayList<>(libraryNode.getChildren());
+    List<? extends AbstractTreeNode> children = new ArrayList<>(libraryNode.getChildren());
     assertThat(children).hasSize(3);
 
     assertThat(children.get(0)).isInstanceOf(LibraryFileNode.class);
@@ -146,7 +146,7 @@ public class LibraryNodeTest extends PlatformTestCase {
     assertThat(node).isInstanceOf(NdkSourceNode.class);
 
     NdkSourceNode ndkSourceNode = (NdkSourceNode)node;
-    List<? extends AbstractTreeNode<?>> ndkChildren = new ArrayList<>(ndkSourceNode.getChildren());
+    List<? extends AbstractTreeNode> ndkChildren = new ArrayList<>(ndkSourceNode.getChildren());
     assertThat(ndkChildren).hasSize(1);
 
     VirtualFile folder = getFolderFrom(ndkChildren.get(0));
@@ -166,7 +166,7 @@ public class LibraryNodeTest extends PlatformTestCase {
     List<String> sourceFolderPaths = new ArrayList<>();
     for (String folderName : folderNames) {
       VirtualFile folder = createFolderInProjectRoot(getProject(), folderName);
-      sourceFolderPaths.add(FileUtilRt.toSystemDependentName(folder.getPath()));
+      sourceFolderPaths.add(toSystemDependentName(folder.getPath()));
     }
     sourceFolderPaths.sort(Comparator.naturalOrder());
     return sourceFolderPaths;

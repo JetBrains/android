@@ -19,7 +19,7 @@ import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
 
 import com.android.Version;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
 import org.jetbrains.annotations.NotNull;
 

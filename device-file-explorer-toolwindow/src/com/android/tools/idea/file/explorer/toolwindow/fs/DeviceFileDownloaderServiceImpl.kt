@@ -55,8 +55,7 @@ class DeviceFileDownloaderServiceImpl @NonInjectable @TestOnly constructor(
       return emptyMap()
     }
     try {
-      val devices = deviceFileSystemService.devices.value
-      val deviceFileSystem = devices.find { it.deviceSerialNumber == deviceSerialNumber }
+      val deviceFileSystem = deviceFileSystemService.getFileSystem(deviceSerialNumber)
       return doDownload(requireNotNull(deviceFileSystem), onDevicePaths, downloadProgress, localDestinationDirectory)
     } catch (e: AdbCommandRejectedException) {
       throw DeviceFileDownloaderService.FileDownloadFailedException(e)

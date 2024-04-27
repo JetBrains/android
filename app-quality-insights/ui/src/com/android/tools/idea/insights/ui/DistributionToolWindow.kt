@@ -29,13 +29,14 @@ import kotlinx.coroutines.flow.Flow
 
 object DistributionToolWindow {
   fun create(
+    name: String,
     scope: CoroutineScope,
     state: Flow<AppInsightsState>
   ): ToolWindowDefinition<AppInsightsToolWindowContext> {
     return ToolWindowDefinition(
       "Details",
       StudioIcons.AppQualityInsights.DETAILS,
-      "APP_INSIGHTS_DETAILS",
+      name,
       Side.RIGHT,
       Split.TOP,
       AutoHide.DOCKED,
@@ -57,6 +58,8 @@ private class DetailsToolWindowContent(scope: CoroutineScope, state: Flow<AppIns
   }
 
   override fun dispose() = Unit
+
   override fun getComponent() = component
+
   override fun setToolContext(toolContext: AppInsightsToolWindowContext?) = Unit
 }

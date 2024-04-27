@@ -28,8 +28,7 @@ import com.android.tools.property.ptable.PTableItem
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.ui.ClientProperty
-import com.intellij.ui.ExperimentalUI.Companion.isNewUI
-import com.intellij.ui.NewUiValue
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
@@ -130,10 +129,10 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
     expandedIcon = UIUtil.getTreeExpandedIcon()
     collapsedIcon = UIUtil.getTreeCollapsedIcon()
     expandedWhiteIcon =
-      if (NewUiValue.isEnabled()) UIUtil.getTreeExpandedIcon()
+      if (ExperimentalUI.isNewUI()) UIUtil.getTreeExpandedIcon()
       else ColoredIconGenerator.generateWhiteIcon(UIUtil.getTreeExpandedIcon())
     collapsedWhiteIcon =
-      if (NewUiValue.isEnabled()) UIUtil.getTreeCollapsedIcon()
+      if (ExperimentalUI.isNewUI()) UIUtil.getTreeCollapsedIcon()
       else ColoredIconGenerator.generateWhiteIcon(UIUtil.getTreeCollapsedIcon())
     labelFont = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
   }
@@ -175,7 +174,7 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
       item is PropertyItem && item.namespaceIcon != null -> {
         iconLabel.icon =
           item.namespaceIcon?.let {
-            if (isSelected && hasFocus && !isNewUI()) ColoredIconGenerator.generateWhiteIcon(it)
+            if (isSelected && hasFocus && !ExperimentalUI.isNewUI()) ColoredIconGenerator.generateWhiteIcon(it)
             else it
           }
       }

@@ -35,10 +35,10 @@ import kotlin.system.measureTimeMillis
 const val CHANNEL_CAPACITY = 10
 const val MAX_TIME_PER_BATCH_MS = 100
 
-/**
- * Prints formatted [LogcatMessage]s to a [Document] with coloring provided by a [LogcatColors].
- */
-internal class MessageProcessor @TestOnly constructor(
+/** Prints formatted [LogcatMessage]s to a [Document] with coloring provided by a [LogcatColors]. */
+internal class MessageProcessor
+@TestOnly
+constructor(
   private val logcatPresenter: LogcatPresenter,
   private val formatMessagesInto: (TextAccumulator, List<LogcatMessage>) -> Unit,
   var logcatFilter: LogcatFilter?,
@@ -58,7 +58,8 @@ internal class MessageProcessor @TestOnly constructor(
     Clock.systemDefaultZone(),
     MAX_TIME_PER_BATCH_MS,
     StudioFlags.LOGCAT_MAX_MESSAGES_PER_BATCH.get(),
-    autoStart = true)
+    autoStart = true
+  )
 
   private val messageChannel = Channel<List<LogcatMessage>>(CHANNEL_CAPACITY)
 
@@ -77,10 +78,9 @@ internal class MessageProcessor @TestOnly constructor(
     return filteredMessages
   }
 
-  // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.
-  @Suppress("OPT_IN_USAGE")
-  @TestOnly
-  internal fun isChannelEmpty() = messageChannel.isEmpty
+  // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for
+  // details.
+  @Suppress("OPT_IN_USAGE") @TestOnly internal fun isChannelEmpty() = messageChannel.isEmpty
 
   @TestOnly
   internal fun start() {
@@ -106,19 +106,26 @@ internal class MessageProcessor @TestOnly constructor(
         totalMessages += messages.size
         formatMessagesInto(textAccumulator, messages)
 
-        // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug for details.
+        // TODO(b/200212377): @ExperimentalCoroutinesApi ReceiveChannel#isEmpty is required. See bug
+        // for details.
         val now = clock.millis()
         @Suppress("OPT_IN_USAGE")
-        if (messageChannel.isEmpty || now - lastFlushTime > maxTimePerBatchMs || numMessages > maxMessagesPerBatch) {
-          val timeInAppendMessages = measureTimeMillis { logcatPresenter.appendMessages(textAccumulator) }
+        if (
+          messageChannel.isEmpty ||
+            now - lastFlushTime > maxTimePerBatchMs ||
+            numMessages > maxMessagesPerBatch
+        ) {
+          val timeInAppendMessages = measureTimeMillis {
+            logcatPresenter.appendMessages(textAccumulator)
+          }
           LOGGER.debug {
             val timeSinceStart = now - startTime
             val timeSinceLastFlush = now - lastFlushTime
             "timeSinceStart: $timeSinceStart " +
-            "timeSinceLastFlush (ms): $timeSinceLastFlush " +
-            "numMessages: $numMessages " +
-            "totalMessages=$totalMessages " +
-            "timeInAppendMessages=$timeInAppendMessages"
+              "timeSinceLastFlush (ms): $timeSinceLastFlush " +
+              "numMessages: $numMessages " +
+              "totalMessages=$totalMessages " +
+              "timeInAppendMessages=$timeInAppendMessages"
           }
           textAccumulator = TextAccumulator()
           lastFlushTime = now

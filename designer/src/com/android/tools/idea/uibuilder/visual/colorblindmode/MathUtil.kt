@@ -130,14 +130,19 @@ class Mat3D(
   // More for the convenience.
   val row1: Double3D
     get() = Double3D(aa, ab, ac)
+
   val row2: Double3D
     get() = Double3D(ba, bb, bc)
+
   val row3: Double3D
     get() = Double3D(ca, cb, cc)
+
   val col1: Double3D
     get() = Double3D(aa, ba, ca)
+
   val col2: Double3D
     get() = Double3D(ab, bb, cb)
+
   val col3: Double3D
     get() = Double3D(ac, bc, cc)
 
@@ -175,6 +180,7 @@ class Mat3D(
         """
       .trimIndent()
   }
+
   override fun equals(other: Any?): Boolean {
     return toString() == other.toString()
   }

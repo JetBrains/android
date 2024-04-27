@@ -84,7 +84,7 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
   var selectedNode: N? = null
     set(node) {
       if (field !== node) {
-        dataUpdated = true
+        selectionUpdated = true
         field = node
       }
     }
@@ -99,6 +99,7 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
    * operation which doesn't have to be done too often as usually the contents are static)
    */
   private var dataUpdated = false
+  private var selectionUpdated = false
   var maximumHeight = 0
     private set
 
@@ -140,6 +141,14 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
 
   override fun draw(g: Graphics2D, dim: Dimension) {
     val startTime = System.nanoTime()
+
+    // If the selection changed, a call to updateNodesAndClearCanvas is unnecessary as it reconstructs all nodes and rectangles.
+    // All we need to do is null out the canvas to trigger another render pass with the preserved node and rectangle data.
+    if (selectionUpdated) {
+      canvas = null
+      selectionUpdated = false
+    }
+
     if (dataUpdated) {
       // Nulling out the canvas will trigger a render pass, below
       updateNodesAndClearCanvas()
@@ -206,7 +215,12 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
         min(drawingArea.x + drawingArea.width, (dim.width - nodeXPaddingPx).toFloat()) - max(0f, drawingArea.x),
         drawingArea.height
       )
-      renderer.render(g, node, drawingArea, clampedDrawingArea, node === focusedNode, selectedNode != null && node !== selectedNode)
+      // In an effort to optimize performance of this chart's usage (b/281850040), hovering over a node no longer triggers a redraw.
+      // However, after this change, if something else (like a timeline range change) does trigger a redraw, we do not want to show a
+      // different fill color on the last hovered node. Thus, the isFocused parameter of render is now statically set as false to prevent
+      // all hover coloring. This achieves a consistent UI (if a mouse position change does not update the node's fill color, no other
+      // chart update should either).
+      renderer.render(g, node, drawingArea, clampedDrawingArea, false, selectedNode != null && node !== selectedNode)
     }
     g.dispose()
   }
@@ -295,7 +309,6 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
       override fun mouseMoved(e: MouseEvent) {
         val node = getNodeAt(e.point)
         if (node !== focusedNode) {
-          dataUpdated = true
           focusedNode = node
           eventSourceRepaint(e)
         }

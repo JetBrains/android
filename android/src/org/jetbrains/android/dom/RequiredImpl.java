@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom;
 
 import com.intellij.util.xml.Required;
+
 import java.lang.annotation.Annotation;
 
 /**

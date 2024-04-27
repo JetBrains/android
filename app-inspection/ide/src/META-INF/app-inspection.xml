@@ -26,6 +26,11 @@
                         factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
                         doNotActivateOnStart="true"/>
   </extensions>
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.appinspection.ide.resolver.artifactResolverFactoryToken"
+                    interface="com.android.tools.idea.appinspection.ide.resolver.ArtifactResolverFactoryToken"
+                    area="IDEA_PROJECT"/>
+  </extensionPoints>
   <projectListeners>
     <listener class="com.android.tools.idea.appinspection.ide.ui.AppInspectionExecutionListener"
               topic="com.intellij.execution.ExecutionListener"/>

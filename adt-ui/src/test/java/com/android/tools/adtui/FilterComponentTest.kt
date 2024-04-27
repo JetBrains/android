@@ -72,7 +72,7 @@ class FilterComponentTest {
         }
       }
     })
-    val normalBackground = ui.filterComponent.searchField.textEditor.background
+    val normalBackground = ui.filterComponent.searchField.textEditor.background;
     ui.filterComponent.model.filter = Filter("")
     assertThat(ui.filterComponent.countLabel.text).isEqualTo("")
     assertThat(ui.filterComponent.searchField.textEditor.background).isEqualTo(normalBackground)

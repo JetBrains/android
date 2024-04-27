@@ -22,7 +22,6 @@ import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.REPO_INFO
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
-import com.android.tools.idea.insights.vcs.updateVcsInfoFlagInModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.codeInsight.daemon.GutterIconDescriptor
 import com.intellij.codeInsight.daemon.LineMarkerSettings
@@ -39,11 +38,12 @@ import org.junit.runners.Parameterized
 class AppInsightsExternalAnnotatorTest(private val enableChangeAwareAnnotation: Boolean) {
   private val projectRule = AndroidProjectRule.onDisk()
   private val vcsInsightsRule = InsightsVcsTestRule(projectRule)
-  private val flagRule =
+  private val changeAwareFlagRule =
     FlagRule(StudioFlags.APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT, enableChangeAwareAnnotation)
 
   @get:Rule
-  val rule: RuleChain = RuleChain.outerRule(projectRule).around(vcsInsightsRule).around(flagRule)
+  val rule: RuleChain =
+    RuleChain.outerRule(projectRule).around(vcsInsightsRule).around(changeAwareFlagRule)
 
   companion object {
     @JvmStatic @Parameterized.Parameters(name = "{0}") fun data() = listOf(true, false)
@@ -56,8 +56,7 @@ class AppInsightsExternalAnnotatorTest(private val enableChangeAwareAnnotation: 
 
   @Before
   fun setUp() {
-    projectRule.fixture.module.updateVcsInfoFlagInModel(enableChangeAwareAnnotation)
-    appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
+    appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
   }
 
   @Test

@@ -48,8 +48,8 @@ class DaggerIndexAnnotatedWrapperTest {
   }
 
   private fun DaggerIndexAnnotatedWrapper.getAnnotationByNameTestHelper(
-    fqName: String
-  ): List<String> = getAnnotationsByName(fqName).toList().map { it.getAnnotationNameInSource() }
+    annotation: DaggerAnnotation
+  ): List<String> = getAnnotations(annotation).toList().map { it.getAnnotationNameInSource() }
 
   @Test
   fun kotlinAnnotation() {
@@ -60,9 +60,10 @@ class DaggerIndexAnnotatedWrapperTest {
         """
       package com.example
 
-      import com.other.*
+      import dagger.*
 
-      @Annotation
+      @Module
+      @javax.inject.Inject
       class Foo {}
       """
           .trimIndent()
@@ -71,49 +72,15 @@ class DaggerIndexAnnotatedWrapperTest {
     val element: KtClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
-    assertThat(wrapper.getIsAnnotatedWith("Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.notimported.Annotation")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.INJECT)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.COMPONENT)).isFalse()
 
-    assertThat(wrapper.getAnnotationByNameTestHelper("Annotation")).containsExactly("Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.example.Annotation"))
-      .containsExactly("Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.other.Annotation"))
-      .containsExactly("Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.notimported.Annotation")).isEmpty()
-  }
-
-  @Test
-  fun kotlinFullyQualifiedAnnotation() {
-    val psiFile =
-      myFixture.configureByText(
-        KotlinFileType.INSTANCE,
-        // language=kotlin
-        """
-      package com.example
-
-      import com.other.*
-
-      @com.qualified.Annotation
-      class Foo {}
-      """
-          .trimIndent()
-      ) as KtFile
-
-    val element: KtClass = myFixture.findParentElement("Fo|o")
-    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
-
-    assertThat(wrapper.getIsAnnotatedWith("Annotation")).isFalse()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
-    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isFalse()
-    assertThat(wrapper.getIsAnnotatedWith("com.qualified.Annotation")).isTrue()
-
-    assertThat(wrapper.getAnnotationByNameTestHelper("Annotation")).isEmpty()
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.example.Annotation")).isEmpty()
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.other.Annotation")).isEmpty()
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.qualified.Annotation"))
-      .containsExactly("com.qualified.Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE))
+      .containsExactly("Module")
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.INJECT))
+      .containsExactly("javax.inject.Inject")
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.COMPONENT)).isEmpty()
   }
 
   @Test
@@ -125,7 +92,7 @@ class DaggerIndexAnnotatedWrapperTest {
         """
       package com.example
 
-      import com.aliased.Annotation as Bar
+      import dagger.Module as Bar
 
       @Bar
       class Foo {}
@@ -136,8 +103,8 @@ class DaggerIndexAnnotatedWrapperTest {
     val element: KtClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
-    assertThat(wrapper.getIsAnnotatedWith("com.aliased.Annotation")).isTrue()
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.aliased.Annotation"))
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE))
       .containsExactly("Bar")
   }
 
@@ -150,13 +117,10 @@ class DaggerIndexAnnotatedWrapperTest {
         """
       package com.example
 
-      import com.other.*
+      import dagger.Module
 
-      @Annotation
-      @Annotation
-      @com.other.Annotation
-      @com.qualified1.Annotation
-      @com.qualified2.Annotation
+      @Module
+      @dagger.Module
       class Foo {}
       """
           .trimIndent()
@@ -165,22 +129,10 @@ class DaggerIndexAnnotatedWrapperTest {
     val element: KtClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
-    assertThat(wrapper.getIsAnnotatedWith("Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.qualified1.Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.qualified2.Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
 
-    assertThat(wrapper.getAnnotationByNameTestHelper("Annotation"))
-      .containsExactly("Annotation", "Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.example.Annotation"))
-      .containsExactly("Annotation", "Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.other.Annotation"))
-      .containsExactly("Annotation", "Annotation", "com.other.Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.qualified1.Annotation"))
-      .containsExactly("com.qualified1.Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.qualified2.Annotation"))
-      .containsExactly("com.qualified2.Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE))
+      .containsExactly("Module", "dagger.Module")
   }
 
   @Test
@@ -192,9 +144,12 @@ class DaggerIndexAnnotatedWrapperTest {
         """
         package com.example
 
-        import com.other.Annotation
+        import dagger.*
+        import dagger.Component.Builder
 
-        @Annotation.Inner
+        @dagger.Component.Builder
+        @Component.Builder
+        @Builder
         interface Foo {}
         """
           .trimIndent()
@@ -203,10 +158,9 @@ class DaggerIndexAnnotatedWrapperTest {
     val element: KtClassOrObject = myFixture.findParentElement("interface Fo|o")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
-    assertThat(wrapper.getIsAnnotatedWith("Inner")).isFalse()
-    assertThat(wrapper.getIsAnnotatedWith("Annotation.Inner")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation.Inner")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation.Inner")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.COMPONENT_BUILDER)).isTrue()
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.COMPONENT_BUILDER))
+      .containsExactly("dagger.Component.Builder", "Component.Builder", "Builder")
   }
 
   @Test
@@ -218,9 +172,9 @@ class DaggerIndexAnnotatedWrapperTest {
         """
       package com.example;
 
-      import com.other.*;
+      import dagger.*;
 
-      @Annotation
+      @Module
       class Foo {}
       """
           .trimIndent()
@@ -229,17 +183,10 @@ class DaggerIndexAnnotatedWrapperTest {
     val element: PsiClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
-    assertThat(wrapper.getIsAnnotatedWith("Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.notimported.Annotation")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
 
-    assertThat(wrapper.getAnnotationByNameTestHelper("Annotation")).containsExactly("Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.example.Annotation"))
-      .containsExactly("Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.other.Annotation"))
-      .containsExactly("Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.notimported.Annotation")).isEmpty()
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE))
+      .containsExactly("Module")
   }
 
   @Test
@@ -251,9 +198,7 @@ class DaggerIndexAnnotatedWrapperTest {
         """
       package com.example;
 
-      import com.other.*;
-
-      @com.qualified.Annotation
+      @dagger.Module
       class Foo {}
       """
           .trimIndent()
@@ -262,16 +207,10 @@ class DaggerIndexAnnotatedWrapperTest {
     val element: PsiClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
-    assertThat(wrapper.getIsAnnotatedWith("Annotation")).isFalse()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
-    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isFalse()
-    assertThat(wrapper.getIsAnnotatedWith("com.qualified.Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
 
-    assertThat(wrapper.getAnnotationByNameTestHelper("Annotation")).isEmpty()
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.example.Annotation")).isEmpty()
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.other.Annotation")).isEmpty()
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.qualified.Annotation"))
-      .containsExactly("com.qualified.Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE))
+      .containsExactly("dagger.Module")
   }
 
   @Test
@@ -283,13 +222,10 @@ class DaggerIndexAnnotatedWrapperTest {
         """
       package com.example;
 
-      import com.other.*;
+      import dagger.Module;
 
-      @Annotation
-      @Annotation
-      @com.other.Annotation
-      @com.qualified1.Annotation
-      @com.qualified2.Annotation
+      @Module
+      @dagger.Module
       class Foo {}
       """
           .trimIndent()
@@ -298,22 +234,10 @@ class DaggerIndexAnnotatedWrapperTest {
     val element: PsiClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
-    assertThat(wrapper.getIsAnnotatedWith("Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.qualified1.Annotation")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.qualified2.Annotation")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
 
-    assertThat(wrapper.getAnnotationByNameTestHelper("Annotation"))
-      .containsExactly("Annotation", "Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.example.Annotation"))
-      .containsExactly("Annotation", "Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.other.Annotation"))
-      .containsExactly("Annotation", "Annotation", "com.other.Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.qualified1.Annotation"))
-      .containsExactly("com.qualified1.Annotation")
-    assertThat(wrapper.getAnnotationByNameTestHelper("com.qualified2.Annotation"))
-      .containsExactly("com.qualified2.Annotation")
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.MODULE))
+      .containsExactly("Module", "dagger.Module")
   }
 
   @Test
@@ -325,9 +249,12 @@ class DaggerIndexAnnotatedWrapperTest {
         """
         package com.example;
 
-        import com.other.Annotation;
+        import dagger.*;
+        import dagger.Component.Builder;
 
-        @Annotation.Inner
+        @Builder
+        @Component.Builder
+        @dagger.Component.Builder
         interface Foo {}
         """
           .trimIndent()
@@ -336,9 +263,8 @@ class DaggerIndexAnnotatedWrapperTest {
     val element: PsiClass = myFixture.findParentElement("interface Fo|o")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
-    assertThat(wrapper.getIsAnnotatedWith("Inner")).isFalse()
-    assertThat(wrapper.getIsAnnotatedWith("Annotation.Inner")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation.Inner")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.other.Annotation.Inner")).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.COMPONENT_BUILDER)).isTrue()
+    assertThat(wrapper.getAnnotationByNameTestHelper(DaggerAnnotation.COMPONENT_BUILDER))
+      .containsExactly("Builder", "Component.Builder", "dagger.Component.Builder")
   }
 }

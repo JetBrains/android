@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.stopAllGradleDaemonsAndRestart;
-
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +33,6 @@ public class StopGradleDaemonsAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    stopAllGradleDaemonsAndRestart();
+    ApplicationManager.getApplication().executeOnPooledThread(GradleProjectSystemUtil::stopAllGradleDaemonsAndRestart);
   }
 }

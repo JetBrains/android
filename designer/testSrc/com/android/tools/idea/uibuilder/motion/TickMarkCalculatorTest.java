@@ -16,6 +16,12 @@
 package com.android.tools.idea.uibuilder.motion;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.TickMarkCalculator;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.Easing;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.Interpolator;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.LinearInterpolator;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.MonotoneSpline;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.Oscillator;
+import java.text.DecimalFormat;
 import junit.framework.TestCase;
 
 public class TickMarkCalculatorTest extends TestCase {

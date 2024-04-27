@@ -17,6 +17,7 @@ package com.android.build.attribution
 
 import com.android.annotations.concurrency.Slow
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
+import com.android.build.attribution.analyzers.CheckJetifierResultData
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.data.BuildRequestHolder
 import com.android.tools.idea.flags.StudioFlags
@@ -37,6 +38,8 @@ class BuildAnalyzerStorageManagerImpl(
   // last built result, cannot be deleted(only replaced with another result)
   @Volatile
   private var buildResults: AbstractBuildAnalysisResult? = null
+  @Volatile
+  private var cachedCheckJetifierResultData: CheckJetifierResultData? = null
   val fileManager = BuildAnalyzerStorageFileManager(project.getProjectDataPath("build-analyzer-history-data").toFile())
 
   @VisibleForTesting
@@ -95,6 +98,8 @@ class BuildAnalyzerStorageManagerImpl(
     else throw IllegalStateException("Storage Manager does not have data to return.")
   }
 
+  override fun getCachedCheckJetifierResultData(): CheckJetifierResultData? = cachedCheckJetifierResultData
+
   /**
    * Attempts to delete the contents of build-analyzer-history-data. Returns true if the deletion is
    * successful, and otherwise returns false.
@@ -112,6 +117,7 @@ class BuildAnalyzerStorageManagerImpl(
                                     requestHolder: BuildRequestHolder): Future<BuildAnalysisResults> {
     val buildResults = createBuildResultsObject(analyzersProxy, buildID, requestHolder)
     this.buildResults = buildResults
+    cachedCheckJetifierResultData = analyzersProxy.jetifierUsageAnalyzer.checkJetifierResultData
     notifyDataListeners()
     if (StudioFlags.BUILD_ANALYZER_HISTORY.get()) {
       descriptors.add(BuildDescriptorImpl(buildResults.getBuildSessionID(),
@@ -147,16 +153,14 @@ class BuildAnalyzerStorageManagerImpl(
    * @return BuildAnalysisResults
    * @exception java.io.IOException
    */
-  override fun getHistoricBuildResultByID(buildID: String): Future<BuildAnalysisResults> {
+  override fun getHistoricBuildResultByID(buildID: String): Future<HistoricBuildAnalysisResults> {
     inMemoryResults[buildID]?.let {
-      return CompletableFuture.completedFuture(it)
+      return CompletableFuture.completedFuture(it.toHistoricalResults())
     }
-    val onBackground: () -> BuildAnalysisResults = {
-      val result: BuildAnalysisResults
+    val onBackground: () -> HistoricBuildAnalysisResults = {
       workingWithDiskLock.withLock {
-        result = fileManager.getHistoricBuildResultByID(buildID)
+        fileManager.getHistoricBuildResultByID(buildID)
       }
-      result
     }
     return ApplicationManager.getApplication().executeOnPooledThread(onBackground)
   }

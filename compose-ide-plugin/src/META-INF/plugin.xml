@@ -25,23 +25,16 @@
   <depends>org.jetbrains.kotlin</depends>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <!-- TODO(b/293653361): Move these to plugin.k1.xml and register the K2 versions in plugin.k2.xml -->
-    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.ComposableCallChecker"/>
-    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.ComposableDeclarationChecker"/>
-    <diagnosticSuppressor implementation="androidx.compose.compiler.plugins.kotlin.ComposeDiagnosticSuppressor"/>
-    <highlighterExtension implementation="com.android.tools.compose.ComposableHighlighterExtension"/>
+    <highlighterExtension implementation="com.android.tools.compose.ComposableHighlightingVisitorExtension"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
     <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>
 
-    <annotator language="kotlin" implementationClass="com.android.tools.compose.ComposeColorAnnotator"/>
-    <annotator language="kotlin" implementationClass="com.android.tools.compose.code.ComposeStateReadAnnotator"/>
+    <annotator language="kotlin" implementationClass="com.android.tools.compose.code.state.ComposeStateReadAnnotator"/>
 
-    <additionalTextAttributes scheme="Default" file="colorschemes/ComposableHighlighterExtensionColorSchemeDefault.xml"/>
-    <additionalTextAttributes scheme="Darcula" file="colorschemes/ComposableHighlighterExtensionColorSchemeDarcula.xml"/>
-    <additionalTextAttributes scheme="Default" file="colorschemes/ComposeStateReadAnnotatorColorSchemeDefault.xml"/>
-    <additionalTextAttributes scheme="Darcula" file="colorschemes/ComposeStateReadAnnotatorColorSchemeDarcula.xml"/>
+    <additionalTextAttributes scheme="Default" file="colorschemes/ComposeColorSchemeDefault.xml"/>
+    <additionalTextAttributes scheme="Darcula" file="colorschemes/ComposeColorSchemeDarcula.xml"/>
 
     <colorSettingsPage implementation="com.android.tools.compose.ComposeColorSettingsPage"/>
 
@@ -80,7 +73,7 @@
     <completion.contributor language="kotlin"
                             id="ComposeCompletionContributor"
                             implementationClass="com.android.tools.compose.code.completion.ComposeCompletionContributor"
-                            order="first, before KotlinCompletionContributor"/>
+                            order="first, before KotlinCompletionContributor, before kind_executor"/>
 
     <completion.contributor language="kotlin"
                             id="ComposeAlignmentCompletionContributor"
@@ -160,8 +153,21 @@
 
     <codeInsight.lineMarkerProvider language="kotlin"
                                     implementationClass="com.android.tools.compose.code.ComposeLineMarkerProviderDescriptor" />
+    <codeInsight.lineMarkerProvider language="kotlin"
+                                    implementationClass="com.android.tools.compose.ComposeColorLineMarkerProviderDescriptor" />
 
     <usageGroupingRuleProvider implementation="com.android.tools.compose.ComposeUsageGroupingRuleProvider" />
+
+    <codeInsight.declarativeInlayProvider language="kotlin"
+                                          implementationClass="com.android.tools.compose.code.state.ComposeStateReadInlayHintsProvider"
+                                          isEnabledByDefault="false"
+                                          group="OTHER_GROUP"
+                                          providerId="compose.state.read"
+                                          bundle="messages.ComposeBundle"
+                                          nameKey="state.read.inlay.provider.name"
+                                          descriptionKey="state.read.inlay.provider.description"/>
+    <codeInsight.inlayActionHandler implementationClass="com.android.tools.compose.code.state.ComposeStateReadInlayActionHandler"
+                                    handlerId="compose.state.read" />
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">

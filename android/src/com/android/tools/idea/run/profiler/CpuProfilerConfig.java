@@ -16,8 +16,9 @@
 package com.android.tools.idea.run.profiler;
 
 import com.android.utils.HashCodes;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public class CpuProfilerConfig {
   public static final int DEFAULT_BUFFER_SIZE_MB = 8;
@@ -26,6 +27,7 @@ public class CpuProfilerConfig {
   @NotNull private Technology myTechnology;
   private int mySamplingIntervalUs = 1000;
   private int myBufferSizeMb = DEFAULT_BUFFER_SIZE_MB;
+  private int mySamplingRateBytes = 2048;
 
   /**
    * Default constructor to be used by {@link CpuProfilerConfigsState}.
@@ -88,6 +90,15 @@ public class CpuProfilerConfig {
     return this;
   }
 
+  public int getSamplingRateBytes() {
+    return mySamplingRateBytes;
+  }
+
+  public CpuProfilerConfig setSamplingRateBytes(int samplingRateBytes) {
+    mySamplingRateBytes = samplingRateBytes;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -96,12 +107,13 @@ public class CpuProfilerConfig {
     return mySamplingIntervalUs == config.mySamplingIntervalUs &&
            myBufferSizeMb == config.myBufferSizeMb &&
            Objects.equals(myName, config.myName) &&
-           myTechnology == config.myTechnology;
+           myTechnology == config.myTechnology &&
+           mySamplingRateBytes == config.mySamplingRateBytes;
   }
 
   @Override
   public int hashCode() {
-    return HashCodes.mix(myName.hashCode(), myTechnology.hashCode(), mySamplingIntervalUs, myBufferSizeMb);
+    return HashCodes.mix(myName.hashCode(), myTechnology.hashCode(), mySamplingIntervalUs, myBufferSizeMb, mySamplingRateBytes);
   }
 
   public enum Technology {
@@ -131,6 +143,13 @@ public class CpuProfilerConfig {
       @Override
       public String getName() {
         return "System Trace";
+      }
+    },
+    NATIVE_ALLOCATIONS {
+      @NotNull
+      @Override
+      public String getName() {
+        return "Native Allocations";
       }
     };
 

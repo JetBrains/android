@@ -262,8 +262,7 @@ fun RecipeExecutor.addInstrumentedTests(
 /**
  * Plugin block placeholder. Used to introduce an extra space at the bottom of the block.
  */
-fun emptyPluginsBlock(isKts: Boolean, useVersionCatalog: Boolean) = """
-${renderIf(isKts && useVersionCatalog) { "@Suppress(\"DSL_SCOPE_VIOLATION\") // TODO: Remove once KTIJ-19369 is fixed\n" }}
+fun emptyPluginsBlock() = """
 plugins {
 }
 """
@@ -275,12 +274,7 @@ fun basicThemesXml(parent: String, themeName: String = "Theme.App") = """
 """
 
 fun RecipeExecutor.addTestDependencies() {
-  addDependency("junit:junit:4.+", "testCompile", minRev = "4.13.2")
-  addDependency("com.android.support.test:runner:+", "androidTestCompile")
-  addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestCompile")
-}
-
-fun RecipeExecutor.createDefaultDirectories(moduleOut: File, srcOut: File) {
-  createDirectory(srcOut)
-  createDirectory(moduleOut.resolve("libs"))
+  addDependency("junit:junit:4.+", "testImplementation", minRev = "4.13.2")
+  addDependency("com.android.support.test:runner:+", "androidTestImplementation")
+  addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestImplementation")
 }

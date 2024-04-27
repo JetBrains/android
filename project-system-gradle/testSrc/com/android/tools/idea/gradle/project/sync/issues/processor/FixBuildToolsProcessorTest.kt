@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.issues.processor
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction

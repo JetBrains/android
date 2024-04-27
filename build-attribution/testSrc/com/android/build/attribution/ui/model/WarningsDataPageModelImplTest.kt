@@ -44,7 +44,7 @@ class WarningsDataPageModelImplTest {
   }
   val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000, taskCategory = TaskCategory.ANDROID_RESOURCES).apply {
     issues = listOf(TaskIssueUiDataContainer.TaskSetupIssue(this, task1, ""))
-    task1.issues += listOf(TaskIssueUiDataContainer.TaskSetupIssue(task1, this, ""))
+    task1.issues = task1.issues + listOf(TaskIssueUiDataContainer.TaskSetupIssue(task1, this, ""))
   }
 
   val mockData = MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryWarning = true)

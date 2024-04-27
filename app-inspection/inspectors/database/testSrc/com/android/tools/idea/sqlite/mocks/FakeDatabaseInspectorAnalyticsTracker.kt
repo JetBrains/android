@@ -43,12 +43,14 @@ open class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTra
 
   var offlineDownloadFailed: Boolean? = null
   var offlineDownloadFailedCount = 0
+
   override fun trackOfflineDatabaseDownloadFailed() {
     offlineDownloadFailed = true
     offlineDownloadFailedCount += 1
   }
 
   var metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata? = null
+
   override fun trackOfflineModeEntered(
     metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata
   ) {

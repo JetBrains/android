@@ -147,13 +147,13 @@ class SelectionTest : NavTestCase() {
     val action2 = scene.getSceneComponent("action2")!!
     val action3 = scene.getSceneComponent("action3")!!
 
-    lassoSelect(sceneView, guiInputHandler, fragment1)
+    lassoSelect(sceneView, guiInputHandler, fragment1);
     assertContainsElements(surface.selectionModel.selection, fragment1.nlComponent, action1.nlComponent)
 
-    lassoSelect(sceneView, guiInputHandler, fragment2)
+    lassoSelect(sceneView, guiInputHandler, fragment2);
     assertContainsElements(surface.selectionModel.selection, fragment2.nlComponent, action2.nlComponent)
 
-    lassoSelect(sceneView, guiInputHandler, fragment3)
+    lassoSelect(sceneView, guiInputHandler, fragment3);
     assertContainsElements(surface.selectionModel.selection, fragment3.nlComponent, action3.nlComponent)
 
     guiInputHandler.stopListening()

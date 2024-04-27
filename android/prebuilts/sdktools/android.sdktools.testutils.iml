@@ -2,61 +2,46 @@
 <module type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
-    <content url="file://$MODULE_DIR$/../../../testutils">
-      <sourceFolder url="file://$MODULE_DIR$/../../../testutils/testSrc" isTestSource="true" />
-    </content>
-    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" scope="TEST" name="google-dexlib2" level="project" />
-    <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
-    <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
-    <orderEntry type="library" scope="TEST" name="javax.annotation-api" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-testutils" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils/231.0.26.0/studio.android.sdktools.testutils-231.0.26.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils/232.1.23.0/studio.android.sdktools.testutils-232.1.23.0.jar">
               <sha256sum>c4ed2e61a0d749743fcd7c647714f0ec3f2c948e2c681bdfe663628e8db09638</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils/231.0.26.0/studio.android.sdktools.testutils-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils/232.1.23.0/studio.android.sdktools.testutils-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils/231.0.26.0/studio.android.sdktools.testutils-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-testutils-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils_test:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils_test:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils_test/231.0.26.0/studio.android.sdktools.testutils_test-231.0.26.0.jar">
-              <sha256sum>9ff9dee5e28d454a71f0d8892ddf8d90cd0282e84f8453c1ad03310d138ec262</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils_test/232.1.23.0/studio.android.sdktools.testutils_test-232.1.23.0.jar">
+              <sha256sum>8bca19bb59a61eabaf7d900a96fa27510386b4430478891ae585a39a6f37c884</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils_test/231.0.26.0/studio.android.sdktools.testutils_test-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils_test/232.1.23.0/studio.android.sdktools.testutils_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils_test/231.0.26.0/studio.android.sdktools.testutils_test-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.buildScripts.downloader" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="commons-compress" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
+    <orderEntry type="library" scope="TEST" name="google-dexlib2" level="project" />
+    <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
   </component>
 </module>

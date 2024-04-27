@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.profilers
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.profilers.tasks.OpenProfilerTaskListener
-import com.android.tools.idea.IdeInfo
+import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
+import com.android.tools.profilers.taskbased.pastrecordings.OpenPastRecordingsTabListener
+import com.android.tools.profilers.taskbased.tasks.CreateProfilerTaskTabListener
+import com.android.tools.profilers.taskbased.tasks.OpenProfilerTaskTabListener
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -32,6 +35,7 @@ import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.annotations.Nls
 
 class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
@@ -50,6 +54,9 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
 
       // Create the home tab.
       profilerToolWindow.openHomeTab()
+      profilerToolWindow.openPastRecordingsTab()
+      // Reselect the home tab as the default open tab.
+      profilerToolWindow.openHomeTab()
       toolWindow.isAvailable = true
 
       // If the window is re-opened after all tabs were manually closed, re-create the home tab.
@@ -59,12 +66,27 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
           override fun toolWindowShown(shownToolWindow: ToolWindow) {
             if (toolWindow === shownToolWindow && toolWindow.isVisible && toolWindow.contentManager.isEmpty) {
               profilerToolWindow.openHomeTab()
+              profilerToolWindow.openPastRecordingsTab()
+              // Reselect the home tab as the default open tab.
+              profilerToolWindow.openHomeTab()
             }
           }
         })
 
+      // Listen for events requesting that a task tab be created.
+      project.messageBus.connect(toolWindow.disposable).subscribe(
+        CreateProfilerTaskTabListener.TOPIC, CreateProfilerTaskTabListener { taskType, args ->
+        AndroidCoroutineScope(toolWindow.disposable).launch {
+          withContext(AndroidDispatchers.uiThread) {
+            profilerToolWindow.createTaskTab(taskType, args)
+            toolWindow.activate(null)
+          }
+        }
+      })
+
       // Listen for events requesting that a task tab be opened.
-      project.messageBus.connect(toolWindow.disposable).subscribe(OpenProfilerTaskListener.TOPIC, OpenProfilerTaskListener { _, _ ->
+      project.messageBus.connect(toolWindow.disposable).subscribe(
+        OpenProfilerTaskTabListener.TOPIC, OpenProfilerTaskTabListener {
         AndroidCoroutineScope(toolWindow.disposable).launch {
           withContext(AndroidDispatchers.uiThread) {
             profilerToolWindow.openTaskTab()
@@ -73,6 +95,28 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
         }
       })
 
+      // Listen for events requesting that the home tab be opened.
+      project.messageBus.connect(toolWindow.disposable).subscribe(OpenHomeTabListener.TOPIC, OpenHomeTabListener {
+        AndroidCoroutineScope(toolWindow.disposable).launch {
+          withContext(AndroidDispatchers.uiThread) {
+            profilerToolWindow.openHomeTab()
+            toolWindow.activate(null)
+          }
+        }
+      })
+
+      // Listen for events requesting that the past recordings tab be opened.
+      project.messageBus.connect(toolWindow.disposable).subscribe(OpenPastRecordingsTabListener.TOPIC, OpenPastRecordingsTabListener {
+        AndroidCoroutineScope(toolWindow.disposable).launch {
+          withContext(AndroidDispatchers.uiThread) {
+            profilerToolWindow.openPastRecordingsTab()
+            toolWindow.activate(null)
+          }
+        }
+      })
+
+      // Prevents leaking AndroidProfilerToolWindow instance.
+      Disposer.register(project, profilerToolWindow)
       return
     }
 
@@ -106,7 +150,8 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
     const val ID = "Android Profiler"
     @Nls
     private val PROFILER_TOOL_WINDOW_TITLE = if (IdeInfo.getInstance().isAndroidStudio) "Profiler" else AndroidProfilerBundle.message("android.profiler.tool.window.title")
-    private val PROJECT_PROFILER_MAP: MutableMap<Project, AndroidProfilerToolWindow> = HashMap()
+    @VisibleForTesting
+    val PROJECT_PROFILER_MAP: MutableMap<Project, AndroidProfilerToolWindow> = HashMap()
     private fun createContent(project: Project, toolWindow: ToolWindow) {
       val view = createProfilerToolWindow(project, toolWindow)
       val contentFactory = ContentFactory.getInstance()
@@ -126,7 +171,12 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
     ): AndroidProfilerToolWindow {
       val wrapper = ToolWindowWrapperImpl(project, toolWindow)
       val profilerToolWindow = AndroidProfilerToolWindow(wrapper, project)
-      toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER)
+      val icon = if (IdeInfo.getInstance().isAndroidStudio) {
+        StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
+      } else {
+        AllIcons.Toolwindows.ToolWindowProfilerAndroid
+      }
+      toolWindow.setIcon(icon)
       PROJECT_PROFILER_MAP[project] = profilerToolWindow
       return profilerToolWindow
     }

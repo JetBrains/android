@@ -26,6 +26,7 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -36,7 +37,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -65,7 +65,6 @@ class ProjectBuildStatusManagerTest {
 
   @After
   fun tearDown() {
-    LiveEditApplicationConfiguration.getInstance().resetDefault()
     FastPreviewConfiguration.getInstance().resetDefault()
   }
 

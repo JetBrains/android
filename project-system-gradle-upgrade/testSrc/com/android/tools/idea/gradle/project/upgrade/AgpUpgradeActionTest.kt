@@ -21,9 +21,11 @@ import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -35,6 +37,11 @@ class AgpUpgradeActionTest {
   val projectRule = AndroidProjectRule.withSdk().onEdt()
 
   val project by lazy { projectRule.project }
+
+  @After
+  fun tearDown() {
+    JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
+  }
 
   @Test
   fun testAgpUpgradeAction() {

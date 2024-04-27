@@ -23,8 +23,8 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.configurations.ConfigurationSettings;
 import com.android.tools.res.ResourceRepositoryManager;
-import com.android.tools.sdk.AndroidTargetData;
 import com.intellij.openapi.diagnostic.Logger;
+import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 
 /**

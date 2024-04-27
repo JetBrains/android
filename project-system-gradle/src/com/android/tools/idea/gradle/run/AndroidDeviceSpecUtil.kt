@@ -17,6 +17,7 @@
 package com.android.tools.idea.gradle.run
 
 import com.android.ddmlib.IDevice
+import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.util.getLanguages
 import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
@@ -46,11 +47,11 @@ data class AndroidDeviceSpecImpl @JvmOverloads constructor (
   override val minVersion: AndroidVersion?,
   override val density: Density? = null,
   override val abis: List<String> = emptyList(),
-  val supportsPrivacySandboxSdkProvider: () -> Boolean = { false },
+  val supportsSdkRuntimeProvider: () -> Boolean = { false },
   override val deviceSerials: List<String> = emptyList(),
   val languagesProvider: () -> List<String> = { emptyList() }
 ) : AndroidDeviceSpec {
-  override val supportsPrivacySandbox: Boolean get() = supportsPrivacySandboxSdkProvider()
+  override val supportsSdkRuntime: Boolean get() = supportsSdkRuntimeProvider()
   override val languages: List<String> get() = languagesProvider()
 }
 
@@ -93,7 +94,7 @@ fun createSpec(
       log.info("Creating spec for resizable device")
     }
     else {
-      density = Density.getEnum(device.density)
+      density = Density.create(device.density)
     }
 
     // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
@@ -105,8 +106,8 @@ fun createSpec(
   }
 
   val deviceSerials = devices.map { it.serial }
-  val allDevicesSupportPrivacySandbox =  devices.all { it.supportsPrivacySandbox }
-  if (allDevicesSupportPrivacySandbox) {
+  val allDevicesSupportSdkRuntime =  devices.all { it.supportsSdkRuntime }
+  if (allDevicesSupportSdkRuntime) {
     log.info("Creating spec for privacy sandbox enabled device.")
   } else {
     log.info("Creating spec for device without privacy sandbox support.")
@@ -114,7 +115,7 @@ fun createSpec(
 
   return AndroidDeviceSpecImpl(
     version, minVersion, density, abis,
-    supportsPrivacySandboxSdkProvider = { allDevicesSupportPrivacySandbox },
+    supportsSdkRuntimeProvider = { allDevicesSupportSdkRuntime },
     languagesProvider = { combineDeviceLanguages(devices, timeout, unit) },
     deviceSerials = deviceSerials
   )
@@ -170,7 +171,7 @@ private fun combineDeviceLanguages(devices: List<AndroidDevice>, timeout: Long, 
  *   uint32 sdk_version = 6;
  * }
  */
-private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
+private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer, moduleAgpVersions: List<AgpVersion>) {
   JsonWriter(out).use { writer ->
     writer.beginObject()
     commonVersion?.let {
@@ -192,11 +193,13 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
       }
       writer.endArray()
     }
-    if (supportsPrivacySandbox) {
+    if (supportsSdkRuntime &&
+        // The DeviceConfig 'sdk_runtime' field exists in > AGP 7.4.0, the field is not recognised by older AGP versions.
+        moduleAgpVersions.all { it.isAtLeast(7, 4, 0) }) {
       writer.name("sdk_runtime")
         .beginObject()
         .name("supported")
-        .value(supportsPrivacySandbox)
+        .value(supportsSdkRuntime)
         .endObject()
     }
     if (writeLanguages) {
@@ -217,9 +220,11 @@ fun IDevice.createSpec(): AndroidDeviceSpec {
   return AndroidDeviceSpecImpl(
     version,
     version,
-    Density.getEnum(density),
+    Density.create(density),
     abis,
-    supportsPrivacySandboxSdkProvider =  { services().containsKey("sdk_sandbox") },
+    supportsSdkRuntimeProvider =  {
+      services().containsKey("sdk_sandbox") && version.isGreaterOrEqualThan(34)
+    },
     languagesProvider = { getLanguages(Duration.ofSeconds(DEVICE_SPEC_TIMEOUT_SECONDS)).sorted() }
   )
 }
@@ -227,9 +232,9 @@ fun IDevice.createSpec(): AndroidDeviceSpec {
 private val log: Logger
   get() = Logger.getInstance(AndroidDeviceSpec::class.java)
 
-fun AndroidDeviceSpec.writeToJsonTempFile(writeLanguages: Boolean): File {
+fun AndroidDeviceSpec.writeToJsonTempFile(writeLanguages: Boolean, moduleAgpVersions: List<AgpVersion> = emptyList()): File {
   val jsonString = StringWriter().use {
-    writeJson(writeLanguages, it)
+    writeJson(writeLanguages, it, moduleAgpVersions)
     it.flush()
     it.toString()
   }

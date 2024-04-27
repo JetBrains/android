@@ -22,10 +22,8 @@ class AndroidGradleFacetEditorForIdea(private val project: Project) : FacetEdito
   override fun getDisplayName() = AndroidBundle.message("configurable.GradleFacetEditorTab.display.name")
 
   override fun createComponent(): JComponent = panel {
-    row {
-      text(AndroidBundle.message("configurable.AndroidProjectStructureConfigurableForIdea.redirect.text")) {
-        ShowSettingsUtil.getInstance().showSettingsDialog(project, AndroidBundle.message("configurable.AndroidProjectStructureConfigurableForIdea.display.name"))
-      }
+    row(AndroidBundle.message("configurable.AndroidProjectStructureConfigurableForIdea.redirect.text")){
+      ShowSettingsUtil.getInstance().showSettingsDialog(project, AndroidBundle.message("configurable.AndroidProjectStructureConfigurableForIdea.display.name"))
     }
   }
 }

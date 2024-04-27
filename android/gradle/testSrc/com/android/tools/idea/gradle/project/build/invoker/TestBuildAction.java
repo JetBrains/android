@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import java.io.Serializable;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
+
+import java.io.Serializable;
 
 /**
  * {@link org.gradle.tooling.BuildAction} to be used for tests.

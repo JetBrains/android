@@ -25,10 +25,15 @@ import java.awt.Point
 /** Proxy to slider positions. */
 interface PositionProxy {
   fun xPositionForValue(value: Int): Int
+
   fun valueForXPosition(value: Int): Int
+
   fun minimumXPosition(): Int
+
   fun maximumXPosition(): Int
+
   fun maximumValue(): Int
+
   fun minimumValue(): Int
 }
 
@@ -47,12 +52,14 @@ open class ParentTimelineElement(
 ) :
   TimelineElement(
     state = state,
-    minX = children.minOf { it.minX },
-    maxX = children.maxOf { it.maxX },
+    minX = children.minOfOrNull { it.minX } ?: 0,
+    maxX = children.maxOfOrNull { it.maxX } ?: 0,
     positionProxy = positionProxy
   ) {
   override var height = children.sumOf { it.height }
+
   override fun contains(x: Int, y: Int) = children.any { it.contains(x, y) }
+
   override fun paint(g: Graphics2D) {
     children.forEach { it.paint(g) }
   }
@@ -90,6 +97,7 @@ abstract class TimelineElement(
 
   var offsetPx: Int = 0
   abstract var height: Int
+
   fun heightScaled(): Int = JBUI.scale(height)
 
   open var frozen: Boolean
@@ -113,6 +121,7 @@ abstract class TimelineElement(
   }
 
   abstract fun contains(x: Int, y: Int): Boolean
+
   abstract fun paint(g: Graphics2D)
 
   fun move(deltaPx: Int) {

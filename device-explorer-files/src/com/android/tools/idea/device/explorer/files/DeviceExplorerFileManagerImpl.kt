@@ -20,7 +20,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.runWriteActionAndWait
-import com.android.tools.idea.device.explorer.common.DeviceFileExplorerSettings
+import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
 import com.android.tools.idea.device.explorer.files.DeviceExplorerFilesUtils.findFile
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
@@ -68,7 +68,7 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
   /** Service constructor */
   private constructor(project: Project) : this(
     project,
-    defaultDownloadPathSupplier = { Paths.get(DeviceFileExplorerSettings.getInstance().downloadLocation) }
+    defaultDownloadPathSupplier = { Paths.get(DeviceExplorerSettings.getInstance().downloadLocation) }
   )
 
   fun getDefaultLocalPathForDevice(device: DeviceFileSystem): Path {

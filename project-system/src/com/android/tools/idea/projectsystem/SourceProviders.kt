@@ -250,8 +250,8 @@ interface SourceProviders {
 
 val AndroidFacet.sourceProviders: SourceProviders get() = getUserData(KEY_FOR_TEST) ?: getSourceProviderFor(this).value
 
-private val KEY: Key<CachedValue<SourceProviders>> = Key.create(::KEY.qualifiedName)
-private val KEY_FOR_TEST: Key<SourceProviders> = Key.create(::KEY_FOR_TEST.qualifiedName)
+private val KEY: Key<CachedValue<SourceProviders>> = Key.create(::KEY.qualifiedName<SourceProviders>())
+private val KEY_FOR_TEST: Key<SourceProviders> = Key.create(::KEY_FOR_TEST.qualifiedName<SourceProviders>())
 
 private fun getSourceProviderFor(facet: AndroidFacet): CachedValue<SourceProviders> {
   return facet.computeUserDataIfAbsent(KEY) {

@@ -21,11 +21,11 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
 import com.google.common.util.concurrent.ListenableFuture
+import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.withContext
-import java.util.concurrent.Executor
 
 class DatabaseInspectorMessenger(
   private val messenger: AppInspectorMessenger,

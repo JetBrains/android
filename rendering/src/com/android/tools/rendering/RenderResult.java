@@ -32,6 +32,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
+import java.awt.Dimension;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -62,20 +63,29 @@ public class RenderResult {
   private boolean isDisposed;
   private final RenderResultStats myStats;
 
+  /**
+   * This is used to cache the dimensions for this result. It is calculated by getting the dimensions
+   * of the root ViewInfo.
+   * If there are no view infos, this can be used to cache a previous result.
+   */
+  @NotNull
+  private final Dimension myRootViewDimensions;
+
   public RenderResult(@NotNull Supplier<PsiFile> sourceFileProvider,
-                         @NotNull Project project,
-                         @NotNull IdeaModuleProvider module,
-                         @NotNull RenderLogger logger,
-                         @Nullable RenderContext renderContext,
-                         boolean hasRequestedCustomViews,
-                         @NotNull Result renderResult,
-                         @NotNull ImmutableList<ViewInfo> rootViews,
-                         @NotNull ImmutableList<ViewInfo> systemRootViews,
-                         @NotNull ImagePool.Image image,
-                         @NotNull Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties,
-                         @NotNull Map<Object, ResourceReference> defaultStyles,
-                         @Nullable Object validatorResult,
-                         @NotNull RenderResultStats stats) {
+                      @NotNull Project project,
+                      @NotNull IdeaModuleProvider module,
+                      @NotNull RenderLogger logger,
+                      @Nullable RenderContext renderContext,
+                      boolean hasRequestedCustomViews,
+                      @NotNull Result renderResult,
+                      @NotNull ImmutableList<ViewInfo> rootViews,
+                      @NotNull ImmutableList<ViewInfo> systemRootViews,
+                      @NotNull ImagePool.Image image,
+                      @NotNull Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties,
+                      @NotNull Map<Object, ResourceReference> defaultStyles,
+                      @Nullable Object validatorResult,
+                      @NotNull Dimension rootViewDimensions,
+                      @NotNull RenderResultStats stats) {
     myModule = module;
     myProject = project;
     myRenderContext = renderContext;
@@ -90,6 +100,7 @@ public class RenderResult {
     myValidatorResult = validatorResult;
     myStats = stats;
     myHasRequestedCustomViews = hasRequestedCustomViews;
+    myRootViewDimensions = rootViewDimensions;
   }
 
   @TestOnly
@@ -108,7 +119,9 @@ public class RenderResult {
       result.myDefaultProperties,
       result.myDefaultStyles,
       result.myValidatorResult,
-      result.myStats);
+      result.myRootViewDimensions,
+      result.myStats
+    );
   }
 
   /**
@@ -149,6 +162,12 @@ public class RenderResult {
     return () -> environment.getOriginalFile(fileProvider.get());
   }
 
+  @NotNull
+  private static Dimension getRootViewDimensionFromSystemViews(@Nullable List<ViewInfo> viewInfo) {
+    if (viewInfo == null || viewInfo.isEmpty()) return new Dimension(0, 0);
+    return new Dimension(viewInfo.get(0).getRight(), viewInfo.get(0).getBottom());
+  }
+
   /**
    * Creates a new {@link RenderResult} from a given RenderTask and RenderSession
    */
@@ -177,13 +196,41 @@ public class RenderResult {
       defaultProperties != null ? ImmutableMap.copyOf(defaultProperties) : ImmutableMap.of(),
       defaultStyles != null ? ImmutableMap.copyOf(defaultStyles) : ImmutableMap.of(),
       session.getValidationData(),
-      RenderResultStats.getEMPTY());
+      getRootViewDimensionFromSystemViews(systemRootViews), RenderResultStats.getEMPTY()
+    );
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(result.toString());
     }
 
     return result;
+  }
+
+  /**
+   * Creates a new {@link RenderResult} from a given RenderTask and RenderSession
+   */
+  @NotNull
+  public RenderResult copyWithNewImageAndRootViewDimensions(
+    @NotNull ImagePool.Image image,
+    @NotNull Dimension rootViewDimensions
+  ) {
+    return new RenderResult(
+      mySourceFileProvider,
+      myProject,
+      myModule,
+      myLogger,
+      myRenderContext,
+      myHasRequestedCustomViews,
+      myRenderResult,
+      ImmutableList.of(),
+      ImmutableList.of(),
+      image,
+      myDefaultProperties,
+      myDefaultStyles,
+      myValidatorResult,
+      rootViewDimensions,
+      myStats
+    );
   }
 
   /**
@@ -205,35 +252,47 @@ public class RenderResult {
       myDefaultProperties,
       myDefaultStyles,
       myValidatorResult,
-      myStats.combine(stats));
+      myRootViewDimensions, myStats.combine(stats)
+    );
   }
 
   @NotNull
-  public static RenderResult createRenderTaskErrorResult(@NotNull RenderModelModule renderModule,
-                                                         @NotNull Supplier<PsiFile> file,
-                                                         @Nullable Throwable throwable,
-                                                         @Nullable RenderLogger logger) {
+  public static RenderResult createErrorRenderResult(
+    @NotNull Result.Status status,
+    @NotNull RenderModelModule renderModule,
+    @NotNull Supplier<PsiFile> file,
+    @Nullable Throwable throwable,
+    @NotNull RenderLogger logger) {
     RenderResult result = new RenderResult(
       createSourceFileProvider(renderModule.getEnvironment(), file),
       renderModule.getProject(),
       renderModule,
-      logger != null ? logger : new RenderLogger(renderModule.getProject()),
+      logger,
       null,
       false,
-      Result.Status.ERROR_RENDER_TASK.createResult("Render error", throwable),
+      status.createResult("Render error", throwable),
       ImmutableList.of(),
       ImmutableList.of(),
       ImagePool.NULL_POOLED_IMAGE,
       ImmutableMap.of(),
       ImmutableMap.of(),
       null,
-      RenderResultStats.getEMPTY());
+      new Dimension(0, 0), RenderResultStats.getEMPTY()
+    );
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(result.toString());
     }
 
     return result;
+  }
+
+  @NotNull
+  public static RenderResult createRenderTaskErrorResult(@NotNull RenderModelModule renderModule,
+                                                         @NotNull Supplier<PsiFile> file,
+                                                         @Nullable Throwable throwable,
+                                                         @NotNull RenderLogger logger) {
+    return createErrorRenderResult(Result.Status.ERROR_RENDER_TASK, renderModule, file, throwable, logger);
   }
 
   @NotNull
@@ -324,6 +383,11 @@ public class RenderResult {
     return myHasRequestedCustomViews;
   }
 
+  @NotNull
+  public Dimension getRootViewDimensions() {
+    return myRootViews.isEmpty() ? myRootViewDimensions : getRootViewDimensionFromSystemViews(mySystemRootViews);
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
@@ -332,6 +396,7 @@ public class RenderResult {
       .add("rootViews", myRootViews)
       .add("systemViews", mySystemRootViews)
       .add("stats", myStats)
+      .add("rootViewDimensions", myRootViewDimensions)
       .toString();
   }
 

@@ -24,7 +24,7 @@
     <guiTestingStatusProvider implementation="com.android.tools.idea.tests.gui.StatusProvider" />
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
-    <appStarter id="guitest" implementation="com.intellij.testGuiFramework.impl.GuiTestStarter"/>
+    <appStarter implementation="com.intellij.testGuiFramework.impl.GuiTestStarter"/>
   </extensions>
   <projectListeners>
     <listener

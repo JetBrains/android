@@ -43,7 +43,8 @@ class ComposeMaterialIconServiceTest {
   }
 
   private fun storeCallback(invocation: InvocationOnMock) {
-    this.callback = invocation.arguments[0] as (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit
+    this.callback =
+      invocation.arguments[0] as (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit
   }
 
   @Test

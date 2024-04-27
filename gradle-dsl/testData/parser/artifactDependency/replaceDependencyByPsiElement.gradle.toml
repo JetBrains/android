@@ -1,0 +1,2 @@
+[dependencies]
+compile = [{ notation = "com.android.support:appcompat-v7:22.1.1" }]

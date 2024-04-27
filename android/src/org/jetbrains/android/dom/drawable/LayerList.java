@@ -16,8 +16,9 @@
 package org.jetbrains.android.dom.drawable;
 
 import com.intellij.util.xml.DefinesXml;
-import java.util.List;
 import org.jetbrains.android.dom.Styleable;
+
+import java.util.List;
 
 @DefinesXml
 @Styleable("LayerDrawable")

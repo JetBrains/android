@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.actions;
 
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

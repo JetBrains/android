@@ -43,7 +43,7 @@ import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.openapi.wm.IdeGlassPaneUtil;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Activatable;
 import com.intellij.util.ui.update.UiNotifyConnector;
 import java.awt.BorderLayout;
@@ -189,7 +189,7 @@ public class SessionProfilersView implements StudioProfilersView {
       mySplitter.setFirstSize(0);
     }
     else {
-      mySplitter.setDividerMouseZoneSize(JBUIScale.scale(10));
+      mySplitter.setDividerMouseZoneSize(JBUI.scale(10));
       mySessionsView.getComponent().setMinimumSize(SessionsView.getComponentMinimizeSize(true));
       mySplitter
         .setFirstSize(myProfiler.getIdeServices().getPersistentProfilerPreferences().getInt(SESSION_EXPANDED_WIDTH, 0));

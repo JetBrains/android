@@ -26,7 +26,8 @@ import com.intellij.openapi.editor.ex.EditorEx
  *
  * This version takes into account the scrollbar position for toggling the action state.
  */
-internal class LogcatScrollToTheEndToolbarAction(private val editor: EditorEx): ScrollToTheEndToolbarAction(editor) {
+internal class LogcatScrollToTheEndToolbarAction(private val editor: EditorEx) :
+  ScrollToTheEndToolbarAction(editor) {
   init {
     @Suppress("DialogTitleCapitalization")
     templatePresentation.text = LogcatBundle.message("logcat.scroll.to.end.action.text")

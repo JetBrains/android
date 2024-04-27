@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.actions;
 
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -74,7 +74,7 @@ public class OpenBundleAnalyzerTest extends PlatformTestCase {
     bundlePathsMap.put("fooApp", myTmpDir);
 
     GoToBundleLocationTask.OpenFolderNotificationListener listener =
-      new GoToBundleLocationTask.OpenFolderNotificationListener(myProject, bundlePathsMap, null);
+      new GoToBundleLocationTask.OpenFolderNotificationListener(myProject, bundlePathsMap);
     HyperlinkEvent e = new HyperlinkEvent(new Object(), HyperlinkEvent.EventType.ACTIVATED, null, "analyze:fooApp");
     listener.hyperlinkActivated(mock(Notification.class), e);
     assertTrue(FileEditorManager.getInstance(myProject).isFileOpen(target));
@@ -86,7 +86,7 @@ public class OpenBundleAnalyzerTest extends PlatformTestCase {
     bundlePathsMap.put("fooApp", myBundle);
 
     GoToBundleLocationTask.OpenFolderNotificationListener listener =
-      new GoToBundleLocationTask.OpenFolderNotificationListener(myProject, bundlePathsMap, null);
+      new GoToBundleLocationTask.OpenFolderNotificationListener(myProject, bundlePathsMap);
     HyperlinkEvent e = new HyperlinkEvent(new Object(), HyperlinkEvent.EventType.ACTIVATED, null, "analyze:fooApp");
     listener.hyperlinkActivated(mock(Notification.class), e);
     assertTrue(FileEditorManager.getInstance(myProject).isFileOpen(target));

@@ -28,6 +28,7 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.JBUI
+import java.awt.Font
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.util.Locale
@@ -51,6 +52,7 @@ class OptionsPanel : JComponent() {
   val binders = mutableMapOf<Class<*>, OptionsBinder>()
   private val groups = mutableMapOf<String, JPanel>()
   private var isReadOnly = true
+  private var isTaskBasedUx = false
   private var option: OptionsProvider? = null
   init {
     layout = VerticalFlowLayout()
@@ -60,9 +62,10 @@ class OptionsPanel : JComponent() {
     binders[String::class.java] = StringBinder()
   }
 
-  fun setOption(newOption: OptionsProvider?, readOnly: Boolean) {
+  fun setOption(newOption: OptionsProvider?, readOnly: Boolean, taskBasedUx: Boolean) {
     option = newOption
     isReadOnly = readOnly
+    isTaskBasedUx = taskBasedUx
     updateOptionProvider()
   }
 
@@ -134,9 +137,25 @@ class OptionsPanel : JComponent() {
         info.binder = SliderBinder(slider.min, slider.max, slider.step)
       }
     }
+    buildHeader(properties["name"])
     buildPropertyUI(properties.values.toList().sortedBy { it.name })
     revalidate()
     repaint()
+  }
+
+  private fun buildHeader(propertyInfo: PropertyInfo?) {
+    // For task-based ux, in edit config dialog the name of the task is not displayed as a field but rather as a header. So, if there
+    // isn't a name property, then there won't be a header.
+    if (!isTaskBasedUx || propertyInfo == null) {
+      return
+    }
+    val name = propertyInfo.value.toString()
+    val headerPanel = JPanel(VerticalFlowLayout())
+    val headerLabel = JLabel(name)
+    headerLabel.font = headerLabel.font.deriveFont(Font.BOLD)
+    headerLabel.setSize(100, 100)
+    headerPanel.add(headerLabel)
+    add(headerPanel)
   }
 
   private fun buildPropertyUI(properties: List<PropertyInfo>) {
@@ -146,7 +165,11 @@ class OptionsPanel : JComponent() {
       if (property.accessor == null) {
         continue
       }
-      buildOrGetGroup(property.group).add(buildComponent(property))
+      var groupPanel = buildOrGetGroup(property.group)
+      // Name property is not displayed for TaskBasedUx
+      if(!(isTaskBasedUx && property.methodName == "name")) {
+        groupPanel.add(buildComponent(property))
+      }
       if (!property.description.isBlank()) {
         buildOrGetGroup(property.group).add(JLabel(property.description).apply {
           border = JBUI.Borders.emptyLeft(20)
@@ -160,7 +183,8 @@ class OptionsPanel : JComponent() {
   }
 
   private fun buildOrGetGroup(group: String): JPanel {
-    if (group == DEFAULT_GROUP) {
+    if (group == DEFAULT_GROUP || isTaskBasedUx) {
+      // No group name for TaskBasedUx
       return groups.computeIfAbsent(DEFAULT_GROUP) { JPanel(VerticalFlowLayout()) }
     }
     return groups.computeIfAbsent(group) {

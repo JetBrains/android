@@ -27,7 +27,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
 import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 
-class PsDeclaredJarAndroidDependency(
+class PsDeclaredJarAndroidDependency constructor(
   parent: PsAndroidModule
 ) : PsJarAndroidDependency(parent), PsDeclaredJarDependency {
   override lateinit var parsedModel: DependencyModel ; private set

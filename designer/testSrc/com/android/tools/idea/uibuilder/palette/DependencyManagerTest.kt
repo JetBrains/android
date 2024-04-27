@@ -41,6 +41,9 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
+import java.nio.file.Files.createTempDirectory
+import java.util.ArrayDeque
+import java.util.concurrent.Future
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
@@ -49,9 +52,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestName
 import org.mockito.Mockito.mock
-import java.nio.file.Files.createTempDirectory
-import java.util.ArrayDeque
-import java.util.concurrent.Future
 
 class DependencyManagerTest {
   private var panel: PalettePanel? = null
@@ -197,7 +197,7 @@ class DependencyManagerTest {
       val tempModule =
         WriteCommandAction.runWriteCommandAction(
           tempProject,
-          Computable {
+          Computable<Module> {
             ModuleManager.getInstance(tempProject).newModule(bar, StdModuleTypes.JAVA.id)
           }
         )

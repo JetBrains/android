@@ -37,7 +37,6 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 public abstract class LayoutTestCase extends AndroidTestCase {
@@ -106,8 +105,8 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     when(editor.getModel()).thenReturn(model);
     Scene scene = screenView.getScene();
     when(editor.getScene()).thenReturn(scene);
-    when(editor.dpToPx(ArgumentMatchers.anyInt())).thenAnswer(i -> Coordinates.dpToPx(screenView, (Integer)i.getArguments()[0]));
-    when(editor.pxToDp(ArgumentMatchers.anyInt())).thenAnswer(i -> Coordinates.pxToDp(screenView, (Integer)i.getArguments()[0]));
+    when(editor.dpToPx(Mockito.anyInt())).thenAnswer(i -> Coordinates.dpToPx(screenView, (Integer)i.getArguments()[0]));
+    when(editor.pxToDp(Mockito.anyInt())).thenAnswer(i -> Coordinates.pxToDp(screenView, (Integer)i.getArguments()[0]));
 
     return editor;
   }

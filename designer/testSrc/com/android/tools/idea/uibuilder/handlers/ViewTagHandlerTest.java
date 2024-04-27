@@ -15,30 +15,31 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.CLASS_VIEW;
-import static com.android.tools.idea.uibuilder.handlers.ViewTagHandler.SUITABLE_LAYOUT_CLASS;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isNull;
-import static org.mockito.Mockito.times;
-
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
-import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.util.MockNlComponent;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import icons.StudioIcons;
-import java.util.Set;
-import javax.swing.Icon;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.util.Set;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+
+import static com.android.SdkConstants.CLASS_VIEW;
+import static com.android.tools.idea.uibuilder.handlers.ViewTagHandler.SUITABLE_LAYOUT_CLASS;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.isNull;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link ViewTagHandler}.

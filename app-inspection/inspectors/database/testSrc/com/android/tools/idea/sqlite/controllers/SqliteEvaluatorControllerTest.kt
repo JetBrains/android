@@ -60,13 +60,13 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
+import java.util.concurrent.Executor
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import java.util.concurrent.Executor
 
 class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
 

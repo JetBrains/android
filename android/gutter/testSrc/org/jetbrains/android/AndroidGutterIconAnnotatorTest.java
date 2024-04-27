@@ -34,7 +34,6 @@ import com.intellij.codeInsight.daemon.GutterIconDescriptor;
 import com.intellij.codeInsight.daemon.LineMarkerSettings;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.LineMarkerSettingsImpl;
-import com.intellij.idea.IgnoreJUnit3;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
@@ -68,6 +67,7 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("UseJBColor")
 public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -302,7 +302,6 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     checkHighlightInfoImage(highlightInfo, "annotator/ic_rendered_image.png");
   }
 
-  @IgnoreJUnit3(reason = "Enable when expected ic_fallback_thumbnail icon is replaced with correct one.")
   public void testBrokenDrawableFallbackIcon() throws Exception {
     // Reference to a broken custom drawable from a layout file, not rendered by layoutlib, so the fallback icon is used
     HighlightInfo highlightInfo =
@@ -422,7 +421,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
 
     // Go through the same process as the real annotator, to handle retina correctly.
     BufferedImage baselineImage = TestRenderingUtils.getImageFromIcon(
-      Objects.requireNonNull(GutterIconCache.getInstance().getIcon(expectedImage, null, myFacet)));
+      Objects.requireNonNull(GutterIconCache.getInstance(getProject()).getIcon(expectedImage, null, myFacet)));
     assertImageSimilar(getName(), ImageDiffUtil.convertToARGB(baselineImage), image, 5.); // 5% difference allowed.
   }
 

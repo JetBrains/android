@@ -1,4 +1,4 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.fonts;
 
 import com.google.common.util.concurrent.AtomicDouble;
@@ -11,7 +11,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -73,12 +72,12 @@ public class FontFileDownloader {
           final File existing = new File(targetDir, description.getDefaultFileName());
           final String url = description.getDownloadUrl();
           if (url.startsWith(LIB_SCHEMA)) {
-            final String path = FileUtilRt.toSystemDependentName(StringUtil.trimStart(url, LIB_SCHEMA));
+            final String path = FileUtil.toSystemDependentName(StringUtil.trimStart(url, LIB_SCHEMA));
             final File file = PathManager.findFileInLibDirectory(path);
             existingFiles.add(Pair.create(file, description));
           }
           else if (url.startsWith(LocalFileSystem.PROTOCOL_PREFIX)) {
-            String path = FileUtilRt.toSystemDependentName(StringUtil.trimStart(url, LocalFileSystem.PROTOCOL_PREFIX));
+            String path = FileUtil.toSystemDependentName(StringUtil.trimStart(url, LocalFileSystem.PROTOCOL_PREFIX));
             File file = new File(path);
             if (file.exists()) {
               existingFiles.add(Pair.create(file, description));
@@ -210,7 +209,6 @@ public class FontFileDownloader {
     private final int myTasksCount;
     private final AtomicDouble myTotalFraction;
     private final Object myLock = new Object();
-    @SuppressWarnings("SSBasedInspection")
     private final Object2ObjectLinkedOpenHashMap<SubTaskProgressIndicator, String> myText2Stack = new Object2ObjectLinkedOpenHashMap<>();
 
     private ConcurrentTasksProgressManager(ProgressIndicator parent, int tasksCount) {

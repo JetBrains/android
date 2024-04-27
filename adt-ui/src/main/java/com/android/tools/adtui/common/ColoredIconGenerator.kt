@@ -17,7 +17,7 @@ package com.android.tools.adtui.common
 
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.JBColor
-import com.intellij.util.IconUtil
+import com.intellij.ui.icons.RgbImageFilterSupplier
 import java.awt.Color
 import java.awt.image.RGBImageFilter
 import java.util.function.Supplier
@@ -35,7 +35,8 @@ object ColoredIconGenerator {
    *
    * This method is meant to be used in renderer of selected content where the background is dark blue.
    */
-  @JvmStatic fun generateWhiteIcon(icon: Icon): Icon {
+  @JvmStatic
+  fun generateWhiteIcon(icon: Icon): Icon {
     return generateColoredIcon(icon, WHITE)
   }
 
@@ -50,11 +51,11 @@ object ColoredIconGenerator {
 
     override fun get(): Icon =
       cache.getOrPut(color.rgb) {
-        IconUtil.filterIcon(icon, {
-          object : RGBImageFilter() {
-            override fun filterRGB(x: Int, y: Int, rgb: Int) = (rgb or 0xffffff) and color.rgb
+        IconLoader.filterIcon(icon, object : RgbImageFilterSupplier {
+          override fun getFilter(): RGBImageFilter = object : RGBImageFilter() {
+            override fun filterRGB(x: Int, y: Int, rgb: Int): Int = (rgb or 0xffffff) and color.rgb
           }
-        }, null)
+        })
       }
   })
 
@@ -62,18 +63,17 @@ object ColoredIconGenerator {
    * Generate an icon where all the alpha values are decreased thus giving a more faint version of the specified [icon].
    */
   fun generateDeEmphasizedIcon(icon: Icon): Icon = IconLoader.createLazy {
-    IconUtil.filterIcon(icon, {
-      object : RGBImageFilter() {
-        override fun filterRGB(x: Int, y: Int, rgb: Int): Int {
-          val color = Color(rgb, true)
-          return color.deEmphasize().rgb
-        }
+    IconLoader.filterIcon(icon, object : RgbImageFilterSupplier {
+      override fun getFilter(): RGBImageFilter = object : RGBImageFilter() {
+        @Suppress("UseJBColor")
+        override fun filterRGB(x: Int, y: Int, rgb: Int): Int = Color(rgb, true).deEmphasize().rgb
       }
-    }, null)
+    })
   }
 
   /**
    * Return a [Color] where the alpha value is decreased to make a more faint version of the given [Color].
    */
+  @Suppress("UseJBColor")
   fun Color.deEmphasize(): Color = Color(red, green, blue, (alpha + 1) / 2)
 }

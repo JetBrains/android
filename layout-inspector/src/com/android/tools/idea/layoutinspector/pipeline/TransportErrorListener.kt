@@ -85,7 +85,9 @@ class TransportErrorListener(
   }
 
   override fun customizeProxyService(proxy: TransportProxy) {}
+
   override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) {}
+
   override fun customizeAgentConfig(
     configBuilder: Agent.AgentConfig.Builder,
     runConfig: AndroidRunConfigurationBase?

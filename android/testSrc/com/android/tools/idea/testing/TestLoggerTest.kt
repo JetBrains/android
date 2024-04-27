@@ -16,13 +16,22 @@
 package com.android.tools.idea.testing
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestLoggerFactory
-import com.intellij.testFramework.UsefulTestCase
+import org.junit.ClassRule
 import org.junit.Test
+import java.nio.file.Files
+import java.nio.file.Path
 import kotlin.io.path.readText
 
-class TestLoggerTest : UsefulTestCase() {
+class TestLoggerTest {
+  companion object {
+    @JvmStatic
+    @get:ClassRule
+    val appRule = ApplicationRule()
+  }
 
   @Test
   fun testLoggerWritesToLogFile() {
@@ -32,6 +41,13 @@ class TestLoggerTest : UsefulTestCase() {
     val after = logFile.readText()
     val diff = after.removePrefix(before)
     assertThat(diff).contains("A sample warning message")
+  }
+
+  @Test
+  fun testConfigFileExists() {
+    val configFile = System.getProperty(PathManager.PROPERTY_LOG_CONFIG_FILE)
+    assertThat(configFile).isNotNull()
+    assertThat(Files.exists(Path.of(configFile))).isTrue()
   }
 
   // Ideally we could also test that warnings are logged to System.err. But, unfortunately,

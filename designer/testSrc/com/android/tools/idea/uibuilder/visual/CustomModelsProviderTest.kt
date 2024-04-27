@@ -48,7 +48,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val modelsProvider =
       CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
-    val actions = modelsProvider.createActions(file, myFacet).getChildren(null)
+    val actions = modelsProvider.createActions().getChildren(null)
 
     assertSize(1, actions)
     assertTrue(actions[0] is AddCustomConfigurationAction)
@@ -86,7 +86,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
         SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
         ScreenOrientation.PORTRAIT,
         Locale.ANY.toString(),
-        defaultConfig.computePreferredTheme(),
+        defaultConfig.getPreferredTheme(),
         UiMode.NORMAL,
         NightMode.NOTNIGHT
       )
@@ -125,7 +125,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
         SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
         ScreenOrientation.PORTRAIT,
         Locale.create("en").toString(),
-        defaultConfig.computePreferredTheme(),
+        defaultConfig.getPreferredTheme(),
         UiMode.NORMAL,
         NightMode.NOTNIGHT
       )
@@ -157,7 +157,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
         SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
         ScreenOrientation.LANDSCAPE,
         Locale.ANY.toString(),
-        defaultConfig.computePreferredTheme(),
+        defaultConfig.getPreferredTheme(),
         UiMode.NORMAL,
         NightMode.NOTNIGHT
       )

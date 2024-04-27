@@ -32,12 +32,12 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.platform.ide.documentation.DOCUMENTATION_TARGETS
 import com.intellij.util.Alarm
 import com.intellij.util.ui.update.MergingUpdateQueue
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
+import org.jetbrains.android.facet.AndroidFacet
 
 fun getPropertiesToolContent(component: Component?): NlPropertiesPanelToolContent? =
   ToolContent.getToolContent(component) as? NlPropertiesPanelToolContent

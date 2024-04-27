@@ -25,6 +25,7 @@
     <externalAnnotator language="JAVA" implementationClass="com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator"/>
     <externalAnnotator language="kotlin" implementationClass="com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator"/>
     <codeInsight.lineMarkerProvider language="" implementationClass="com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator$LineMarkerProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.insights.vcs.AlternativeSourceNotificationProvider" />
   </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.insights.ui.appInsightsTabProvider"

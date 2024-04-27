@@ -17,10 +17,14 @@
 #pragma once
 
 #include <atomic>
+#include <chrono>
+#include <map>
 #include <mutex>
+#include <vector>
 
 #include "accessors/clipboard_manager.h"
 #include "accessors/device_state_manager.h"
+#include "accessors/display_manager.h"
 #include "accessors/key_character_map.h"
 #include "accessors/pointer_helper.h"
 #include "base128_input_stream.h"
@@ -28,18 +32,20 @@
 #include "control_messages.h"
 #include "geom.h"
 #include "jvm.h"
+#include "ui_settings.h"
 
 namespace screensharing {
 
 // Processes control socket commands.
-class Controller {
+class Controller : private DisplayManager::DisplayListener {
 public:
-  // The controller takes ownership of the socket file descriptor and closes it when destroyed.
   Controller(int socket_fd);
-  ~Controller();
+  virtual ~Controller();
 
   void Run();
-  void Shutdown();
+  // Stops the controller asynchronously. The controller can't be restarted one stopped.
+  // May be called on any thread.
+  void Stop();
 
 private:
   struct ClipboardListener : public ClipboardManager::ClipboardListener {
@@ -64,6 +70,18 @@ private:
     Controller* controller_;
   };
 
+  struct DisplayEvent {
+    enum Type { ADDED, REMOVED };
+
+    DisplayEvent(int32_t displayId, Type type)
+        : display_id(displayId),
+          type(type) {
+    }
+
+    int32_t display_id;
+    Type type;
+  };
+
   void Initialize();
   void ProcessMessage(const ControlMessage& message);
   void ProcessMotionEvent(const MotionEventMessage& message);
@@ -74,22 +92,39 @@ private:
   void ProcessTextInput(const TextInputMessage& message);
   static void ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message);
   static void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
-  static void StopVideoStream();
-  static void StartVideoStream();
+  static void StartVideoStream(const StartVideoStreamMessage& message);
+  static void StopVideoStream(const StopVideoStreamMessage& message);
+  static void WakeUpDevice();
+
   void StartClipboardSync(const StartClipboardSyncMessage& message);
   void StopClipboardSync();
   void OnPrimaryClipChanged();
-  void ProcessClipboardChange();
+  void SendClipboardChangedNotification();
+
   void RequestDeviceState(const RequestDeviceStateMessage& message);
   void OnDeviceStateChanged(int32_t device_state);
-  int32_t TakeChangedDeviceState();
-  void SendDeviceStateNotification(int32_t device_state);
-  static void WakeUpDevice();
+  void SendDeviceStateNotification();
+
+  void SendDisplayConfigurations(const DisplayConfigurationRequest& request);
+  virtual void OnDisplayAdded(int32_t display_id);
+  virtual void OnDisplayRemoved(int32_t display_id);
+  virtual void OnDisplayChanged(int32_t display_id);
+  void SendPendingDisplayEvents();
+
+  void SendUiSettings(const UiSettingsRequest& request);
+  void SetDarkMode(const SetDarkModeMessage& message);
+
+  // TODO: Remove the following 4 methods when b/303684492 is fixed.
+  void StartDisplayPolling();
+  void StopDisplayPolling();
+  void PollDisplays();
+  std::map<int32_t, DisplayInfo> GetDisplays();
 
   Jni jni_ = nullptr;
   int socket_fd_;  // Owned.
   Base128InputStream input_stream_;
   Base128OutputStream output_stream_;
+  volatile bool stopped = false;
   PointerHelper* pointer_helper_;  // Owned.
   JObjectArray pointer_properties_;  // MotionEvent.PointerProperties[]
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]
@@ -103,9 +138,17 @@ private:
 
   DeviceStateListener device_state_listener_;
   bool device_supports_multiple_states_ = false;
-  std::mutex device_state_mutex_;
-  int32_t device_state_ = -1;  // GUARDED_BY(device_state_mutex_)
-  bool device_state_changed_ = false;  // GUARDED_BY(device_state_mutex_)
+  std::atomic_int32_t device_state_ = -1;
+  int32_t previous_device_state_ = -1;
+
+  std::mutex display_events_mutex_;
+  std::vector<DisplayEvent> pending_display_events_;  // GUARDED_BY(display_events_mutex_)
+
+  UiSettings ui_settings_;
+
+  // TODO: Remove the following 2 fields when b/303684492 is fixed.
+  std::map<int32_t, DisplayInfo> current_displays_;
+  std::chrono::steady_clock::time_point poll_displays_until_;
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
 };

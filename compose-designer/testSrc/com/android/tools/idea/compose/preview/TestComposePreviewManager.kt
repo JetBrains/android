@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-open class TestComposePreviewManager(
-  initialInteractiveMode: ComposePreviewManager.InteractiveMode =
-    ComposePreviewManager.InteractiveMode.DISABLED
-) : ComposePreviewManager {
+open class TestComposePreviewManager : ComposePreviewManager {
 
   var currentStatus =
     ComposePreviewManager.Status(
@@ -31,8 +31,8 @@ open class TestComposePreviewManager(
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
-      interactiveMode = initialInteractiveMode
     )
+
   override fun status(): ComposePreviewManager.Status = currentStatus
 
   override val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>> =
@@ -40,7 +40,6 @@ open class TestComposePreviewManager(
   override val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>> =
     MutableStateFlow(emptySet())
   override var groupFilter: PreviewGroup = PreviewGroup.All
-  override val hasDesignInfoProviders: Boolean = false
   override val previewedFile: PsiFile? = null
 
   override fun invalidate() {}
@@ -49,14 +48,18 @@ open class TestComposePreviewManager(
 
   override var isFilterEnabled: Boolean = false
 
+  override var isUiCheckFilterEnabled: Boolean = false
+
   override var atfChecksEnabled: Boolean = false
 
-  override var mode: PreviewMode = PreviewMode.Default
-  override fun setMode(newMode: PreviewMode.Settable) {
-    mode = newMode
-  }
+  private val _mode: MutableStateFlow<PreviewMode> = MutableStateFlow(PreviewMode.Default())
+  override val mode = _mode.asStateFlow()
 
-  override fun back() {}
+  override fun restorePrevious() {}
+
+  override fun setMode(mode: PreviewMode) {
+    _mode.value = mode
+  }
 
   override fun dispose() {}
 }

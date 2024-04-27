@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.streaming.benchmark
 
-import com.android.tools.idea.streaming.benchmark.Benchmarker.State.GETTING_READY
-import com.android.tools.idea.streaming.benchmark.Benchmarker.State.SENDING_INPUTS
 import com.android.tools.idea.util.fsm.StateMachine
 import com.android.utils.time.TimeSource
 import com.android.utils.time.TimeSource.TimeMark
@@ -31,7 +29,7 @@ import kotlin.time.Duration
 class Benchmarker<InputType>(
   private val adapter: Adapter<InputType>,
   inputRateHz: Int = 60,
-  protected val timeSource: TimeSource = TimeSource.Monotonic,
+  private val timeSource: TimeSource = TimeSource.Monotonic,
   timer: Timer = Timer(),
 ) {
   var failureMsg: String = "Benchmarking terminated unexpectedly"
@@ -48,9 +46,9 @@ class Benchmarker<InputType>(
   //                                              └───────┘
   private val stateMachine = StateMachine.stateMachine(
     State.INITIALIZED, StateMachine.Config(logger = LOG, timeSource = timeSource)) {
-    State.INITIALIZED.transitionsTo(GETTING_READY, State.STOPPED)
+    State.INITIALIZED.transitionsTo(State.GETTING_READY, State.STOPPED)
     State.GETTING_READY {
-      transitionsTo(SENDING_INPUTS, State.STOPPED)
+      transitionsTo(State.SENDING_INPUTS, State.STOPPED)
       onEnter {
         adapter.ready()
       }
@@ -100,7 +98,7 @@ class Benchmarker<InputType>(
 
       override fun onReady() {
         callbacks.forEach { it.onProgress(/* dispatched = */ 0.0, /* returned = */0.0) }
-        state = SENDING_INPUTS
+        state = State.SENDING_INPUTS
       }
 
       override fun onFailedToBecomeReady(msg: String) {
@@ -142,7 +140,7 @@ class Benchmarker<InputType>(
 
   @Synchronized
   fun start() {
-    state = GETTING_READY
+    state = State.GETTING_READY
   }
 
   @Synchronized
@@ -167,13 +165,14 @@ class Benchmarker<InputType>(
   }
 
   class Results<InputType>(val raw: Map<InputType, Duration>) {
+    @Suppress("UnstableApiUsage")
     val percentiles: Map<Int, Double> =
       Quantiles.percentiles().indexes(IntRange(1, 100).toList()).compute(raw.values.map { it.inWholeMilliseconds })
   }
 
   /** Callbacks for various stages of benchmarking. */
   interface Callbacks<InputType> {
-    /** Indicates what fraction of events have been [dispatched] and [returned] so far. */
+    /** Indicates what fractions of events have been [dispatched] and [returned] so far. */
     fun onProgress(dispatched: Double, returned: Double)
     /** Indicates that benchmarking has stopped. */
     fun onStopped()
@@ -186,13 +185,13 @@ class Benchmarker<InputType>(
   /** An object that handles interactions with whatever is being benchmarked. */
   interface Adapter<InputType> {
     /**
-     * Gets the iterator for the inputs that the [Benchmarker] can dispatch.
+     * Returns the iterator for the inputs that the [Benchmarker] can dispatch.
      *
      * Each call will return the same object.
      */
     fun inputs(): Iterator<InputType>
 
-    /** Gets the total number of inputs that can be dispatched. */
+    /** Returns the total number of inputs that can be dispatched. */
     fun numInputs(): Int
 
     /** Dispatches the input to the object being benchmarked. */
@@ -201,7 +200,7 @@ class Benchmarker<InputType>(
     /** Sets the callbacks the [Adapter] will call during benchmarking. */
     fun setCallbacks(callbacks: Callbacks<InputType>)
 
-    /** Gets the object being benchmarked into a state where it is ready to receive inputs. */
+    /** Returns the object being benchmarked into a state where it is ready to receive inputs. */
     fun ready()
 
     /** Indicates no further inputs will be dispatched. */

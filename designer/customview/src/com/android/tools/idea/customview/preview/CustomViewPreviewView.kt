@@ -18,7 +18,7 @@ package com.android.tools.idea.customview.preview
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
-import com.android.tools.idea.common.error.IssuePanelSplitter
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -79,7 +79,7 @@ internal class CustomViewPreviewView(
           if (DESIGN_SURFACE.`is`(dataId)) surface else null
       }
       .apply {
-        val issuePanelSplitter = IssuePanelSplitter(psiFile.virtualFile, surface, editorPanel)
-        init(issuePanelSplitter, surface, listOf(), false)
+        IssuePanelService.getInstance(project).registerFileToSurface(psiFile.virtualFile, surface)
+        init(editorPanel, surface, listOf(), false)
       }
 }

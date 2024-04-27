@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -91,6 +91,9 @@ class CreateFileQuickFixTest : JavaCodeInsightFixtureTestCase() {
 
     val virtualBinFile = LocalFileSystem.getInstance().findFileByIoFile(binFile)
     val contents = virtualBinFile?.contentsToByteArray()
-    assertEquals(Base64.getEncoder().encodeToString(binary), Base64.getEncoder().encodeToString(contents))
+    assertEquals(
+      Base64.getEncoder().encodeToString(binary),
+      Base64.getEncoder().encodeToString(contents)
+    )
   }
 }

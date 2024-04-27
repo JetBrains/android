@@ -20,7 +20,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.DefaultContextMenuItem;
-import com.android.tools.adtui.stdui.StreamingScrollbar;
+import com.android.tools.adtui.stdui.TimelineScrollbar;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
@@ -64,8 +64,6 @@ import org.jetbrains.annotations.NotNull;
  * Bird eye view displaying high-level information across all profilers.
  */
 public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
-  private static final String SHOW_DEBUGGABLE_MESSAGE = "debuggable.monitor.message";
-  private static final String SHOW_PROFILEABLE_MESSAGE = "profileable.monitor.message";
   @NotNull
   @SuppressWarnings("FieldCanBeLocal") // We need to keep a reference to the sub-views. If they got collected, they'd stop updating the UI.
   private final List<ProfilerMonitorView> myViews;
@@ -90,7 +88,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
-    StreamingScrollbar sb = new StreamingScrollbar(getStage().getTimeline(), getComponent());
+    TimelineScrollbar sb = new TimelineScrollbar(getStage().getTimeline(), getComponent());
     getComponent().add(sb, BorderLayout.SOUTH);
 
     // Create a 2-row panel. First row, all monitors; second row, the timeline. This way, the
@@ -214,20 +212,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
   @Override
   public JComponent getToolbar() {
-    switch (getStage().getStudioProfilers().getSelectedSessionSupportLevel()) {
-      case DEBUGGABLE:
-        return DismissibleMessage.of(getStage().getStudioProfilers(),
-                                     SHOW_DEBUGGABLE_MESSAGE,
-                                     "Profiling with complete data. This does not represent app performance in production." +
-                                     " Consider profiling with low overhead.",
-                                     SupportLevel.DOC_LINK);
-      case PROFILEABLE:
-        return DismissibleMessage.of(getStage().getStudioProfilers(),
-                                     SHOW_PROFILEABLE_MESSAGE,
-                                     "Profiling with low overhead. Certain profiler features will be unavailable in this mode.",
-                                     SupportLevel.DOC_LINK);
-    }
-    return new JPanel();
+    return LiveStageView.Companion.getMessage(getStage().getStudioProfilers());
   }
 
   @Override

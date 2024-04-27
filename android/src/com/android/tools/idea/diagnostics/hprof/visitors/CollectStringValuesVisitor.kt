@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics.hprof.visitors
 
 import com.android.tools.idea.diagnostics.hprof.parser.HProfVisitor
 import com.android.tools.idea.diagnostics.hprof.parser.RecordType
+import gnu.trove.TLongObjectHashMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
 class CollectStringValuesVisitor(val output: Long2ObjectOpenHashMap<String>) : HProfVisitor() {

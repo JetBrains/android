@@ -39,17 +39,14 @@ import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * Tests for [LogcatFormatAction]
- */
+/** Tests for [LogcatFormatAction] */
 @RunsInEdt
 class LogcatFormatActionTest {
   private val projectRule = ProjectRule()
   private val popupRule = JBPopupRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, popupRule, disposableRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, popupRule, disposableRule, EdtRule())
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 
@@ -81,14 +78,20 @@ class LogcatFormatActionTest {
         LogcatFormatPresetAction.Compact::class,
         Separator::class,
         LogcatFormatModifyViewsAction::class,
-      ).inOrder()
+      )
+      .inOrder()
     assertThat(popup.showStyle).isEqualTo(SHOW_UNDERNEATH_OF)
     assertThat(popup.showArgs).containsExactly(component)
-    popup.actions.forEach {
-      assertThat(it).isInstanceOf(DumbAware::class.java)
-    }
+    popup.actions.forEach { assertThat(it).isInstanceOf(DumbAware::class.java) }
   }
 }
 
 private fun anActionEvent(component: JComponent) =
-  AnActionEvent(MouseEvent(component, 0, 0L, 0, 0, 0, 1, true), EMPTY_CONTEXT, "place", Presentation(), ActionManager.getInstance(), 0)
+  AnActionEvent(
+    MouseEvent(component, 0, 0L, 0, 0, 0, 1, true),
+    EMPTY_CONTEXT,
+    "place",
+    Presentation(),
+    ActionManager.getInstance(),
+    0
+  )

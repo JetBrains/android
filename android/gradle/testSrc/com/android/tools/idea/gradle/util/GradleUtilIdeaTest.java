@@ -31,7 +31,7 @@ import java.io.File;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Tests for {@link GradleUtil}.
+ * Tests for {@link GradleProjectSystemUtil}.
  */
 public class GradleUtilIdeaTest extends PlatformTestCase {
   private File myModuleRootDir;
@@ -49,12 +49,12 @@ public class GradleUtilIdeaTest extends PlatformTestCase {
   }
 
   public void testGetGradleBuildFileFromRootDir() {
-    VirtualFile buildFile = GradleUtil.getGradleBuildFile(myModuleRootDir);
+    VirtualFile buildFile = GradleProjectSystemUtil.getGradleBuildFile(myModuleRootDir);
     assertIsGradleBuildFile(buildFile);
   }
 
   public void testGetGradleBuildFileFromModuleWithoutGradleFacet() {
-    VirtualFile buildFile = GradleUtil.getGradleBuildFile(myModule);
+    VirtualFile buildFile = GradleProjectSystemUtil.getGradleBuildFile(myModule);
     assertIsGradleBuildFile(buildFile);
   }
 
@@ -68,7 +68,7 @@ public class GradleUtilIdeaTest extends PlatformTestCase {
     GradleFacet facet = createAndAddGradleFacet(myModule);
     facet.setGradleModuleModel(gradleModuleModel);
 
-    VirtualFile buildFile = GradleUtil.getGradleBuildFile(myModule);
+    VirtualFile buildFile = GradleProjectSystemUtil.getGradleBuildFile(myModule);
     assertIsGradleBuildFile(buildFile);
   }
 

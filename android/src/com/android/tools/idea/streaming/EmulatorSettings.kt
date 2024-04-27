@@ -21,8 +21,8 @@ import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.util.xmlb.XmlSerializerUtil
-import kotlin.reflect.KProperty
 import org.jetbrains.android.util.AndroidBundle
+import kotlin.reflect.KProperty
 
 /**
  * Persistent Emulator-related settings.

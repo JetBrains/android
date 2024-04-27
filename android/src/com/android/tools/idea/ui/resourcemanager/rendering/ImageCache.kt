@@ -160,4 +160,4 @@ private fun createObjectToImageCache(duration: Long, size: Long): Cache<AssetKey
     .softValues()
     .weigher<AssetKey, CachedImage> { _, image -> image.size }
     .maximumWeight(size)
-    .build()
+    .build<AssetKey, CachedImage>()

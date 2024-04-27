@@ -15,16 +15,34 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 public final class CMakeDslElement extends AbstractBuildDslElement {
   public static final PropertiesElementDescription<CMakeDslElement> CMAKE =
-    new PropertiesElementDescription<>("cmake", CMakeDslElement.class, CMakeDslElement::new);
+    new PropertiesElementDescription<>("cmake", CMakeDslElement.class, CMakeDslElement::new, CMakeDslElementSchema::new);
 
   public CMakeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
+
+  public static final class CMakeDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @NotNull
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.Cmake";
+    }
+  }
+
 }

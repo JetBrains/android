@@ -20,6 +20,7 @@ package com.android.tools.idea.res
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
 import com.android.resources.getTestAarRepositoryFromExplodedAar
 import com.android.tools.idea.testing.Facets
@@ -48,10 +49,10 @@ import java.util.function.Predicate
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 
-fun createTestAppResourceRepository(facet: AndroidFacet): LocalResourceRepository {
+fun createTestAppResourceRepository(facet: AndroidFacet): LocalResourceRepository<VirtualFile> {
   val moduleResources = createTestModuleRepository(facet, emptyList())
   val projectResources = ProjectResourceRepository.createForTest(facet, listOf(moduleResources))
-  val appResources = AppResourceRepository.createForTest(facet, listOf<LocalResourceRepository>(projectResources), emptyList())
+  val appResources = AppResourceRepository.createForTest(facet, listOf(projectResources), emptyList())
   val aar = getTestAarRepositoryFromExplodedAar()
   appResources.updateRoots(listOf(projectResources), listOf(aar))
   return appResources
@@ -63,7 +64,7 @@ fun createTestModuleRepository(
   resourceDirectories: Collection<VirtualFile>,
   namespace: ResourceNamespace = ResourceNamespace.RES_AUTO,
   dynamicRepo: DynamicValueResourceRepository? = null
-): LocalResourceRepository {
+): LocalResourceRepository<VirtualFile> {
   return ModuleResourceRepository.createForTest(facet, resourceDirectories, namespace, dynamicRepo)
 }
 
@@ -177,13 +178,13 @@ fun addBinaryAarDependency(module: Module) {
   )
 }
 
-fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: String): ResourceItem {
+fun getSingleItem(repository: ResourceRepository, type: ResourceType, key: String): ResourceItem {
   val list = repository.getResources(ResourceNamespace.RES_AUTO, type, key)
   assertThat(list).hasSize(1)
   return list[0]
 }
 
-fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: String, filter: Predicate<ResourceItem>): ResourceItem {
+fun getSingleItem(repository: ResourceRepository, type: ResourceType, key: String, filter: Predicate<ResourceItem>): ResourceItem {
   val list = repository.getResources(ResourceNamespace.RES_AUTO, type, key)
   var found: ResourceItem? = null
   for (item in list) {

@@ -15,21 +15,27 @@
  */
 package com.android.tools.idea.editors.fast
 
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
-import com.android.tools.idea.run.deployment.liveedit.loadComposeRuntimeInClassPath
+import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.util.io.delete
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Files
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 internal class EmbeddedCompilerClientImplTest {
   @get:Rule
@@ -41,7 +47,7 @@ internal class EmbeddedCompilerClientImplTest {
 
   @Before
   fun setUp() {
-    projectRule.module.loadComposeRuntimeInClassPath()
+    setUpComposeInProjectFixture(projectRule)
   }
 
   @Test
@@ -145,38 +151,6 @@ internal class EmbeddedCompilerClientImplTest {
     }
   }
 
-  @Test
-  fun `test retry`() {
-    val attempts = 20
-    var executedRetries = 0
-    val result = retryInNonBlockingReadAction(attempts) {
-      executedRetries++
-      // Throw in all but the last one
-      if (executedRetries < attempts - 1) throw IllegalStateException()
-      230L
-    }
-    assertEquals(230L, result)
-    assertEquals(attempts - 1, executedRetries)
-
-    class TestException: Exception()
-    executedRetries = 0
-    try {
-      retryInNonBlockingReadAction(attempts) {
-        executedRetries++
-        // Do not execute all attempts, just throw a NonRetryableException after 5 attempts
-        // to avoid more retries.
-        if (executedRetries == 5) throw NonRetriableException(TestException())
-        throw IllegalStateException()
-      }
-    }
-    catch (t: TestException) {
-      assertEquals(5, executedRetries)
-    }
-    catch (t: Throwable) {
-      fail("Unexpected exception ${t.message}")
-    }
-  }
-
   /**
    * Verifies that the compileRequest fails correctly when passing a qualifier call with no receiver like `Test.`.
    * This is a regression test to verify that compileRequest does not break and handles that case correctly.
@@ -247,6 +221,50 @@ internal class EmbeddedCompilerClientImplTest {
           "Message",
           (result as CompilationResult.RequestException).e?.message?.trim())
       }
+    }
+  }
+
+  @Test
+  fun `write action aborts current compilation`() = runBlocking {
+    val file = projectRule.fixture.addFileToProject(
+      "src/com/test/Source.kt",
+      """
+        object Test {
+          fun method() {}
+        }
+
+        fun testMethod() {
+        }
+      """.trimIndent())
+
+    val compilationHasStarted = CompletableDeferred<Unit>()
+    val countDownLatch = CountDownLatch(1)
+    val beforeCompileCallCount = AtomicInteger(0)
+    run {
+      val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
+                                                log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java),
+                                                isKotlinPluginBundled = true
+      ) {
+        beforeCompileCallCount.incrementAndGet()
+        compilationHasStarted.complete(Unit)
+        while (!countDownLatch.await(1, TimeUnit.SECONDS)) {
+          ProgressManager.checkCanceled()
+        }
+      }
+      launch(workerThread) {
+        compilationHasStarted.await()
+
+        // Trigger a write action that should abort the compilation
+        runWriteActionAndWait {}
+        // Now we can let the compilation proceed in the next attempt
+        countDownLatch.countDown()
+      }
+
+      val outputDirectory = Files.createTempDirectory("out")
+
+      val result = compiler.compileRequest(listOf(file), projectRule.module, outputDirectory, EmptyProgressIndicator())
+      assertEquals(CompilationResult.Success, result)
+      assertTrue("Write Action should trigger a compilation re-start", beforeCompileCallCount.get() > 1)
     }
   }
 }

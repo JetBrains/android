@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit.analysis
 
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -28,25 +29,32 @@ class InstructionTest {
   @Before
   fun setUp() {
     setUpComposeInProjectFixture(projectRule)
+    disableLiveEdit()
+  }
+
+  @After
+  fun tearDown() {
+    enableLiveEdit()
   }
 
   @Test
   fun testLineNumberChange() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         fun method(): Int {
           return 0
         }
-      }""", "A.kt", "A")
+      }""")
+    val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    val new = projectRule.compileIr("""
+    projectRule.modifyKtFile(file, """
       class A {
         fun method(): Int {
           // This is a comment
           return 0
         }
-      }""", "A.kt", "A")
-
+      }""")
+    val new = projectRule.directApiCompileIr(file)["A"]!!
     // Line number changes should not count as a diff.
     assertNoChanges(original, new)
   }

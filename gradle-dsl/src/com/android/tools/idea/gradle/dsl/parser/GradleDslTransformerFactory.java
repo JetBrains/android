@@ -19,16 +19,8 @@ import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.psi.PsiFile;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Extension point to provide parser/writer pair for Gradle build files (e.g. for different languages).
- *
- * This parser/writer factory will be used to manipulate build file to provide content-related features,
- * e.g. {@link com.intellij.externalSystem.ExternalDependencyModificator}. It does not affect code navigation/highlighting
- */
-@ApiStatus.Internal
 public interface GradleDslTransformerFactory {
   ExtensionPointName<GradleDslTransformerFactory> EXTENSION_POINT_NAME =
     ExtensionPointName.create("com.android.tools.idea.gradle.dsl.transformerFactory");

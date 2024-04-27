@@ -111,8 +111,8 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
   }
 
   @Override
-  public boolean getSupportsPrivacySandbox() throws InterruptedException {
-    return myDevice.services().containsKey("sdk_sandbox");
+  public boolean getSupportsSdkRuntime() {
+    return myDevice.services().containsKey("sdk_sandbox") && myDevice.getVersion().isGreaterOrEqualThan(34);
   }
 
   @NotNull

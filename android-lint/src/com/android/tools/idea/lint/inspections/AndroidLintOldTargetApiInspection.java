@@ -15,20 +15,26 @@
  */
 package com.android.tools.idea.lint.inspections;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.GradleDetector;
+import com.android.tools.lint.detector.api.LintFix;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintOldTargetApiInspection extends AndroidLintInspectionBase {
   public AndroidLintOldTargetApiInspection() {
     super(AndroidLintBundle.message("android.lint.inspections.old.target.api"), GradleDetector.TARGET_NEWER);
   }
 
-  @NonNull
+  @NotNull
   @Override
-  public LintIdeQuickFix[] getQuickFixes(@NonNull String message) {
-    return new LintIdeQuickFix[] { new LaunchTargetSdkVersionAssistantFix() };
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                         @NotNull PsiElement endElement,
+                                         @NotNull String message,
+                                         @Nullable LintFix fixData) {
+    return new LintIdeQuickFix[]{new LaunchTargetSdkVersionAssistantFix(fixData)};
   }
 }

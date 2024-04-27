@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.navigation
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
@@ -28,28 +29,38 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore.loadText
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.findFile
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Assert.assertEquals
+import org.junit.Rule
 import org.junit.Test
+import java.io.File
 
-class VersionCatalogRenamingKtsTest: AndroidGradleTestCase()  {
+@RunsInEdt
+class VersionCatalogRenamingKtsTest  {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
 
+  private val fixture get() = projectRule.fixture
+  private val project get() = projectRule.project
   @Test
   fun testRenameDependencyInMainCatalog() {
-    loadProject(SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
-    myFixture.configureFromExistingVirtualFile(project.findPrimaryCatalog())
+    projectRule.loadProject(SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+    fixture.configureFromExistingVirtualFile(project.findPrimaryCatalog())
 
-    val editor = myFixture.editor
+    val editor = fixture.editor
     val catalogSnapshot = editor.document.text
     val buildFileSnapshot = loadText(project.findAppGradleBuild())
 
-    myFixture.moveCaret("[libraries]\nconstraint-lay|out")
-    myFixture.renameElementAtCaret("my-constraint-layout")
+    fixture.moveCaret("[libraries]\nconstraint-lay|out")
+    fixture.renameElementAtCaret("my-constraint-layout")
 
     runWriteAction {
       FileDocumentManager.getInstance().saveAllDocuments()
     }
 
     // Check expected results
-    assertEquals(catalogSnapshot.replaceFirst("[libraries]\nconstraint-layout", "[libraries]\nmy-constraint-layout"),
+    assertEquals(catalogSnapshot.replaceFirst("[libraries]\nconstraint-layout", "[libraries]\nmy-constraint-layout")
+                   .replaceFirst("both = [\"constraint-layout\"","both = [\"my-constraint-layout\""),
                         loadText(project.findPrimaryCatalog()))
     assertEquals(buildFileSnapshot.replaceFirst("libs.constraint.layout", "libs.my.constraint.layout"),
                         loadText(project.findAppGradleBuild()))
@@ -57,15 +68,15 @@ class VersionCatalogRenamingKtsTest: AndroidGradleTestCase()  {
 
   @Test
   fun testRenameDependencyInTestCatalog() {
-    loadProject(SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
-    myFixture.configureFromExistingVirtualFile(project.findTestCatalog())
+    projectRule.loadProject(SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+    fixture.configureFromExistingVirtualFile(project.findTestCatalog())
 
-    val editor = myFixture.editor
+    val editor = fixture.editor
     val catalogSnapshot = editor.document.text
     val buildFileSnapshot = loadText(project.findAppGradleBuild())
 
-    myFixture.moveCaret("[libraries]\nju|nit")
-    myFixture.renameElementAtCaret("junit4")
+    fixture.moveCaret("[libraries]\nju|nit")
+    fixture.renameElementAtCaret("junit4")
 
     runWriteAction {
       FileDocumentManager.getInstance().saveAllDocuments()
@@ -80,16 +91,16 @@ class VersionCatalogRenamingKtsTest: AndroidGradleTestCase()  {
 
   @Test
   fun testRenamePluginInCatalog() {
-    loadProject(SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
-    myFixture.configureFromExistingVirtualFile(project.findPrimaryCatalog())
+    projectRule.loadProject(SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+    fixture.configureFromExistingVirtualFile(project.findPrimaryCatalog())
 
-    val editor = myFixture.editor
+    val editor = fixture.editor
     val catalogSnapshot = editor.document.text
     val buildFileSnapshot = loadText(project.findAppGradleBuild())
     val projectBuildFileSnapshot = loadText(findGradleBuild())
 
-    myFixture.moveCaret("android-appl|ication")
-    myFixture.renameElementAtCaret("android-application-new")
+    fixture.moveCaret("android-appl|ication")
+    fixture.renameElementAtCaret("android-application-new")
 
     runWriteAction {
       FileDocumentManager.getInstance().saveAllDocuments()
@@ -107,5 +118,5 @@ class VersionCatalogRenamingKtsTest: AndroidGradleTestCase()  {
   private fun Project.findAppGradleBuild(): VirtualFile = findAppModule().guessModuleDir()!!.findChild("build.gradle.kts")!!
   private fun Project.findPrimaryCatalog(): VirtualFile = guessProjectDir()!!.findFile("gradle/libs.versions.toml")!!
   private fun Project.findTestCatalog(): VirtualFile = guessProjectDir()!!.findFile("gradle/libsTest.versions.toml")!!
-  private fun findGradleBuild(): VirtualFile = VfsUtil.findFileByIoFile(projectFolderPath.resolve("build.gradle.kts"), true)!!
+  private fun findGradleBuild(): VirtualFile = VfsUtil.findFileByIoFile(File(project.basePath).resolve("build.gradle.kts"), true)!!
 }

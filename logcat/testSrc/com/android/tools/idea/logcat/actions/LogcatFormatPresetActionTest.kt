@@ -25,12 +25,9 @@ import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [LogcatFormatPresetAction]
- */
+/** Tests for [LogcatFormatPresetAction] */
 class LogcatFormatPresetActionTest {
-  @get:Rule
-  val rule = RuleChain(ProjectRule())
+  @get:Rule val rule = RuleChain(ProjectRule())
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 

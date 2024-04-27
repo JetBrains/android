@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.ide.CopyPasteManagerEx
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.awt.datatransfer.DataFlavor
@@ -34,7 +35,9 @@ private class BufferedImageTransferable(val image: BufferedImage) : Transferable
       DataFlavor.imageFlavor -> image
       else -> throw UnsupportedFlavorException(flavor)
     }
+
   override fun getTransferDataFlavors(): Array<DataFlavor> = arrayOf(DataFlavor.imageFlavor)
+
   override fun isDataFlavorSupported(flavor: DataFlavor): Boolean =
     transferDataFlavors.contains(flavor)
 }
@@ -45,6 +48,8 @@ class CopyResultImageAction(
   title: String = "Copy Image",
   private val actionCompleteText: String = "Image copied"
 ) : AnAction(title) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = sceneManagerProvider()?.renderResult != null
   }

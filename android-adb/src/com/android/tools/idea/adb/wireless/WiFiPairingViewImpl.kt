@@ -83,7 +83,7 @@ class WiFiPairingViewImpl(project: Project,
 
   override fun showMdnsCheckError() {
     dlg.showLoadingError(buildErrorHtml {
-      add("There was an unexpected error during Wi-Fi pairing initialization.")
+      add("There was an unexpected error during Wi-Fi pairing initialization.");
     })
   }
 

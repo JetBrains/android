@@ -33,7 +33,7 @@ class SVGScaledImageProvider(private val url: URL, private val image: Image?) : 
   @Throws(java.io.IOException::class)
   @WorkerThread
   override fun createScaledImage(ctx: ScaleContext, width: Double, height: Double): Image {
-    // Preserve an aspect ratio
+    // Preserve aspect ratio
     val size = width.coerceAtMost(height) // min(width, height)
 
     // Load SVG file, with HiDPI support from [ctx]

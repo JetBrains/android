@@ -27,8 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractProjectStructureAction extends AndroidStudioGradleAction {
-  public AbstractProjectStructureAction() {
-    super();
+  public AbstractProjectStructureAction(@Nullable String text) {
+    super(text);
   }
 
   protected AbstractProjectStructureAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {

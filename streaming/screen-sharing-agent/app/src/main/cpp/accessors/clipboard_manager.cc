@@ -33,8 +33,7 @@ atomic<ClipboardManager*> clipboard_manager_instance = nullptr;
 
 ClipboardManager::ClipboardManager(Jni jni)
     : jni_(jni),
-      clipboard_adapter_class_(jni.GetClass("com/android/tools/screensharing/ClipboardAdapter")),
-      clipboard_listeners_(new vector<ClipboardListener*>()) {
+      clipboard_adapter_class_(jni.GetClass("com/android/tools/screensharing/ClipboardAdapter")) {
   get_text_method_ = clipboard_adapter_class_.GetStaticMethod("getText", "()Ljava/lang/String;");
   set_text_method_ = clipboard_adapter_class_.GetStaticMethod("setText", "(Ljava/lang/String;)V");
   enable_primary_clip_changed_listener_method_ = clipboard_adapter_class_.GetStaticMethod("enablePrimaryClipChangedListener", "()V");
@@ -42,9 +41,7 @@ ClipboardManager::ClipboardManager(Jni jni)
   clipboard_adapter_class_.MakeGlobal();
 }
 
-ClipboardManager::~ClipboardManager() {
-  delete clipboard_listeners_;
-}
+ClipboardManager::~ClipboardManager() = default;
 
 ClipboardManager* ClipboardManager::GetInstance(Jni jni) {
   if (clipboard_manager_instance == nullptr) {
@@ -56,11 +53,7 @@ ClipboardManager* ClipboardManager::GetInstance(Jni jni) {
 string ClipboardManager::GetText() const {
   JObject text = clipboard_adapter_class_.CallStaticObjectMethod(jni_, get_text_method_);
   if (text.IsNull()) {
-    JThrowable exception = jni_.GetAndClearException();
-    if (!exception.IsNull()) {
-      Log::W("Unable to obtain clipboard text - %s", exception.Describe().c_str());
-    }
-
+    Log::W(jni_.GetAndClearException(), "Unable to obtain clipboard text");
     return "";
   }
   return text.ToString();
@@ -72,44 +65,21 @@ void ClipboardManager::SetText(const string& text) const {
 }
 
 void ClipboardManager::AddClipboardListener(ClipboardListener* listener) {
-  for (;;) {
-    auto old_listeners = clipboard_listeners_.load();
-    auto new_listeners = new vector<ClipboardListener*>(*old_listeners);
-    new_listeners->push_back(listener);
-    if (clipboard_listeners_.compare_exchange_strong(old_listeners, new_listeners)) {
-      if (old_listeners->empty()) {
-        clipboard_adapter_class_.CallStaticVoidMethod(jni_, enable_primary_clip_changed_listener_method_);
-      }
-      delete old_listeners;
-      return;
-    }
-    delete new_listeners;
+  if (clipboard_listeners_.Add(listener) == 1) {
+    clipboard_adapter_class_.CallStaticVoidMethod(jni_, enable_primary_clip_changed_listener_method_);
   }
 }
 
 void ClipboardManager::RemoveClipboardListener(ClipboardListener* listener) {
-  for (;;) {
-    auto old_listeners = clipboard_listeners_.load();
-    auto new_listeners = new vector<ClipboardListener*>(*old_listeners);
-    auto pos = std::find(new_listeners->begin(), new_listeners->end(), listener);
-    if (pos != new_listeners->end()) {
-      new_listeners->erase(pos);
-      if (clipboard_listeners_.compare_exchange_strong(old_listeners, new_listeners)) {
-        if (new_listeners->empty()) {
-          clipboard_adapter_class_.CallStaticVoidMethod(jni_, disable_primary_clip_changed_listener_method_);
-        }
-        delete old_listeners;
-        return;
-      }
-    }
-    delete new_listeners;
+  if (clipboard_listeners_.Remove(listener) == 0) {
+    clipboard_adapter_class_.CallStaticVoidMethod(jni_, disable_primary_clip_changed_listener_method_);
   }
 }
 
-void ClipboardManager::OnPrimaryClipChanged() const {
-  for (auto listener : *clipboard_listeners_.load()) {
+void ClipboardManager::OnPrimaryClipChanged() {
+  clipboard_listeners_.ForEach([](auto listener) {
     listener->OnPrimaryClipChanged();
-  }
+  });
 }
 
 extern "C"

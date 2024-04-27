@@ -389,8 +389,11 @@ class ComposeUnitTest {
     @Suppress("unused") // Methods are called via reflection by tests.
     class Rect {
       fun getLeft() = 1.222f
+
       fun getTop() = 2.222f
+
       fun getRight() = 3.222f
+
       fun getBottom() = 4.222f
     }
 
@@ -436,8 +439,11 @@ class ComposeUnitTest {
     class Rect {
       // Not float values.
       fun getLeft() = 1
+
       fun getTop() = 2
+
       fun getRight() = 3
+
       fun getBottom() = 4
     }
 
@@ -450,6 +456,7 @@ class ComposeUnitTest {
     @Suppress("unused") // Methods are called via reflection by tests.
     class Rect {
       fun getLeft() = 1f
+
       fun getTop() = 2f
       // No getRight() and getBottom() methods.
     }

@@ -29,7 +29,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.ui.components.JBLoadingPanel
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -174,24 +173,38 @@ class RootPanelTest {
 
     assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners)
       .hasSize(1)
-
-    var connectionListenersCount1 = 0
-    layoutInspectorRule.inspectorModel.connectionListeners.forEach {
-      connectionListenersCount1 += 1
-    }
-    assertThat(connectionListenersCount1).isEqualTo(1)
+    assertThat(layoutInspectorRule.inspectorModel.connectionListeners.size()).isEqualTo(1)
 
     Disposer.dispose(androidProjectRule.testRootDisposable)
 
     assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners)
       .hasSize(0)
+    assertThat(layoutInspectorRule.inspectorModel.connectionListeners.size()).isEqualTo(0)
+  }
 
-    var connectionListenersCount2 = 0
-    layoutInspectorRule.inspectorModel.connectionListeners.forEach {
-      connectionListenersCount2 += 1
-    }
-    assertThat(connectionListenersCount2).isEqualTo(0)
+  @Test
+  fun testForegroundProcessIsIgnoredIfCurrentClientIsConnected() = withEmbeddedLayoutInspector {
+    val fakeTreePanel = JPanel()
+    val rootPanel = RootPanel(androidProjectRule.testRootDisposable, fakeTreePanel)
 
-    assertThat(connectionListenersCount2).isEqualTo(0)
+    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
+    rootPanel.layoutInspector = layoutInspectorRule.inspector
+
+    // Start connecting, loading should show
+    layoutInspectorRule.launchSynchronously = false
+    layoutInspectorRule.startLaunch(2)
+    layoutInspectorRule.processes.selectedProcess =
+      MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+    layoutInspectorRule.awaitLaunch()
+
+    waitForCondition(1, TimeUnit.SECONDS) { rootPanel.uiState == RootPanel.UiState.SHOW_TREE }
+
+    layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
+      fakeDeviceDescriptor,
+      ForegroundProcess(0, "fakeprocess"),
+      false
+    )
+
+    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.SHOW_TREE)
   }
 }

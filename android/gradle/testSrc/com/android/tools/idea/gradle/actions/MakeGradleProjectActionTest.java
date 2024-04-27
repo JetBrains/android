@@ -21,6 +21,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
@@ -50,6 +51,6 @@ public class MakeGradleProjectActionTest extends PlatformTestCase {
     myAction.doPerform(TestActionEvent.createTestEvent(), getProject());
 
     // Verify.
-    verify(myBuildInvoker).assemble(eq(TestCompileType.NONE));
+    verify(myBuildInvoker).assemble(eq(ModuleManager.getInstance(myProject).getModules()), eq(TestCompileType.ALL));
   }
 }

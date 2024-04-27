@@ -323,7 +323,7 @@ class ExceptionDataCollection {
       var atLeastOneFilter = false
       val filter = config.exceptionFilter
       if (filter.hasExceptionType()) {
-        match = t.javaClass.name == filter.exceptionType
+        match = (match && t.javaClass.name == filter.exceptionType)
         atLeastOneFilter = true
       }
       if (filter.hasSignature()) {
@@ -406,7 +406,7 @@ class ExceptionDataCollection {
     if (includeFullStack) {
       t.cause?.let { cause ->
         sb.append("Caused by: ")
-        getDescription(cause, stripMessage = true, includeFullStack = true, t, depth + 1, sb)
+        getDescription(cause, stripMessage, includeFullStack, t, depth + 1, sb)
       }
     }
   }

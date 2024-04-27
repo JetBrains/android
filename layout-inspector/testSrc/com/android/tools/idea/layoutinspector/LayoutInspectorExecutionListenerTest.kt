@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
@@ -69,11 +70,11 @@ class LayoutInspectorExecutionListenerTest {
   @Test
   fun testLaunchWithoutDebugAttributes() {
     val device = attachDevice(MODERN_DEVICE)
-    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
     (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = false
 
     // Start the process
     val handler = AndroidProcessHandler(PROCESS_NAME)
+    AndroidSessionInfo.create(handler, listOf(device), PROCESS_NAME)
     LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are untouched.
@@ -88,11 +89,11 @@ class LayoutInspectorExecutionListenerTest {
   fun testLaunchWithDebugAttributes() =
     runWithFlagState(false) {
       val device = attachDevice(MODERN_DEVICE)
-      env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
       (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
       // Start the process
       val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
+      AndroidSessionInfo.create(handler, listOf(device), PROCESS_NAME)
       LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
       // Make sure the debug attributes are set.
@@ -131,11 +132,11 @@ class LayoutInspectorExecutionListenerTest {
   @Test
   fun testLaunchWithDebugAttributesOnLegacyDevice() {
     val device = attachDevice(LEGACY_DEVICE)
-    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
     (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
     // Start the process
     val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
+    AndroidSessionInfo.create(handler, listOf(device), PROCESS_NAME)
     LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are untouched.
@@ -150,11 +151,11 @@ class LayoutInspectorExecutionListenerTest {
   fun testPerDeviceViewDebugAttributesIsNotCleared() =
     runWithFlagState(true) {
       val device = attachDevice(MODERN_DEVICE)
-      env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
       (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
       // Start the process
       val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
+      AndroidSessionInfo.create(handler, listOf(device), PROCESS_NAME)
       LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
       // Make sure the debug attributes are set.

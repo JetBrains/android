@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ui.vcs
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppVcsInfo
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.vcs.getVcsManager
 import com.android.tools.idea.insights.vcs.locateRepository
@@ -27,12 +28,12 @@ import com.intellij.codeInsight.hints.presentation.InlayPresentation
 import com.intellij.codeInsight.hints.presentation.InlayTextMetrics
 import com.intellij.codeInsight.hints.presentation.PresentationFactory
 import com.intellij.codeInsight.hints.presentation.PresentationRenderer
-import com.intellij.execution.filters.ExceptionInfoCache
 import com.intellij.execution.filters.ExceptionWorker.parseExceptionLine
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.Filter.ResultItem
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.impl.InlayProvider
+import com.intellij.ide.HelpTooltip
 import com.intellij.ide.ui.AntialiasingType
 import com.intellij.ide.ui.UISettings
 import com.intellij.openapi.editor.Editor
@@ -44,11 +45,11 @@ import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.editor.impl.FontInfo
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.search.GlobalSearchScope
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.font.FontRenderContext
 import java.awt.font.TextAttribute
+import java.net.URL
 import javax.swing.JComponent
 import kotlin.math.ceil
 
@@ -62,21 +63,24 @@ import kotlin.math.ceil
  *    along with a crash)
  */
 class InsightsAttachInlayDiffLinkFilter(
+  private val exceptionInfoCache: InsightsExceptionInfoCache,
   private val containingConsole: ConsoleViewImpl,
   private val tracker: AppInsightsTracker
 ) : Filter {
   private val project = containingConsole.project
-  private val cache = ExceptionInfoCache(project, GlobalSearchScope.allScope(project))
 
-  private fun fetchVcsInfo(): AppVcsInfo? {
+  private fun fetchVcsInfo(): AppVcsInfo.ValidInfo? {
     if (!StudioFlags.APP_INSIGHTS_VCS_SUPPORT.get()) return null
 
-    return (containingConsole.getClientProperty(VCS_INFO_OF_SELECTED_CRASH) as? AppVcsInfo)
-      ?.takeUnless { it == AppVcsInfo.NONE }
+    return containingConsole.getClientProperty(VCS_INFO_OF_SELECTED_CRASH) as? AppVcsInfo.ValidInfo
+  }
+
+  private fun fetchAssociatedConnection(): Connection? {
+    return containingConsole.getClientProperty(CONNECTION_OF_SELECTED_CRASH) as? Connection
   }
 
   private fun createContextDataForDiff(
-    appVcsInfo: AppVcsInfo,
+    appVcsInfo: AppVcsInfo.ValidInfo,
     virtualFiles: List<VirtualFile>,
     lineNumber: Int
   ): ContextDataForDiff? {
@@ -93,7 +97,8 @@ class InsightsAttachInlayDiffLinkFilter(
           vcsKey = firstVcsInfo.vcsKey,
           revision = firstVcsInfo.revision,
           filePath = vFile.toVcsFilePath(),
-          lineNumber = lineNumber
+          lineNumber = lineNumber,
+          origin = fetchAssociatedConnection()
         )
       }
       .firstOrNull()
@@ -111,7 +116,7 @@ class InsightsAttachInlayDiffLinkFilter(
 
     val className = parsedLineInfo.classFqnRange.substring(line).trim()
     val fileName = parsedLineInfo.fileName
-    val resolvedInfo = cache.resolveClassOrFile(className, fileName)
+    val resolvedInfo = exceptionInfoCache.resolveClassOrFile(className, fileName)
 
     // TODO: if the class is not really resolvable, there's a chance the class is
     //   "stale" (renamed or deleted), maybe we can do better in the future as we have
@@ -157,6 +162,13 @@ class InsightsAttachInlayDiffLinkFilter(
           )
           .withLineCentered(editor)
 
+      val showDiffTooltip =
+        HelpTooltip().apply {
+          setDescription(TOOLTIP_TEXT)
+          setLink("") {} // required due to bug in HelpTooltip
+          setBrowserLink("More info", URL(VCS_INTEGRATION_LEARN_MORE_URL))
+        }
+
       val showDiffInlay =
         InsightsTextInlayPresentation(
             text = INLAY_DIFF_LINK_DISPLAY_TEXT,
@@ -171,6 +183,7 @@ class InsightsAttachInlayDiffLinkFilter(
             logActivity()
           }
           .withHandCursor(editor)
+          .withTooltip(showDiffTooltip, factory = this)
 
       return seq(commaInlay, showDiffInlay)
     }
@@ -188,7 +201,9 @@ class InsightsAttachInlayDiffLinkFilter(
   }
 
   companion object {
-    internal const val INLAY_DIFF_LINK_DISPLAY_TEXT = "show diff"
+    private const val INLAY_DIFF_LINK_DISPLAY_TEXT = "show diff"
+    private const val TOOLTIP_TEXT =
+      "Show the difference between the historical source from the app version referenced in the issue and the current source."
   }
 }
 
@@ -207,6 +222,7 @@ class InsightsTextInlayPresentation(
   private var normalTextMetrics: InlayTextMetrics? = null
   override val width: Int
     get() = getOrCreateMetrics().getStringWidth(text)
+
   override val height: Int
     get() = getOrCreateMetrics().fontHeight
 

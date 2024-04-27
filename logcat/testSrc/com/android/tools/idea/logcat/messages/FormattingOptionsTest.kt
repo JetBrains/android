@@ -22,12 +22,9 @@ import com.intellij.testFramework.ApplicationRule
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [FormattingOptions]
- */
+/** Tests for [FormattingOptions] */
 class FormattingOptionsTest {
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   @Test
   fun getStyle() {

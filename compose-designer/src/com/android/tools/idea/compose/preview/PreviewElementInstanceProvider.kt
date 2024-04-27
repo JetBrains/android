@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.ComposePreviewElementInstance
 
 /**
  * Interface to be implemented by classes providing instances of [ComposePreviewElement] as

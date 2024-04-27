@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.repositories;
 
-import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCredentialsModelImpl.PASSWORD;
-import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCredentialsModelImpl.USERNAME;
+import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCredentialsModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;

@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Note
@@ -29,12 +30,9 @@ data class NotesFetched(
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
-  ): StateTransition<Action> =
-    StateTransition(
-      state.copy(currentNotes = notes),
-      action = if (shouldRetryPendingNotes) Action.RetryPendingActions else Action.NONE
-    )
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
+  ): StateTransition<Action> = StateTransition(state.copy(currentNotes = notes), Action.NONE)
 
   override fun toString() = "NotesFetched(issueId=$issueId)"
 }

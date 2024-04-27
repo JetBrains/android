@@ -16,38 +16,6 @@
 package com.android.tools.idea.gradle.model
 
 interface IdeDependencies {
-  /**
-   * Returns the Android library dependencies, both direct and transitive.
-   *
-   * @return the list of libraries of type LIBRARY_ANDROID.
-   */
-  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
-  val androidLibraries: Collection<IdeAndroidLibraryDependency>
-
-  /**
-   * Returns the Java library dependencies, both direct and transitive dependencies.
-   *
-   * @return the list of libraries of type LIBRARY_JAVA.
-   */
-  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
-  val javaLibraries: Collection<IdeJavaLibraryDependency>
-
-  /**
-   * Returns the Module dependencies.
-   *
-   * @return the list of libraries of type LIBRARY_MODULE.
-   */
-  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
-  val moduleDependencies: Collection<IdeModuleDependency>
-
-  /**
-   * Returns the unknown dependencies.
-   *
-   * @return the list of libraries of all other types.
-   */
-  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
-  val unknownDependencies: Collection<IdeUnknownDependency>
-
 
   /**
    * Returns the list of all dependencies, both direct and transitive

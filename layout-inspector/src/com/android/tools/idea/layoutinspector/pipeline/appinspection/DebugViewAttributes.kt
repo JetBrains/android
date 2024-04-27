@@ -38,7 +38,9 @@ import org.jetbrains.annotations.VisibleForTesting
  */
 private sealed class Command(val setting: String) {
   class Put(setting: String, val value: String) : Command(setting)
+
   class Delete(setting: String) : Command(setting)
+
   class Get(setting: String) : Command(setting)
 
   fun get(): String {

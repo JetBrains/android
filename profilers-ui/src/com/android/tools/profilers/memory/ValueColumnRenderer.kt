@@ -72,12 +72,11 @@ open class ValueColumnRenderer : ColoredTreeCellRenderer() {
     }
   }
 
-  private fun setIconColorized(icon: Icon) {
+  private fun setIconColorized(icon: Icon) =
     setIcon(if (mySelected && isFocused && !ExperimentalUI.isNewUI()) generateWhiteIcon(icon) else icon)
-  }
 
   companion object {
-    val STRING_ATTRIBUTES: SimpleTextAttributes = SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, Color(0, 0x80, 0))
+    val STRING_ATTRIBUTES = SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, Color(0, 0x80, 0))
 
     @JvmStatic
     fun ValueObject.getValueObjectIcon() = when (this) {

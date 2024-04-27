@@ -120,8 +120,8 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   }
 
   @Override
-  public void setup() {
-    myViewImpl.setup();
+  public void setup(boolean packageFilterActive) {
+    myViewImpl.setup(packageFilterActive);
 
     // Force a layout so that the panel, tree view, combo, etc. have a non-empty size
     assert myViewImpl.getDeviceExplorerPanel() != null;
@@ -218,6 +218,16 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   @Override
   public void stopProgress() {
     myViewImpl.stopProgress();
+  }
+
+  @Override
+  public void setPackageFilterSelection(boolean isSelected) {
+    myViewImpl.setPackageFilterSelection(isSelected);
+  }
+
+  @Override
+  public void enablePackageFilter(boolean shouldEnable) {
+    myViewImpl.enablePackageFilter(shouldEnable);
   }
 
   public List<DeviceExplorerViewListener> getListeners() {
@@ -395,6 +405,11 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
     public void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode, List<Path> files) {
       myUploadFilesTracker.produce(treeNode);
       myListeners.forEach(l -> l.uploadFilesInvoked(treeNode, files));
+    }
+
+    @Override
+    public void togglePackageFilterInvoked(boolean isActive) {
+      myListeners.forEach(l -> l.togglePackageFilterInvoked(isActive));
     }
 
     @Override

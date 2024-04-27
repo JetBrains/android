@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers
 
+import java.util.*
+
 class FakeProfilerPreferences : ProfilerPreferences {
 
   private val myMap = HashMap<String, String>()

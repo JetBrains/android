@@ -20,12 +20,16 @@ import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
-import org.assertj.core.api.Assertions.assertThat
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.psi.PsiDocumentManager
+import kotlinx.coroutines.runBlocking
 
 class LayoutlibSceneManagerTest : SceneTest() {
 
@@ -131,6 +135,61 @@ class LayoutlibSceneManagerTest : SceneTest() {
 
     myLayoutlibSceneManager.setTransparentRendering(defaultTransparentRendering)
     assertThat(myLayoutlibSceneManager.isForceReinflate).isTrue()
+  }
+
+  fun testDoNotCacheSuccessfulRenderImage() = runBlocking {
+    myLayoutlibSceneManager.setCacheSuccessfulRenderImage(false)
+    myLayoutlibSceneManager.render()
+    myLayoutlibSceneManager.forceReinflate()
+    myLayoutlibSceneManager.renderResult!!.let {
+      assertTrue(it.renderResult.isSuccess)
+      assertTrue(it.renderedImage.isValid)
+      assertEquals(768, it.rootViewDimensions.width)
+      assertEquals(1280, it.rootViewDimensions.height)
+    }
+
+    // Break the XML, the next render will fail but will retain the image and dimensions
+    WriteCommandAction.runWriteCommandAction(project) {
+      val manager = PsiDocumentManager.getInstance(project)
+      val document = manager.getDocument(myLayoutlibSceneManager.model.file)!!
+      document.setText("<broken />")
+      manager.commitAllDocuments()
+    }
+    myLayoutlibSceneManager.render()
+    myLayoutlibSceneManager.renderResult!!.let {
+      assertFalse("broken render should have failed", it.renderResult.isSuccess)
+      assertFalse("image should not be valid after the failed rener", it.renderedImage.isValid)
+    }
+  }
+
+  fun testCacheSuccessfulRenderImage() = runBlocking {
+    myLayoutlibSceneManager.setCacheSuccessfulRenderImage(true)
+    myLayoutlibSceneManager.render()
+    myLayoutlibSceneManager.forceReinflate()
+    myLayoutlibSceneManager.renderResult!!.let {
+      assertTrue(it.renderResult.isSuccess)
+      assertTrue(it.renderedImage.isValid)
+      assertEquals(768, it.rootViewDimensions.width)
+      assertEquals(1280, it.rootViewDimensions.height)
+    }
+
+    // Break the XML, the next render will fail but will retain the image and dimensions
+    WriteCommandAction.runWriteCommandAction(project) {
+      val manager = PsiDocumentManager.getInstance(project)
+      val document = manager.getDocument(myLayoutlibSceneManager.model.file)!!
+      document.setText("<broken />")
+      manager.commitAllDocuments()
+    }
+    myLayoutlibSceneManager.render()
+    myLayoutlibSceneManager.renderResult!!.let {
+      assertFalse("broken render should have failed", it.renderResult.isSuccess)
+      assertTrue(
+        "image should be still valid because of a previous successful render",
+        it.renderedImage.isValid
+      )
+      assertEquals(768, it.rootViewDimensions.width)
+      assertEquals(1280, it.rootViewDimensions.height)
+    }
   }
 
   override fun createModel(): ModelBuilder {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.liveedit
 
-import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
 import org.junit.Assert

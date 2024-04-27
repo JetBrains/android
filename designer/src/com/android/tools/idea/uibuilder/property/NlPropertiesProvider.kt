@@ -54,11 +54,11 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlTag
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor
 import com.intellij.xml.XmlAttributeDescriptor
+import java.awt.EventQueue
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import org.jetbrains.android.dom.AttributeProcessingUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
-import java.awt.EventQueue
 
 private const val EXPECTED_ROWS = 3
 private const val EXPECTED_CELLS_PER_ROW = 10
@@ -151,8 +151,8 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
 
         // Exception: Always prefer ATTR_SRC_COMPAT over ATTR_SRC:
         if (properties.contains(AUTO_URI, ATTR_SRC_COMPAT)) {
-          properties.remove(ANDROID_URI, ATTR_SRC)
-          properties.remove(AUTO_URI, ATTR_SRC)
+          removeEmptyProperty(properties, ANDROID_URI, ATTR_SRC)
+          removeEmptyProperty(properties, AUTO_URI, ATTR_SRC)
         }
 
         // Exceptions:
@@ -199,7 +199,18 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
       combinedProperties.row(AUTO_URI).keys.removeAll(commonJustAndroidValue)
       combinedProperties.row(ANDROID_URI).keys.removeAll(common.minus(commonJustAndroidValue))
 
-      return combinedProperties ?: emptyTable
+      return combinedProperties
+    }
+
+    private fun removeEmptyProperty(
+      properties: Table<String, String, NlPropertyItem>,
+      namespace: String,
+      name: String
+    ) {
+      val property = properties.get(namespace, name) ?: return
+      if (property.value == null) {
+        properties.remove(namespace, name)
+      }
     }
 
     private fun loadPropertiesFromDescriptors(
@@ -330,8 +341,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
           psiClass.qualifiedName ?: "",
           model,
           components
-        )
-          ?: return
+        ) ?: return
       if (
         ANDROID_URI == namespace &&
           apiLookup != null &&

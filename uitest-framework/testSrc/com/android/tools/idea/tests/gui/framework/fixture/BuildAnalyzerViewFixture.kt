@@ -151,6 +151,7 @@ class BuildAnalyzerViewFixture(robot: Robot, target: JPanel) : JPanelFixture(rob
       tree.clickPath(taskName)
       tree.expandPath(taskName)
       // Get the task details Panel data and verify the contents.
+      tree.clickPath(taskName) //To reduce flakiness, click again on the desired task after expanding.
       val taskDetailsPanel = findDetailsPanel(taskName)
       val taskDetailsInfo = taskDetailsPanel.readTaskDetails()
       taskDetailsInfo.contains(taskName)

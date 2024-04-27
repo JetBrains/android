@@ -33,6 +33,7 @@ import javax.swing.JComponent
  */
 interface DatabaseInspectorView {
   fun addListener(listener: Listener)
+
   fun removeListener(listener: Listener)
 
   /** The JComponent containing the view's UI. */
@@ -52,7 +53,9 @@ interface DatabaseInspectorView {
   fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>)
 
   fun openTab(tabId: TabId, tabName: String, tabIcon: Icon, component: JComponent)
+
   fun focusTab(tabId: TabId)
+
   fun closeTab(tabId: TabId)
 
   fun updateKeepConnectionOpenButton(keepOpen: Boolean)
@@ -134,6 +137,7 @@ sealed class DatabaseDiffOperation {
     val schema: SqliteSchema?,
     val index: Int
   ) : DatabaseDiffOperation()
+
   data class RemoveDatabase(val viewDatabase: ViewDatabase) : DatabaseDiffOperation()
 }
 

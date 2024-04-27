@@ -32,18 +32,16 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.datatransfer.DataFlavor
 
-/**
- * Tests for [CopyMessageTextAction]
- */
+/** Tests for [CopyMessageTextAction] */
 @RunsInEdt
 class CopyMessageTextActionTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule
-  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
 
-  private val editor get() = logcatEditorRule.editor
+  private val editor
+    get() = logcatEditorRule.editor
 
   @Test
   fun update_emptyDocument() {
@@ -87,7 +85,10 @@ class CopyMessageTextActionTest {
       logcatMessage(message = "Message 3"),
     )
 
-    editor.selectionModel.setSelection(editor.document.getLineStartOffset(1), editor.document.getLineStartOffset(2))
+    editor.selectionModel.setSelection(
+      editor.document.getLineStartOffset(1),
+      editor.document.getLineStartOffset(2)
+    )
     val action = CopyMessageTextAction()
 
     action.update(event)
@@ -105,7 +106,10 @@ class CopyMessageTextActionTest {
       logcatMessage(message = "Message 3"),
     )
 
-    editor.selectionModel.setSelection(editor.document.getLineStartOffset(1) - 1, editor.document.getLineStartOffset(2) + 1)
+    editor.selectionModel.setSelection(
+      editor.document.getLineStartOffset(1) - 1,
+      editor.document.getLineStartOffset(2) + 1
+    )
     val action = CopyMessageTextAction()
 
     action.update(event)
@@ -135,7 +139,10 @@ class CopyMessageTextActionTest {
       logcatMessage(message = "Message 3"),
     )
 
-    editor.selectionModel.setSelection(editor.document.getLineStartOffset(1), editor.document.getLineStartOffset(2))
+    editor.selectionModel.setSelection(
+      editor.document.getLineStartOffset(1),
+      editor.document.getLineStartOffset(2)
+    )
     val action = CopyMessageTextAction()
 
     action.actionPerformed(event)
@@ -152,24 +159,32 @@ class CopyMessageTextActionTest {
       logcatMessage(message = "Message 3"),
     )
 
-    editor.selectionModel.setSelection(editor.document.getLineStartOffset(1) - 1, editor.document.getLineStartOffset(2) + 1)
+    editor.selectionModel.setSelection(
+      editor.document.getLineStartOffset(1) - 1,
+      editor.document.getLineStartOffset(2) + 1
+    )
     val action = CopyMessageTextAction()
 
     action.actionPerformed(event)
 
-    assertThat(getClipboardText()).isEqualTo("""
+    assertThat(getClipboardText())
+      .isEqualTo(
+        """
       Message 1
       Message 2
       Message 3
 
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 }
 
 private fun testActionEvent(editor: EditorEx): AnActionEvent {
-  return TestActionEvent.createTestEvent(MapDataContext().apply {
-    put(LogcatPresenter.EDITOR, editor)
-  })
+  return TestActionEvent.createTestEvent(
+    MapDataContext().apply { put(LogcatPresenter.EDITOR, editor) }
+  )
 }
 
-private fun getClipboardText() = CopyPasteManager.getInstance().contents?.getTransferData(DataFlavor.stringFlavor)
+private fun getClipboardText() =
+  CopyPasteManager.getInstance().contents?.getTransferData(DataFlavor.stringFlavor)

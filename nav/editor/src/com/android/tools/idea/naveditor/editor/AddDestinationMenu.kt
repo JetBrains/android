@@ -35,6 +35,7 @@ import com.android.tools.idea.npw.actions.NewAndroidFragmentAction
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.rendering.LayoutSlowPreviewProvider
@@ -334,6 +335,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
           )
 
           application.invokeLater {
+            @Suppress("UNCHECKED_CAST")
             destinationsList.model = listModel
 
             destinationsList.setPaintBusy(false)
@@ -443,6 +445,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     show(button)
   }
 
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     e.project?.let { buttonPresentation?.isEnabled = !DumbService.isDumb(it) }
   }
@@ -452,7 +456,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
     val project = surface.model?.module?.project ?: return
     val projectSystem = project.getProjectSystem()
-    val token = AddDestinationMenuToken.EP_NAME.getExtensions(project).firstOrNull { it.isApplicable(projectSystem) } ?: return
+    val token = projectSystem.getTokenOrNull(AddDestinationMenuToken.EP_NAME) ?: return
     token.modifyProject(projectSystem, AddDestinationMenuToken.Data(destination, surface))
   }
 

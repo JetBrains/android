@@ -15,18 +15,31 @@
  */
 package com.android.tools.idea.fileTypes;
 
+import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher;
+import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
-import javax.swing.Icon;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 public class FontFileType implements FileType {
   public static final FontFileType INSTANCE = new FontFileType();
+  @NonNls private static final String OTF_EXTENSION = "otf";
   @NonNls private static final String TTF_EXTENSION = "ttf";
 
   private FontFileType() {
+  }
+
+  public static FileNameMatcher[] fileNameMatchers() {
+    return new FileNameMatcher[]{
+      new ExtensionFileNameMatcher(TTF_EXTENSION),
+      new ExtensionFileNameMatcher(OTF_EXTENSION),
+    };
   }
 
   @NotNull

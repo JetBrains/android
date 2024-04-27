@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.adtui.table.Tables;
 import java.awt.Color;
 import java.awt.Component;
 import java.util.Optional;

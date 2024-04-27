@@ -15,28 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_LAYOUT_CHAIN_PACKED;
-import static com.android.SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD;
-import static com.android.SdkConstants.ATTR_LAYOUT_CHAIN_SPREAD_INSIDE;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE;
-import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM;
-import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END;
-import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
-import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START;
-import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP;
-import static com.android.SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.SHERPA_URI;
-import static com.android.SdkConstants.VALUE_ZERO_DP;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.scoutChainConnect;
-
 import com.android.tools.idea.common.model.NlComponent;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.scoutChainConnect;
 
 /**
  * Logic to infer and create Chains

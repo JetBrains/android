@@ -15,24 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_TITLE;
-import static com.android.SdkConstants.AUTO_URI;
-import static com.android.SdkConstants.PreferenceAttributes.ATTR_KEY;
-
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.base.Strings;
 import com.intellij.psi.xml.XmlTag;
-import java.util.Arrays;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+
+import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.PreferenceAttributes.ATTR_KEY;
 
 public abstract class PreferenceHandler extends ViewHandler {
   @Language("XML")

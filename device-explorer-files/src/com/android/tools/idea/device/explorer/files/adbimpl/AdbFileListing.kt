@@ -17,6 +17,7 @@ package com.android.tools.idea.device.explorer.files.adbimpl
 
 import com.android.adblib.ConnectedDevice
 import com.android.ddmlib.FileListingService
+import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.adb.AdbShellCommandsUtil
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbFileListingEntry.EntryKind
 import com.intellij.openapi.diagnostic.thisLogger
@@ -55,12 +56,33 @@ class AdbFileListing(
 
   suspend fun getRoot(): AdbFileListingEntry {
     return withContext(dispatcher) {
-      val command = getCommand(null, "stat -c \"%A %U %G %z %s %n\" ").withDirectoryEscapedPath("/").build() //$NON-NLS-1$
-      val commandResult = myShellCommandsUtil.executeCommand(command)
-      if (commandResult.output.isEmpty() || commandResult.isError) {
-        commandResult.throwIfError()
+      try {
+        val command = getCommand(null, "stat -c \"%A %U %G %z %s %n\" ").withDirectoryEscapedPath("/").build() //$NON-NLS-1$
+        val commandResult = myShellCommandsUtil.executeCommand(command)
+        if (commandResult.output.isEmpty() || commandResult.isError) {
+          commandResult.throwIfError()
+        }
+        processStatOutputLine(commandResult.output[0], defaultRoot)
+      } catch (e: AdbShellCommandException) {
+        LOGGER.debug(e)
+        defaultRoot
       }
-      processStatOutputLine(commandResult.output[0])
+    }
+  }
+
+  suspend fun getDataDirectory(): AdbFileListingEntry {
+    return withContext(dispatcher) {
+      try {
+        val command = getCommand(null, "stat -c \"%A %U %G %z %s %n\" ").withDirectoryEscapedPath("/data/data").build() //$NON-NLS-1$
+        val commandResult = myShellCommandsUtil.executeCommand(command)
+        if (commandResult.output.isEmpty() || commandResult.isError) {
+          commandResult.throwIfError()
+        }
+        processStatOutputLine(commandResult.output[0], defaultData)
+      } catch (e: AdbShellCommandException) {
+        LOGGER.debug(e)
+        defaultData
+      }
     }
   }
 
@@ -116,16 +138,16 @@ class AdbFileListing(
     return command.withText(text)
   }
 
-  private fun processStatOutputLine(line: String): AdbFileListingEntry {
+  private fun processStatOutputLine(line: String, defaultFileEntry: AdbFileListingEntry): AdbFileListingEntry {
     if (line.isEmpty()) {
       LOGGER.warn("Stat command return an unexpected empty line, using default root instead")
-      return defaultRoot
+      return defaultFileEntry
     }
 
     val m = FileListingService.STAT_PATTERN.matcher(line)
     if (!m.matches()) {
       LOGGER.warn("Stat command return an unexpected string pattern, using default root instead")
-      return defaultRoot
+      return defaultFileEntry
     }
 
     val permissions = m.group(1)
@@ -150,6 +172,7 @@ class AdbFileListing(
   }
   companion object {
     private val defaultRoot: AdbFileListingEntry = AdbFileListingEntryBuilder().setPath("/").setKind(EntryKind.DIRECTORY).build()
+    private val defaultData: AdbFileListingEntry = AdbFileListingEntryBuilder().setPath("/data/data/").setKind(EntryKind.DIRECTORY).build()
   }
 }
 

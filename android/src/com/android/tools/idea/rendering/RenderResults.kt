@@ -28,6 +28,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.PsiFile
+import java.awt.Dimension
 
 private val LOG = Logger.getInstance(RenderResult::class.java)
 
@@ -48,6 +49,7 @@ private fun createErrorResult(file: PsiFile, errorResult: Result, logger: Render
     ImmutableMap.of(),
     ImmutableMap.of(),
     null,
+    Dimension(0, 0),
     RenderResultStats.EMPTY
   )
 

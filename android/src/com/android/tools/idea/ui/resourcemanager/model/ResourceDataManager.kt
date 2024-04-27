@@ -56,21 +56,19 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
 
   fun getData(dataId: String?, selectedAssets: List<Asset>): Any? {
     this.selectedItems = selectedAssets
-    return when {
-      PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> DataProvider { dataId -> getSlowData(dataId, selectedAssets) }
-      PlatformDataKeys.COPY_PROVIDER.`is`(dataId) -> this
-      RESOURCE_DESIGN_ASSETS_KEY.`is`(dataId) -> selectedAssets.mapNotNull { it as? DesignAsset }.toTypedArray()
+    return when (dataId) {
+      PlatformDataKeys.COPY_PROVIDER.name -> this
+      RESOURCE_DESIGN_ASSETS_KEY.name -> selectedAssets.mapNotNull { it as? DesignAsset }.toTypedArray()
+      PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { getDataInBackground(it) }
       else -> null
     }
   }
 
-  private fun getSlowData(dataId: String, selectedItems: List<Asset>): Any? {
-    return when {
-      LangDataKeys.PSI_ELEMENT.`is`(dataId) -> assetsToSingleElement(selectedItems)
-      LangDataKeys.PSI_ELEMENT_ARRAY.`is`(dataId) -> assetsToArrayPsiElements(selectedItems)
-      UsageView.USAGE_TARGETS_KEY.`is`(dataId) -> getUsageTargets(assetsToArrayPsiElements(selectedItems))
-      else -> null
-    }
+  private fun getDataInBackground(dataId: String): Any? = when(dataId) {
+    LangDataKeys.PSI_ELEMENT.name -> assetsToSingleElement()
+    LangDataKeys.PSI_ELEMENT_ARRAY.name -> assetsToArrayPsiElements()
+    UsageView.USAGE_TARGETS_KEY.name -> getUsageTargets(assetsToArrayPsiElements())
+    else -> null
   }
 
   override fun performCopy(dataContext: DataContext) {
@@ -88,12 +86,12 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
 
   override fun isCopyEnabled(dataContext: DataContext): Boolean = !selectedItems.isNullOrEmpty()
 
-  private fun assetsToArrayPsiElements(selectedItems: List<Asset>): Array<out PsiElement> =
+  private fun assetsToArrayPsiElements(): Array<out PsiElement> =
     selectedItems
-      .mapNotNull(Asset::resourceItem)
-      .mapNotNull(this::findPsiElement)
-      .filter { it.manager.isInProject(it) }
-      .toTypedArray()
+      ?.mapNotNull(Asset::resourceItem)
+      ?.mapNotNull(this::findPsiElement)
+      ?.filter { it.manager.isInProject(it) }
+      ?.toTypedArray() ?: emptyArray()
 
   /**
    * Try to find the psi element that this [ResourceItem] represents.
@@ -112,9 +110,9 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
     return psiElement
   }
 
-  private fun assetsToSingleElement(selectedItems: List<Asset>): PsiElement? {
-    if (selectedItems.size != 1) return null
-    return assetsToArrayPsiElements(selectedItems).firstOrNull()
+  private fun assetsToSingleElement(): PsiElement? {
+    if (selectedItems?.size != 1) return null
+    return assetsToArrayPsiElements().firstOrNull()
   }
 
   private fun getUsageTargets(chosenElements: Array<out PsiElement>?): Array<UsageTarget?> {

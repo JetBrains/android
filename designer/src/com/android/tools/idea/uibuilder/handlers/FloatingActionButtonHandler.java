@@ -15,36 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.APP_PREFIX;
-import static com.android.SdkConstants.ATTR_BACKGROUND_TINT;
-import static com.android.SdkConstants.ATTR_BACKGROUND_TINT_MODE;
-import static com.android.SdkConstants.ATTR_BORDER_WIDTH;
-import static com.android.SdkConstants.ATTR_COMPAT_PADDING;
-import static com.android.SdkConstants.ATTR_ELEVATION;
-import static com.android.SdkConstants.ATTR_FAB_CUSTOM_SIZE;
-import static com.android.SdkConstants.ATTR_FAB_SIZE;
-import static com.android.SdkConstants.ATTR_HIDE_MOTION_SPEC;
-import static com.android.SdkConstants.ATTR_HOVERED_FOCUSED_TRANSLATION_Z;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_MAX_IMAGE_SIZE;
-import static com.android.SdkConstants.ATTR_PRESSED_TRANSLATION_Z;
-import static com.android.SdkConstants.ATTR_RIPPLE_COLOR;
-import static com.android.SdkConstants.ATTR_SHOW_MOTION_SPEC;
-import static com.android.SdkConstants.ATTR_SRC;
-import static com.android.SdkConstants.ATTR_STYLE;
-import static com.android.SdkConstants.ATTR_TINT;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-
 import com.android.AndroidXConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <android.support.design.widget.FloatingActionButton>} widget.

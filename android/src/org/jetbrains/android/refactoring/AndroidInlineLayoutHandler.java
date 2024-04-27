@@ -19,10 +19,10 @@ import com.intellij.psi.xml.XmlToken;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.dom.wrappers.ResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.refactoring.errorreporter.ErrorReporter;
 import org.jetbrains.android.refactoring.errorreporter.HintBasedErrorReporter;
 import org.jetbrains.android.refactoring.errorreporter.ProjectBasedErrorReporter;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.refactoring.errorreporter.ErrorReporter;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 

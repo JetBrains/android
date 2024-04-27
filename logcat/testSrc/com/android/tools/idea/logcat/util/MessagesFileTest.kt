@@ -7,14 +7,16 @@ import com.intellij.testFramework.RuleChain
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [MessagesFile]
- */
+/** Tests for [MessagesFile] */
 internal class MessagesFileTest {
   private val tempFileFactory = TestTempFileFactory()
 
   @get:Rule
-  val rule = RuleChain(ApplicationRule(), ApplicationServiceRule(TempFileFactory::class.java, tempFileFactory))
+  val rule =
+    RuleChain(
+      ApplicationRule(),
+      ApplicationServiceRule(TempFileFactory::class.java, tempFileFactory)
+    )
 
   @Test
   fun initialize_createsFile() {
@@ -49,15 +51,18 @@ internal class MessagesFileTest {
     val messagesFile = messagesFile()
     messagesFile.initialize()
 
-    messagesFile.appendMessages(listOf(
-      logcatMessage(message = "Foo"),
-      logcatMessage(message = "Bar"),
-    ))
-
-    assertThat(messagesFile.loadMessagesAndDelete()).containsExactly(
-      logcatMessage(message = "Foo"),
-      logcatMessage(message = "Bar"),
+    messagesFile.appendMessages(
+      listOf(
+        logcatMessage(message = "Foo"),
+        logcatMessage(message = "Bar"),
+      )
     )
+
+    assertThat(messagesFile.loadMessagesAndDelete())
+      .containsExactly(
+        logcatMessage(message = "Foo"),
+        logcatMessage(message = "Bar"),
+      )
     assertThat(tempFileFactory.getExistingFileNames()).isEmpty()
   }
 
@@ -66,24 +71,30 @@ internal class MessagesFileTest {
     val messagesFile = messagesFile(10)
     messagesFile.initialize()
 
-    messagesFile.appendMessages(listOf(
-      logcatMessage(message = "Foo-12345"), // len 9
-      logcatMessage(message = "Bar-12345"), // len 18 - file1 will contain 2 messages
-    ))
-
-    messagesFile.appendMessages(listOf(
-      logcatMessage(message = "More-12345"), // This message will go into file2
-    ))
-
-    assertThat(tempFileFactory.getExistingFileNames()).containsExactly(
-      "studio-test-1.bin",
-      "studio-test-2.bin",
+    messagesFile.appendMessages(
+      listOf(
+        logcatMessage(message = "Foo-12345"), // len 9
+        logcatMessage(message = "Bar-12345"), // len 18 - file1 will contain 2 messages
+      )
     )
-    assertThat(messagesFile.loadMessagesAndDelete()).containsExactly(
-      logcatMessage(message = "Foo-12345"),
-      logcatMessage(message = "Bar-12345"),
-      logcatMessage(message = "More-12345"),
+
+    messagesFile.appendMessages(
+      listOf(
+        logcatMessage(message = "More-12345"), // This message will go into file2
+      )
     )
+
+    assertThat(tempFileFactory.getExistingFileNames())
+      .containsExactly(
+        "studio-test-1.bin",
+        "studio-test-2.bin",
+      )
+    assertThat(messagesFile.loadMessagesAndDelete())
+      .containsExactly(
+        logcatMessage(message = "Foo-12345"),
+        logcatMessage(message = "Bar-12345"),
+        logcatMessage(message = "More-12345"),
+      )
     assertThat(tempFileFactory.getExistingFileNames()).isEmpty()
   }
 
@@ -92,30 +103,37 @@ internal class MessagesFileTest {
     val messagesFile = messagesFile(10)
     messagesFile.initialize()
 
-    messagesFile.appendMessages(listOf(
-      logcatMessage(message = "Foo-12345"), // len 9
-      logcatMessage(message = "Bar-12345"), // len 18 - file1 will contain 2 messages
-    ))
-    messagesFile.appendMessages(listOf(
-      logcatMessage(message = "More-1234"), // len 9
-      logcatMessage(message = "More-5678"), // len 18 - file2 will contain 2 messages
-    ))
-    messagesFile.appendMessages(listOf(
-      logcatMessage(message = "Even more"), // This message will go into file3
-    ))
+    messagesFile.appendMessages(
+      listOf(
+        logcatMessage(message = "Foo-12345"), // len 9
+        logcatMessage(message = "Bar-12345"), // len 18 - file1 will contain 2 messages
+      )
+    )
+    messagesFile.appendMessages(
+      listOf(
+        logcatMessage(message = "More-1234"), // len 9
+        logcatMessage(message = "More-5678"), // len 18 - file2 will contain 2 messages
+      )
+    )
+    messagesFile.appendMessages(
+      listOf(
+        logcatMessage(message = "Even more"), // This message will go into file3
+      )
+    )
 
-    assertThat(tempFileFactory.getExistingFileNames()).containsExactly(
-      "studio-test-2.bin",
-      "studio-test-3.bin",
-    )
-    assertThat(messagesFile.loadMessagesAndDelete()).containsExactly(
-      logcatMessage(message = "More-1234"),
-      logcatMessage(message = "More-5678"),
-      logcatMessage(message = "Even more"),
-    )
+    assertThat(tempFileFactory.getExistingFileNames())
+      .containsExactly(
+        "studio-test-2.bin",
+        "studio-test-3.bin",
+      )
+    assertThat(messagesFile.loadMessagesAndDelete())
+      .containsExactly(
+        logcatMessage(message = "More-1234"),
+        logcatMessage(message = "More-5678"),
+        logcatMessage(message = "Even more"),
+      )
     assertThat(tempFileFactory.getExistingFileNames()).isEmpty()
   }
 
-  private fun messagesFile(maxSize: Int = Int.MAX_VALUE) =
-    MessagesFile("test", maxSize)
+  private fun messagesFile(maxSize: Int = Int.MAX_VALUE) = MessagesFile("test", maxSize)
 }

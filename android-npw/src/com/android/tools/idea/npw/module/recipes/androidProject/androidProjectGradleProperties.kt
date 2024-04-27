@@ -65,8 +65,8 @@ android.nonTransitiveRClass=true
 org.gradle.jvmargs=-Xmx${maxHeapSize}m -Dfile.encoding=UTF-8
 
 # When configured, Gradle will run in incubating parallel mode.
-# This option should only be used with decoupled projects. More details, visit
-# http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects
+# This option should only be used with decoupled projects. For more details, visit
+# https://developer.android.com/r/tools/gradle-multi-project-decoupled-projects
 # org.gradle.parallel=true
 
 $androidXBlock

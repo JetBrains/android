@@ -1,0 +1,53 @@
+<!--
+  ~ Copyright (C) 2023 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <fileBasedIndex implementation="com.android.tools.idea.nav.safeargs.index.NavXmlIndex"/>
+    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService" />
+    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker" />
+    <projectService serviceImplementation="com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker" />
+    <projectService
+        serviceInterface="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTracker"
+        serviceImplementation="com.android.tools.idea.nav.safeargs.tracker.DefaultSafeArgsTracker"/>
+    <resolveScopeEnlarger implementation="com.android.tools.idea.nav.safeargs.finder.SafeArgsScopeEnlarger" />
+    <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.DirectionsShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.DirectionsClassFinder"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.ArgsShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.ArgsClassFinder"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.ArgsBuilderShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.ArgsBuilderClassFinder"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.ActionBuilderShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.ActionBuilderClassFinder"/>
+
+    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleService" />
+    <postStartupActivity implementation="com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener$SubscriptionStartupActivity"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <resolveScopeEnlarger implementation="com.android.tools.idea.nav.safeargs.finder.SafeArgsKotlinScopeEnlarger" />
+  </extensions>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.nav.safeargs.module.safeArgsModeToken"
+                    interface="com.android.tools.idea.nav.safeargs.module.SafeArgsModeToken"
+                    area="IDEA_PROJECT"/>
+  </extensionPoints>
+
+  <projectListeners>
+    <listener class="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTrackerSyncListener"
+              topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
+  </projectListeners>
+</idea-plugin>

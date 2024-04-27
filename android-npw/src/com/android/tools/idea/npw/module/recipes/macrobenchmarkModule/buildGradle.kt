@@ -70,7 +70,7 @@ fun macrobenchmarksBuildGradle(
   }
 
   return """
-${emptyPluginsBlock(isKts = useGradleKts, useVersionCatalog = useVersionCatalog)}
+${emptyPluginsBlock()}
 
 android {
     namespace '$packageName'

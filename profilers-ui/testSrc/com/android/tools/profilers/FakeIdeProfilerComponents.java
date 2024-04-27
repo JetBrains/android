@@ -166,7 +166,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   public UiMessageHandler createUiMessageHandler() {
     return new UiMessageHandler() {
       @Override
-      public void displayErrorMessage(@NotNull JComponent parent, @NotNull String title, @NotNull String message) {
+      public void displayErrorMessage(@Nullable JComponent parent, @NotNull String title, @NotNull String message) {
         parent.add(new JLabel(message));
       }
 
@@ -187,9 +187,15 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   @Override
   public void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel model, int deviceLevel,
-                                                   @NotNull Consumer<ProfilingConfiguration> callbackDialog) {
+                                                   @NotNull Consumer<ProfilingConfiguration> callbackDialog,
+                                                   @NotNull IdeProfilerServices ideProfilerServices) {
     myCpuConfigModel = model;
     myDialogCloseCallback = callbackDialog;
+  }
+
+  @Override
+  public void openTaskConfigurationsDialog(@NotNull CpuProfilerConfigModel model, @NotNull IdeProfilerServices ideProfilerServices) {
+    myCpuConfigModel = model;
   }
 
   /**

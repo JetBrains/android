@@ -20,29 +20,24 @@ import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.error.Issue;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanelService;
-import com.android.tools.idea.common.error.IssuePanelServiceKt;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActionsKt;
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.IconUtil;
 import icons.StudioIcons;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 
@@ -56,15 +51,6 @@ public class IssueNotificationAction extends ToggleAction {
 
   @VisibleForTesting
   public static final Icon DISABLED_ICON = IconUtil.desaturate(StudioIcons.Common.ERROR_INLINE);
-
-  /**
-   * Returns the icon and description to be used when the surface is active but there are no errors.
-   * Both can be null to allow using the {@link IssueNotificationAction} defaults.
-   */
-  @NotNull
-  protected Pair<Icon, String> getNoErrorsIconAndDescription(@NotNull AnActionEvent event) {
-    return new Pair<>(null, null);
-  }
 
   @NotNull
   public static IssueNotificationAction getInstance() {
@@ -90,31 +76,17 @@ public class IssueNotificationAction extends ToggleAction {
     else {
       event.getPresentation().setEnabled(true);
       IssueModel issueModel = surface.getIssueModel();
-      int markerCount = issueModel.getIssueCount();
+      boolean hasIssues = issueModel.hasIssues();
 
-      VisualLintService service = VisualLintService.getInstance(event.getRequiredData(PlatformDataKeys.PROJECT));
-      List<VirtualFile> files = surface.getModels().stream().map(NlModel::getVirtualFile).toList();
-      Set<Issue> visualLintIssues =
-        service.getIssueModel().getIssues().stream().filter(it -> files.contains(it.getSource().getFile())).collect(Collectors.toSet());
+      List<VisualLintRenderIssue> visualLintIssues = ((NlDesignSurface)surface).getVisualLintIssueProvider().getUnsuppressedIssues();
 
-      markerCount += visualLintIssues.size();
-      presentation.setDescription(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
-      if (markerCount == 0) {
-        Pair<Icon, String> iconAndDescription = getNoErrorsIconAndDescription(event);
-        if (iconAndDescription.getSecond() != null) {
-          presentation.setText(iconAndDescription.getSecond());
-        }
-
-        if (iconAndDescription.getFirst() == null) {
-          presentation.setIcon(getIssueTypeIcon(issueModel, visualLintIssues));
-        }
-        else {
-          presentation.setIcon(iconAndDescription.getFirst());
-        }
-      }
-      else {
+      if (hasIssues || !visualLintIssues.isEmpty()) {
+        presentation.setDescription(SHOW_ISSUE);
         presentation.setIcon(getIssueTypeIcon(issueModel, visualLintIssues));
         presentation.setText(DEFAULT_TOOLTIP);
+      } else {
+        presentation.setDescription(NO_ISSUE);
+        presentation.setIcon(DISABLED_ICON);
       }
     }
   }
@@ -125,24 +97,26 @@ public class IssueNotificationAction extends ToggleAction {
     if (surface == null) {
       return false;
     }
-    return IssuePanelService.getInstance(surface.getProject()).isIssuePanelVisible(surface);
+    return IssuePanelService.getInstance(surface.getProject()).isIssuePanelVisible();
   }
 
   @Override
   public void setSelected(@NotNull AnActionEvent e, boolean state) {
-    DesignSurface<?> surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
-    if (surface == null) {
+    Project project = e.getProject();
+    if (project == null) {
       return;
     }
-    IssuePanelServiceKt.setIssuePanelVisibility(surface, state, true, () -> {
-      if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-        Project project = e.getData(PlatformDataKeys.PROJECT);
-        if (project != null) {
-          IssuePanelService.getInstance(project).focusIssuePanelIfVisible();
-        }
-      }
-    });
-
+    DesignSurface<?> surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
+    String tabName = null;
+    if (surface instanceof NlDesignSurface) {
+      tabName = ((NlDesignSurface)surface).getVisualLintIssueProvider().getUiCheckInstanceId();
+    }
+    IssuePanelService issuePanelService = IssuePanelService.getInstance(project);
+    if (tabName != null) {
+      issuePanelService.setIssuePanelVisibilityByTabName(state, tabName, issuePanelService::focusIssuePanelIfVisible);
+    } else {
+      issuePanelService.setSharedIssuePanelVisibility(state, issuePanelService::focusIssuePanelIfVisible);
+    }
   }
 
   @Override
@@ -151,7 +125,7 @@ public class IssueNotificationAction extends ToggleAction {
   }
 
   @NotNull
-  private static Icon getIssueTypeIcon(@NotNull IssueModel issueModel, @NotNull Set<Issue> visualLintIssues) {
+  private static Icon getIssueTypeIcon(@NotNull IssueModel issueModel, @NotNull List<VisualLintRenderIssue> visualLintIssues) {
     Set<HighlightSeverity> visualLintSeverities = visualLintIssues.stream()
       .map(Issue::getSeverity).collect(Collectors.toSet());
 

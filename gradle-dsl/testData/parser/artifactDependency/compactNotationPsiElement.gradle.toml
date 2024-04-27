@@ -1,0 +1,2 @@
+[dependencies]
+testCompile = [ {notation = "org.gradle.test.classifiers:service:1.0"} ]

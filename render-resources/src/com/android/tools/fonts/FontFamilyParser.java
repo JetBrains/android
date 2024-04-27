@@ -15,25 +15,26 @@
  */
 package com.android.tools.fonts;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.AUTO_URI;
-import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
-
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.fonts.QueryParser;
 import com.intellij.openapi.diagnostic.Logger;
-import java.io.File;
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.File;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
 
 /**
  * Parse a font xml file.
@@ -59,7 +60,7 @@ public class FontFamilyParser {
 
   private static QueryParser.ParseResult parseFontReference(@NotNull File xmlFile)
     throws SAXException, ParserConfigurationException, IOException {
-    SAXParserFactory factory = SAXParserFactory.newDefaultInstance();
+    SAXParserFactory factory = SAXParserFactory.newInstance();
     factory.setNamespaceAware(true);
     SAXParser parser = factory.newSAXParser();
     FontFamilyHandler handler = new FontFamilyHandler(xmlFile);

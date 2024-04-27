@@ -19,21 +19,24 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.insertText
-import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.DefaultLogger
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
-import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertNotEmpty
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import kotlinx.coroutines.Dispatchers
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.swing.JComponent
+import javax.swing.JPanel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -50,10 +53,6 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.MockitoAnnotations
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.JComponent
-import javax.swing.JPanel
 
 class MultiRepresentationPreviewTest {
   private lateinit var multiPreview: UpdatableMultiRepresentationPreview
@@ -61,6 +60,7 @@ class MultiRepresentationPreviewTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
   private val project: Project
     get() = projectRule.project
+
   private val myFixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
@@ -610,16 +610,15 @@ class MultiRepresentationPreviewTest {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    val futureMultiPreview = DumbServiceImpl.getInstance(project).runInDumbMode {
+    val futureMultiPreview = DumbModeTestUtils.computeInDumbModeSynchronously(project) {
       val provider = TestPreviewRepresentationProvider("Accepting", false)
-      val future = async {
-      createMultiRepresentation(sampleFile, myFixture.editor, listOf(provider))
-    }
-
-    withContext(Dispatchers.EDT) {
+      val futureMultiPreview = async {
+        createMultiRepresentation(sampleFile, myFixture.editor, listOf(provider))
+      }
+      invokeAndWaitIfNeeded {
         provider.isAccept = true
       }
-      return@runInDumbMode future
+      futureMultiPreview
     }
 
     multiPreview = futureMultiPreview.await()
@@ -640,6 +639,7 @@ class MultiRepresentationPreviewTest {
     val provider =
       object : PreviewRepresentationProvider {
         override val displayName = "foo"
+
         override suspend fun accept(project: Project, psiFile: PsiFile) = enabled.get()
 
         @Synchronized
@@ -687,7 +687,9 @@ class MultiRepresentationPreviewTest {
     val provider =
       object : PreviewRepresentationProvider {
         override val displayName: RepresentationName = "Representation"
+
         override suspend fun accept(project: Project, psiFile: PsiFile) = true
+
         override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
           createRepresentationLatch.countDown()
           // Only return the representation when the parent is already disposed
@@ -727,12 +729,14 @@ class MultiRepresentationPreviewTest {
     val provider =
       object : PreviewRepresentationProvider {
         override val displayName: RepresentationName = "Representation"
+
         override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
           startLatch.countDown()
           busyLatch.await()
           delay(1) // Make this throw CancellationException
           return true
         }
+
         override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
           return TestPreviewRepresentation()
         }

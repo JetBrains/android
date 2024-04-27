@@ -31,11 +31,11 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.openapi.ui.Splitter
-import com.intellij.ui.icons.CachedImageIcon
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
+import com.intellij.ui.icons.CachedImageIcon
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.mockito.Mockito

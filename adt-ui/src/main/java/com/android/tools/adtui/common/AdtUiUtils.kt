@@ -172,7 +172,7 @@ object AdtUiUtils {
     }
     var smallestLength = 0
     var largestLength = text.length
-    var bestLength = 0
+    var bestLength = smallestLength
     do {
       val midLength = smallestLength + (largestLength - smallestLength) / 2
       val substring =

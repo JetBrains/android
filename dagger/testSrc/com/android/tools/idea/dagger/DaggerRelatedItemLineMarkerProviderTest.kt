@@ -17,11 +17,18 @@
 
 package com.android.tools.idea.dagger
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.testutils.MockitoKt
+import com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider.Companion.canReceiveLineMarker
+import com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider.Companion.getGotoItems
+import com.android.tools.idea.dagger.concepts.AssistedFactoryMethodDaggerElement
+import com.android.tools.idea.dagger.concepts.DaggerElement
+import com.android.tools.idea.dagger.concepts.DaggerRelatedElement
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
 import com.intellij.codeInsight.daemon.GutterMark
@@ -33,38 +40,37 @@ import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiNamedElement
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.registerServiceInstance
 import icons.StudioIcons.Misc.DEPENDENCY_CONSUMER
 import icons.StudioIcons.Misc.DEPENDENCY_PROVIDER
-import org.jetbrains.kotlin.asJava.LightClassUtil
-import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JLabel
 
-abstract class DaggerRelatedItemLineMarkerProviderTestBase(
-  private val daggerUsingIndexEnabled: Boolean,
-  private val expectProviderToBeDisabledByProperty: Boolean,
-) : DaggerTestCase() {
+class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
   private lateinit var trackerService: TestDaggerAnalyticsTracker
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.DAGGER_USING_INDEX_ENABLED.override(daggerUsingIndexEnabled)
     trackerService = TestDaggerAnalyticsTracker()
     project.registerServiceInstance(DaggerAnalyticsTracker::class.java, trackerService)
   }
 
   override fun tearDown() {
-    StudioFlags.DAGGER_USING_INDEX_ENABLED.clearOverride()
-
     // Close the popups created by clickOnIcon(), otherwise they leak the test project.
     IdeEventQueue.getInstance().popupManager.closeAllPopups()
     super.tearDown()
@@ -103,15 +109,13 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
   fun testIsEnabledByDefault() {
     val provider = DaggerRelatedItemLineMarkerProvider()
 
+    // This system property used to indicate whether the provider was on by default, but should no
+    // longer have any effect.
     System.setProperty("disable.dagger.relateditems.gutter.icons", "false")
     assertThat(provider.isEnabledByDefault).isTrue()
 
     System.setProperty("disable.dagger.relateditems.gutter.icons", "true")
-    if (expectProviderToBeDisabledByProperty) {
-      assertThat(provider.isEnabledByDefault).isFalse()
-    } else {
-      assertThat(provider.isEnabledByDefault).isTrue()
-    }
+    assertThat(provider.isEnabledByDefault).isTrue()
 
     // Make sure to clear the property so that it doesn't pollute other tests.
     System.clearProperty("disable.dagger.relateditems.gutter.icons")
@@ -243,25 +247,13 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
     assertThat(gotoRelatedItems).hasSize(4)
     val consumerElements = gotoRelatedItems.map { it.element }
 
-    if (daggerUsingIndexEnabled) {
-      // Tooling V2 support returns the underlying KtElements instead of their corresponding light
-      // equivalents.
-      assertThat(consumerElements)
-        .containsExactly(
-          consumerField,
-          consumerKtField,
-          parameter,
-          consumerParameter,
-        )
-    } else {
-      assertThat(consumerElements)
-        .containsExactly(
-          consumerField,
-          LightClassUtil.getLightClassBackingField(consumerKtField as KtDeclaration),
-          parameter.toLightElements().single(),
-          consumerParameter.toLightElements().single()
-        )
-    }
+    assertThat(consumerElements)
+      .containsExactly(
+        consumerField,
+        consumerKtField,
+        parameter,
+        consumerParameter,
+      )
 
     val displayedNames = gotoRelatedItems.map { it.customName }
     assertThat(displayedNames)
@@ -1124,47 +1116,26 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
         .trimIndent()
     )
 
-    if (daggerUsingIndexEnabled) {
-      myFixture.loadNewFile(
-        "test/MyComponent.kt",
-        // language=kotlin
-        """
-        package test
-        import dagger.Component
-        import dagger.BindsInstance
-        import test.MyQualifier
+    myFixture.loadNewFile(
+      "test/MyComponent.kt",
+      // language=kotlin
+      """
+      package test
+      import dagger.Component
+      import dagger.BindsInstance
+      import test.MyQualifier
 
-        @Component
-        interface MyComponent {
-          @Component.Factory
-          interface MyComponentFactory
-          {
-            fun bindString(@BindsInstance @MyQualifier str:String):String
-          }
+      @Component
+      interface MyComponent {
+        @Component.Factory
+        interface MyComponentFactory
+        {
+          fun bindString(@BindsInstance @MyQualifier str:String):String
         }
-        """
-          .trimIndent()
-      )
-    } else {
-      // This is not a valid @BindsInstance method, but it's what v1 of the Dagger support currently
-      // recognizes.
-      myFixture.loadNewFile(
-        "test/MyModule.kt",
-        // language=kotlin
-        """
-        package test
-        import dagger.Module
-        import dagger.BindsInstance
-        import test.MyQualifier
-
-        @Module
-        class MyModule {
-           fun bindString(@BindsInstance @MyQualifier str:String):String
-        }
-        """
-          .trimIndent()
-      )
-    }
+      }
+      """
+        .trimIndent()
+    )
 
     myFixture.moveCaret("st|r")
 
@@ -1427,14 +1398,173 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
     }
 }
 
-class DaggerRelatedItemLineMarkerProviderTestV1 :
-  DaggerRelatedItemLineMarkerProviderTestBase(
-    daggerUsingIndexEnabled = false,
-    expectProviderToBeDisabledByProperty = true
-  )
+@RunWith(JUnit4::class)
+@RunsInEdt
+class DaggerRelatedItemLineMarkerProviderTest {
 
-class DaggerRelatedItemLineMarkerProviderTestV2 :
-  DaggerRelatedItemLineMarkerProviderTestBase(
-    daggerUsingIndexEnabled = true,
-    expectProviderToBeDisabledByProperty = false
-  )
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
+
+  private val myFixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
+
+  @Test
+  fun canReceiveLineMarker_kotlin() {
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+      package com.example
+
+      class Foo constructor() {
+        val property: Int = 0
+      }
+      """
+        .trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("cla|ss Foo constructor").canReceiveLineMarker()).isFalse()
+    assertThat(myFixture.moveCaret("class Fo|o constructor").canReceiveLineMarker()).isTrue()
+    assertThat(
+        myFixture.findParentElement<KtClass>("class Fo|o constructor").canReceiveLineMarker()
+      )
+      .isFalse()
+    assertThat(myFixture.moveCaret("class Foo constr|uctor").canReceiveLineMarker()).isTrue()
+    assertThat(
+        myFixture.findParentElement<KtFunction>("class Foo constr|uctor").canReceiveLineMarker()
+      )
+      .isFalse()
+
+    assertThat(myFixture.moveCaret("va|l property: Int = 0").canReceiveLineMarker()).isFalse()
+    assertThat(myFixture.moveCaret("val prop|erty: Int = 0").canReceiveLineMarker()).isTrue()
+    assertThat(
+        myFixture.findParentElement<KtProperty>("val prop|erty: Int = 0").canReceiveLineMarker()
+      )
+      .isFalse()
+    assertThat(myFixture.moveCaret("val property: In|t = 0").canReceiveLineMarker()).isTrue()
+    assertThat(myFixture.moveCaret("val property: Int = |0").canReceiveLineMarker()).isFalse()
+  }
+
+  @Test
+  fun canReceiveLineMarker_java() {
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      // language=java
+      """
+      package com.example;
+
+      public class Foo {
+        public Foo() {}
+
+        private int property = 0;
+      }
+      """
+        .trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("cla|ss Foo").canReceiveLineMarker()).isFalse()
+    assertThat(myFixture.moveCaret("class Fo|o").canReceiveLineMarker()).isTrue()
+    assertThat(myFixture.findParentElement<PsiClass>("class Fo|o").canReceiveLineMarker()).isFalse()
+
+    assertThat(myFixture.moveCaret("pub|lic Foo()").canReceiveLineMarker()).isFalse()
+    assertThat(myFixture.moveCaret("public Fo|o()").canReceiveLineMarker()).isTrue()
+    assertThat(myFixture.findParentElement<PsiMethod>("public Fo|o()").canReceiveLineMarker())
+      .isFalse()
+
+    assertThat(myFixture.moveCaret("pri|vate int property = 0;").canReceiveLineMarker()).isFalse()
+    assertThat(myFixture.moveCaret("private in|t property = 0;").canReceiveLineMarker()).isFalse()
+    assertThat(myFixture.moveCaret("private int pro|perty = 0;").canReceiveLineMarker()).isTrue()
+    assertThat(
+        myFixture.findParentElement<PsiField>("private int pro|perty = 0;").canReceiveLineMarker()
+      )
+      .isFalse()
+    assertThat(myFixture.moveCaret("private int property = |0;").canReceiveLineMarker()).isFalse()
+  }
+
+  @Test
+  fun gotoItemOrdering() {
+    val mockRelatedElements =
+      listOf(
+        DaggerRelatedElement(
+          createMockDaggerElement("ElementName8"),
+          "Consumers",
+          "navigate.to.consumer",
+          "CustomName8"
+        ),
+        DaggerRelatedElement(
+          createMockDaggerElement("ElementName7"),
+          "Providers",
+          "navigate.to.provider",
+          "CustomName7"
+        ),
+        DaggerRelatedElement(
+          createMockDaggerElement("ElementName4"),
+          "Consumers",
+          "navigate.to.consumer",
+          null
+        ),
+        DaggerRelatedElement(
+          createMockDaggerElement("ElementName3"),
+          "Providers",
+          "navigate.to.provider",
+          null
+        ),
+        DaggerRelatedElement(
+          createMockDaggerElement("ElementName6"),
+          "Consumers",
+          "navigate.to.consumer",
+          "CustomName6"
+        ),
+        DaggerRelatedElement(
+          createMockDaggerElement("ElementName5"),
+          "Providers",
+          "navigate.to.provider",
+          "CustomName5"
+        ),
+        DaggerRelatedElement(
+          createMockDaggerElement("ElementName2"),
+          "Consumers",
+          "navigate.to.consumer",
+          null
+        ),
+        DaggerRelatedElement(
+          createMockDaggerElement("ElementName1"),
+          "Providers",
+          "navigate.to.provider",
+          null
+        ),
+      )
+
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = MockitoKt.mock()
+    MockitoKt.whenever(mockDaggerElement.getRelatedDaggerElements()).thenReturn(mockRelatedElements)
+
+    val gotoItems = mockDaggerElement.getGotoItems()
+
+    // Items are sorted at a higher level by their group.
+    assertThat(gotoItems.map { it.group })
+      .containsExactlyElementsIn(List(4) { "Consumers" } + List(4) { "Providers" })
+      .inOrder()
+
+    // Within the group, items are sorted by their names. We can't directly verify the display text
+    // since it's controlled by the platform, but we can validate that the goto items contain the
+    // associated PsiElements that we expect in the correct order.
+    assertThat(gotoItems.map { it.element })
+      .containsExactly(
+        mockRelatedElements[4].relatedElement.psiElement, // CustomName6 (Consumers)
+        mockRelatedElements[0].relatedElement.psiElement, // CustomName8 (Consumers)
+        mockRelatedElements[6].relatedElement.psiElement, // ElementName2 (Consumers)
+        mockRelatedElements[2].relatedElement.psiElement, // ElementName4 (Consumers)
+        mockRelatedElements[5].relatedElement.psiElement, // CustomName5 (Providers)
+        mockRelatedElements[1].relatedElement.psiElement, // CustomName7 (Providers)
+        mockRelatedElements[7].relatedElement.psiElement, // ElementName1 (Providers)
+        mockRelatedElements[3].relatedElement.psiElement, // ElementName3 (Providers)
+      )
+      .inOrder()
+  }
+
+  private fun createMockDaggerElement(elementText: String): DaggerElement {
+    val psiElement = myFixture.addClass("class $elementText {}")
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = MockitoKt.mock()
+    MockitoKt.whenever(mockDaggerElement.psiElement).thenReturn(psiElement)
+
+    return mockDaggerElement
+  }
+}

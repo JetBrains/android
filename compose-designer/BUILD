@@ -1,7 +1,7 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
-load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
+load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
 iml_module(
@@ -37,6 +37,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
     ],
 )
 
@@ -67,6 +68,7 @@ iml_module(
         },
         # Source of many flakes. Splitting it into an individual target for better investigation.
         "ComposePreviewRepresentationGradleTest": {
+            "shard_count": 3,
             "test_filter": "com.android.tools.idea.compose.gradle.preview.ComposePreviewRepresentationGradleTest",
         },
         # Can probably be grouped into gradle-other once flakiness is fixed: b/261126651, b/272048512
@@ -108,7 +110,6 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
-        "//tools/adt/idea/compose-designer:kotlin-compiler-daemon-libs",
         "//tools/adt/idea/compose-designer/testData",
         "//tools/adt/idea/compose-ide-plugin/testData",
         "//tools/base/build-system:android_gradle_plugin.zip",
@@ -159,15 +160,9 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/adt/idea/.idea/libraries:asm-tools[test]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
     ],
-)
-
-filegroup(
-    name = "kotlin-compiler-daemon-libs",
-    # We only include the 1.2.0 version as part of the distribution as it is the only one needed
-    # for tests and canary.
-    srcs = ["lib/kotlin-compiler-daemon-1.2.0-fallback.jar"],
-    visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build
@@ -184,6 +179,7 @@ maven_repository(
         "@maven//:androidx.annotation.annotation_1.2.0-rc01",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.compose.compiler.compiler_1.3.2",
+        "@maven//:androidx.compose.material.material_1.3.0",
         "@maven//:androidx.compose.ui.ui-tooling_1.3.0",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
@@ -234,7 +230,7 @@ compose_preview_data = [
     ":compose_preview_deps",
     "//prebuilts/studio/sdk:build-tools/30.0.3",
     "//tools/adt/idea/compose-designer/testData:composepreview",
-    "//tools/base/build-system:gradle-distrib-7.3.3",
+    "//tools/base/build-system:gradle-distrib-7.5",
 ]
 
 maven_repository(

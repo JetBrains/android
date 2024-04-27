@@ -33,7 +33,6 @@ import org.intellij.lang.annotations.Language
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.awt.image.BufferedImage
 import java.io.File
@@ -102,7 +101,7 @@ class MultipleColorIconProviderTest {
     ResourceFile.createSingle(File("source"), asset.resourceItem as ResourceMergerItem, "")
 
     val resourceResolver = Mockito.mock(ResourceResolver::class.java)
-    whenever(resourceResolver.resolveResValue(ArgumentMatchers.any())).thenReturn(
+    whenever(resourceResolver.resolveResValue(Mockito.any())).thenReturn(
       ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "my_color", "#00F")
     )
 

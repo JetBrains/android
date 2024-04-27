@@ -24,8 +24,8 @@ import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.model.getLayoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.intellij.testFramework.UsefulTestCase
-import junit.framework.TestCase
 import java.awt.Point
+import junit.framework.TestCase
 
 class CoordinatorPlaceholderTest : SceneTest() {
 

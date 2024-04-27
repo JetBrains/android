@@ -17,14 +17,11 @@ package com.android.tools.idea.logcat.devices
 
 import com.intellij.openapi.project.Project
 
-/**
- * Finds a device by serial number
- */
+/** Finds a device by serial number */
 internal fun interface DeviceFinder {
   suspend fun findDevice(serialNumber: String): Device?
 
   companion object {
-    fun getInstance(project: Project): DeviceFinder =
-      project.getService(DeviceFinder::class.java)
+    fun getInstance(project: Project): DeviceFinder = project.getService(DeviceFinder::class.java)
   }
 }

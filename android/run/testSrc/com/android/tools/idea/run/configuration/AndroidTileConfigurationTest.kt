@@ -16,8 +16,6 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.idea.execution.common.DeployableToDevice
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -31,18 +29,15 @@ import org.junit.Test
 class AndroidTileConfigurationTest {
 
   @get:Rule
-  var androidProjectRule = AndroidProjectRule.inMemory().onEdt()
+  val projectRule = ProjectRule()
 
   val project: Project
-    get() = androidProjectRule.project
+    get() = projectRule.project
 
   @Test
   fun testProgramRunnerAvailable() {
-    val configSettings = RunManager.getInstance(project)
-      .createConfiguration(
-      "run tile",
-            AndroidTileConfigurationType().configurationFactories.single()
-      )
+    val configSettings = RunManager.getInstance(project).createConfiguration(
+      "run tile", AndroidTileConfigurationType().configurationFactories.single())
 
     val runnerForRun = ProgramRunner.getRunner(DefaultRunExecutor.EXECUTOR_ID, configSettings.configuration)
     assertThat(runnerForRun).isNotNull()

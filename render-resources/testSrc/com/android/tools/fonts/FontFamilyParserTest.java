@@ -15,22 +15,21 @@
  */
 package com.android.tools.fonts;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.fonts.QueryParser;
+import com.android.tools.fonts.FontFamilyParser;
+import com.google.common.base.Charsets;
 import com.google.common.collect.Multimap;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.*;
+import java.util.Iterator;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class FontFamilyParserTest {
   @Rule
@@ -173,7 +172,7 @@ public class FontFamilyParserTest {
     folder.mkdirs();
     File file = new File(folder, "example.xml");
     try (OutputStream outputStream = new FileOutputStream(file)) {
-      outputStream.write(content.getBytes(StandardCharsets.UTF_8));
+      outputStream.write(content.getBytes(Charsets.UTF_8));
     }
     return file;
   }

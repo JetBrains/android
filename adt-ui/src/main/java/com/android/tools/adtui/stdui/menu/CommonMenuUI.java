@@ -17,7 +17,7 @@ package com.android.tools.adtui.stdui.menu;
 
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.adtui.stdui.StandardDimensions;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -49,7 +49,7 @@ public class CommonMenuUI extends BasicMenuUI {
 
   @NotNull
   private static final IconUIResource ARROW_ICON =
-    new IconUIResource(new ImageIcon(new BufferedImage(JBUIScale.scale(16), JBUIScale.scale(16), BufferedImage.TYPE_INT_ARGB)));
+    new IconUIResource(new ImageIcon(new BufferedImage(JBUI.scale(16), JBUI.scale(16), BufferedImage.TYPE_INT_ARGB)));
 
   @Override
   public void installUI(@NotNull JComponent component) {

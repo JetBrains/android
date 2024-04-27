@@ -18,12 +18,13 @@ package com.android.tools.idea.compose.preview.animation
 import com.android.tools.adtui.TabularLayout
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.JBColor
-import com.intellij.ui.JBSplitter
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
@@ -32,7 +33,7 @@ import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.border.MatteBorder
 
 /** Component and its layout for `All animations` tab. */
-class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
+class AllTabPanel : JPanel(TabularLayout("6px,*", "32px,*")) {
 
   //   ________________________________________________
   //   | [Playback control]                            |
@@ -48,13 +49,13 @@ class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
   //   |______________|________________________________|
 
   private val splitter =
-    JBSplitter(false, .4f, .1f, .9f).apply {
+    OnePixelSplitter(false, .4f, .1f, .9f).apply {
       // Cards
       firstComponent = JPanel(TabularLayout("*")).apply { this.border = getCardsBorder() }
       // Timeline
       secondComponent =
         JPanel(BorderLayout()).apply { this.border = MatteBorder(0, 1, 0, 0, JBColor.border()) }
-      dividerWidth = 3
+      this.setBlindZone { Insets(0, 1, 0, 1) }
     }
 
   private fun updateDimension() {

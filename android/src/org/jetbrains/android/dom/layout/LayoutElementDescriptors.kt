@@ -34,23 +34,26 @@ import com.intellij.xml.XmlElementDescriptor
 import com.intellij.xml.impl.dom.AbstractDomChildrenDescriptor
 import com.intellij.xml.impl.dom.DomElementXmlDescriptor
 import com.intellij.xml.impl.schema.XmlNSDescriptorImpl
+import javax.swing.Icon
 import org.jetbrains.android.dom.AndroidAnyAttributeDescriptor
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider.getIconForViewTag
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.TagFromClassDescriptor
 import org.jetbrains.annotations.NonNls
-import javax.swing.Icon
 
 /**
- * XmlElementDescriptor for all View tags (tags that are inheritors of [SdkConstants.CLASS_VIEW]) and <view></view> tag.
+ * XmlElementDescriptor for all View tags (tags that are inheritors of [SdkConstants.CLASS_VIEW])
+ * and <view></view> tag.
  *
  * [LayoutViewElementDescriptor] is returned by [AndroidDomElementDescriptorProvider].
  */
 class LayoutViewElementDescriptor(override val clazz: PsiClass?, delegate: XmlElementDescriptor) :
-  TagFromClassDescriptor,
-  LayoutElementDescriptor(delegate) {
+  TagFromClassDescriptor, LayoutElementDescriptor(delegate) {
 
-  constructor(viewClass: PsiClass?, element: LayoutViewElement) : this(viewClass, DomElementXmlDescriptor(element))
+  constructor(
+    viewClass: PsiClass?,
+    element: LayoutViewElement
+  ) : this(viewClass, DomElementXmlDescriptor(element))
 
   override fun getIcon(): Icon? {
     if (clazz?.name == defaultName) {
@@ -61,19 +64,18 @@ class LayoutViewElementDescriptor(override val clazz: PsiClass?, delegate: XmlEl
 
   override fun getDeclaration() = clazz
 
-  override val isContainer by lazy { InheritanceUtil.isInheritor(clazz, SdkConstants.CLASS_VIEWGROUP) }
+  override val isContainer by lazy {
+    InheritanceUtil.isInheritor(clazz, SdkConstants.CLASS_VIEWGROUP)
+  }
 }
-
 
 /**
  * Base descriptor for all inheritors of [LayoutElement].
  *
  * [LayoutElementDescriptor] is returned by [AndroidDomElementDescriptorProvider].
  */
-open class LayoutElementDescriptor(
-  private val delegate: XmlElementDescriptor
-) : PsiPresentableMetaData,
-    XmlElementDescriptor by delegate {
+open class LayoutElementDescriptor(private val delegate: XmlElementDescriptor) :
+  PsiPresentableMetaData, XmlElementDescriptor by delegate {
 
   protected open val isContainer: Boolean = true
 
@@ -81,7 +83,10 @@ open class LayoutElementDescriptor(
 
   override fun getElementsDescriptors(context: XmlTag?): Array<LayoutElementDescriptor> {
     if (context == null) return emptyArray()
-    return delegate.getElementsDescriptors(context).map { LayoutElementDescriptor(it) }.toTypedArray()
+    return delegate
+      .getElementsDescriptors(context)
+      .map { LayoutElementDescriptor(it) }
+      .toTypedArray()
   }
 
   override fun getElementDescriptor(childTag: XmlTag?, contextTag: XmlTag?): XmlElementDescriptor? {
@@ -96,15 +101,15 @@ open class LayoutElementDescriptor(
     // layout_height descriptor. Order of these is significant for automatic attribute insertion on
     // tag autocompletion (commenting out ArrayUtil.swap below breaks a bunch of unit tests).
 
-    // Discussion of that on JetBrains issue tracker: https://youtrack.jetbrains.com/issue/IDEA-89857
+    // Discussion of that on JetBrains issue tracker:
+    // https://youtrack.jetbrains.com/issue/IDEA-89857
     var layoutWidthIndex = -1
     var layoutHeightIndex = -1
     for (i in descriptors.indices) {
       val name = descriptors[i].name
       if (ATTR_LAYOUT_WIDTH == name) {
         layoutWidthIndex = i
-      }
-      else if (ATTR_LAYOUT_HEIGHT == name) {
+      } else if (ATTR_LAYOUT_HEIGHT == name) {
         layoutHeightIndex = i
       }
     }
@@ -116,12 +121,17 @@ open class LayoutElementDescriptor(
     return descriptors
   }
 
-  override fun getAttributeDescriptor(@NonNls attributeName: String?, context: XmlTag?): XmlAttributeDescriptor? {
-    return delegate.getAttributeDescriptor(attributeName, context) ?: AndroidAnyAttributeDescriptor(attributeName!!)
+  override fun getAttributeDescriptor(
+    @NonNls attributeName: String?,
+    context: XmlTag?
+  ): XmlAttributeDescriptor? {
+    return delegate.getAttributeDescriptor(attributeName, context)
+      ?: AndroidAnyAttributeDescriptor(attributeName!!)
   }
 
   override fun getAttributeDescriptor(attribute: XmlAttribute): XmlAttributeDescriptor? {
-    return delegate.getAttributeDescriptor(attribute) ?: AndroidAnyAttributeDescriptor(attribute.name)
+    return delegate.getAttributeDescriptor(attribute)
+      ?: AndroidAnyAttributeDescriptor(attribute.name)
   }
 
   override fun getIcon() = getIconForViewTag(name)
@@ -130,12 +140,13 @@ open class LayoutElementDescriptor(
 }
 
 object AndroidLayoutNSDescriptor : XmlNSDescriptorImpl() {
-  private val staticLayoutFileRootDescriptors = arrayOf(
-    ViewTagDomFileDescription(),
-    FragmentLayoutDomFileDescription(),
-    MergeDomFileDescription(),
-    DataBindingDomFileDescription()
-  )
+  private val staticLayoutFileRootDescriptors =
+    arrayOf(
+      ViewTagDomFileDescription(),
+      FragmentLayoutDomFileDescription(),
+      MergeDomFileDescription(),
+      DataBindingDomFileDescription()
+    )
 
   override fun getRootElementsDescriptors(doc: XmlDocument?): Array<LayoutElementDescriptor> {
     if (doc == null) return emptyArray()
@@ -143,14 +154,22 @@ object AndroidLayoutNSDescriptor : XmlNSDescriptorImpl() {
     val manager = DomManager.getDomManager(doc.project)
 
     return CachedValuesManager.getManager(doc.project).getCachedValue(facet) {
-      val static = staticLayoutFileRootDescriptors.map {
-        val delegate = object : AbstractDomChildrenDescriptor(manager) {
-          override fun getDefaultName() = it.rootTagName
-          override fun getDeclaration() = null
-        }
-        LayoutElementDescriptor(delegate)
-      }.toTypedArray()
-      CachedValueProvider.Result.create(static, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project))
+      val static =
+        staticLayoutFileRootDescriptors
+          .map {
+            val delegate =
+              object : AbstractDomChildrenDescriptor(manager) {
+                override fun getDefaultName() = it.rootTagName
+
+                override fun getDeclaration() = null
+              }
+            LayoutElementDescriptor(delegate)
+          }
+          .toTypedArray()
+      CachedValueProvider.Result.create(
+        static,
+        AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project)
+      )
     }
   }
 }

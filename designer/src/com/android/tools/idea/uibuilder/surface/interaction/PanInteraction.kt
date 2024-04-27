@@ -21,6 +21,7 @@ import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionEvent
 import com.android.tools.idea.common.surface.InteractionInputEvent
+import com.android.tools.idea.common.surface.InteractionNonInputEvent
 import com.android.tools.idea.common.surface.MouseDraggedEvent
 import com.android.tools.idea.common.surface.MouseMovedEvent
 import com.android.tools.idea.common.surface.MousePressedEvent
@@ -69,7 +70,8 @@ class PanInteraction(private val pannable: Pannable) : Interaction() {
       is MouseMovedEvent -> updateMouseScrollEvent(event)
       is MouseDraggedEvent -> updateMouseScrollEvent(event)
       is MouseReleasedEvent -> updateMouseScrollEvent(event)
-      else -> { }
+      is InteractionInputEvent<*>,
+      is InteractionNonInputEvent -> {}
     }
   }
 
@@ -92,13 +94,9 @@ class PanInteraction(private val pannable: Pannable) : Interaction() {
     }
   }
 
-  override fun commit(event: InteractionEvent) {
-    end(event.info.x, event.info.y, event.info.modifiersEx)
-  }
+  override fun commit(event: InteractionEvent) {}
 
-  override fun cancel(event: InteractionEvent) {
-    cancel(event.info.x, event.info.y, event.info.modifiersEx)
-  }
+  override fun cancel(event: InteractionEvent) {}
 
   override fun getCursor(): Cursor? =
     AdtUiCursorsProvider.getInstance()

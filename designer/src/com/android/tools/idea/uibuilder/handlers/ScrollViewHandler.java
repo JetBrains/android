@@ -15,43 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_CLIP_TO_PADDING;
-import static com.android.SdkConstants.ATTR_FILL_VIEWPORT;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_ORIENTATION;
-import static com.android.SdkConstants.ATTR_SCROLLBAR_STYLE;
-import static com.android.SdkConstants.ATTR_STYLE;
-import static com.android.SdkConstants.FQCN_LINEAR_LAYOUT;
-import static com.android.SdkConstants.VALUE_MATCH_PARENT;
-import static com.android.SdkConstants.VALUE_VERTICAL;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-
 import android.view.View;
 import android.view.ViewGroup;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.ScrollHandler;
-import com.android.tools.idea.uibuilder.api.ScrollViewScrollHandler;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
-import com.android.tools.idea.uibuilder.handlers.frame.FrameDragHandler;
+import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
 import icons.StudioIcons;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <ScrollView>} widget
@@ -100,7 +85,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
                                        @NotNull SceneComponent layout,
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
-    return new FrameDragHandler(editor, this, layout, components, type);
+    return new CommonDragHandler(editor, this, layout, components, type);
   }
 
   @Nullable

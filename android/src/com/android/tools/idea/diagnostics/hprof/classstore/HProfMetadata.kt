@@ -17,29 +17,29 @@ package com.android.tools.idea.diagnostics.hprof.classstore
 
 import com.android.tools.idea.diagnostics.hprof.navigator.RootReason
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
+import com.android.tools.idea.diagnostics.hprof.util.IDMapper
 import com.android.tools.idea.diagnostics.hprof.visitors.CollectRootReasonsVisitor
 import com.android.tools.idea.diagnostics.hprof.visitors.CollectStringValuesVisitor
 import com.android.tools.idea.diagnostics.hprof.visitors.CollectThreadInfoVisitor
 import com.android.tools.idea.diagnostics.hprof.visitors.CompositeVisitor
 import com.android.tools.idea.diagnostics.hprof.visitors.CreateClassStoreVisitor
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
-import java.util.function.LongUnaryOperator
 
 class HProfMetadata(var classStore: ClassStore, // TODO: private-set, public-get
                     val threads: Long2ObjectOpenHashMap<ThreadInfo>,
                     var roots: Long2ObjectOpenHashMap<RootReason>) {
 
-  class RemapException : Exception()
+  class RemapException : Exception();
 
-  fun remapIds(remappingFunction: LongUnaryOperator) {
+  fun remapIds(idMapper: IDMapper) {
     // Remap ids in class store
-    classStore = classStore.createStoreWithRemappedIDs(remappingFunction)
+    classStore = classStore.createStoreWithRemappedIDs(idMapper)
 
     // Remap root objects' ids
     val newRoots = Long2ObjectOpenHashMap<RootReason>()
     roots.forEach { key, value ->
       try {
-        val newKey = remappingFunction.applyAsLong(key)
+        val newKey = idMapper.getID(key)
         assert(!newRoots.containsKey(newKey))
         newRoots.put(newKey, value)
       } catch (e: RemapException) {

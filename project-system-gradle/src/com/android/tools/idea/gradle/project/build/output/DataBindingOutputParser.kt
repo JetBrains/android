@@ -95,7 +95,7 @@ class DataBindingOutputParser : BuildOutputParser {
 
     private fun parseErrorIn(output: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in MessageEvent>): Boolean {
       try {
-        val msg = gson.fromJson(output, EncodedMessage::class.java)
+        val msg = gson.fromJson<EncodedMessage>(output, EncodedMessage::class.java)
         val summary = msg.message.substringBefore('\n')
         if (msg.locations.isEmpty()) {
           messageConsumer.accept(MessageEventImpl(reader.parentEventId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, summary, msg.message))

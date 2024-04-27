@@ -17,6 +17,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.resources.ResourcesUtil;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -95,7 +96,7 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
     if (resourceUrl == null) {
       if (value.startsWith("#")) {
         // Is an inline color
-        Color color = IdeResourcesUtil.parseColor(value);
+        Color color = ResourcesUtil.parseColor(value);
         if (color == null) {
           return null;
         }

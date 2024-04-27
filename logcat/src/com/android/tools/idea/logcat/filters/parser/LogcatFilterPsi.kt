@@ -31,13 +31,12 @@ import com.intellij.psi.tree.TokenSet
 import icons.StudioIcons
 import javax.swing.Icon
 
-/**
- * PSI Definitions for the Logcat Filter language.
- */
-
+/** PSI Definitions for the Logcat Filter language. */
 internal object LogcatFilterLanguage : Language("LogcatFilter") {
-  // This is required for tests. In prod, the language is registered with FileTypeManager but in tests, it's not. It's much easier to
-  // hardcode this here than to mock the FileTypeManager in tests, and it has no adverse effects in production code.
+  // This is required for tests. In prod, the language is registered with FileTypeManager but in
+  // tests, it's not. It's much easier to
+  // hardcode this here than to mock the FileTypeManager in tests, and it has no adverse effects in
+  // production code.
   override fun getAssociatedFileType(): LanguageFileType = LogcatFilterFileType
 }
 
@@ -51,15 +50,18 @@ internal object LogcatFilterFileType : LanguageFileType(LogcatFilterLanguage) {
   override fun getIcon(): Icon = StudioIcons.Shell.ToolWindows.LOGCAT
 }
 
-internal class LogcatFilterTokenType(debugName: String) : IElementType(debugName, LogcatFilterLanguage) {
+internal class LogcatFilterTokenType(debugName: String) :
+  IElementType(debugName, LogcatFilterLanguage) {
   override fun toString(): String = "LogcatFilterTokenType." + super.toString()
 }
 
-internal class LogcatFilterElementType(debugName: String) : IElementType(debugName, LogcatFilterLanguage)
+internal class LogcatFilterElementType(debugName: String) :
+  IElementType(debugName, LogcatFilterLanguage)
 
 internal class LogcatFilterLexerAdapter : FlexAdapter(LogcatFilterLexer(null))
 
-internal class LogcatFilterFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, LogcatFilterLanguage) {
+internal class LogcatFilterFile(viewProvider: FileViewProvider) :
+  PsiFileBase(viewProvider, LogcatFilterLanguage) {
   override fun getFileType() = LogcatFilterFileType
 
   override fun toString() = "Logcat Filter File"
@@ -78,11 +80,13 @@ internal class LogcatFilterParserDefinition : ParserDefinition {
 
   override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
 
-  override fun createElement(node: ASTNode?): PsiElement = LogcatFilterTypes.Factory.createElement(node)
+  override fun createElement(node: ASTNode?): PsiElement =
+    LogcatFilterTypes.Factory.createElement(node)
 
   override fun createFile(viewProvider: FileViewProvider) = LogcatFilterFile(viewProvider)
 
-  override fun spaceExistenceTypeBetweenTokens(left: ASTNode?, right: ASTNode?) = ParserDefinition.SpaceRequirements.MAY
+  override fun spaceExistenceTypeBetweenTokens(left: ASTNode?, right: ASTNode?) =
+    ParserDefinition.SpaceRequirements.MAY
 
   companion object {
     val FILE = IFileElementType(LogcatFilterLanguage)

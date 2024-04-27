@@ -251,7 +251,7 @@ class JetifierUsageAnalyzerUnitTest {
     )
     val analysisResult = Mockito.mock(BuildEventsAnalyzersProxy::class.java)
 
-    val analyzer = JetifierUsageAnalyzer()
+    val analyzer = JetifierUsageAnalyzer(null)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
 
     Truth.assertThat(analyzer.result).isEqualTo(JetifierUsageAnalyzerResult(AnalyzerNotRun))
@@ -272,7 +272,7 @@ class JetifierUsageAnalyzerUnitTest {
     )
     val analysisResult = Mockito.mock(BuildEventsAnalyzersProxy::class.java)
 
-    val analyzer = JetifierUsageAnalyzer()
+    val analyzer = JetifierUsageAnalyzer(null)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
 
     Truth.assertThat(analyzer.result).isEqualTo(JetifierUsageAnalyzerResult(JetifierUsedCheckRequired))

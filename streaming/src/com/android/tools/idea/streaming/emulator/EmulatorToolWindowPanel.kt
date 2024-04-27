@@ -24,10 +24,17 @@ import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.DisplayDescriptor
+import com.android.tools.idea.streaming.core.LayoutNode
+import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.NUMBER_OF_DISPLAYS_KEY
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
-import com.android.tools.idea.streaming.core.RunningDevicePanel
+import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
+import com.android.tools.idea.streaming.core.SplitNode
+import com.android.tools.idea.streaming.core.SplitPanel
+import com.android.tools.idea.streaming.core.StreamingDevicePanel
+import com.android.tools.idea.streaming.core.computeBestLayout
 import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.icon
 import com.android.tools.idea.streaming.core.installFileDropHandler
@@ -40,8 +47,6 @@ import com.android.tools.idea.streaming.emulator.actions.showExtendedControls
 import com.android.tools.idea.streaming.emulator.actions.showManageSnapshotsDialog
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.utils.HashCodes
-import com.google.wireless.android.sdk.stats.DeviceInfo
-import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.PersistentStateComponent
@@ -49,6 +54,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
@@ -58,7 +64,6 @@ import com.intellij.util.xmlb.annotations.Property
 import icons.StudioIcons
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
 import org.jetbrains.annotations.TestOnly
-import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.KeyboardFocusManager
 import java.beans.PropertyChangeListener
@@ -74,9 +79,10 @@ private val LOG get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)
  * Provides view of one AVD in the Running Devices tool window.
  */
 internal class EmulatorToolWindowPanel(
+  disposableParent: Disposable,
   private val project: Project,
   val emulator: EmulatorController
-) : RunningDevicePanel(DeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID),
+) : StreamingDevicePanel(DeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID),
     ConnectionStateListener {
 
   private val displayPanels = Int2ObjectRBTreeMap<EmulatorDisplayPanel>()
@@ -143,12 +149,13 @@ internal class EmulatorToolWindowPanel(
   @get:TestOnly
   var lastUiState: EmulatorUiState? = null
 
+  init {
+    Disposer.register(disposableParent, this)
+  }
+
   override fun setDeviceFrameVisible(visible: Boolean) {
     primaryDisplayView?.deviceFrameVisible = visible
   }
-
-  override fun getDeviceInfo(): DeviceInfo =
-    DeviceInfo.newBuilder().setDeviceType(DeviceInfo.DeviceType.LOCAL_EMULATOR).build()
 
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
@@ -165,10 +172,14 @@ internal class EmulatorToolWindowPanel(
    * Populates the emulator panel with content.
    */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
-    mirroringStarted()
+    if (contentDisposable != null) {
+      thisLogger().error(IllegalStateException("${title}: content already exists"))
+      return
+    }
 
     lastUiState = null
     val disposable = Disposer.newDisposable()
+    Disposer.register(this, disposable)
     contentDisposable = disposable
 
     clipboardSynchronizer = EmulatorClipboardSynchronizer(emulator, disposable)
@@ -229,21 +240,16 @@ internal class EmulatorToolWindowPanel(
         showExtendedControls(emulator, project)
       }
     }
-
-    restoreActiveNotifications(uiState)
   }
 
   /**
    * Destroys content of the emulator panel and returns its state for later recreation.
    */
   override fun destroyContent(): EmulatorUiState {
-    mirroringEnded(DeviceMirroringSession.DeviceKind.VIRTUAL)
-
     multiDisplayStateUpdater.run()
     multiDisplayStateStorage.removeUpdater(multiDisplayStateUpdater)
 
     val uiState = EmulatorUiState()
-    saveActiveNotifications(uiState)
 
     for (panel in displayPanels.values) {
       uiState.zoomScrollState[panel.displayId] = panel.zoomScrollState
@@ -349,7 +355,7 @@ internal class EmulatorToolWindowPanel(
 
     fun buildLayout(multiDisplayState: MultiDisplayState) {
       val newDisplays = multiDisplayState.displayDescriptors
-      val rootPanel = buildLayout(multiDisplayState.emulatorPanelState, newDisplays)
+      val rootPanel = buildLayout(multiDisplayState.panelState, newDisplays)
       displayDescriptors = newDisplays
       setRootPanel(rootPanel)
     }
@@ -365,7 +371,7 @@ internal class EmulatorToolWindowPanel(
           })
         }
         is SplitNode -> {
-          EmulatorSplitPanel(layoutNode).apply {
+          SplitPanel(layoutNode).apply {
             firstComponent = buildLayout(layoutNode.firstChild, displayDescriptors)
             secondComponent = buildLayout(layoutNode.secondChild, displayDescriptors)
           }
@@ -373,10 +379,10 @@ internal class EmulatorToolWindowPanel(
       }
     }
 
-    private fun buildLayout(state: EmulatorPanelState, displayDescriptors: List<DisplayDescriptor>): JPanel {
+    private fun buildLayout(state: PanelState, displayDescriptors: List<DisplayDescriptor>): JPanel {
       val splitPanelState = state.splitPanel
       return if (splitPanelState != null) {
-        EmulatorSplitPanel(splitPanelState.splitType, splitPanelState.proportion).apply {
+        SplitPanel(splitPanelState.splitType, splitPanelState.proportion).apply {
           firstComponent = buildLayout(splitPanelState.firstComponent, displayDescriptors)
           secondComponent = buildLayout(splitPanelState.secondComponent, displayDescriptors)
         }
@@ -406,7 +412,7 @@ internal class EmulatorToolWindowPanel(
             DisplayDescriptor(PRIMARY_DISPLAY_ID, emulatorView.displaySizeWithFrame)
           }
           else {
-            DisplayDescriptor(it)
+            it.toDisplayDescriptor()
           }
         }
         .sorted()
@@ -415,7 +421,7 @@ internal class EmulatorToolWindowPanel(
     fun getMultiDisplayState(): MultiDisplayState? {
       if (centerPanel.componentCount > 0) {
         val panel = centerPanel.getComponent(0)
-        if (panel is EmulatorSplitPanel) {
+        if (panel is SplitPanel) {
           return MultiDisplayState(displayDescriptors.toMutableList(), panel.getState())
         }
       }
@@ -423,27 +429,9 @@ internal class EmulatorToolWindowPanel(
     }
   }
 
-  data class DisplayDescriptor(var displayId: Int, var width: Int, var height: Int) : Comparable<DisplayDescriptor> {
-
-    constructor(displayConfig: DisplayConfiguration) : this(displayConfig.display, displayConfig.width, displayConfig.height)
-
-    constructor(displayId: Int, size: Dimension) : this(displayId, size.width, size.height)
-
-    @Suppress("unused") // Used by XML deserializer.
-    constructor() : this(0, 0, 0)
-
-    val size
-      get() = Dimension(width, height)
-
-    override fun compareTo(other: DisplayDescriptor): Int {
-      return displayId - other.displayId
-    }
-  }
-
-  class EmulatorUiState : UiState() {
+  class EmulatorUiState : UiState {
     var manageSnapshotsDialogShown = false
     var extendedControlsShown = false
-    var multiDisplayState: MultiDisplayState? = null
     val zoomScrollState = Int2ObjectRBTreeMap<AbstractDisplayPanel.ZoomScrollState>()
   }
 
@@ -453,24 +441,24 @@ internal class EmulatorToolWindowPanel(
    */
   class MultiDisplayState() {
 
-    constructor(displayDescriptors: MutableList<DisplayDescriptor>, emulatorPanelState: EmulatorPanelState) : this() {
+    constructor(displayDescriptors: MutableList<DisplayDescriptor>, panelState: PanelState) : this() {
       this.displayDescriptors = displayDescriptors
-      this.emulatorPanelState = emulatorPanelState
+      this.panelState = panelState
     }
 
     lateinit var displayDescriptors: MutableList<DisplayDescriptor>
-    lateinit var emulatorPanelState: EmulatorPanelState
+    lateinit var panelState: PanelState
 
     override fun equals(other: Any?): Boolean {
       if (this === other) return true
       if (javaClass != other?.javaClass) return false
 
       other as MultiDisplayState
-      return displayDescriptors == other.displayDescriptors && emulatorPanelState == other.emulatorPanelState
+      return displayDescriptors == other.displayDescriptors && panelState == other.panelState
     }
 
     override fun hashCode(): Int {
-      return HashCodes.mix(displayDescriptors.hashCode(), emulatorPanelState.hashCode())
+      return HashCodes.mix(displayDescriptors.hashCode(), panelState.hashCode())
     }
   }
 
@@ -521,3 +509,6 @@ internal class EmulatorToolWindowPanel(
     }
   }
 }
+
+private fun DisplayConfiguration.toDisplayDescriptor(): DisplayDescriptor =
+    DisplayDescriptor(display, width, height)

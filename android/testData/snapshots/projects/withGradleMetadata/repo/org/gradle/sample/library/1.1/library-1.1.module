@@ -1,0 +1,58 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.gradle.sample",
+    "module": "library",
+    "version": "1.1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "releaseApiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "files": [
+        {
+          "name": "library-1.1.jar",
+          "url": "library-1.1.jar",
+          "size": 160,
+          "sha512": "0c102243bf76126ef5c9b934b2fc8cc9148a79a7f22bb5b755ea28f9f501cc4c2896f03627ee910775fe900fb636cc5de677322958faf48cabc4372e4ee3125c",
+          "sha256": "756a9151a93f55d19a615b96e160694c246302e5999c831d611e728a9171f123",
+          "sha1": "ce0ab5e4a7df3e8e65b3c6ec8db57a3b51bc6337",
+          "md5": "1ac930799685951dcf0b9f1a8df4f75a"
+        }
+      ]
+    },
+    {
+      "name": "releaseSourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.docstype": "fake-sources",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "files": [
+        {
+          "name": "library-1.1-sources.jar",
+          "url": "library-1.1-sources.jar",
+          "size": 160,
+          "sha512": "0c102243bf76126ef5c9b934b2fc8cc9148a79a7f22bb5b755ea28f9f501cc4c2896f03627ee910775fe900fb636cc5de677322958faf48cabc4372e4ee3125c",
+          "sha256": "756a9151a93f55d19a615b96e160694c246302e5999c831d611e728a9171f123",
+          "sha1": "ce0ab5e4a7df3e8e65b3c6ec8db57a3b51bc6337",
+          "md5": "1ac930799685951dcf0b9f1a8df4f75a"
+        }
+      ]
+    }
+  ]
+}

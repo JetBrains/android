@@ -25,7 +25,6 @@ import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -53,11 +52,11 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
     state.launch(device, app, TestApksProvider(apk, "com.example.myapplication"), false, "", EmptyTestConsoleView(), stats)
 
     Mockito.verify(device).executeShellCommand(
-      ArgumentMatchers.eq(
+      Mockito.eq(
         "am start -n com.example.myapplication/com.example.myapplication.MainActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
-      ArgumentMatchers.any(IShellOutputReceiver::class.java),
-      ArgumentMatchers.eq(15L),
-      ArgumentMatchers.eq(TimeUnit.SECONDS))
+      Mockito.any(IShellOutputReceiver::class.java),
+      Mockito.eq(15L),
+      Mockito.eq(TimeUnit.SECONDS))
   }
 
   fun testLaunchWithMultipleApks() {
@@ -69,11 +68,11 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
     state.launch(device, app, multiApkProvider, false, "", EmptyTestConsoleView(), stats)
 
     Mockito.verify(device).executeShellCommand(
-      ArgumentMatchers.eq(
+      Mockito.eq(
         "am start -n com.example.myapplication/com.example.myapplication.MainActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
-      ArgumentMatchers.any(IShellOutputReceiver::class.java),
-      ArgumentMatchers.eq(15L),
-      ArgumentMatchers.eq(TimeUnit.SECONDS))
+      Mockito.any(IShellOutputReceiver::class.java),
+      Mockito.eq(15L),
+      Mockito.eq(TimeUnit.SECONDS))
   }
 
   fun testLaunchWithNoMatchingApks() {

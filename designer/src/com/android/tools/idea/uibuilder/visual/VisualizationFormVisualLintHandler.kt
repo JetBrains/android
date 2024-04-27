@@ -17,13 +17,11 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.surface.getDesignSurface
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.lint.CommonLintUserDataHandler
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -38,7 +36,7 @@ class VisualizationFormVisualLintHandler(
 ) {
 
   private val myBaseConfigIssues = VisualLintBaseConfigIssues()
-  val lintIssueProvider = VisualLintIssueProvider(parentDisposable)
+  val lintIssueProvider = ViewVisualLintIssueProvider(parentDisposable)
 
   init {
     issueModel.addIssueProvider(lintIssueProvider)
@@ -66,10 +64,6 @@ class VisualizationFormVisualLintHandler(
             ApplicationManager.getApplication().executeOnPooledThread {
               VisualLintService.getInstance(project)
                 .analyzeAfterModelUpdate(lintIssueProvider, result, model, myBaseConfigIssues)
-              if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
-                CommonLintUserDataHandler.updateVisualLintIssues(model.file, lintIssueProvider)
-                issueModel.updateErrorsList()
-              }
             }
           }
 

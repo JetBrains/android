@@ -27,9 +27,10 @@ import java.nio.file.Paths
  *
  * For context and instructions on running and generating golden files, see go/template-diff-tests
  */
-class BaselineGenerator(template: Template, goldenDirName: String) : ProjectRenderer(template, goldenDirName) {
+class BaselineGenerator(template: Template, goldenDirName: String) :
+  ProjectRenderer(template, goldenDirName) {
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
-    val outputDir = getOutputDir(moduleName, goldenDir)
+    val outputDir = getOutputDir(moduleName)
 
     FileUtils.deleteRecursivelyIfExists(outputDir.toFile())
     FileUtils.copyDirectory(projectDir.toFile(), outputDir.toFile())
@@ -41,33 +42,29 @@ class BaselineGenerator(template: Template, goldenDirName: String) : ProjectRend
   }
 
   /**
-   * Gets the output directory where we should put the generated golden files. If this is run from
-   * Bazel, TEST_UNDECLARED_OUTPUTS_DIR will be defined, and we can put the files there. Otherwise,
-   * it's run from IDEA, where we can replace the golden files in the source tree.
+   * Gets the output directory where we should put the generated golden files. Bazel places files in
+   * TEST_UNDECLARED_OUTPUTS_DIR which produces outputs.zip as a test artifact, so we can put the
+   * files there.
    */
-  private fun getOutputDir(moduleName: String, goldenDir: Path): Path {
-    val outputDir: Path
+  private fun getOutputDir(moduleName: String): Path {
     val undeclaredOutputs = System.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
+    checkNotNull(undeclaredOutputs) {
+      "The 'TEST_UNDECLARED_OUTPUTS_DIR' env. variable should already be set, because TemplateDiffTest#setUp checks for it"
+    }
+
+    val outputDir = Paths.get(undeclaredOutputs).resolve("golden").resolve(moduleName)
 
     println("\n----------------------------------------")
-    if (undeclaredOutputs == null) {
-      outputDir = goldenDir
-      println("Updating generated golden files in place at $goldenDir")
-    } else {
-      outputDir = Paths.get(undeclaredOutputs).resolve(moduleName)
-      println(
-        "Outputting generated golden files to $outputDir\n\n" +
-          "To update these files, unzip outputs.zip to the android-templates/testData/golden directory and remove idea.log.\n" +
-          "For a remote invocation, download and unzip outputs.zip:\n" +
-          "    unzip -d $(bazel info workspace)/tools/adt/idea/android-templates/testData/golden -o outputs.zip\n" +
-          "    rm $(bazel info workspace)/tools/adt/idea/android-templates/testData/golden/idea.log\n" +
-          "\n" +
-          "For a local invocation, outputs.zip will be in bazel-testlogs:\n" +
-          "    unzip -d $(bazel info workspace)/tools/adt/idea/android-templates/testData/golden -o \\\n" +
-          "    $(bazel info bazel-testlogs)/tools/adt/idea/android-templates/intellij.android.templates.tests_tests__TemplateDiffTest/test.outputs/outputs.zip\n" +
-          "    rm $(bazel info workspace)/tools/adt/idea/android-templates/testData/golden/idea.log"
-      )
-    }
+    println(
+      "Outputting generated golden files to $outputDir\n\n" +
+        "To update these files, unzip golden/ from outputs.zip to the android-templates/testData/golden directory.\n" +
+        "For a remote invocation, download and unzip golden/ from outputs.zip:\n" +
+        "    unzip outputs.zip \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"\n" +
+        "\n" +
+        "For a local invocation, outputs.zip will be in bazel-testlogs:\n" +
+        "    unzip $(bazel info bazel-testlogs)/tools/adt/idea/android-templates/intellij.android.templates.tests_tests__TemplateDiffTest/test.outputs/outputs.zip \\\n" +
+        "    \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\""
+    )
     println("----------------------------------------\n")
     return outputDir
   }

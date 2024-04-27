@@ -17,12 +17,13 @@ package com.android.tools.idea.common.surface;
 
 import static com.android.tools.adtui.PannableKt.PANNABLE_KEY;
 import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
+import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
 import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.UiThread;
-import com.android.tools.adtui.Zoomable;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.configurations.Configuration;
@@ -31,10 +32,8 @@ import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.error.IssueListener;
 import com.android.tools.idea.common.error.IssueModel;
-import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
-import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.ItemTransferable;
@@ -78,8 +77,6 @@ import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.Magnificator;
 import com.intellij.ui.components.ZoomableViewport;
-import com.intellij.ui.content.ContentManagerEvent;
-import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AsyncProcessIcon;
@@ -122,7 +119,6 @@ import javax.swing.JViewport;
 import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.event.TreeSelectionListener;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -133,7 +129,7 @@ import org.jetbrains.annotations.TestOnly;
  * A generic design surface for use in a graphical editor.
  */
 public abstract class DesignSurface<T extends SceneManager> extends EditorDesignSurface
-  implements Disposable, InteractableScenesSurface, Zoomable, ZoomableViewport {
+  implements Disposable, InteractableScenesSurface, ZoomController, ZoomableViewport {
   /**
    * Alignment for the {@link SceneView} when its size is less than the minimum size.
    * If the size of the {@link SceneView} is less than the minimum, this enum describes how to align the content within
@@ -175,6 +171,12 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     HIDDEN,
     /** The zoom controls will only be visible when the mouse is over the surface. */
     AUTO_HIDE
+  }
+
+  @NotNull
+  @Override
+  public ZoomController getZoomable() {
+    return this;
   }
 
   /**
@@ -252,7 +254,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   private final List<CompletableFuture<Void>> myRenderFutures = new ArrayList<>();
 
   protected final IssueModel myIssueModel;
-  private final IssuePanel myIssuePanel;
   private final Object myErrorQueueLock = new Object();
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
@@ -289,18 +290,10 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   private final AWTEventListener myOnHoverListener;
 
   @NotNull
-  private final IssueListener myIssueListener;
+  private final List<IssueListener> myIssueListeners = new ArrayList<>();
 
   @NotNull
-  private final TreeSelectionListener myIssuePanelSelectionListener = e -> repaint();
-
-  @NotNull
-  private final ContentManagerListener myIssuePanelTabListener = new ContentManagerListener() {
-    @Override
-    public void selectionChanged(@NotNull ContentManagerEvent event) {
-      repaint();
-    }
-  };
+  private final IssueListener myIssueListener = issue -> myIssueListeners.forEach(listener -> listener.onIssueSelected(issue));
 
   public DesignSurface(
     @NotNull Project project,
@@ -412,9 +405,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     myLayeredPane.add(myProgressPanel, LAYER_PROGRESS);
     myLayeredPane.add(myMouseClickDisplayPanel, LAYER_MOUSE_CLICK);
 
-    myIssueListener = new DesignSurfaceIssueListenerImpl(this);
-    myIssuePanel = new IssuePanel(myIssueModel, myIssueListener);
-
     add(myLayeredPane);
 
     // TODO: Do this as part of the layout/validate operation instead
@@ -424,14 +414,10 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
         if (componentEvent.getID() == ComponentEvent.COMPONENT_RESIZED) {
           if (!myIsInitialZoomLevelDetermined && isShowing() && getWidth() > 0 && getHeight() > 0) {
             // Set previous scale when DesignSurface becomes visible at first time.
-            NlModel model = Iterables.getFirst(getModels(), null);
-            if (model == null) {
+            boolean hasModelAttached = restoreZoomOrZoomToFit();
+            if (!hasModelAttached) {
               // No model is attached, ignore the setup of initial zoom level.
               return;
-            }
-
-            if (!restorePreviousScale(model)) {
-              zoomToFit();
             }
             // The default size is defined, enable the flag.
             myIsInitialZoomLevelDetermined = true;
@@ -477,6 +463,21 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
     // Sets the maximum zoom level allowed for ZoomType#FIT.
     myMaxFitIntoScale = maxFitIntoZoomLevel / getScreenScalingFactor();
+  }
+
+  /**
+   * Restore the zoom level if it can be loaded from persistent settings, otherwise zoom-to-fit.
+   * @return whether zoom-to-fit or zoom restore has happened, which won't happen if there is no model.
+   */
+  public boolean restoreZoomOrZoomToFit() {
+    NlModel model = Iterables.getFirst(getModels(), null);
+    if (model == null) {
+      return false;
+    }
+    if (!restorePreviousScale(model)) {
+      zoomToFit();
+    }
+    return true;
   }
 
   @NotNull
@@ -540,7 +541,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   /**
    * @return the primary (first) {@link NlModel} if exist. null otherwise.
    * @see #getModels()
-   * @deprecated The surface can contain multiple models. Use {@link #getModels() instead}.
+   * @deprecated The surface can contain multiple models. Use {@link #getModels()} instead.
    */
   @Deprecated
   @Nullable
@@ -779,9 +780,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return requestRender()
       .whenCompleteAsync((result, ex) -> {
         reactivateGuiInputHandler();
-        if (!restorePreviousScale(model)) {
-          zoomToFit();
-        }
+        restoreZoomOrZoomToFit();
         revalidateScrollArea();
 
         // TODO: The listeners have the expectation of the call happening in the EDT. We need
@@ -1025,6 +1024,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   protected abstract Dimension getScrollToVisibleOffset();
 
   @UiThread
+  @Override
   final public boolean zoomToFit() {
     return zoom(ZoomType.FIT, -1, -1);
   }
@@ -1183,17 +1183,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @SwingCoordinate
   public Dimension getViewSize() {
     return getViewport().getViewSize();
-  }
-
-  /**
-   * Set the scale factor used to multiply the content size.
-   *
-   * @param scale The scale factor. Can be any value but it will be capped between -1 and 10
-   *              (value below 0 means zoom to fit)
-   * @return True if the scaling was changed, false if this was a noop.
-   */
-  public boolean setScale(double scale) {
-    return setScale(scale, -1, -1);
   }
 
   @SurfaceScale protected double getBoundedScale(@SurfaceScale double scale) {
@@ -1790,6 +1779,9 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     if (DESIGN_SURFACE.is(dataId) || ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId) || GuiInputHandler.CURSOR_RECEIVER.is(dataId)) {
       return this;
     }
+    if (CONFIGURATIONS.is(dataId)) {
+      return getConfigurations();
+    }
     if (PlatformCoreDataKeys.FILE_EDITOR.is(dataId)) {
       return myFileEditorDelegate.get();
     }
@@ -1814,13 +1806,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
                        Coordinates.getSwingYDip(view, sceneComponent.getCenterY()));
     }
     else if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.is(dataId)) {
-      SceneView view = getFocusedSceneView();
-      if (view == null) return null;
-
-      final SelectionModel selectionModel = view.getSelectionModel();
-      final NlComponent primarySelection = selectionModel.getPrimary();
-      final List<NlComponent> selection = selectionModel.getSelection();
-      return (DataProvider)slowId -> getSlowData(slowId, primarySelection, selection);
+      return (DataProvider)this::getSlowData;
     }
     else {
       NlModel model = getModel();
@@ -1837,16 +1823,28 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    * @see PlatformCoreDataKeys#BGT_DATA_PROVIDER
    */
   @Nullable
-  private static Object getSlowData(@NonNls String slowId, NlComponent primarySelection, List<NlComponent> selection) {
-    if (CommonDataKeys.PSI_ELEMENT.is(slowId)) {
-      return primarySelection != null ? primarySelection.getTagDeprecated() : null;
-    }
-    else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(slowId)) {
-      List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
-      for (NlComponent component : selection) {
-        list.add(component.getTagDeprecated());
+  private Object getSlowData(@NotNull String dataId) {
+    if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
+      SceneView view = getFocusedSceneView();
+      if (view != null) {
+        SelectionModel selectionModel = view.getSelectionModel();
+        NlComponent primary = selectionModel.getPrimary();
+        if (primary != null) {
+          return primary.getTagDeprecated();
+        }
       }
-      return list.toArray(XmlTag.EMPTY);
+    }
+    else if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
+      SceneView view = getFocusedSceneView();
+      if (view != null) {
+        SelectionModel selectionModel = view.getSelectionModel();
+        List<NlComponent> selection = selectionModel.getSelection();
+        List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
+        for (NlComponent component : selection) {
+          list.add(component.getTagDeprecated());
+        }
+        return list.toArray(XmlTag.EMPTY);
+      }
     }
     return null;
   }
@@ -1872,11 +1870,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       myLintIssueProvider = new LintIssueProvider(model);
       getIssueModel().addIssueProvider(myLintIssueProvider);
     }
-  }
-
-  @NotNull
-  public IssuePanel getIssuePanel() {
-    return myIssuePanel;
   }
 
   @NotNull
@@ -1959,18 +1952,16 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     UIUtil.invokeLaterIfNeeded(() -> EditorNotifications.getInstance(myProject).updateNotifications(file));
   }
 
+  public void addIssueListener(@NotNull IssueListener listener) {
+    myIssueListeners.add(listener);
+  }
+
+  public void removeIssueListener(@NotNull IssueListener listener) {
+    myIssueListeners.remove(listener);
+  }
+
   @NotNull
   public IssueListener getIssueListener() {
     return myIssueListener;
-  }
-
-  @NotNull
-  public TreeSelectionListener getIssuePanelSelectionListener() {
-    return myIssuePanelSelectionListener;
-  }
-
-  @NotNull
-  public ContentManagerListener getIssuePanelTabListener() {
-    return myIssuePanelTabListener;
   }
 }

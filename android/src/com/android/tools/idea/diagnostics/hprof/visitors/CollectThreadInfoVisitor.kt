@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics.hprof.visitors
 
 import com.android.tools.idea.diagnostics.hprof.classstore.ThreadInfo
 import com.android.tools.idea.diagnostics.hprof.parser.HProfVisitor
+import com.android.tools.idea.diagnostics.hprof.parser.HeapDumpRecordType
 import com.android.tools.idea.diagnostics.hprof.parser.RecordType
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
@@ -78,8 +79,8 @@ class CollectThreadInfoVisitor(private val threadsMap: Long2ObjectOpenHashMap<Th
 
   override fun visitStackTrace(stackTraceSerialNumber: Long, threadSerialNumber: Long, numberOfFrames: Int, stackFrameIds: LongArray) {
     val frames = ArrayList<String>(stackFrameIds.size)
-    for (id in stackFrameIds) {
-      frames.add(stackFrameIdToStringMap[id])
+    for (i in 0 until stackFrameIds.size) {
+      frames.add(stackFrameIdToStringMap[stackFrameIds[i]])
     }
     threadsMap.put(threadSerialNumber, ThreadInfo(frames))
   }

@@ -22,7 +22,6 @@ import com.android.tools.idea.compose.annotator.check.common.Failure
 import com.android.tools.idea.compose.annotator.check.common.Missing
 import com.android.tools.idea.compose.annotator.check.common.Repeated
 import com.android.tools.idea.compose.annotator.check.common.Unknown
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.moveCaret
@@ -35,7 +34,6 @@ import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Before
@@ -54,11 +52,6 @@ internal class PreviewAnnotationCheckTest {
   fun setup() {
     fixture.stubPreviewAnnotation()
     fixture.stubComposableAnnotation()
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
   @Test
@@ -147,8 +140,6 @@ internal class PreviewAnnotationCheckTest {
 
   @Test
   fun testAnnotationWithDeviceSpecLanguageIssues() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
-
     // Missing height, no common unit defined
     var result: CheckResult =
       addKotlinFileAndCheckPreviewAnnotation(
@@ -258,8 +249,6 @@ internal class PreviewAnnotationCheckTest {
 
   @Test
   fun testDeviceIdFailure() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
-
     val result =
       addKotlinFileAndCheckPreviewAnnotation(
         """
@@ -281,7 +270,6 @@ internal class PreviewAnnotationCheckTest {
 
   @Test
   fun testDeviceIdCheck() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     runWriteActionAndWait { Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module) }
 
     var result =
@@ -319,7 +307,6 @@ internal class PreviewAnnotationCheckTest {
 
   @Test
   fun deprecatedDevicesShouldBeValid() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     runWriteActionAndWait { Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module) }
 
     val result =
@@ -340,7 +327,6 @@ internal class PreviewAnnotationCheckTest {
 
   @Test
   fun testDeviceNameCheck() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     runWriteActionAndWait { Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module) }
 
     var result =
@@ -378,8 +364,6 @@ internal class PreviewAnnotationCheckTest {
 
   @Test
   fun testDeviceNameCheckWithNoDevicesFails() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
-
     val result =
       addKotlinFileAndCheckPreviewAnnotation(
         """
@@ -399,7 +383,6 @@ internal class PreviewAnnotationCheckTest {
 
   @Test
   fun testParentIdCheck() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     runWriteActionAndWait { Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module) }
 
     // Provide an incorrect ID

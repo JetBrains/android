@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.annotations.Nullable;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Library;

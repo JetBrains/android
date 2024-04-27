@@ -23,6 +23,8 @@ import com.intellij.openapi.util.Disposer
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 
+const val PROPERTIES_COMPONENT_NAME = "Properties Component"
+
 class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
   private val componentModel = InspectorPropertiesModel(parentDisposable)
   private val componentView = InspectorPropertiesView(componentModel)
@@ -30,6 +32,7 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
   private val filterKeyListener = createFilterKeyListener()
 
   init {
+    properties.component.name = PROPERTIES_COMPONENT_NAME
     properties.addView(componentView)
     Disposer.register(parentDisposable, this)
   }

@@ -21,6 +21,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroupManager
@@ -37,7 +38,6 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -157,6 +157,7 @@ private class FakeNotificationGroupManager : NotificationGroupManager {
       )
       .thenAnswer { mockNotification }
   }
+
   override fun getNotificationGroup(groupId: String): NotificationGroup {
     return when (groupId) {
       "LAYOUT_INSPECTOR_DISCOVERY" -> mockNotificationGroup
@@ -172,5 +173,6 @@ private class FakeNotificationGroupManager : NotificationGroupManager {
   }
 
   override fun getRegisteredNotificationGroups() = mutableListOf(mockNotificationGroup)
+
   override fun isRegisteredNotificationId(notificationId: String) = false
 }

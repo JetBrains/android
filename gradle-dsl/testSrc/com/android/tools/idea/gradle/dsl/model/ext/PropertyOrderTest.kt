@@ -389,7 +389,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.MOVE_COMMENTS_IN_BLOCK_EXPECTED)
   }
 
-  @Ignore("Comments don't get moved with the line they are on")
+  @Ignore("b/303108941")
   @Test
   fun testMoveBasicWithComments() {
     writeToBuildFile(TestFile.MOVE_BASIC_WITH_COMMENTS)

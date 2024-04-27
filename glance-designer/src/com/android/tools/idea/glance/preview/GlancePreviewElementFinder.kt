@@ -19,18 +19,15 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.annotations.hasAnnotation
 import com.android.tools.idea.preview.FilePreviewElementFinder
-import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.idea.preview.toSmartPsiPointer
+import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
-import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
-import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
 
@@ -41,11 +38,6 @@ private const val GLANCE_PREVIEW_ANNOTATION_FQN =
 private const val SURFACE_PARAM_NAME = "surface"
 private const val APP_WIDGET_SURFACE = "AppWidget"
 private const val TILE_SURFACE = "Tile"
-
-private fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
-  val bodyPsiElement = this?.sourcePsi ?: return null
-  return SmartPointerManager.createPointer(bodyPsiElement)
-}
 
 /**
  * Returns true if the [annotationEntry] annotation has [SURFACE_PARAM_NAME] parameter of

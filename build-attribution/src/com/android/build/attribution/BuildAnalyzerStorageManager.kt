@@ -17,6 +17,7 @@ package com.android.build.attribution
 
 import com.android.annotations.concurrency.Slow
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
+import com.android.build.attribution.analyzers.CheckJetifierResultData
 import com.android.build.attribution.data.BuildRequestHolder
 import com.intellij.openapi.observable.properties.AtomicProperty
 import com.intellij.openapi.project.Project
@@ -32,6 +33,7 @@ interface BuildAnalyzerStorageManager {
    * @exception IllegalStateException
    */
   fun getLatestBuildAnalysisResults(): AbstractBuildAnalysisResult
+  fun getCachedCheckJetifierResultData(): CheckJetifierResultData?
   fun storeNewBuildResults(analyzersProxy: BuildEventsAnalyzersProxy, buildID: String, requestHolder: BuildRequestHolder): Future<BuildAnalysisResults>
   fun recordNewFailure(buildID: String, failureType: FailureResult.Type)
   fun hasData() : Boolean
@@ -42,7 +44,7 @@ interface BuildAnalyzerStorageManager {
    * @return BuildAnalysisResults
    * @exception NoSuchElementException
    */
-  fun getHistoricBuildResultByID(buildID: String): Future<BuildAnalysisResults>
+  fun getHistoricBuildResultByID(buildID: String): Future<HistoricBuildAnalysisResults>
 
   fun getListOfHistoricBuildDescriptors(): Set<BuildDescriptor>
   fun clearBuildResultsStored(): Future<*>

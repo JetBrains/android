@@ -16,11 +16,11 @@
 package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.ide.common.resources.ResourceResolver
+import com.android.ide.common.resources.colorToString
 import com.android.tools.idea.res.resolveMultipleColors
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
 import com.intellij.openapi.project.Project
-import com.intellij.ui.ColorUtil
 
 /**
  * [AssetData] provider for Color resources.
@@ -30,13 +30,13 @@ import com.intellij.ui.ColorUtil
 class ColorAssetDataProvider(
   private val project: Project,
   private val resourceResolver: ResourceResolver
-): DefaultAssetDataProvider() {
+) : DefaultAssetDataProvider() {
 
   override fun getAssetSetData(assetSet: ResourceAssetSet): AssetData {
     val defaultData = super.getAssetSetData(assetSet)
     val asset = assetSet.getHighestDensityAsset()
     val colors = resourceResolver.resolveMultipleColors(resourceResolver.resolveValue(asset), project).toSet()
-    val subtitle = if (colors.size == 1) "#${ColorUtil.toHex(colors.first())}" else "Multiple colors"
+    val subtitle = if (colors.size == 1) colorToString(colors.first()) else "Multiple colors"
     return AssetData(defaultData.title, subtitle, defaultData.metadata)
   }
 }

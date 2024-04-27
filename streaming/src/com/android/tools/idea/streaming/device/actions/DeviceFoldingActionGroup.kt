@@ -55,13 +55,11 @@ internal class DeviceFoldingActionGroup : DefaultActionGroup(), DumbAware {
 
   override fun update(event: AnActionEvent) {
     val controller = getDeviceController(event)
-    val currentFoldingState = controller?.currentFoldingState
     val presentation = event.presentation
-    presentation.isEnabledAndVisible = currentFoldingState != null
-    if (currentFoldingState != null) {
-      presentation.icon = currentFoldingState.icon
-      presentation.text = "${templatePresentation.text} (currently ${currentFoldingState.name})"
-    }
+    presentation.isEnabledAndVisible = controller?.supportedFoldingStates?.isNotEmpty() ?: false
+    val currentFoldingState = controller?.currentFoldingState
+    presentation.text = "${templatePresentation.text} (currently ${currentFoldingState?.name ?: "unknown state"})"
+    currentFoldingState?.icon.let { presentation.icon = it }
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT

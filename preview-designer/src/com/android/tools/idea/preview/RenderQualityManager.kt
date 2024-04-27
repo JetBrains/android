@@ -17,11 +17,16 @@ package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.editor.PanZoomListener
+import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.disposableCallbackFlow
+import com.android.tools.idea.modes.essentials.EssentialsMode
+import com.android.tools.idea.rendering.isCancellationException
+import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.flow.debounce
@@ -41,7 +46,12 @@ import kotlin.math.abs
  */
 interface RenderQualityManager {
   fun getTargetQuality(sceneManager: LayoutlibSceneManager): Float
+
   fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean
+
+  fun pause()
+
+  fun resume()
 }
 
 /**
@@ -57,6 +67,8 @@ interface RenderQualityPolicy {
 
   fun getTargetQuality(scale: Double, isVisible: Boolean): Float
 }
+
+fun getDefaultPreviewQuality() = if (EssentialsMode.isEnabled()) 0.75f else 0.95f
 
 /**
  * Default [RenderQualityManager] implementation, configurable by a [RenderQualityPolicy], that
@@ -75,6 +87,7 @@ class DefaultRenderQualityManager(
   private val onQualityChangeMightBeNeeded: () -> Unit
 ) : RenderQualityManager {
   private val scope = AndroidCoroutineScope(mySurface)
+  private var isPaused = false
 
   private val uiDataLock = ReentrantLock()
   @GuardedBy("uiDataLock") private var sceneViewRectangles: Map<SceneView, Rectangle?> = emptyMap()
@@ -88,17 +101,28 @@ class DefaultRenderQualityManager(
           logger = null,
           parentDisposable = mySurface
         ) {
-          val listener =
+          val panZoomListener =
             object : PanZoomListener {
               override fun zoomChanged(previousScale: Double, newScale: Double) {
                 trySend(Unit)
               }
+
               override fun panningChanged(adjustmentEvent: AdjustmentEvent?) {
                 trySend(Unit)
               }
             }
-          mySurface.addPanZoomListener(listener)
-          Disposer.register(disposable) { mySurface.removePanZoomListener(listener) }
+          val designSurfaceListener =
+            object : DesignSurfaceListener {
+              override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
+                trySend(Unit)
+              }
+            }
+          mySurface.addPanZoomListener(panZoomListener)
+          mySurface.addListener(designSurfaceListener)
+          Disposer.register(disposable) {
+            mySurface.removePanZoomListener(panZoomListener)
+            mySurface.removeListener(designSurfaceListener)
+          }
         }
         .debounce(myPolicy.debounceTimeMillis)
         .collect {
@@ -122,6 +146,7 @@ class DefaultRenderQualityManager(
   }
 
   override fun getTargetQuality(sceneManager: LayoutlibSceneManager): Float {
+    if (isPaused) return getDefaultPreviewQuality()
     uiDataLock.withLock {
       if (!isUiDataUpToDate) {
         sceneViewRectangles = mySurface.findSceneViewRectangles()
@@ -133,10 +158,24 @@ class DefaultRenderQualityManager(
   }
 
   override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean =
-    sceneManager.let {
-      !it.hasRenderErrors() &&
-        abs(it.lastRenderQuality - getTargetQuality(it)) > myPolicy.acceptedErrorMargin
-    }
+    !isPaused &&
+      sceneManager.let {
+        // Refreshes are skipped in any of the following scenarios:
+        // - Last render failed and not due to a cancellation exception
+        // - The current target quality is substantially different to the one used in the last
+        //   successful render or the last render was cancelled.
+        it.renderResult.isCancellationException() ||
+          (!it.renderResult.isErrorResult() &&
+            abs(it.lastRenderQuality - getTargetQuality(it)) > myPolicy.acceptedErrorMargin)
+      }
+
+  override fun pause() {
+    isPaused = true
+  }
+
+  override fun resume() {
+    isPaused = false
+  }
 }
 
 /**
@@ -147,7 +186,12 @@ class SimpleRenderQualityManager(private val qualityProvider: () -> Float) : Ren
   override fun getTargetQuality(sceneManager: LayoutlibSceneManager): Float {
     return qualityProvider()
   }
+
   override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean {
     return false
   }
+
+  override fun pause() = Unit
+
+  override fun resume() = Unit
 }

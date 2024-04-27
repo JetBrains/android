@@ -15,9 +15,10 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import java.awt.Dimension;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
 
 /**
  * Adapater for Android Bitmap and BitmapDrawable objects in access the pixel data underneath.

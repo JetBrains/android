@@ -16,8 +16,8 @@
 package org.jetbrains.android.inspections;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.utils.text.TextUtilsKt;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableCollection;
@@ -151,7 +151,8 @@ public class XmlWrongFileTypeInspection extends LocalInspectionTool {
     }
 
     String folderEnumeration =
-      AndroidTextUtils.generateCommaSeparatedList(Collections2.transform(folderTypes, TYPE_NAME_FUNCTION), "or");
+      TextUtilsKt.toCommaSeparatedList(Collections2.transform(folderTypes, TYPE_NAME_FUNCTION), "or");
+
     if (folderTypes.size() > 1) {
       folderEnumeration = "either " + folderEnumeration;
     }

@@ -17,9 +17,9 @@ package com.android.tools.idea.observable;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +55,7 @@ public final class ListenerManager {
    * When a user adds a receiver, those are wrapped in an invalidation listener, and the
    * relationship is recorded here so we can later remove by receiver as well.
    */
-  private final Map<Receiver<?>, InvalidationListener> myReceiverMapping = new HashMap<>();
+  private final Map<Receiver<?>, InvalidationListener> myReceiverMapping = Maps.newHashMap();
 
   /**
    * List of listeners registered by listenAll.

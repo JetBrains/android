@@ -18,7 +18,7 @@ package org.jetbrains.kotlin.android;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.CharsetToolkit;
-import com.intellij.platform.testFramework.core.FileComparisonFailedError;
+import com.intellij.rt.execution.junit.FileComparisonFailure;
 import com.intellij.testFramework.TestDataFile;
 import java.io.File;
 import java.io.IOException;
@@ -47,8 +47,8 @@ public class KotlinTestUtils {
       String expectedText = StringUtilsKt.trimTrailingWhitespacesAndAddNewlineAtEOF(StringUtil.convertLineSeparators(expected.trim()));
 
       if (!Objects.equals(expectedText, actualText)) {
-        throw new FileComparisonFailedError("Actual data differs from file content: " + expectedFile.getName(),
-                                            expected, actual, expectedFile.getAbsolutePath());
+        throw new FileComparisonFailure("Actual data differs from file content: " + expectedFile.getName(),
+                                        expected, actual, expectedFile.getAbsolutePath());
       }
     }
     catch (IOException e) {

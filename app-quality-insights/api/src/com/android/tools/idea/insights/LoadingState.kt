@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.LoadingState.Loading
 import com.android.tools.idea.insights.LoadingState.Ready
 import com.android.tools.idea.insights.LoadingState.Unauthorized
 import com.android.tools.idea.insights.LoadingState.UnknownFailure
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
@@ -86,6 +87,23 @@ sealed class LoadingState<out T> {
   ) : Failure() {
     override fun <U> map(fn: (Nothing) -> U): PermissionDenied {
       return this
+    }
+  }
+
+  /** Server returns an error. */
+  data class ServerFailure(override val message: String?, override val cause: Throwable? = null) :
+    Failure() {
+    constructor(
+      jsonException: GoogleJsonResponseException
+    ) : this(jsonException.getMessage(), jsonException)
+
+    override fun <U> map(fn: (Nothing) -> U): ServerFailure {
+      return this
+    }
+
+    companion object {
+      private fun GoogleJsonResponseException.getMessage() =
+        details?.get("status")?.let { status -> "$status: ${details.message}" } ?: details?.message
     }
   }
 

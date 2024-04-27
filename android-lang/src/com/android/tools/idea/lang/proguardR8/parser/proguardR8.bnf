@@ -87,7 +87,7 @@ flag_with_class_filter ::= "-dontnote"|"-dontwarn" {
   elementType=flag
 }
 
-private rule_with_class_filter ::= flag_with_class_filter class_filter {
+rule_with_class_filter ::= flag_with_class_filter class_filter {
   pin=1
 }
 private class_filter ::= class_name (',' class_name)*

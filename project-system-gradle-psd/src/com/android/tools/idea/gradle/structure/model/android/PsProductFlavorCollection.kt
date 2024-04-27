@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.tools.idea.gradle.project.sync.FAKE_DIMENSION
 import com.android.tools.idea.gradle.structure.model.meta.asString
 
 internal class PsProductFlavorCollection(parent: PsAndroidModule)
@@ -36,7 +37,9 @@ internal class PsProductFlavorCollection(parent: PsAndroidModule)
     result.addAll(
       from.resolvedModel?.androidProject?.multiVariantData
         ?.productFlavors
-        ?.map { PsProductFlavorKey(it.productFlavor.dimension.orEmpty(), it.productFlavor.name) }.orEmpty())
+        ?.map {
+          PsProductFlavorKey(it.productFlavor.dimension?.takeIf { it != FAKE_DIMENSION }.orEmpty(), it.productFlavor.name)
+        }.orEmpty())
     return result
   }
 

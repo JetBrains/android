@@ -37,7 +37,7 @@ public abstract class AbstractBaseTreeStructure extends AbstractTreeStructure {
   @Nullable
   public Object getParentElement(@NotNull Object element) {
     if (element instanceof NodeDescriptor) {
-      return ((NodeDescriptor<?>)element).getParentDescriptor();
+      return ((NodeDescriptor)element).getParentDescriptor();
     }
     return null;
   }

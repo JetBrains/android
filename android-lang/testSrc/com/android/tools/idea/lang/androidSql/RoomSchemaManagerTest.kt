@@ -33,7 +33,7 @@ import com.intellij.codeInsight.intention.impl.QuickEditAction
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleUtil
-import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.project.impl.ProjectImpl
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.PsiTestUtil
@@ -58,7 +58,7 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
     val mainSourceFile = myFixture.addFileToProject("MainSourcesFile.java", "")
 
     // Below we're adding a new source root, make sure we're not modifying a reusable light project.
-    assertThat((project as? ProjectEx)?.isLight ?: false).named("project is light").isFalse()
+    assertThat((project as? ProjectImpl)?.isLight ?: false).named("project is light").isFalse()
     val testSrc = myFixture.tempDirFixture.findOrCreateDir("testDir")
     PsiTestUtil.addSourceRoot(myFixture.module, testSrc, true)
     val testFile = myFixture.addFileToProject("${testSrc.name}/TestFile.java", "")

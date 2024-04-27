@@ -22,6 +22,7 @@ import com.android.tools.idea.preview.representation.CommonPreviewRepresentation
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.preview.MethodPreviewElement
 import com.intellij.psi.PsiFile
 
 private val GLANCE_APPWIDGET_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL)
@@ -40,7 +41,8 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
     previewElementModelAdapterDelegate,
     ::CommonNlDesignSurfacePreviewView,
     ::GlancePreviewViewModel,
-    NlDesignSurface.Builder::configureDesignSurface
+    NlDesignSurface.Builder::configureDesignSurface,
+    useCustomInflater = false
   )
 
 private fun NlDesignSurface.Builder.configureDesignSurface() {

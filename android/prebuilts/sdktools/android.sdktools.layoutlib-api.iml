@@ -4,43 +4,39 @@
     <exclude-output />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" exported="" name="kxml2" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-layoutlib-api" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.layoutlib-api:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.layoutlib-api:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api/231.0.26.0/studio.android.sdktools.layoutlib-api-231.0.26.0.jar">
-              <sha256sum>f450b74c6b3b96ef5d6480f443696a5be5b9687ca09fa835f635e3083d6b5587</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api/232.1.23.0/studio.android.sdktools.layoutlib-api-232.1.23.0.jar">
+              <sha256sum>327619c1fbb6dea001fe23650ec58a61ff17a5a414e93065d8fbfc1207f14324</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api/231.0.26.0/studio.android.sdktools.layoutlib-api-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api/232.1.23.0/studio.android.sdktools.layoutlib-api-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api/231.0.26.0/studio.android.sdktools.layoutlib-api-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-layoutlib-api-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.layoutlib-api_test:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.layoutlib-api_test:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api_test/231.0.26.0/studio.android.sdktools.layoutlib-api_test-231.0.26.0.jar">
-              <sha256sum>cd50c91bd68029783d8c8469694f001c223f6e0ddc7b172d2815426381a34b0b</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api_test/232.1.23.0/studio.android.sdktools.layoutlib-api_test-232.1.23.0.jar">
+              <sha256sum>a501d1ac6ece3395f3d7106f89a19a91afb82caf3e763b2e2b14b21ca57293e7</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api_test/231.0.26.0/studio.android.sdktools.layoutlib-api_test-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api_test/232.1.23.0/studio.android.sdktools.layoutlib-api_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api_test/231.0.26.0/studio.android.sdktools.layoutlib-api_test-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" exported="" name="kxml2" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
   </component>
 </module>

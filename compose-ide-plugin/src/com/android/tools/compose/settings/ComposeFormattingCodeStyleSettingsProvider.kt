@@ -26,10 +26,7 @@ import com.intellij.ui.dsl.builder.selected
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import javax.swing.JCheckBox
 
-
-/**
- * Allows to turn on and off [ComposePostFormatProcessor] in Code Style settings.
- */
+/** Allows to turn on and off [ComposePostFormatProcessor] in Code Style settings. */
 class ComposeFormattingCodeStyleSettingsProvider : CodeStyleSettingsProvider() {
 
   override fun hasSettingsPage() = false
@@ -39,9 +36,13 @@ class ComposeFormattingCodeStyleSettingsProvider : CodeStyleSettingsProvider() {
   }
 
   override fun getConfigurableDisplayName(): String = ComposeBundle.message("compose")
+
   override fun getLanguage() = KotlinLanguage.INSTANCE
 
-  override fun createConfigurable(originalSettings: CodeStyleSettings, modelSettings: CodeStyleSettings): CodeStyleConfigurable {
+  override fun createConfigurable(
+    originalSettings: CodeStyleSettings,
+    modelSettings: CodeStyleSettings
+  ): CodeStyleConfigurable {
     return object : CodeStyleConfigurable {
 
       private lateinit var checkBox: JCheckBox
@@ -50,29 +51,35 @@ class ComposeFormattingCodeStyleSettingsProvider : CodeStyleSettingsProvider() {
         return panel {
           group("Compose formatting") {
             row {
-              checkBox = checkBox(ComposeBundle.message("compose.enable.formatting.for.modifiers"))
-                .selected(ComposeCustomCodeStyleSettings.getInstance(originalSettings).USE_CUSTOM_FORMATTING_FOR_MODIFIERS)
-                .component
+              checkBox =
+                checkBox(ComposeBundle.message("compose.enable.formatting.for.modifiers"))
+                  .selected(
+                    ComposeCustomCodeStyleSettings.getInstance(originalSettings)
+                      .USE_CUSTOM_FORMATTING_FOR_MODIFIERS
+                  )
+                  .component
             }
           }
         }
       }
 
-      override fun isModified() = ComposeCustomCodeStyleSettings.getInstance(
-        originalSettings).USE_CUSTOM_FORMATTING_FOR_MODIFIERS != checkBox.isSelected
+      override fun isModified() =
+        ComposeCustomCodeStyleSettings.getInstance(originalSettings)
+          .USE_CUSTOM_FORMATTING_FOR_MODIFIERS != checkBox.isSelected
 
       override fun apply(settings: CodeStyleSettings) {
-        ComposeCustomCodeStyleSettings.getInstance(settings).USE_CUSTOM_FORMATTING_FOR_MODIFIERS = checkBox.isSelected
+        ComposeCustomCodeStyleSettings.getInstance(settings).USE_CUSTOM_FORMATTING_FOR_MODIFIERS =
+          checkBox.isSelected
       }
 
       override fun apply() = apply(originalSettings)
 
       override fun reset(settings: CodeStyleSettings) {
-        checkBox.isSelected = ComposeCustomCodeStyleSettings.getInstance(settings).USE_CUSTOM_FORMATTING_FOR_MODIFIERS
+        checkBox.isSelected =
+          ComposeCustomCodeStyleSettings.getInstance(settings).USE_CUSTOM_FORMATTING_FOR_MODIFIERS
       }
 
       override fun getDisplayName() = ComposeBundle.message("compose")
     }
-
   }
 }

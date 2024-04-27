@@ -21,7 +21,11 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.FileViewProvider
 
 class AgslFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, AgslLanguage.INSTANCE) {
-  private val myFileType: FileType = viewProvider.fileType
+  private val myFileType: FileType
+
+  init {
+    myFileType = viewProvider.fileType
+  }
 
   override fun getFileType(): FileType {
     return myFileType

@@ -19,7 +19,7 @@ import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
 import com.android.tools.r8.MarkerInfoConsumer
 import com.android.tools.r8.MarkerInfoConsumerData
 
-class LiveEditMarkerInfoConsumer : MarkerInfoConsumer {
+class LiveEditMarkerInfoConsumer() : MarkerInfoConsumer {
 
   val minApis : MutableSet<MinApiLevel> = mutableSetOf()
 

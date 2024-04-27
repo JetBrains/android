@@ -75,31 +75,15 @@ public class LaunchUtils {
     }
 
     try {
-      MergedManifestSnapshot info;
-      if (ExternalSystemUtil.isNoBackgroundMode()) {
-        info = MergedManifestManager.getFreshSnapshotInCallingThread(facet.getModule());
+      MergedManifestSnapshot info = MergedManifestManager.getMergedManifest(facet.getModule()).get();
+      Element usesFeatureElem = info.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
+      if (usesFeatureElem != null) {
+        String required = usesFeatureElem.getAttributeNS(ANDROID_URI, ATTRIBUTE_REQUIRED);
+        return isEmpty(required) || VALUE_TRUE.equals(required);
       }
-      else {
-        info = MergedManifestManager.getMergedManifest(facet.getModule()).get();
-      }
-
-      return isWatchFeatureRequired(info);
     }
     catch (ExecutionException | InterruptedException ex) {
       Logger.getInstance(LaunchUtils.class).warn(ex);
-    }
-    return false;
-  }
-
-  @Slow
-  @WorkerThread
-  public static boolean isWatchFeatureRequired(@Nullable MergedManifestSnapshot info) {
-    if (info == null) return false;
-
-    Element usesFeatureElem = info.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
-    if (usesFeatureElem != null) {
-      String required = usesFeatureElem.getAttributeNS(ANDROID_URI, ATTRIBUTE_REQUIRED);
-      return isEmpty(required) || VALUE_TRUE.equals(required);
     }
     return false;
   }

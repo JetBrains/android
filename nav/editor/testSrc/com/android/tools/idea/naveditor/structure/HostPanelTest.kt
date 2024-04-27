@@ -47,7 +47,6 @@ class HostPanelTest : NavTestCase() {
       model.activate(this)
       waitFor("list expected to be empty") { listModel.isEmpty }
     }
-
     waitFor("list was never populated") { !listModel.isEmpty }
   }
 

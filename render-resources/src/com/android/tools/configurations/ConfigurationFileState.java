@@ -19,7 +19,7 @@ import com.android.resources.NightMode;
 import com.android.resources.UiMode;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.intellij.openapi.util.text.StringUtil;
+import com.google.common.base.Strings;
 import com.intellij.util.xmlb.annotations.Tag;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -93,7 +93,7 @@ public class ConfigurationFileState {
       myDockMode = null;
     }
 
-    myDockMode = StringUtil.nullize(dockMode.getResourceValue());
+    myDockMode = Strings.emptyToNull(dockMode.getResourceValue());
     NightMode nightMode = configuration.getNightMode();
     if (nightMode != NightMode.NOTNIGHT) {
       myNightMode = nightMode.getResourceValue();
@@ -101,7 +101,7 @@ public class ConfigurationFileState {
       myNightMode = null;
     }
 
-    myTheme = StringUtil.nullize(configuration.getTheme());
+    myTheme = Strings.emptyToNull(configuration.getTheme());
   }
 
   public void loadState(@NotNull Configuration configuration) {

@@ -18,12 +18,12 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.CIRCULAR_APPLICATION;
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
+import com.google.common.base.Charsets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -127,7 +127,7 @@ public class GradleDslFileCache {
 
   private static Properties getProperties(@NotNull VirtualFile file) throws IOException {
     Properties properties = new Properties();
-    try (InputStreamReader reader = new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8)) {
+    try (InputStreamReader reader = new InputStreamReader(file.getInputStream(), Charsets.UTF_8)) {
       properties.load(reader);
     }
     return properties;

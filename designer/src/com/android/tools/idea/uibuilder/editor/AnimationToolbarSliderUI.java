@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
+
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -35,7 +35,7 @@ class AnimationToolbarSliderUI extends BasicSliderUI {
 
   private final int[] myThumbPolygonX = new int[5];
   private final int[] myThumbPolygonY = new int[5];
-  private int myThumbTipSize = JBUIScale.scale(THUMB_TIP_SIZE);
+  private int myThumbTipSize = JBUI.scale(THUMB_TIP_SIZE);
   private final JBColor myThumbFillColor = new JBColor(0xffffff, 0xafb1b3);
   private final JBColor myThumbLineColor = JBColor.lightGray;
   private final JBColor myTrackBackgroundColor = JBColor.GRAY;
@@ -67,7 +67,7 @@ class AnimationToolbarSliderUI extends BasicSliderUI {
     }
     Dimension progressLabelSize = getProgressLabelSize();
     int trackHeight = thumbRect.height / 3;
-    trackRect.width -= (progressLabelSize.width + JBUIScale.scale(10));
+    trackRect.width -= (progressLabelSize.width + JBUI.scale(10));
     myTrackRectangle.x = trackRect.x;
     myTrackRectangle.y = (trackRect.y + trackRect.height / 2) - trackHeight / 2;
     myTrackRectangle.width = trackRect.width;
@@ -93,7 +93,7 @@ class AnimationToolbarSliderUI extends BasicSliderUI {
   /** Set the rectangle bounds for the label component. */
   protected void calculateProgressRect() {
     Dimension progressLabelSize = getProgressLabelSize();
-    myProgressLabelBounds.x = myTrackRectangle.x + myTrackRectangle.width + JBUIScale.scale(10);
+    myProgressLabelBounds.x = myTrackRectangle.x + myTrackRectangle.width + JBUI.scale(10);
     myProgressLabelBounds.y = (int)((myTrackRectangle.y + (myTrackRectangle.height / 2f)) - (progressLabelSize.height / 2f));
     myProgressLabelBounds.width = progressLabelSize.width;
     myProgressLabelBounds.height = progressLabelSize.height;
@@ -148,7 +148,7 @@ class AnimationToolbarSliderUI extends BasicSliderUI {
   @Override
   protected void calculateThumbSize() {
     Dimension size = new JBDimension(12, 9);
-    myThumbTipSize = JBUIScale.scale(THUMB_TIP_SIZE);
+    myThumbTipSize = JBUI.scale(THUMB_TIP_SIZE);
     thumbRect.width = size.width;
     thumbRect.height = size.height;
   }

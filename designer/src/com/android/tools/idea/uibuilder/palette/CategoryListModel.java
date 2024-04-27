@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.AbstractListModel;
-import javax.swing.ListModel;
-import javax.swing.SwingUtilities;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link ListModel} for displaying palette categories in a list.

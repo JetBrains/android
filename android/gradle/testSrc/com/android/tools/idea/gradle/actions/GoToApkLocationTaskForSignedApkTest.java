@@ -91,7 +91,7 @@ public class GoToApkLocationTaskForSignedApkTest extends PlatformTestCase {
   }
 
   public void testExecuteWithFailedBuild() {
-    String message = "Errors while building APK. You can find the errors in the 'Messages' view.";
+    String message = "Errors while building APK. You can find the errors in the 'Build' view.";
     myTask.executeWhenBuildFinished(Futures.immediateFuture(createBuildResult(new Throwable("Unknown error with gradle build"))));
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, NotificationType.ERROR);
   }
@@ -117,7 +117,7 @@ public class GoToApkLocationTaskForSignedApkTest extends PlatformTestCase {
   private static String getExpectedModuleNotificationMessage(@NotNull String moduleName,
                                                              @Nullable String buildVariant1Name,
                                                              @Nullable String buildVariant2Name) {
-    return "APK(s) generated successfully for module '" +
+    return "Build completed successfully for module '" +
            moduleName +
            "' with 2 build variants:" +
            getExpectedModuleLineNotificationMessage(buildVariant1Name) +
@@ -139,7 +139,7 @@ public class GoToApkLocationTaskForSignedApkTest extends PlatformTestCase {
 
   @NotNull
   private static String getExpectedModuleNotificationMessageNoShowFilePathAction(@NotNull String moduleName) {
-    return "APK(s) generated successfully for module '" + moduleName + "' with 2 build variants";
+    return "Build completed successfully for module '" + moduleName + "' with 2 build variants";
   }
 
   @NotNull

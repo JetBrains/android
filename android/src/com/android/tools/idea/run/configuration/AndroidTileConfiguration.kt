@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.run.configuration
 
-import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AppRunSettings
-import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.ApplicationDeployer
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.configuration.execution.AndroidTileConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.TileLaunchOptions
 import com.intellij.execution.configurations.ConfigurationFactory
@@ -53,13 +54,24 @@ class AndroidTileConfigurationType :
 class AndroidTileConfiguration(project: Project, factory: ConfigurationFactory) : AndroidWearConfiguration(project, factory) {
   override val componentLaunchOptions: TileLaunchOptions = TileLaunchOptions()
 
-  override fun getExecutor(environment: ExecutionEnvironment,
-                           deviceFutures: DeviceFutures,
-                           appRunSettings: AppRunSettings,
-                           applicationIdProvider: ApplicationIdProvider,
-                           apkProvider: ApkProvider,
-                           deployer: ApplicationDeployer): AndroidConfigurationExecutor {
-    return AndroidTileConfigurationExecutor(environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider, deployer)
+  override fun getExecutor(
+    environment: ExecutionEnvironment,
+    deviceFutures: DeviceFutures,
+    appRunSettings: AppRunSettings,
+    applicationIdProvider: ApplicationIdProvider,
+    apkProvider: ApkProvider,
+    applicationContext: ApplicationProjectContext,
+    deployer: ApplicationDeployer
+  ): AndroidConfigurationExecutor {
+    return AndroidTileConfigurationExecutor(
+      environment,
+      deviceFutures,
+      appRunSettings,
+      applicationIdProvider,
+      apkProvider,
+      applicationContext,
+      deployer
+    )
   }
 }
 

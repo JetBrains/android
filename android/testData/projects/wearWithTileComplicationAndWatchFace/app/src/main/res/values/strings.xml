@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">My WatchFace</string>
+    <string name="tile_label">My Tile Service</string>
+    <string name="complication_label">My Complication Service</string>
+</resources>

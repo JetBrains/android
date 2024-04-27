@@ -15,7 +15,7 @@
  */
 package com.android.tools.asdriver.tests;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.utils.PathUtils;
 import com.google.common.base.Preconditions;
 import com.intellij.openapi.util.SystemInfo;
@@ -44,7 +44,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
    * By default, we set the emulator to a system image that most integration tests should be
    * using. This version corresponds to {@code INTEGRATION_TEST_SYSTEM_IMAGE} in Bazel.
    */
-  private static final Emulator.SystemImage DEFAULT_EMULATOR_SYSTEM_IMAGE = Emulator.SystemImage.API_29;
+  private static final Emulator.SystemImage DEFAULT_EMULATOR_SYSTEM_IMAGE = Emulator.SystemImage.API_31;
 
   private final TestFileSystem fileSystem;
   private final HashMap<String, String> env;
@@ -231,23 +231,39 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     runEmulator(DEFAULT_EMULATOR_SYSTEM_IMAGE, callback);
   }
 
+  /** Wraps {@code runEmulator} such that the default image is used with specifiable flags. */
+  public void runEmulator(List<String> extraEmulatorFlags, Consumer<Emulator> callback) throws IOException, InterruptedException {
+    runEmulator(DEFAULT_EMULATOR_SYSTEM_IMAGE, extraEmulatorFlags, callback);
+  }
+
+  /** Wraps {@code runEmulator} such that the default image is used with no extra emulator flags. */
+  public void runEmulator(Emulator.SystemImage systemImage, Consumer<Emulator> callback) throws IOException, InterruptedException {
+    runEmulator(systemImage, new ArrayList<>(), callback);
+  }
+
   /**
-   * Runs an emulator using the given {@link Emulator.SystemImage}, providing it to the {@code callback} and then calling
+   * Runs an emulator using the given {@link Emulator.SystemImage} and flags, providing it to the {@code callback} and then calling
    * {@link Emulator#close()}.
    */
-  public void runEmulator(Emulator.SystemImage systemImage, Consumer<Emulator> callback) throws IOException, InterruptedException {
-    try (Emulator emulator = runEmulator(systemImage)) {
+  public void runEmulator(Emulator.SystemImage systemImage, List<String> extraEmulatorFlags, Consumer<Emulator> callback)
+    throws IOException, InterruptedException {
+    try (Emulator emulator = runEmulator(systemImage, extraEmulatorFlags)) {
       callback.accept(emulator);
     }
   }
 
-  /** Runs and returns an emulator using the given {@link Emulator.SystemImage}. */
+  /** Wraps {@code runEmulator} such that no extra emulator flags are used. */
   public Emulator runEmulator(Emulator.SystemImage systemImage) throws IOException, InterruptedException {
+    return runEmulator(systemImage, new ArrayList<>());
+  }
+
+  /** Runs and returns an emulator using the given {@link Emulator.SystemImage}. */
+  public Emulator runEmulator(Emulator.SystemImage systemImage, List<String> extraEmulatorFlags) throws IOException, InterruptedException {
     String curEmulatorName = String.format("emu%d", emulators.size());
     Path workspaceRoot = TestUtils.getWorkspaceRoot(systemImage.path);
     Emulator.createEmulator(fileSystem, curEmulatorName, workspaceRoot);
     // Increase grpc port by one after spawning an emulator to avoid conflict
-    Emulator emulator = Emulator.start(fileSystem, sdk, display, curEmulatorName, nextPort++);
+    Emulator emulator = Emulator.start(fileSystem, sdk, display, curEmulatorName, nextPort++, extraEmulatorFlags);
     emulators.add(emulator);
     return emulator;
   }

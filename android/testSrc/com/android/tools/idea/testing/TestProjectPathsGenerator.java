@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.testing;
 
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
-
 import com.android.annotations.Nullable;
 import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,9 +29,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 /**
  * Generates TestProjectPaths.

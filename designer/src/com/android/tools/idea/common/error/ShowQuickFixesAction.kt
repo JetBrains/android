@@ -60,7 +60,14 @@ class ShowQuickFixesAction : AnAction() {
       JBPopupFactory.getInstance()
         .createPopupChooserBuilder(fixable)
         .setRenderer(QuickFixableCellRenderer())
-        .setItemChosenCallback { it.action.run() }
+        .setItemChosenCallback {
+          it.action.run()
+          var rootNode = node.parent
+          while (rootNode != null && rootNode !is DesignerCommonIssueRoot) {
+            rootNode = rootNode.parentDescriptor?.element as? DesignerCommonIssueNode
+          }
+          (rootNode as? DesignerCommonIssueRoot)?.issueProvider?.update()
+        }
         .createPopup()
 
     val mouse =

@@ -15,41 +15,42 @@
  */
 package com.android.tools.idea.compose.preview.util.device
 
+import com.android.ide.common.util.enumValueOfOrNull
 import com.android.tools.compose.completion.addLookupElement
 import com.android.tools.compose.completion.inserthandler.InsertionFormat
 import com.android.tools.compose.completion.inserthandler.LiveTemplateFormat
-import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferenceDesktopConfig
-import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferenceFoldableConfig
-import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferencePhoneConfig
-import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferenceTabletConfig
-import com.android.tools.idea.compose.pickers.preview.property.DimUnit
-import com.android.tools.idea.compose.pickers.preview.property.Orientation
-import com.android.tools.idea.compose.pickers.preview.utils.DEFAULT_DEVICE_ID
-import com.android.tools.idea.compose.pickers.preview.utils.DEVICE_BY_ID_PREFIX
-import com.android.tools.idea.compose.pickers.preview.utils.DEVICE_BY_SPEC_PREFIX
-import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
 import com.android.tools.idea.compose.pickers.preview.utils.getSdkDevices
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec
 import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParam
 import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecPsiFile
 import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes
 import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecSpecImpl
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.kotlin.enumValueOfOrNull
+import com.android.tools.preview.config.DEFAULT_DEVICE_ID
+import com.android.tools.preview.config.DEVICE_BY_ID_PREFIX
+import com.android.tools.preview.config.DEVICE_BY_SPEC_PREFIX
+import com.android.tools.preview.config.DimUnit
+import com.android.tools.preview.config.Orientation
+import com.android.tools.preview.config.Preview.DeviceSpec
+import com.android.tools.preview.config.ReferenceDesktopConfig
+import com.android.tools.preview.config.ReferenceFoldableConfig
+import com.android.tools.preview.config.ReferencePhoneConfig
+import com.android.tools.preview.config.ReferenceTabletConfig
+import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.patterns.PsiElementPattern
+import com.intellij.patterns.StandardPatterns
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
 import com.intellij.util.ProcessingContext
-import org.jetbrains.kotlin.idea.completion.or
-import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
@@ -296,8 +297,7 @@ private object DeviceSpecParameterProvider : CompletionProvider<CompletionParame
       deviceSpecImplElement
         ?.getChildrenOfType<DeviceSpecParam>()
         ?.map { it.firstChild.text }
-        ?.toSet()
-        ?: emptySet()
+        ?.toSet() ?: emptySet()
 
     val createDimensionParameterFormat: (String) -> InsertionFormat = { defaultValue ->
       LiveTemplateFormat("=<$defaultValue>${expectedUnit.name}")
@@ -376,3 +376,5 @@ private fun DeviceSpecSpecImpl.getFirstValidUnit(): DimUnit? {
   }
   return null
 }
+
+private infix fun <T> ElementPattern<T>.or(rhs: ElementPattern<T>) = StandardPatterns.or(this, rhs)

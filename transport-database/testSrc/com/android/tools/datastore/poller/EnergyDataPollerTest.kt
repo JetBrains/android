@@ -45,7 +45,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestName
-import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import java.util.concurrent.TimeUnit
 
@@ -210,14 +210,14 @@ class EnergyDataPollerTest : DataStorePollerTest() {
 
   @Before
   fun setUp() {
-    whenever(dataStoreService.getTransportClient(ArgumentMatchers.anyLong())).thenReturn(
+    whenever(dataStoreService.getTransportClient(Mockito.anyLong())).thenReturn(
       TransportServiceGrpc.newBlockingStub(grpcService.channel))
-    whenever(dataStoreService.getProfilerClient(ArgumentMatchers.anyLong())).thenReturn(
+    whenever(dataStoreService.getProfilerClient(Mockito.anyLong())).thenReturn(
       ProfilerServiceGrpc.newBlockingStub(grpcService.channel))
-    whenever(dataStoreService.getCpuClient(ArgumentMatchers.anyLong())).thenReturn(CpuServiceGrpc.newBlockingStub(grpcService.channel))
-    whenever(dataStoreService.getNetworkClient(ArgumentMatchers.anyLong())).thenReturn(
+    whenever(dataStoreService.getCpuClient(Mockito.anyLong())).thenReturn(CpuServiceGrpc.newBlockingStub(grpcService.channel))
+    whenever(dataStoreService.getNetworkClient(Mockito.anyLong())).thenReturn(
       NetworkServiceGrpc.newBlockingStub(grpcService.channel))
-    whenever(dataStoreService.getEnergyClient(ArgumentMatchers.anyLong())).thenReturn(EnergyServiceGrpc.newBlockingStub(grpcService.channel))
+    whenever(dataStoreService.getEnergyClient(Mockito.anyLong())).thenReturn(EnergyServiceGrpc.newBlockingStub(grpcService.channel))
 
     energyService.startMonitoringApp(
       EnergyProfiler.EnergyStartRequest.newBuilder().setSession(SESSION).build(),

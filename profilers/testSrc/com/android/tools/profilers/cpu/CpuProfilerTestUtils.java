@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.protobuf.ByteString;
@@ -27,7 +27,9 @@ import com.android.tools.idea.transport.faketransport.commands.StopTrace;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
+import com.android.tools.profilers.sessions.SessionsManager;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -248,5 +250,15 @@ public class CpuProfilerTestUtils {
                             ByteString traceContent) throws InterruptedException {
     // Defaults to a 1-second capture.
     return stopCapturing(stage, transportService, success, traceContent, 1);
+  }
+
+  static void importSessionFromFile(StudioProfilers profilers, FakeTimer timer, String filename) {
+    File trace = CpuProfilerTestUtils.getTraceFile(filename);
+    SessionsManager sessionsManager = profilers.getSessionsManager();
+
+    // Importing a session from a trace file should select a Common.SessionMetaData.SessionType.CPU_CAPTURE session.
+    assertThat(sessionsManager.importSessionFromFile(trace)).isTrue();
+    // Advance clock to collect artifacts in updater.
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
   }
 }

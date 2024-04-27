@@ -16,15 +16,21 @@
 package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.intellij.execution.runners.ExecutionEnvironment
 import java.nio.file.Path
 
 class LiveEditHelper {
-  fun invokeLiveEdit(liveEditService: LiveEditService, env: ExecutionEnvironment, applicationIdProvider: ApplicationIdProvider, apkProvider: ApkProvider, device: IDevice) {
+  fun invokeLiveEdit(
+    liveEditService: LiveEditService,
+    env: ExecutionEnvironment,
+    applicationId: String,
+    apkProvider: ApkProvider,
+    device: IDevice
+  ) {
     val liveEditApp = LiveEditApp(getApkPaths(apkProvider, device), device.getVersion().getApiLevel())
-    liveEditService.notifyAppDeploy(env.getRunProfile(), env.getExecutor(), applicationIdProvider.packageName, device, liveEditApp)
+    liveEditService.notifyAppDeploy(env.getRunProfile(), env.getExecutor(), applicationId, device, liveEditApp)
   }
 
   fun getApkPaths(apkProvider: ApkProvider, device: IDevice): Set<Path> {

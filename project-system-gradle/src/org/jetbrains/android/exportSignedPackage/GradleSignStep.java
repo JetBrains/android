@@ -19,12 +19,13 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
+import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.components.JBList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -45,7 +46,8 @@ import org.jetbrains.annotations.VisibleForTesting;
 public class GradleSignStep extends ExportSignedPackageWizardStep {
   @NonNls private static final String PROPERTY_APK_PATH = "ExportApk.ApkPath";
   @NonNls private static final String PROPERTY_BUNDLE_PATH = "ExportBundle.BundlePath";
-  @NonNls private static final String PROPERTY_BUILD_VARIANTS = "ExportApk.BuildVariants";
+  @VisibleForTesting
+  @NonNls static final String PROPERTY_BUILD_VARIANTS = "ExportApk.BuildVariants";
 
   private JPanel myContentPanel;
   private TextFieldWithBrowseButton myApkPathField;
@@ -68,7 +70,12 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
   @Override
   public void _init() {
-    myAndroidModel = GradleAndroidModel.get(myWizard.getFacet());
+    _init(GradleAndroidModel.get(myWizard.getFacet()));
+  }
+
+  @VisibleForTesting
+  void _init(GradleAndroidModel androidModel) {
+    myAndroidModel = androidModel;
 
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
 
@@ -81,7 +88,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
     IntList lastSelectedIndices = new IntArrayList(buildVariants.size());
     List<String> cachedVariants = properties.getList(PROPERTY_BUILD_VARIANTS);
-    Set<String> lastSelectedVariants = cachedVariants == null ? Collections.emptySet() : Set.copyOf(cachedVariants);
+    Set<String> lastSelectedVariants = cachedVariants == null ? Collections.emptySet() : Sets.newHashSet(cachedVariants);
 
     for (int i = 0; i < buildVariants.size(); i++) {
       String variant = buildVariants.get(i);
@@ -96,7 +103,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
     String moduleName = myAndroidModel.getModuleName();
     String targetType = myWizard.getTargetType();
-    myApkPathField.setText(FileUtilRt.toSystemDependentName(getInitialPath(properties, moduleName, targetType)));
+    myApkPathField.setText(FileUtil.toSystemDependentName(getInitialPath(properties, moduleName, targetType)));
   }
 
   @Override
@@ -110,7 +117,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
       throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.no.model"));
     }
 
-    final String apkFolder = myApkPathField.getText().trim();
+    final String apkFolder = myApkPathField.getText().stripLeading();
     if (apkFolder.isEmpty()) {
       throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.missing.destination", myWizard.getTargetType()));
     }

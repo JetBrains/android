@@ -41,7 +41,6 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.containers.FixedHashMap
 import com.intellij.util.ui.JBFont
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.JBUI.Borders.emptyLeft
 import com.intellij.util.ui.UIUtil
@@ -201,9 +200,8 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
             }
             add(
               JBLabel("Unavailable devices").apply {
-                isOpaque = true
-                background = JBUI.CurrentTheme.NewClassDialog.panelBackground()
                 border = empty(4, 16)
+                font = JBFont.label().asBold()
               },
               GridBagConstraints().apply {
                 gridwidth = GridBagConstraints.REMAINDER
@@ -230,7 +228,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
               add(JBLabel(value.displayName).apply {
                 icon = if (!value.isWearDevice && value.hasPlayStore) getIcon(StudioIcons.Avd.DEVICE_PLAY_STORE, isSelected) else null
                 foreground = when {
-                  isSelected -> UIUtil.getListForeground(true, true)
+                  isSelected -> UIUtil.getListForeground(isSelected, isSelected)
                   value.isDisabled() -> UIUtil.getLabelDisabledForeground()
                   else -> UIUtil.getLabelForeground()
                 }
@@ -243,7 +241,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
                 includeCodeName = true
               )).apply {
                 foreground = when {
-                  isSelected -> UIUtil.getListForeground(true, true)
+                  isSelected -> UIUtil.getListForeground(isSelected, isSelected)
                   value.isDisabled() -> UIUtil.getLabelDisabledForeground()
                   else -> UIUtil.getContextHelpForeground()
                 }

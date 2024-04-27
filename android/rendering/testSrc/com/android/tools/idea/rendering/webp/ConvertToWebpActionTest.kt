@@ -57,13 +57,12 @@ class ConvertToWebpActionTest : AndroidTestCase() {
 
     waitForCondition(2, TimeUnit.SECONDS) { notifications.isNotEmpty() }
     assertThat(notifications).hasSize(1)
-    assertThat(notifications[0].content).isEqualTo(
-        "1 file was converted<br/>55 bytes saved<br>1 file was skipped because there was no net space saving")
+    assertThat(notifications[0].content).isEqualTo("2 files were converted<br/>107 bytes saved")
     // Check that we only converted the xhdpi image (the mdpi image encodes to a larger image)
     assertThat(xhdpiFolder.findChild("ic_action_name.png")).isNull()
     assertThat(xhdpiFolder.findChild("ic_action_name.webp")).isNotNull()
-    assertThat(mdpiFolder.findChild("ic_action_name.png")).isNotNull()
-    assertThat(mdpiFolder.findChild("ic_action_name.webp")).isNull()
+    assertThat(mdpiFolder.findChild("ic_action_name.png")).isNull()
+    assertThat(mdpiFolder.findChild("ic_action_name.webp")).isNotNull()
   }
 
   fun testIncludeLargerImages() {
@@ -85,7 +84,7 @@ class ConvertToWebpActionTest : AndroidTestCase() {
 
     waitForCondition(2, TimeUnit.SECONDS) { notifications.isNotEmpty() }
     assertThat(notifications).hasSize(1)
-    assertThat(notifications[0].content).isEqualTo("3 files were converted<br/>size increased by 139 bytes")
+    assertThat(notifications[0].content).isEqualTo("3 files were converted<br/>27 bytes saved")
     // Check that we converted both images
     assertThat(xhdpiFolder.findChild("ic_action_name.png")).isNull()
     assertThat(xhdpiFolder.findChild("ic_action_name.webp")).isNotNull()

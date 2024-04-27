@@ -85,13 +85,6 @@ interface IdeAndroidArtifactCore : Serializable, IdeBaseArtifactCore {
    */
   val privacySandboxSdkInfo: IdePrivacySandboxSdkInfo?
 
-  /**
-   * Returns all the [IdeModelSyncFile] for this artifact.
-   *
-   * @return a list of [IdeModelSyncFile]
-   * @since 7.2
-   */
-  val modelSyncFiles: Collection<IdeModelSyncFile>
   val compileClasspathCore: IdeDependenciesCore
   val runtimeClasspathCore: IdeDependenciesCore
 

@@ -169,10 +169,10 @@ fun setupBuildListener(
           projectSubscription.projectSystemListenerDisposable,
           project.createBuildListener()
         )
-        buildable.startedListening()
         projectSubscription
       }
       subscription.listenersMap[parentDisposable] = buildable
+      buildable.startedListening()
       Disposer.register(parentDisposable) {
         projectSubscriptionsLock.withLock disposable@{
           val disposingSubscription = projectSubscriptions[project] ?: return@disposable

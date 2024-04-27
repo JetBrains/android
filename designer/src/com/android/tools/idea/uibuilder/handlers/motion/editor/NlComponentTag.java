@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-import com.android.tools.rendering.parsers.AttributeSnapshot;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;

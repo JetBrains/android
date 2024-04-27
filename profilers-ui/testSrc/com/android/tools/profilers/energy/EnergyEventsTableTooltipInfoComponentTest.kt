@@ -32,7 +32,7 @@ class EnergyEventsTableTooltipInfoComponentTest {
 
   @Test
   fun wakeLockIsProperlyRendered() {
-    val eventList: ImmutableList<Common.Event> = ImmutableList.of(
+    val eventList = ImmutableList.of<Common.Event>(
       Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(1))
         .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
@@ -86,7 +86,7 @@ class EnergyEventsTableTooltipInfoComponentTest {
 
   @Test
   fun incompleteWakeLockIsProperlyRendered() {
-    val eventList: ImmutableList<Common.Event> = ImmutableList.of(
+    val eventList = ImmutableList.of<Common.Event>(
       Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(1))
         .setEnergyEvent(Energy.EnergyEventData.newBuilder().setWakeLockAcquired(Energy.WakeLockAcquired.getDefaultInstance()))
@@ -115,7 +115,7 @@ class EnergyEventsTableTooltipInfoComponentTest {
 
   @Test
   fun alarmIsProperlyRendered() {
-    val eventList: ImmutableList<Common.Event> = ImmutableList.of(
+    val eventList = ImmutableList.of<Common.Event>(
       Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(1))
         .setEnergyEvent(Energy.EnergyEventData.newBuilder().setAlarmSet(Energy.AlarmSet.getDefaultInstance()))
@@ -184,7 +184,7 @@ class EnergyEventsTableTooltipInfoComponentTest {
 
   @Test
   fun jobIsProperlyRendered() {
-    val eventList: ImmutableList<Common.Event> = ImmutableList.of(
+    val eventList = ImmutableList.of<Common.Event>(
       Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(1))
         .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobScheduled(Energy.JobScheduled.getDefaultInstance()))
@@ -266,7 +266,7 @@ class EnergyEventsTableTooltipInfoComponentTest {
 
   @Test
   fun incompleteJobIsProperlyRendered() {
-    val eventList: ImmutableList<Common.Event> = ImmutableList.of(
+    val eventList = ImmutableList.of<Common.Event>(
       Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(1))
         .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobScheduled(Energy.JobScheduled.getDefaultInstance()))
@@ -324,7 +324,7 @@ class EnergyEventsTableTooltipInfoComponentTest {
 
   @Test
   fun locationIsProperlyRendered() {
-    val eventList: ImmutableList<Common.Event> = ImmutableList.of(
+    val eventList = ImmutableList.of<Common.Event>(
       Common.Event.newBuilder()
         .setTimestamp(TimeUnit.SECONDS.toNanos(1))
         .setEnergyEvent(

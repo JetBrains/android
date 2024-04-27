@@ -20,8 +20,9 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.options.ConfigurationQuickFix;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 public class ValidationUtil {
 

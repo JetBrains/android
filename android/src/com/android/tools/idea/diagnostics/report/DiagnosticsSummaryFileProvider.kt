@@ -19,10 +19,11 @@ import com.android.tools.idea.diagnostics.DIAGNOSTICS_REPORTS_DIR
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import java.nio.file.Files
+import com.intellij.troubleshooting.TroubleInfoCollector
 import java.nio.file.Path
 import java.nio.file.Paths
 
-/*
+/**
   FileInfo contains a pair of values used for creating a diagnostic report
   @param source: the path to the file
   @param destination: the path where the file should be stored in the report

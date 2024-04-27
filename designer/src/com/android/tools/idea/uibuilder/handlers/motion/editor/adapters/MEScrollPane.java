@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
 import com.intellij.ui.components.JBScrollPane;
 import java.awt.Component;
+import javax.swing.JScrollPane;
 
 /**
  * Abstraction of a JScrollPane/JBScrollPane

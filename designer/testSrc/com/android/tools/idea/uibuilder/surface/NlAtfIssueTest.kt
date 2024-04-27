@@ -38,6 +38,7 @@ class NlAtfIssueTest : LayoutTestCase() {
 
   @Mock lateinit var mockEventListener: NlAtfIssue.EventListener
   @Mock lateinit var mockModel: NlModel
+
   @Before
   fun setup() {
     MockitoAnnotations.openMocks(this)
@@ -281,10 +282,11 @@ class NlAtfIssueTest : LayoutTestCase() {
   }
 
   class TestSource : IssueSource, NlAttributesHolder {
-    override val file: VirtualFile? = null
+    override val files: Set<VirtualFile> = emptySet()
     override val displayText: String = "displayText"
 
     var getAttrResult = ""
+
     override fun getAttribute(namespace: String?, attribute: String): String {
       return getAttrResult
     }

@@ -21,19 +21,22 @@ import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.ui.DialogWrapper
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 internal object AddDeviceDialog {
   internal fun build(): DialogWrapper {
-    val step = ConfigureDeviceStep(AddDeviceWizardModel())
+    val model = AddDeviceWizardModel()
+    val step = ConfigureDeviceStep(model)
     val dialog = StudioWizardDialogBuilder(step, "Add Device").build(SimpleStudioWizardLayout())
-    val panel = step.component.deviceAndApiPanel
+    val state = ModalityState.stateForComponent(step.component)
 
-    AndroidCoroutineScope(dialog.disposable, AndroidDispatchers.uiThread(ModalityState.stateForComponent(panel))).launch {
-      panel.setSystemImages(withContext(AndroidDispatchers.workerThread) {
-        SystemImage.getSystemImages()
-      })
+    AndroidCoroutineScope(dialog.disposable, AndroidDispatchers.uiThread(state)).launch {
+      model.systemImages =
+        withContext(AndroidDispatchers.workerThread) {
+          SystemImage.getSystemImages().toImmutableList()
+        }
     }
 
     return dialog

@@ -15,7 +15,6 @@
  */
 
 // Copy of https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/hardware/devicestate/DeviceStateInfo.java
-// Copy of https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/hardware/devicestate/DeviceStateInfo.java
 package android.hardware.devicestate;
 
 import android.os.Parcel;

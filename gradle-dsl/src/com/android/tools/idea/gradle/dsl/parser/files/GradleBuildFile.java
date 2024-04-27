@@ -22,8 +22,8 @@ import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
-import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
@@ -34,19 +34,19 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class GradleBuildFile extends GradleScriptFile {
-  private @Nullable GradlePropertiesFile myPropertiesFile;
-  private @Nullable GradleBuildFile myParentModuleBuildFile;
-  private final @NotNull Set<GradleBuildFile> myChildModuleBuildFiles = new HashSet<>();
+public class GradleBuildFile extends GradleScriptFile {
+  @Nullable private GradlePropertiesFile myPropertiesFile;
+  @Nullable private GradleBuildFile myParentModuleBuildFile;
+  @NotNull private final Set<GradleBuildFile> myChildModuleBuildFiles = Sets.newHashSet();
 
   public GradleBuildFile(@NotNull VirtualFile file,
                          @NotNull Project project,
@@ -131,8 +131,9 @@ public final class GradleBuildFile extends GradleScriptFile {
     super.addAppliedProperty(element);
   }
 
+  @NotNull
   @Override
-  protected @NotNull Map<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
     return GradleBlockModelMap.getElementMap(GradleBuildFile.class);
   }
 
@@ -150,7 +151,8 @@ public final class GradleBuildFile extends GradleScriptFile {
    *
    * <p>build.gradle and gradle.properties files belongs to the same module are considered as sibling files.
    */
-  public @Nullable GradlePropertiesFile getPropertiesFile() {
+  @Nullable
+  public GradlePropertiesFile getPropertiesFile() {
     return myPropertiesFile;
   }
 
@@ -159,22 +161,26 @@ public final class GradleBuildFile extends GradleScriptFile {
     myParentModuleBuildFile.myChildModuleBuildFiles.add(this);
   }
 
-  public @Nullable GradleBuildFile getParentModuleBuildFile() {
+  @Nullable
+  public GradleBuildFile getParentModuleBuildFile() {
     return myParentModuleBuildFile;
   }
 
-  public @NotNull Collection<GradleBuildFile> getChildModuleBuildFiles() {
+  @NotNull
+  public Collection<GradleBuildFile> getChildModuleBuildFiles() {
     return myChildModuleBuildFiles;
   }
 
   public static final class BuildGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
     @Override
-    public @NotNull Map<String, PropertiesElementDescription> getBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
       return GradleBlockModelMap.getElementMap(GradleBuildFile.class);
     }
 
+    @NotNull
     @Override
-    public @NotNull ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
       return ExternalToModelMap.empty;
     }
   }

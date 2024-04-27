@@ -23,11 +23,11 @@ import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.android.tools.property.panel.api.HeaderEnumValue
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
+import java.util.concurrent.Callable
 import org.intellij.lang.annotations.Language
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.Callable
 
 @Language("JAVA")
 private const val MAIN_ACTIVITY =

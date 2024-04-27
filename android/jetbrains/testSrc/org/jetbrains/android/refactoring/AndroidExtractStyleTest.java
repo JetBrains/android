@@ -3,7 +3,7 @@ package org.jetbrains.android.refactoring;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -108,7 +108,7 @@ public class AndroidExtractStyleTest extends AndroidTestCase {
       for (XmlAttribute attribute : extractableAttributes) {
         names.add(attribute.getName());
       }
-      final String[] extractableAttributeNames = ArrayUtilRt.toStringArray(names);
+      final String[] extractableAttributeNames = ArrayUtil.toStringArray(names);
       Arrays.sort(extractableAttributeNames);
 
       assertTrue(

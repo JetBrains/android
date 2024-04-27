@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.google.common.annotations.VisibleForTesting;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.util.Enumeration;
-import java.util.List;
-import javax.swing.JTree;
-import javax.swing.tree.TreePath;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.common.model.NlComponentUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.tree.TreePath;
+import java.awt.*;
+import java.util.Enumeration;
+import java.util.List;
 
 /**
  * Finds at after which row of a JTree the component being dragged will be inserted.

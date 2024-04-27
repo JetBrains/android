@@ -31,12 +31,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Test for [ComposePostFormatProcessor].
- */
+/** Test for [ComposePostFormatProcessor]. */
 class ComposePostFormatProcessorTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -58,10 +55,12 @@ class ComposePostFormatProcessorTest {
         fun adjust():Modifier {}
       }
     }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
-    val settings = CodeStyle.getSettings(project).getCustomSettings(KotlinCodeStyleSettings::class.java)
+    val settings =
+      CodeStyle.getSettings(project).getCustomSettings(KotlinCodeStyleSettings::class.java)
     settings.CONTINUATION_INDENT_FOR_CHAINED_CALLS = false
   }
 
@@ -79,11 +78,13 @@ class ComposePostFormatProcessorTest {
       fun HomeScreen() {
           val m = Modifier.adjust().adjust()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
-      CodeStyleManager.getInstance(project).reformatText(myFixture.file, listOf(myFixture.file.textRange))
+      CodeStyleManager.getInstance(project)
+        .reformatText(myFixture.file, listOf(myFixture.file.textRange))
     }
 
     myFixture.checkResult(
@@ -99,7 +100,8 @@ class ComposePostFormatProcessorTest {
               .adjust()
               .adjust()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -117,11 +119,13 @@ class ComposePostFormatProcessorTest {
       fun HomeScreen() {
           val m = Modifier.adjust()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
-      CodeStyleManager.getInstance(project).reformatText(myFixture.file, listOf(myFixture.file.textRange))
+      CodeStyleManager.getInstance(project)
+        .reformatText(myFixture.file, listOf(myFixture.file.textRange))
     }
 
     myFixture.checkResult(
@@ -135,8 +139,8 @@ class ComposePostFormatProcessorTest {
       fun HomeScreen() {
           val m = Modifier.adjust()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
-
 }

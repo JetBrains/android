@@ -32,6 +32,13 @@ interface ThemeInfoProvider {
   @Slow
   fun getThemeNameForActivity(activityFqcn: String): String?
 
-  /** Returns a default theme name. */
-  fun getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String
+  /** Returns a default theme name for the given device and target. */
+  fun getDeviceDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String
+
+  /**
+   * Returns a default theme name for the given configuration.
+   * This method takes into account the activity name and the device settings. It will also consider the manifest and the post splash
+   * theme, if defined.
+   */
+  fun getDefaultTheme(configuration: Configuration): String
 }

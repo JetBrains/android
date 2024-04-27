@@ -28,4 +28,9 @@ data class ObjectsStatistics(
     objectsCount += add.objectsCount
     totalSizeInBytes += add.totalSizeInBytes
   }
+
+  fun addStats(objectsCount: Int, totalSizeInBytes: Long) {
+    this.objectsCount += objectsCount
+    this.totalSizeInBytes += totalSizeInBytes
+  }
 }

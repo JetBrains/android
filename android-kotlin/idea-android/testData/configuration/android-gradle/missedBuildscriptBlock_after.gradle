@@ -13,9 +13,11 @@ android {
         minSdkVersion 7
         targetSdkVersion 16
     }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:$VERSION$'
     compile 'com.android.support:support-v4:13.0.0'
 }

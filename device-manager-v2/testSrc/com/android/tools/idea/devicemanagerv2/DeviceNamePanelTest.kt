@@ -41,7 +41,7 @@ class DeviceNamePanelTest {
     fun rowData(isTransitioning: Boolean, status: String): DeviceRowData {
       val state =
         DeviceState.Disconnected(
-          DeviceProperties.build { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
+          DeviceProperties.buildForTest { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
           isTransitioning,
           status,
           null
@@ -65,32 +65,33 @@ class DeviceNamePanelTest {
             ReservationState.ACTIVE,
             "Connected",
             null,
-            Instant.parse("2023-02-03T19:15:30.00Z")
+            Instant.parse("2023-02-03T19:15:30.00Z"),
+            null
           )
           .line2Text(ZoneId.of("UTC"))
       )
       .isEqualTo("Connected; device will expire at 7:15 PM")
 
     assertThat(
-        Reservation(ReservationState.ACTIVE, "", null, Instant.parse("2023-02-03T19:15:30.00Z"))
+        Reservation(
+            ReservationState.ACTIVE,
+            "",
+            null,
+            Instant.parse("2023-02-03T19:15:30.00Z"),
+            null
+          )
           .line2Text(ZoneId.of("UTC"))
       )
       .isEqualTo("Device will expire at 7:15 PM")
 
     assertThat(
-        Reservation(ReservationState.PENDING, "Connection pending", null, null)
+        Reservation(ReservationState.PENDING, "Connection pending", null, null, null)
           .line2Text(ZoneId.of("UTC"))
       )
       .isEqualTo("Connection pending")
 
     assertThat(
-        Reservation(
-            ReservationState.ACTIVE,
-            "",
-            null,
-            null,
-          )
-          .line2Text(ZoneId.of("UTC"))
+        Reservation(ReservationState.ACTIVE, "", null, null, null).line2Text(ZoneId.of("UTC"))
       )
       .isNull()
   }

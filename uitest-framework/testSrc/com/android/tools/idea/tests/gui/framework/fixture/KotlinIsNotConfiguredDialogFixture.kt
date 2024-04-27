@@ -31,13 +31,13 @@ class KotlinIsNotConfiguredDialogFixture private constructor(
   override fun maybeRestoreLostFocus() = Unit
 
   fun clickOkAndWaitDialogDisappear() {
-    val text = "OK, configure Kotlin in the project"
+    val text = "OK, Configure Kotlin In the Project"
     GuiTests.findAndClickButton(this, text)
     waitForDialogToClose()
   }
 
   fun clickCancelAndWaitDialogDisappear() {
-    val text = "No, cancel conversion"
+    val text = "No, Cancel Conversion"
     GuiTests.findAndClickButton(this, text)
     waitForDialogToClose()
   }
@@ -45,7 +45,7 @@ class KotlinIsNotConfiguredDialogFixture private constructor(
   companion object {
     @JvmStatic
     fun find(robot: Robot): KotlinIsNotConfiguredDialogFixture {
-      val title = "Kotlin is not configured in the project"
+      val title = "Kotlin Is Not Configured In the Project"
       val dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog::class.java, title))
       return KotlinIsNotConfiguredDialogFixture(dialog, robot)
     }

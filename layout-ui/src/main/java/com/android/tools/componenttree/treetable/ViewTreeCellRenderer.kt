@@ -20,7 +20,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.ColoredIconGenerator.deEmphasize
 import com.android.tools.componenttree.api.ViewNodeType
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.ui.NewUiValue
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_SMALLER
@@ -36,6 +36,8 @@ import java.awt.Graphics
 import javax.swing.Icon
 import javax.swing.JTree
 import javax.swing.tree.TreeCellRenderer
+
+private const val MAX_TOOLTIP_TEXT_LENGTH = 1000
 
 /**
  * A renderer for an Android View node.
@@ -106,9 +108,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
 
     private val baseFontMetrics = getFontMetrics(StartupUiUtil.labelFont)
     private val smallFontMetrics =
-      getFontMetrics(
-        StartupUiUtil.labelFont.deriveFont(UIUtil.getFontSize(UIUtil.FontSize.SMALL))
-      )
+      getFontMetrics(StartupUiUtil.labelFont.deriveFont(UIUtil.getFontSize(UIUtil.FontSize.SMALL)))
     private val strikeout =
       SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(STYLE_STRIKEOUT, null, null, null)
     private val small = SimpleTextAttributes(STYLE_SMALLER, null)
@@ -185,7 +185,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
       background = UIUtil.getTreeBackground(selectedValue, focusedValue)
       icon =
         treeIcon?.let {
-          if (focusedValue && !NewUiValue.isEnabled()) ColoredIconGenerator.generateWhiteIcon(it) else it
+          if (focusedValue && !ExperimentalUI.isNewUI()) ColoredIconGenerator.generateWhiteIcon(it) else it
         }
       if (!selectedValue && (deEmphasized || !enabledValue)) {
         foreground = foreground.deEmphasize()
@@ -232,7 +232,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
         """
         <html>
           $tagName<br/>
-          ${if (textValue.isNullOrEmpty()) id else "$id: $textValue"}
+          ${if (textValue.isNullOrEmpty()) id else "$id: ${textValue?.truncateTooltipValue()}"}
         </html>
         """
           .trimIndent()
@@ -256,12 +256,16 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
         }
         str += type.tagNameOf(node).substringAfterLast('.')
       }
-      textValue?.let { str += " $it" }
+      textValue?.let { str += " ${it.truncateTooltipValue()}" }
       return str
     }
 
     private fun stripId(id: String?): String? {
       return id?.substringAfter('/')
     }
+
+    private fun String.truncateTooltipValue(): String =
+      if (this.length > MAX_TOOLTIP_TEXT_LENGTH) this.substring(0, MAX_TOOLTIP_TEXT_LENGTH) + "..."
+      else this
   }
 }

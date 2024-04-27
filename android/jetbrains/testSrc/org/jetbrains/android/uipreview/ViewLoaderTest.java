@@ -25,9 +25,9 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.RenderTestUtil;
+import com.android.tools.idea.rendering.StudioModuleRenderContext;
 import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
-import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.ViewLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
@@ -67,7 +67,7 @@ public class ViewLoaderTest extends AndroidTestCase {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(module);
     myLayoutLib = StudioRenderServiceKt.getLayoutLibrary(module, StudioEmbeddedRenderTarget.getCompatibilityTarget(manager.getHighestApiTarget()));
     assertNotNull(myLayoutLib);
-    myClassLoaderReference = StudioModuleClassLoaderManager.get().getShared(myLayoutLib.getClassLoader(), ModuleRenderContext.forModule(myModule));
+    myClassLoaderReference = StudioModuleClassLoaderManager.get().getShared(myLayoutLib.getClassLoader(), StudioModuleRenderContext.forModule(myModule));
   }
 
   @Override

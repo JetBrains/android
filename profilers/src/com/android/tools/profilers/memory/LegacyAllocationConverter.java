@@ -17,17 +17,14 @@ package com.android.tools.profilers.memory;
 
 import com.android.ddmlib.AllocationInfo;
 import com.android.ddmlib.AllocationsParser;
-import com.android.tools.profiler.proto.Memory.AllocatedClass;
 import com.android.tools.profiler.proto.Memory.AllocationEvent;
+import com.android.tools.profiler.proto.Memory.AllocatedClass;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.intellij.util.containers.ContainerUtil;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+
+import java.nio.ByteBuffer;
+import java.util.*;
 
 /**
  * A class to convert JDWP-based legacy allocation into the gRPC-based profiler allocation tracking format.

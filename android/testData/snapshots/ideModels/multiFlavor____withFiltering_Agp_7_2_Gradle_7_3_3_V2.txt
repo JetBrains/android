@@ -366,7 +366,6 @@ MODULE                        : MultiFlavor.app
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-        EnableVcsInfo                 : false
     - basicVariant:               : firstAbcSecondAbcDebug
         applicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
         testApplicationId             : com.example.multiflavor.firstAbc.secondAbc.debug.test
@@ -796,10 +795,6 @@ MODULE                        : MultiFlavor.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/firstAbcSecondAbcDebug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/firstAbcSecondAbc/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createFirstAbcSecondAbcDebugVariantModel
-                    File                          : <ROOT>/app/build/intermediates/variant_model/firstAbcSecondAbcDebug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileFirstAbcSecondAbcDebugAndroidTestSources

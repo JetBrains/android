@@ -15,23 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_ADJUST_VIEW_BOUNDS;
-import static com.android.SdkConstants.ATTR_BACKGROUND;
-import static com.android.SdkConstants.ATTR_BACKGROUND_TINT;
-import static com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION;
-import static com.android.SdkConstants.ATTR_CROP_TO_PADDING;
-import static com.android.SdkConstants.ATTR_ELEVATION;
-import static com.android.SdkConstants.ATTR_ON_CLICK;
-import static com.android.SdkConstants.ATTR_SCALE_TYPE;
-import static com.android.SdkConstants.ATTR_SRC;
-import static com.android.SdkConstants.ATTR_STYLE;
-import static com.android.SdkConstants.ATTR_TINT;
-import static com.android.SdkConstants.ATTR_VISIBILITY;
-import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
-
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <ImageButton>} widget

@@ -73,4 +73,54 @@ class AgpVersionsTest {
     assertThat(AgpVersions.latestKnown).isEqualTo(higherThanCurrent)
   }
 
+  @Test
+  fun `test get new project wizard versions`() {
+    val availableVersions = listOf(
+      "3.1.0", // Older than latest supported should be omitted
+      "3.2.0",
+      // Skip a few
+      "7.3.3",
+      "7.4.0", "7.4.1", "7.4.2",
+      "8.1.0", "8.1.1", "8.1.2",
+      "8.2.0-alpha01", "8.2.0-alpha09", "8.2.0-beta01", "8.2.0-beta02",
+      "8.3.0-alpha01", "8.3.0-alpha02"
+    ).map { AgpVersion.parse(it) }.toSet()
+    assertThat(AgpVersions.getNewProjectWizardVersions(
+      latestKnown = AgpVersion.parse("8.3.0-dev"),
+      availableVersions = availableVersions
+    ).map { it.toString() })
+      .containsExactly("8.3.0-alpha02", "8.2.0-beta02", "8.1.2", "8.1.1", "8.1.0", "7.4.2", "7.4.1", "7.4.0", "7.3.3", "3.2.0")
+      .inOrder()
+
+    assertThat(AgpVersions.getNewProjectWizardVersions(
+      latestKnown = AgpVersion.parse("8.3.0-alpha01"),
+      availableVersions = availableVersions
+    ).map { it.toString() })
+      .containsExactly("8.3.0-alpha01", "8.1.2", "8.1.1", "8.1.0", "7.4.2", "7.4.1", "7.4.0", "7.3.3", "3.2.0")
+      .inOrder()
+  }
+
+
+  @Test
+  fun `test get new project wizard versions with dev available`() {
+    val availableVersions = listOf(
+      "8.1.2",
+      "8.2.0-beta01", "8.2.0-beta02", "8.2.0-dev", // Incompatible dev version is ignored
+      "8.3.0-alpha01", "8.3.0-alpha02", "8.3.0-dev",
+    ).map { AgpVersion.parse(it) }.toSet()
+    assertThat(AgpVersions.getNewProjectWizardVersions(
+      latestKnown = AgpVersion.parse("8.3.0-dev"),
+      availableVersions = availableVersions
+    ).map { it.toString() })
+      .containsExactly("8.3.0-dev", "8.3.0-alpha02", "8.2.0-beta02", "8.1.2")
+      .inOrder()
+
+    assertThat(AgpVersions.getNewProjectWizardVersions(
+      latestKnown = AgpVersion.parse("8.3.0-alpha01"),
+      availableVersions = availableVersions
+    ).map { it.toString() })
+      .containsExactly("8.3.0-dev", "8.3.0-alpha01", "8.1.2")
+      .inOrder()
+  }
+
 }

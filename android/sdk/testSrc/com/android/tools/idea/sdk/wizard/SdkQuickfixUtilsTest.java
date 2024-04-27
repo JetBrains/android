@@ -21,10 +21,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoManager;
@@ -34,39 +36,50 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.file.InMemoryFileSystems;
+import com.android.tools.adtui.swing.HeadlessDialogRule;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
+import com.intellij.util.ui.UIUtil;
 import java.nio.file.Path;
 import java.util.Collections;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 
 /**
  * Tests for {@link SdkQuickfixUtils}.
  */
 public class SdkQuickfixUtilsTest {
-  @Rule
   public AndroidProjectRule androidProjectRule = AndroidProjectRule.withSdk();
   @Rule
-  public EdtRule edtRule = new EdtRule();
+  public RuleChain ruleChain = RuleChain.outerRule(androidProjectRule).around(new EdtRule()).around(new HeadlessDialogRule());
 
   RepoManager myRepoManager;
   AndroidSdkHandler mySdkHandler;
+  RepositoryPackages myPackages;
+
   private final Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
 
   @Before
   public void setUp() throws Exception {
-    RepositoryPackages packages = new RepositoryPackages();
-    myRepoManager = spy(new FakeRepoManager(sdkRoot, packages));
+    myPackages = new RepositoryPackages();
+    myRepoManager = spy(new FakeRepoManager(sdkRoot, myPackages));
     mySdkHandler = new AndroidSdkHandler(sdkRoot, sdkRoot.getRoot().resolve("avd"), myRepoManager);
     assertNotNull(mySdkHandler);
     FakeProgressIndicator progress = new FakeProgressIndicator();
     assertSame(myRepoManager, mySdkHandler.getSdkManager(progress));
+
+    AndroidSdkData data = mock(AndroidSdkData.class);
+    when(data.getSdkHandler()).thenReturn(mySdkHandler);
+    AndroidSdks.getInstance().setSdkData(data);
   }
 
   @Test
@@ -102,7 +115,8 @@ public class SdkQuickfixUtilsTest {
                                                              Collections.emptyList(), ImmutableList.of(localPackage), mySdkHandler,
                                                              null, false);
     assertNotNull(dialog);
-    Disposer.register(androidProjectRule.getTestRootDisposable(), dialog.getDisposable());
+    dialog.close(DialogWrapper.CANCEL_EXIT_CODE);
+    UIUtil.dispatchAllInvocationEvents();
     // We're fine with non-zero cache expiration values, as those inherently optimize the redundant downloads.
     // One such call is currently made from the wizard, which starts SDK installation once built - we will accept that.
     verify(myRepoManager, never()).loadSynchronously(eq(0), any(), any(), any(), any(), any(), any());
@@ -124,5 +138,32 @@ public class SdkQuickfixUtilsTest {
     verify(myRepoManager, never()).loadSynchronously(eq(0), any(), any(), any(), any(), any(), any());
     verify(myRepoManager, times(1)).loadSynchronously(eq(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS), any(), any(), any(), any(),
                                          any(), any());
+  }
+
+  @Test
+  public void testCheckPathIsAvailableForDownload() {
+    myPackages.setLocalPkgInfos(ImmutableList.of());
+    myPackages.setRemotePkgInfos(ImmutableList.of());
+    myRepoManager.markInvalid();
+
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;localonly;package")).isFalse();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;remoteonly;package")).isFalse();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;localandremote;package")).isFalse();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;missing;package")).isFalse();
+
+    myPackages.setLocalPkgInfos(ImmutableList.of(
+      new FakePackage.FakeLocalPackage("some;localonly;package"),
+      new FakePackage.FakeLocalPackage("some;localandremote;package")
+    ));
+    myPackages.setRemotePkgInfos(ImmutableList.of(
+      new FakePackage.FakeRemotePackage("some;remoteonly;package"),
+      new FakePackage.FakeRemotePackage("some;localandremote;package")
+    ));
+    myRepoManager.markInvalid();
+
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;localonly;package")).isFalse();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;remoteonly;package")).isTrue();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;localandremote;package")).isTrue();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;missing;package")).isFalse();
   }
 }

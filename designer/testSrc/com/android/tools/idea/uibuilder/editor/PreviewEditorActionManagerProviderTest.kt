@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.editor
 
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFileType
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.android.tools.idea.uibuilder.type.AnimationListFileType
-import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import kotlin.test.assertNotNull
 
 val ANIMATION_TYPES =
   listOf(
@@ -43,16 +41,15 @@ class PreviewEditorActionManagerProviderTest {
   @Test
   fun noSceneViewContextToolbarForAllAnimations() {
     val surface = Mockito.mock(NlDesignSurface::class.java)
-    val sceneView = Mockito.mock(SceneView::class.java)
     for (type in ANIMATION_TYPES) {
       val actionProvider = PreviewEditorActionManagerProvider(surface, type)
-      assertNull(actionProvider.getSceneViewContextToolbar(sceneView))
+      assertTrue(actionProvider.sceneViewContextToolbarActions.isEmpty())
     }
 
     val nonAnimationTypes = DESIGNER_PREVIEW_FILE_TYPES - ANIMATION_TYPES
     for (type in nonAnimationTypes) {
       val actionProvider = PreviewEditorActionManagerProvider(surface, type)
-      assertNotNull(actionProvider.getSceneViewContextToolbar(sceneView))
+      assertTrue(actionProvider.sceneViewContextToolbarActions.isNotEmpty())
     }
   }
 }

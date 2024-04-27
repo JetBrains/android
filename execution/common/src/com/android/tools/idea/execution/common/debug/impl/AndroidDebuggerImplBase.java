@@ -20,16 +20,8 @@ import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.impl.DebuggerSession;
-import com.intellij.execution.Executor;
-import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.execution.ui.RunContentManager;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.ui.content.Content;
+import com.intellij.xdebugger.XDebugSession;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,38 +33,16 @@ public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> im
   }
 
   @Nullable
-  protected static DebuggerSession findJdwpDebuggerSession(@NotNull Project project, @NotNull String debugPort) {
+  protected static XDebugSession findJdwpDebuggerSession(@NotNull Project project, @NotNull Client client) {
+    String debugPort = getClientDebugPort(client);
     for (DebuggerSession session : DebuggerManagerEx.getInstanceEx(project).getSessions()) {
       if (debugPort.equals(session.getProcess().getConnection().getDebuggerAddress().trim())) {
-        return session;
+        return session.getXDebugSession();
       }
     }
     return null;
   }
 
-  protected static boolean activateDebugSessionWindow(@NotNull Project project, @NotNull RunContentDescriptor descriptor) {
-    final ProcessHandler processHandler = descriptor.getProcessHandler();
-    final Content content = descriptor.getAttachedContent();
-
-    if (processHandler == null || content == null) {
-      return false;
-    }
-
-    final Executor executor = DefaultDebugExecutor.getDebugExecutorInstance();
-
-    boolean processTerminated = processHandler.isProcessTerminated();
-    ApplicationManager.getApplication().invokeLater(() -> {
-      if (processTerminated) {
-        RunContentManager.getInstance(project).removeRunContent(executor, descriptor);
-      } else {
-        // Switch to the debug tab associated with the existing debug session, and open the debug tool window.
-        content.getManager().setSelectedContent(content);
-        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(executor.getToolWindowId());
-        window.activate(null, false, true);
-      }
-    });
-    return !processTerminated;
-  }
 
   @Override
   public boolean shouldBeDefault() {

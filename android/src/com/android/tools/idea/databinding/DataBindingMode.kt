@@ -23,7 +23,7 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * The class that holds the state of support for data binding in the project.
  */
-enum class DataBindingMode(
+enum class DataBindingMode constructor(
   /**
    * The default package name for data binding library
    */

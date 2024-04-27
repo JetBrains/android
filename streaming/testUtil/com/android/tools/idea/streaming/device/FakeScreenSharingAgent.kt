@@ -21,16 +21,22 @@ import com.android.fakeadbserver.ShellV2Protocol
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.DisplayDescriptor
+import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.interpolate
+import com.android.tools.idea.streaming.core.putUInt
 import com.android.tools.idea.streaming.core.rotatedByQuadrants
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.Strings.nullize
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
+import it.unimi.dsi.fastutil.ints.Int2ObjectFunction
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -114,9 +120,25 @@ class FakeScreenSharingAgent(
   private val agentsScope = CoroutineScope(singleThreadedDispatcher + Job())
   private var startTime = 0L
 
-  private val displayId = PRIMARY_DISPLAY_ID
+  private var videoChannel: SuspendingSocketChannel? = null
   private var controller: Controller? = null
-  private var displayStreamer: DisplayStreamer? = null
+  private val displayStreamers = Int2ObjectOpenHashMap<DisplayStreamer>()
+
+  private val codecName = nullize(StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()) ?: "vp8"
+  private val videoEncoder: AVCodec by lazy {
+    // Use avcodec_find_encoder instead of avcodec_find_encoder_by_name because the names of encoders and decoders don't match.
+    val codecId = when (codecName) {
+      "vp8" -> AV_CODEC_ID_VP8
+      "vp9" -> AV_CODEC_ID_VP9
+      "av01" -> AV_CODEC_ID_AV1
+      "avc" -> AV_CODEC_ID_H264
+      "hevc" -> AV_CODEC_ID_HEVC
+      "vvc" -> AV_CODEC_ID_VVC
+      else -> throw RuntimeException("$codecName encoder not found")
+    }
+
+    avcodec_find_encoder(codecId) ?: throw RuntimeException("$codecName encoder not found")
+  }
 
   private val clipboardInternal = AtomicReference("")
   private val clipboardSynchronizationActive = AtomicBoolean()
@@ -127,7 +149,7 @@ class FakeScreenSharingAgent(
       if (value != oldValue) {
         agentsScope.launch {
           if (clipboardSynchronizationActive.get()) {
-            sendNotification(ClipboardChangedNotification(value))
+            sendNotificationOrResponse(ClipboardChangedNotification(value))
           }
         }
       }
@@ -142,71 +164,98 @@ class FakeScreenSharingAgent(
     private set
   val commandLog = LinkedBlockingDeque<ControlMessage>()
   @Volatile
-  var isRunning = false
+  var isRunning: Boolean = false
     private set
+  val videoStreamActive: Boolean
+      get() = displayStreamers.isNotEmpty()
   @Volatile
-  var frameNumber: Int = 0
-    private set
-  @Volatile
-  var crashOnStart = false
+  var crashOnStart: Boolean = false
   @Volatile
   var startDelayMillis: Long = 0
   @Volatile
-  var videoStreamActive = false
-    private set
-
-  private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
-  private var displayOrientation = 0
-  private var displayOrientationCorrection = 0
-  private var shellProtocol: ShellV2Protocol? = null
-
-  /**
-   * Runs the agent. Returns when the agent terminates.
-   */
-  suspend fun run(protocol: ShellV2Protocol, command: String, hostPort: Int) {
-    withContext(singleThreadedDispatcher) {
-      commandLine = command
-      shellProtocol = protocol
-      commandLog.clear()
-      startTime = System.currentTimeMillis()
-
-      parseArgs(command)
-      val videoChannel = SuspendingSocketChannel.open()
-      val controlChannel = SuspendingSocketChannel.open()
-      ChannelClosingSynchronizer(listOf(videoChannel, controlChannel)).start()
-      val socketAddress = InetSocketAddress("localhost", hostPort)
-      videoChannel.connect(socketAddress)
-      controlChannel.connect(socketAddress)
-      if (crashOnStart) {
-        terminateAgent(139)
-        return@withContext
-      }
-      if (startDelayMillis > 0) {
-        delay(startDelayMillis)
-      }
-      videoChannel.write(ByteBuffer.wrap("V".toByteArray()))
-      controlChannel.write(ByteBuffer.wrap("C".toByteArray()))
-      val displayStreamer = DisplayStreamer(videoChannel)
-      this@FakeScreenSharingAgent.displayStreamer = displayStreamer
-      val controller = Controller(controlChannel)
-      this@FakeScreenSharingAgent.controller = controller
-      displayStreamer.start()
-      deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME")
-      deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")
-      if (startTime == 0L) {
-        // Shutdown has been triggered - abort run.
-        shutdownChannels()
-      }
-      else {
-        isRunning = true
-        try {
-          controller.run()
-        }
-        finally {
-          isRunning = false
+  var bitRate: Int = DEFAULT_BIT_RATE
+    set(value) {
+      field = value
+      agentsScope.launch {
+        for (displayStreamer in displayStreamers.values) {
+          displayStreamer.bitRate = value
         }
       }
     }
+  @Volatile
+  var darkMode = false
+
+  private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
+  private var startVideoStream = false
+  private var deviceOrientation = 0
+  private var displays = listOf(DisplayDescriptor(PRIMARY_DISPLAY_ID, displaySize, 0, DisplayType.INTERNAL))
+
+  private var shellProtocol: ShellV2Protocol? = null
+
+  /** Runs the agent. Returns when the agent terminates. */
+  suspend fun run(protocol: ShellV2Protocol, command: String, hostPort: Int) {
+    withContext(singleThreadedDispatcher) {
+      runInternal(protocol, command, hostPort)
+    }
+  }
+
+  private suspend fun runInternal(protocol: ShellV2Protocol, command: String, hostPort: Int) {
+    commandLine = command
+    shellProtocol = protocol
+    commandLog.clear()
+    startTime = System.currentTimeMillis()
+
+    parseArgs(command)
+    val videoChannel = SuspendingSocketChannel.open()
+    this.videoChannel = videoChannel
+    val controlChannel = SuspendingSocketChannel.open()
+    ChannelClosingSynchronizer(listOf(videoChannel, controlChannel)).start()
+    val socketAddress = InetSocketAddress("localhost", hostPort)
+    videoChannel.connect(socketAddress)
+    controlChannel.connect(socketAddress)
+    if (crashOnStart) {
+      terminateAgent(139)
+      return
+    }
+    if (startDelayMillis > 0) {
+      delay(startDelayMillis)
+    }
+    sendVideoChannelHeader(videoChannel)
+    controlChannel.write(ByteBuffer.wrap("C".toByteArray()))
+    if (startVideoStream) {
+      val displayStreamer = DisplayStreamer(PRIMARY_DISPLAY_ID, maxVideoResolution, true, bitRate, videoChannel)
+      this.displayStreamers.put(displayStreamer.displayId, displayStreamer)
+      displayStreamer.renderDisplay()
+    }
+    val controller = Controller(controlChannel)
+    this.controller = controller
+    deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME")
+    deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")
+    if (startTime == 0L) {
+      // Shutdown has been triggered - abort run.
+      shutdownChannels()
+    }
+    else {
+      isRunning = true
+      try {
+        controller.run()
+      }
+      finally {
+        isRunning = false
+      }
+    }
+  }
+
+  private suspend fun sendVideoChannelHeader(videoChannel: SuspendingSocketChannel) {
+    // Send the channel header with the name of the codec.
+    val header = ByteBuffer.allocate(CHANNEL_HEADER_LENGTH + 1)
+    header.put('V'.code.toByte())
+    header.put(codecName.toByteArray())
+    while (header.hasRemaining()) {
+      header.put(' '.code.toByte())
+    }
+    header.flip()
+    videoChannel.writeFully(header)
   }
 
   /**
@@ -225,10 +274,39 @@ class FakeScreenSharingAgent(
     stop(AGENT_SIGSEGV)
   }
 
+  /** Adds a device display. */
+  fun addDisplay(displayId: Int, width: Int, height: Int, displayType: DisplayType) {
+    executor.execute {
+      if (displays.find { it.displayId == displayId } == null) {
+        displays = (displays + DisplayDescriptor(displayId, width, height, 0, displayType)).sortedBy { it.displayId }
+        sendNotificationOrResponse(DisplayAddedNotification(displayId))
+      }
+      else {
+        thisLogger().error("Display $displayId already exists")
+      }
+    }
+  }
+
+  /** Removes a device display. */
+  fun removeDisplay(displayId: Int) {
+    require(displayId != PRIMARY_DISPLAY_ID)
+    executor.execute {
+      val displayCount = displays.size
+      displays = displays.filter { it.displayId != displayId }
+      if (displays.size != displayCount) {
+        sendNotificationOrResponse(DisplayRemovedNotification(displayId))
+      }
+    }
+  }
+
   suspend fun writeToStderr(message: String) {
     withContext(singleThreadedDispatcher) {
       shellProtocol?.writeStderr(message)
     }
+  }
+
+  fun getFrameNumber(displayId: Int = PRIMARY_DISPLAY_ID): UInt {
+    return displayStreamers[displayId]?.frameNumber ?: 0u
   }
 
   private fun parseArgs(command: String) {
@@ -243,11 +321,11 @@ class FakeScreenSharingAgent(
         }
 
         arg.startsWith("--orientation=") -> {
-          displayOrientation = arg.substring("--orientation=".length).toInt()
+          deviceOrientation = arg.substring("--orientation=".length).toInt()
         }
 
         arg.startsWith("--flags=") -> {
-          videoStreamActive = (arg.substring("--flags=".length).toInt() and START_VIDEO_STREAM) != 0
+          startVideoStream = (arg.substring("--flags=".length).toInt() and START_VIDEO_STREAM) != 0
         }
       }
     }
@@ -289,23 +367,27 @@ class FakeScreenSharingAgent(
       Disposer.dispose(it)
       controller = null
     }
-    displayStreamer?.let {
-      it.shutdown()
-      Disposer.dispose(it)
-      displayStreamer = null
-    }
+    displayStreamers.clear()
   }
 
-  suspend fun renderDisplay(flavor: Int) {
+  suspend fun renderDisplay(displayId: Int) {
     return withContext(singleThreadedDispatcher) {
-      displayStreamer?.renderDisplay(flavor)
+      displayStreamers[displayId]?.renderDisplay()
     }
   }
 
-  suspend fun setDisplayOrientationCorrection(value: Int) {
+  suspend fun renderDisplay(displayId: Int, flavor: Int) {
+    return withContext(singleThreadedDispatcher) {
+      displayStreamers[displayId]?.renderDisplay(flavor)
+    }
+  }
+
+  suspend fun setDisplayOrientationCorrection(displayId: Int, value: Int) {
     withContext(singleThreadedDispatcher) {
-      displayOrientationCorrection = value
-      displayStreamer?.renderDisplay()
+      displayStreamers[displayId]?.apply {
+        displayOrientationCorrection = value
+        renderDisplay()
+      }
     }
   }
 
@@ -356,7 +438,7 @@ class FakeScreenSharingAgent(
     val m = 10
     val w = size.width.toDouble() / n
     val h = size.height.toDouble() / m
-    val colorScheme = COLOR_SCHEMES[displayId]
+    val colorScheme = COLOR_SCHEMES[displayId % COLOR_SCHEMES.size]
     val startColor1 = colorScheme.start1
     val endColor1 = colorScheme.end1
     val startColor2 = colorScheme.start2
@@ -399,22 +481,41 @@ class FakeScreenSharingAgent(
   }
 
   private suspend fun setDeviceOrientation(message: SetDeviceOrientationMessage) {
-    displayOrientation = message.orientation
-    displayStreamer?.renderDisplay()
+    deviceOrientation = message.orientation
+    for (display in displays) {
+      if (display.type == DisplayType.INTERNAL) {
+        displayStreamers[display.displayId]?.renderDisplay()
+      }
+    }
   }
 
   private suspend fun setMaxVideoResolutionMessage(message: SetMaxVideoResolutionMessage) {
-    maxVideoResolution = Dimension(message.width, message.height)
-    displayStreamer?.renderDisplay()
+    if (message.displayId == PRIMARY_DISPLAY_ID) {
+      maxVideoResolution = message.maxVideoSize
+    }
+    val displayStreamer = displayStreamers[message.displayId] ?: return
+    displayStreamer.maxVideoResolution = message.maxVideoSize
+    displayStreamer.renderDisplay()
   }
 
-  private suspend fun startVideoStream() {
-    videoStreamActive = true
-    displayStreamer?.renderDisplay()
+  private suspend fun startVideoStream(message: StartVideoStreamMessage) {
+    val displayId = message.displayId
+    if (displayId == PRIMARY_DISPLAY_ID) {
+      maxVideoResolution = message.maxVideoSize
+    }
+    val display = displays.find { it.displayId == displayId } ?: return
+    val displayStreamer = displayStreamers.computeIfAbsent(
+        displayId,
+        Int2ObjectFunction {
+          dispId -> DisplayStreamer(dispId, message.maxVideoSize, rotatedWithDevice = display.type == DisplayType.INTERNAL,
+                                    bitRate, videoChannel!!)
+        })
+    displayStreamer.renderDisplay()
+    assert(videoStreamActive)
   }
 
-  private fun stopVideoStream() {
-    videoStreamActive = false
+  private fun stopVideoStream(message: StopVideoStreamMessage) {
+    displayStreamers.remove(message.displayId)
   }
 
   private fun startClipboardSync(message: StartClipboardSyncMessage) {
@@ -431,54 +532,51 @@ class FakeScreenSharingAgent(
     if (foldingState?.ordinal != message.state) {
       foldingState = FoldingState.values()[message.state]
       sendDeviceStateNotification()
-      agentsScope.launch { displayStreamer?.renderDisplay() }
+      agentsScope.launch {
+        for (displayStreamer in displayStreamers.values) {
+          displayStreamer.renderDisplay()
+        }
+      }
     }
   }
 
   private fun sendDeviceStateNotification() {
-    sendNotification(DeviceStateNotification(foldingState!!.ordinal))
+    sendNotificationOrResponse(DeviceStateNotification(foldingState!!.ordinal))
   }
 
-  private fun sendNotification(message: ControlMessage) {
-    controller?.sendNotification(message)
+  private fun sendDisplayConfigurations(message: DisplayConfigurationRequest) {
+    sendNotificationOrResponse(DisplayConfigurationResponse(message.requestId, displays.withDeviceOrientation(deviceOrientation)))
   }
 
-  private inner class DisplayStreamer(private val channel: SuspendingSocketChannel) : Disposable {
+  private fun sendUiSettingsResponse(message: UiSettingsRequest) {
+    sendNotificationOrResponse(UiSettingsResponse(message.requestId, darkMode))
+  }
 
-    private val codecName = nullize(StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()) ?: "vp8"
-    private val encoder: AVCodec by lazy {
-      // Use avcodec_find_encoder instead of avcodec_find_encoder_by_name because the names of encoders and decoders don't match.
-      val codecId = when (codecName) {
-        "vp8" -> AV_CODEC_ID_VP8
-        "vp9" -> AV_CODEC_ID_VP9
-        "av01" -> AV_CODEC_ID_AV1
-        "avc" -> AV_CODEC_ID_H264
-        "hevc" -> AV_CODEC_ID_HEVC
-        "vvc" -> AV_CODEC_ID_VVC
-        else -> throw RuntimeException("$codecName encoder not found")
-      }
+  private fun setDarkMode(message: SetDarkModeMessage) {
+    darkMode = message.darkMode
+  }
 
-      avcodec_find_encoder(codecId) ?: throw RuntimeException("$codecName encoder not found")
-    }
-    private val packetHeader = VideoPacketHeader(displaySize, roundDisplay)
+  private fun sendNotificationOrResponse(message: ControlMessage) {
+    controller?.sendNotificationOrResponse(message)
+  }
+
+  private inner class DisplayStreamer(
+    val displayId: Int,
+    var maxVideoResolution: Dimension,
+    private val rotatedWithDevice: Boolean,
+    initialBitRate: Int,
+    private val channel: SuspendingSocketChannel,
+  ) {
+
+    private val packetHeader = VideoPacketHeader(displayId, displaySize, initialBitRate, roundDisplay)
+    var bitRate: Int
+      get() = packetHeader.bitRate
+      set(value) { packetHeader.bitRate = value }
     private var presentationTimestampOffset = 0L
     private var lastImageFlavor: Int = 0
-    @Volatile var stopped = false
-
-    suspend fun start() {
-      // Send the channel header with the name of the codec.
-      val header = ByteBuffer.allocate(CHANNEL_HEADER_LENGTH)
-      header.put(codecName.toByteArray())
-      while (header.hasRemaining()) {
-        header.put(' '.code.toByte())
-      }
-      header.flip()
-      channel.writeFully(header)
-
-      // Send the initial set of frames.
-      lastImageFlavor = 0
-      renderDisplay()
-    }
+    var displayOrientationCorrection: Int = 0
+    @Volatile var frameNumber: UInt = 0u
+      private set
 
     /**
      * Renders display content using the last used image flavor and sends all produced video frames.
@@ -493,24 +591,20 @@ class FakeScreenSharingAgent(
     suspend fun renderDisplay(imageFlavor: Int) {
       lastImageFlavor = imageFlavor
 
-      if (!videoStreamActive) {
-        return
-      }
-
       val size = computeDisplayImageSize()
       val videoSize = Dimension(size.width, size.height.roundUpToMultipleOf8())
-      val encoderContext = avcodec_alloc_context3(encoder)?.apply {
+      val encoderContext = avcodec_alloc_context3(videoEncoder)?.apply {
         bit_rate(8000000L)
         time_base(av_make_q(1, 1000))
         framerate(av_make_q(FRAME_RATE, 1))
         gop_size(2)
         max_b_frames(1)
-        pix_fmt(encoder.pix_fmts().get())
+        pix_fmt(videoEncoder.pix_fmts().get())
         width(videoSize.width)
         height(videoSize.height)
       } ?: throw RuntimeException("Could not allocate encoder context")
 
-      if (avcodec_open2(encoderContext, encoder, null as AVDictionary?) < 0) {
+      if (avcodec_open2(encoderContext, videoEncoder, null as AVDictionary?) < 0) {
         throw RuntimeException("avcodec_open2 failed")
       }
       val encodingFrame = av_frame_alloc().apply {
@@ -525,8 +619,8 @@ class FakeScreenSharingAgent(
         throw RuntimeException("av_frame_make_writable failed")
       }
 
-      val image = drawDisplayImage(size.rotatedByQuadrants(-displayOrientation), imageFlavor, displayId)
-          .rotatedByQuadrants(displayOrientation)
+      val orientation = if (rotatedWithDevice) deviceOrientation else 0
+      val image = drawDisplayImage(size.rotatedByQuadrants(-orientation), imageFlavor, displayId).rotatedByQuadrants(orientation)
 
       val rgbFrame = av_frame_alloc().apply {
         format(AV_PIX_FMT_BGR24)
@@ -600,13 +694,13 @@ class FakeScreenSharingAgent(
         }
         packetHeader.originationTimestampUs = System.currentTimeMillis() * 1000
         packetHeader.displaySize.size = getFoldedDisplaySize()
-        packetHeader.displayOrientation = displayOrientation
+        packetHeader.displayOrientation = deviceOrientation
         packetHeader.displayOrientationCorrection = displayOrientationCorrection
-        packetHeader.frameNumber = (++frameNumber).toLong()
+        packetHeader.frameNumber = ++frameNumber
         val packetSize = packet.size()
         val packetData = packet.data().asByteBufferOfSize(packetSize)
         packetHeader.packetSize = packetSize
-        val buffer = ByteBuffer.allocate(VideoPacketHeader.WIRE_SIZE + packetSize).order(LITTLE_ENDIAN)
+        val buffer = VideoPacketHeader.createBuffer(packetSize)
         packetHeader.serialize(buffer)
         buffer.put(packetData)
         buffer.flip()
@@ -621,30 +715,17 @@ class FakeScreenSharingAgent(
       }
     }
 
-    suspend fun shutdown() {
-      stopped = true
-      if (channel.isOpen) {
-        channel.close()
-      }
-    }
-
-    override fun dispose() {
-      runBlocking {
-        shutdown()
-      }
-    }
-
     private fun computeDisplayImageSize(): Dimension {
       // The same logic as in ComputeVideoSize in display_streamer.cc except for rounding of height.
-      val rotatedDisplaySize = getFoldedDisplaySize().rotatedByQuadrants(displayOrientation)
+      val rotatedDisplaySize = getFoldedDisplaySize().rotatedByQuadrants(deviceOrientation)
       val displayWidth = rotatedDisplaySize.width.toDouble()
       val displayHeight = rotatedDisplaySize.height.toDouble()
-      val maxResolutionWidth = maxVideoResolution.width.coerceAtMost(maxVideoEncoderResolution)
-      val maxResolutionHeight = maxVideoResolution.height.coerceAtMost(maxVideoEncoderResolution)
+      val maxResolutionWidth = min(max(maxVideoResolution.width, rotatedDisplaySize.width / 2), maxVideoEncoderResolution)
+      val maxResolutionHeight = min(max(maxVideoResolution.height, rotatedDisplaySize.height / 2), maxVideoEncoderResolution)
       val scale = max(min(1.0, min(maxResolutionWidth / displayWidth, maxResolutionHeight / displayHeight)),
                       max(MIN_VIDEO_RESOLUTION / displayWidth, MIN_VIDEO_RESOLUTION / displayHeight))
       val width = (displayWidth * scale).roundToInt().roundUpToMultipleOf8()
-      val height = (width * displayHeight / displayWidth).roundToInt()
+      val height = (width * displayHeight / displayWidth).roundToInt().roundUpToMultipleOf2()
       return Dimension(width, height)
     }
 
@@ -658,6 +739,9 @@ class FakeScreenSharingAgent(
     private fun Int.roundUpToMultipleOf8(): Int =
       (this + 7) and 7.inv()
 
+    private fun Int.roundUpToMultipleOf2(): Int =
+      (this + 1) and 1.inv()
+
     private fun BufferedImage.rotatedByQuadrants(quadrants: Int): BufferedImage =
       ImageUtils.rotateByQuadrants(this, quadrants)
 
@@ -665,28 +749,61 @@ class FakeScreenSharingAgent(
       BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()
   }
 
-  private class VideoPacketHeader(val displaySize: Dimension, val roundDisplay: Boolean = false) {
+  private class VideoPacketHeader(val displayId: Int, val displaySize: Dimension, bitRate: Int, val roundDisplay: Boolean = false) {
+
     var displayOrientation: Int = 0
     var displayOrientationCorrection: Int = 0
-    var packetSize: Int = 0
-    var frameNumber: Long = 0
+    var bitRateReduced: Boolean = false
+    var bitRate: Int = bitRate
+      set(value) {
+        if (value < field) {
+          bitRateReduced = true
+        }
+        field = value
+      }
+    var frameNumber: UInt = 0u
     var originationTimestampUs: Long = 0
     var presentationTimestampUs: Long = 0
+    var packetSize: Int = 0
 
     fun serialize(buffer: ByteBuffer) {
+      buffer.putInt(displayId)
       buffer.putInt(displaySize.width)
       buffer.putInt(displaySize.height)
       buffer.put(displayOrientation.toByte())
       buffer.put(displayOrientationCorrection.toByte())
-      buffer.putShort(if (roundDisplay) 1 else 0)
-      buffer.putInt(packetSize)
-      buffer.putLong(frameNumber)
+      buffer.putShort(((if (roundDisplay) FLAG_DISPLAY_ROUND else 0) or (if (bitRateReduced) FLAG_BIT_RATE_REDUCED else 0)).toShort())
+      buffer.putInt(bitRate)
+      buffer.putUInt(frameNumber)
       buffer.putLong(originationTimestampUs)
       buffer.putLong(presentationTimestampUs)
+      buffer.putInt(packetSize)
+
+      bitRateReduced = false
     }
 
     companion object {
-      const val WIRE_SIZE = 4 + 4 + 1 + 1 + 2 + 4 + 8 + 8 + 8
+      fun createBuffer(packetSize: Int): ByteBuffer =
+          ByteBuffer.allocate(WIRE_SIZE + packetSize).order(LITTLE_ENDIAN)
+
+      // Flag definitions from video_packet_header.h.
+      /** Device display is round. */
+      private const val FLAG_DISPLAY_ROUND = 0x01
+      /** Bit rate reduced compared to the previous frame or, for the very first flame, to the initial value. */
+      private const val FLAG_BIT_RATE_REDUCED = 0x02
+
+      private const val WIRE_SIZE =
+          4 + // displayId
+          4 + // width
+          4 + // height
+          1 + // displayOrientation
+          1 + // displayOrientationCorrection
+          2 + // flags
+          4 + // bitRate
+          4 + // frameNumber
+          8 + // originationTimestampUs
+          8 + // presentationTimestampUs
+          4   // packetSize
     }
   }
 
@@ -711,7 +828,7 @@ class FakeScreenSharingAgent(
                 DeviceState{identifier=6, name='FLIPPED', app_accessible=true},
               ]
               """.trimIndent()
-          sendNotification(SupportedDeviceStatesNotification(supportedStates))
+          sendNotificationOrResponse(SupportedDeviceStatesNotification(supportedStates))
           sendDeviceStateNotification()
         }
 
@@ -748,7 +865,7 @@ class FakeScreenSharingAgent(
       }
     }
 
-    fun sendNotification(message: ControlMessage) {
+    fun sendNotificationOrResponse(message: ControlMessage) {
       try {
         message.serialize(codedOutput)
         codedOutput.flush()
@@ -761,11 +878,14 @@ class FakeScreenSharingAgent(
       when (message) {
         is SetDeviceOrientationMessage -> setDeviceOrientation(message)
         is SetMaxVideoResolutionMessage -> setMaxVideoResolutionMessage(message)
-        is StartVideoStreamMessage -> startVideoStream()
-        is StopVideoStreamMessage -> stopVideoStream()
+        is StartVideoStreamMessage -> startVideoStream(message)
+        is StopVideoStreamMessage -> stopVideoStream(message)
         is StartClipboardSyncMessage -> startClipboardSync(message)
         is StopClipboardSyncMessage -> stopClipboardSync()
         is RequestDeviceStateMessage -> requestDeviceState(message)
+        is DisplayConfigurationRequest -> sendDisplayConfigurations(message)
+        is UiSettingsRequest -> sendUiSettingsResponse(message)
+        is SetDarkModeMessage -> setDarkMode(message)
         else -> {}
       }
       commandLog.add(message)
@@ -814,7 +934,7 @@ class FakeScreenSharingAgent(
 
   companion object {
     @JvmStatic
-    val defaultControlMessageFilter = ControlMessageFilter()
+    val defaultControlMessageFilter = ControlMessageFilter(DisplayConfigurationRequest.TYPE)
   }
 }
 
@@ -835,6 +955,14 @@ private fun ByteBuffer.fill(b: Byte, count: Int) {
   }
 }
 
+private fun DisplayDescriptor.withDeviceOrientation(orientation: Int): DisplayDescriptor {
+  return if (type != DisplayType.INTERNAL || orientation == this.orientation) this
+         else DisplayDescriptor(displayId, size, orientation, type)
+}
+
+private fun List<DisplayDescriptor>.withDeviceOrientation(orientation: Int) =
+    map { it.withDeviceOrientation(orientation) }
+
 private class ColorScheme(val start1: Color, val end1: Color, val start2: Color, val end2: Color)
 
 private val COLOR_SCHEMES = listOf(ColorScheme(Color(236, 112, 99), Color(250, 219, 216), Color(212, 230, 241), Color(84, 153, 199)),
@@ -843,6 +971,7 @@ private val COLOR_SCHEMES = listOf(ColorScheme(Color(236, 112, 99), Color(250, 2
                                    ColorScheme(Color(181, 99, 236), Color(236, 216, 250), Color(215, 241, 212), Color(95, 199, 84)))
 
 private const val FRAME_RATE = 60
+private const val DEFAULT_BIT_RATE = 10000000
 private const val CHANNEL_HEADER_LENGTH = 20
 private const val CONTROL_MSG_BUFFER_SIZE = 4096
 private const val MIN_VIDEO_RESOLUTION = 128.0

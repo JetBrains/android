@@ -389,7 +389,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       // using comments on import or package statements
       return findJavaAnnotationTarget(element)
         ?: element.getParentOfType<PsiImportStatementBase>(false)
-          ?: element.getParentOfType<PsiPackageStatement>(false)
+        ?: element.getParentOfType<PsiPackageStatement>(false)
     }
 
     private fun PsiElement.isKotlinScript(): Boolean {

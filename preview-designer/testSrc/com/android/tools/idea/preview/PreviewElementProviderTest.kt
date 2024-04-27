@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.util.SimpleModificationTracker
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert

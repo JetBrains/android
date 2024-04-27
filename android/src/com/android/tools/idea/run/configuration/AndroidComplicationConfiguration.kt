@@ -17,14 +17,15 @@ package com.android.tools.idea.run.configuration
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.deployer.model.component.Complication
-import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AppRunSettings
-import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.editors.AndroidComplicationConfigurationEditor
 import com.android.tools.idea.run.configuration.execution.AndroidComplicationConfigurationExecutor
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.ApplicationDeployer
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.configuration.execution.ComplicationLaunchOptions
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
@@ -88,8 +89,11 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
                            appRunSettings: AppRunSettings,
                            applicationIdProvider: ApplicationIdProvider,
                            apkProvider: ApkProvider,
-                           deployer: ApplicationDeployer
+                           applicationContext: ApplicationProjectContext,
+                           deployer: ApplicationDeployer,
   ): AndroidConfigurationExecutor {
-    return AndroidComplicationConfigurationExecutor(environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider, deployer)
+    return AndroidComplicationConfigurationExecutor(
+      environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider, applicationContext,
+      deployer)
   }
 }

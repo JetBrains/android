@@ -97,7 +97,7 @@ class OverlapAnalyzerTest : LayoutTestCase() {
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
     val issues = OverlapAnalyzer.findIssues(renderResult, model)
     assertEquals(1, issues.size)
-    assertEquals("text_view <TextView> is covered by <ImageView>", issues[0].message)
+    assertEquals("text_view <TextView> is covered by ImageView", issues[0].message)
   }
 
   fun testTextShownElevation() {

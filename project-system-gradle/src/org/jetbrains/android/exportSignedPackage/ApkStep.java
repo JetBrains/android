@@ -27,11 +27,11 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -103,19 +103,23 @@ class ApkStep extends ExportSignedPackageWizardStep {
       }
     });
 
-    myContentPanel.setPreferredSize(new Dimension(myContentPanel.getPreferredSize().width, JBUIScale.scale(250)));
+    myContentPanel.setPreferredSize(new Dimension(myContentPanel.getPreferredSize().width, JBUI.scale(250)));
   }
 
   @Override
   public void _init() {
     if (myInited) return;
-    final AndroidFacet facet = myWizard.getFacet();
+    _init(myWizard.getFacet());
+  }
+
+  @VisibleForTesting
+  void _init(AndroidFacet facet) {
     Module module = facet.getModule();
 
     PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
     String initialApkPath = getInitialPath(properties, module);
     if (!isNullOrEmpty(initialApkPath)) {
-      myApkPathField.setText(FileUtilRt.toSystemDependentName(initialApkPath));
+      myApkPathField.setText(FileUtil.toSystemDependentName(initialApkPath));
     }
     final String runProguardPropValue = properties.getValue(RUN_PROGUARD_PROPERTY);
     boolean selected;
@@ -210,7 +214,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
   @Override
   public void _commit(boolean finishChosen) throws CommitStepException {
-    final String apkPath = myApkPathField.getText().trim();
+    final String apkPath = myApkPathField.getText().stripLeading();
     if (apkPath.isEmpty()) {
       throw new CommitStepException(AndroidBundle.message("android.extract.package.specify.apk.path.error"));
     }

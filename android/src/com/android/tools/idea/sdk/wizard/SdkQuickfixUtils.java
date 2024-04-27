@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk.wizard;
 
 import static org.jetbrains.android.util.AndroidBundle.message;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.ProgressIndicatorAdapter;
@@ -35,7 +36,6 @@ import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
-import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.HtmlBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -43,6 +43,7 @@ import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -58,6 +59,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -291,6 +293,30 @@ public final class SdkQuickfixUtils {
         unavailableDownloads.add(p);
       }
     }
+  }
+
+  /**
+   * Checks whether a given package path is available for download.
+   *
+   * @param path The package path to check, corresponding to {@link RepoPackage#getPath()}.
+   */
+  @Slow
+  public static boolean checkPathIsAvailableForDownload(String path) {
+    // Loading the manager below can require waiting for something on the EDT. If this code has a read lock, this can result in deadlock.
+    ApplicationManager.getApplication().assertReadAccessNotAllowed();
+
+    RepoManager mgr = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(REPO_LOGGER);
+    mgr.loadSynchronously(
+      RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+      null,
+      null,
+      null,
+      new StudioProgressRunner(false, false, "Finding Available SDK Components", null),
+      new StudioDownloader(),
+      StudioSettingsController.getInstance());
+    RepositoryPackages packages = mgr.getPackages();
+
+    return packages.getRemotePackages().containsKey(path);
   }
 
   /**

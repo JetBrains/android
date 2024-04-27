@@ -5,8 +5,14 @@ import static com.android.tools.idea.rendering.classloading.ReflectionUtilKt.fin
 import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PACKAGE;
 
 import com.android.layoutlib.reflection.TrackingThreadLocal;
+import com.android.tools.idea.rendering.StudioModuleRenderContext;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.classloading.ClassBinaryCache;
+import com.android.tools.rendering.classloading.ClassBinaryCacheManager;
+import com.android.tools.rendering.classloading.ModuleClassLoader;
+import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsRead;
+import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrite;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransform;
 import com.android.tools.idea.rendering.classloading.FilteringClassLoader;
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader;
@@ -21,24 +27,15 @@ import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransfor
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.rendering.classloading.ViewTreeLifecycleTransform;
-import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader;
 import com.android.tools.rendering.ModuleRenderContext;
-import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.classloading.ClassTransform;
-import com.android.tools.rendering.classloading.ModuleClassLoader;
-import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsRead;
-import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrite;
 import com.android.tools.rendering.classloading.UtilKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.WeakReferenceDisposableWrapper;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -47,6 +44,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -55,8 +53,6 @@ import java.util.function.Supplier;
 import org.jetbrains.android.uipreview.classloading.LibraryResourceClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Render class loader responsible for loading classes in custom views and local and library classes
@@ -206,7 +202,10 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     myParentAtConstruction = parent;
     myImpl = loader;
     myModuleReference = new WeakReference<>(renderContext.getModule());
-    Disposer.register(renderContext.getModule(), new WeakReferenceDisposableWrapper(this::dispose));
+    Module module = renderContext.getModule();
+    if (module != null) {
+      Disposer.tryRegister(module, new WeakReferenceDisposableWrapper(this::dispose));
+    }
     // Extracting the provider into a variable to avoid the lambda capturing a reference to renderContext
     myPsiFileProvider = renderContext.getFileProvider();
     myDiagnostics = diagnostics;
@@ -215,24 +214,6 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   @Override
   public boolean hasLoadedClass(@NotNull String fqcn) {
     return getProjectLoadedClasses().contains(fqcn) || getNonProjectLoadedClasses().contains(fqcn);
-  }
-
-  @NotNull
-  private static ProjectSystemClassLoader createDefaultProjectSystemClassLoader(
-    @NotNull Module theModule, @NotNull Supplier<PsiFile> psiFileProvider
-  ) {
-    WeakReference<Module> moduleRef = new WeakReference<>(theModule);
-    return new ProjectSystemClassLoader((fqcn) -> {
-      Module module = moduleRef.get();
-      if (module == null || module.isDisposed()) return null;
-
-      PsiFile psiFile = psiFileProvider.get();
-      VirtualFile virtualFile = psiFile != null ? psiFile.getVirtualFile() : null;
-
-      return ProjectSystemUtil.getModuleSystem(module)
-        .getClassFileFinderForSourceFile(virtualFile)
-        .findClassFile(fqcn);
-    });
   }
 
   private StudioModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
@@ -245,7 +226,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
       renderContext,
       new ModuleClassLoaderImpl(
         renderContext.getModule(),
-        createDefaultProjectSystemClassLoader(renderContext.getModule(), renderContext.getFileProvider()),
+        renderContext.createInjectableClassLoaderLoader(),
         parent,
         projectTransformations,
         nonProjectTransformations,
@@ -287,7 +268,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     Module module = getModule();
     if (module == null) return true;
 
-    List<Path> currentlyLoadedLibraries = myImpl.getExternalLibraries();
+    Set<Path> currentlyLoadedLibraries = new HashSet<>(myImpl.getExternalLibraries());
     List<Path> moduleLibraries = ModuleClassLoaderUtil.getExternalLibraries(module);
 
     return currentlyLoadedLibraries.size() == moduleLibraries.size() &&
@@ -295,26 +276,12 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   }
 
   /**
-   * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
-   * This method just provides the non-cached version of {@link #isUserCodeUpToDate}. {@link #isUserCodeUpToDate} will cache
-   * the result of this call until a PSI modification happens.
-   */
-  @VisibleForTesting
-  boolean isUserCodeUpToDateNonCached() { return ModuleClassLoaderUtil.isUserCodeUpToDate(myImpl); }
-
-  /**
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader. Always returns
    * false if there has not been any PSI changes.
    */
   @Override
   public boolean isUserCodeUpToDate() {
-    Module module = getModule();
-    if (module == null) return true;
-    // Cache the result of isUserCodeUpToDateNonCached until any PSI modifications have happened.
-    return CachedValuesManager.getManager(module.getProject()).getCachedValue(myImpl, () ->
-      CachedValueProvider.Result.create(isUserCodeUpToDateNonCached(),
-                                        PsiModificationTracker.MODIFICATION_COUNT,
-                                        ModuleClassLoaderOverlays.getInstance(module)));
+    return myImpl.isUserCodeUpToDate(getModule());
   }
 
   @Override
@@ -330,10 +297,6 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     // The ModuleClassLoader overrides getResources to allow user code to access resources that are part of the libraries.
     // Instead of loading from the plugin class loader, we redirect the request to load it from the project libraries.
     return myImpl.getResource(name);
-  }
-
-  public boolean isClassLoaded(@NotNull String className) {
-    return findLoadedClass(className) != null;
   }
 
   @Override
@@ -366,23 +329,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   @Nullable
   public ModuleRenderContext getModuleContext() {
     Module module = getModule();
-    return module == null ? null : ModuleRenderContext.forFile(() -> module, myPsiFileProvider);
-  }
-
-  /**
-   * Injects the given file with the passed fqcn so it looks like loaded from the project. Only for testing.
-   */
-  @TestOnly
-  void injectProjectClassFile(@NotNull String fqcn, @NotNull VirtualFile file) {
-    myImpl.injectProjectClassFile(fqcn, file);
-  }
-
-  /**
-   * Injects the given [fqcn] as if it had been loaded by the overlay loader. Only for testing.
-   */
-  @TestOnly
-  void injectProjectOvelaryLoadedClass(@NotNull String fqcn) {
-    myImpl.injectProjectOvelaryLoadedClass(fqcn);
+    return module == null ? null : StudioModuleRenderContext.forFile(module, myPsiFileProvider);
   }
 
   /**

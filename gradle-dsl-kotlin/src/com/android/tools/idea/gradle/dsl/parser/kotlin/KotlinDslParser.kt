@@ -287,7 +287,7 @@ class KotlinDslParser(
       val propertiesElement = methodCallBlock(expression, parent, name) ?: getPropertiesElement(listOf(referenceName), parent, name) ?: return
       val body = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
 
-      propertiesElement.psiElement = body ?: expression
+      propertiesElement.setPsiElement(body ?: expression)
       if (body == null && propertiesElement is GradleDslBlockElement) {
         propertiesElement.hasBraces = false
       }
@@ -359,7 +359,8 @@ class KotlinDslParser(
     expression: KtDotQualifiedExpression
   ) : GradleDslExpression? {
     val receiver = expression.receiverExpression
-    when (val selector = expression.selectorExpression) {
+    val selector = expression.selectorExpression
+    when (selector) {
       is KtCallExpression -> {
         // Check if this is about a localMethod used for blocks referencing, or not.
         val referenceName = selector.name()

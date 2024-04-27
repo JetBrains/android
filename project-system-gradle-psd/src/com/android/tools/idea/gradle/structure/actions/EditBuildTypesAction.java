@@ -25,6 +25,9 @@ import org.jetbrains.annotations.NotNull;
  * Action that allows users to edit build types for the selected module, if the module is an Android Gradle module.
  */
 public class EditBuildTypesAction extends AbstractProjectStructureAction {
+  public EditBuildTypesAction() {
+    super("Edit Build Types...");
+  }
 
   @Override
   protected Module getTargetModule(@NotNull AnActionEvent e) {

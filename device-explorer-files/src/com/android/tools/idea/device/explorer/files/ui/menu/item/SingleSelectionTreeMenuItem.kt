@@ -22,7 +22,7 @@ import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionL
  * A [TreeMenuItem] that is active only for single element selections
  */
 
-abstract class SingleSelectionTreeMenuItem(listener: DeviceFileExplorerActionListener) : TreeMenuItem(listener) {
+abstract class SingleSelectionTreeMenuItem(listener: DeviceFileExplorerActionListener) : NonToggleMenuItem(listener) {
   override fun isEnabled(nodes: List<DeviceFileEntryNode>): Boolean =
     super.isEnabled(nodes) && nodes.size == 1
 

@@ -64,8 +64,11 @@ class AndroidSqlFakePsiElement(
   val typeDescription: String?
 ) : FakePsiElement() {
   override fun getParent() = query
+
   override fun canNavigate(): Boolean = false
+
   override fun getContainingFile(): PsiFile? = null
+
   override fun getName(): String = _name
 }
 
@@ -97,8 +100,10 @@ fun SqliteTable.convertToSqlTable(query: PsiFile): AndroidSqlTable {
 
     override val isView: Boolean
       get() = isView
+
     override val name: String
       get() = tableName
+
     override val definingElement = AndroidSqlFakePsiElement(query, name, "")
   }
 }

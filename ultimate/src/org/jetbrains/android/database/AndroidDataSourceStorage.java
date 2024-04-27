@@ -2,7 +2,7 @@
 package org.jetbrains.android.database;
 
 import com.intellij.database.Dbms;
-import com.intellij.database.util.DbImplUtilCore;
+import com.intellij.database.util.DbImplUtil;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SmartList;
@@ -52,7 +52,7 @@ public class AndroidDataSourceStorage implements PersistentStateComponent<Androi
   }
 
   public void addDataSource(AndroidDataSource dataSource) {
-    dataSource.setDatabaseDriver(DbImplUtilCore.guessDatabaseDriver(Dbms.SQLITE));
+    dataSource.setDatabaseDriver(DbImplUtil.guessDatabaseDriver(Dbms.SQLITE));
     myDataSources.add(dataSource);
   }
 

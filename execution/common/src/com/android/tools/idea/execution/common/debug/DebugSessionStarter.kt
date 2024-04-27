@@ -22,23 +22,21 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.execution.common.AndroidSessionInfo
-import com.android.tools.idea.execution.common.debug.utils.showError
 import com.android.tools.idea.execution.common.debug.utils.waitForClientReadyForDebug
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.Companion.getApplicationProjectContext
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.ExecutionTargetManager
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.indicatorRunBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
@@ -59,7 +57,7 @@ object DebugSessionStarter {
    */
   suspend fun <S : AndroidDebuggerState> attachDebuggerToStartedProcess(
     device: IDevice,
-    appId: String,
+    applicationContext: ApplicationProjectContext,
     environment: ExecutionEnvironment,
     androidDebugger: AndroidDebugger<S>,
     androidDebuggerState: S,
@@ -68,10 +66,12 @@ object DebugSessionStarter {
     consoleView: ConsoleView? = null,
     timeout: Long = 15
   ): XDebugSessionImpl = RunStats.from(environment).track(START_DEBUGGER_SESSION) {
-    val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
+    val client = waitForClientReadyForDebug(device, listOf(applicationContext.applicationId), timeout, indicator)
 
     val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
-      environment.project, client,
+      environment.project,
+      client,
+      applicationContext,
       androidDebuggerState,
       consoleView
     )
@@ -88,18 +88,13 @@ object DebugSessionStarter {
         super.processTerminated(event)
       }
     })
-    val executor = environment.executor
-    AndroidSessionInfo.create(
-      debugProcessHandler,
-      environment.runProfile as? RunConfiguration,
-      environment.executionTarget
-    )
+    AndroidSessionInfo.create(debugProcessHandler, listOf(device), applicationContext.applicationId)
     session
   }
 
   suspend fun <S : AndroidDebuggerState> attachReattachingDebuggerToStartedProcess(
     device: IDevice,
-    appId: String,
+    applicationContext: ApplicationProjectContext,
     masterProcessName: String,
     environment: ExecutionEnvironment,
     androidDebugger: AndroidDebugger<S>,
@@ -115,7 +110,7 @@ object DebugSessionStarter {
     )
     masterProcessHandler.addTargetDevice(device)
     return attachReattachingDebuggerToStartedProcess(
-      device, appId, masterProcessHandler, environment, androidDebugger,
+      device, applicationContext, masterProcessHandler, environment, androidDebugger,
       androidDebuggerState, indicator, consoleView, timeout
     )
   }
@@ -127,7 +122,7 @@ object DebugSessionStarter {
    */
   suspend fun <S : AndroidDebuggerState> attachReattachingDebuggerToStartedProcess(
     device: IDevice,
-    appId: String,
+    applicationContext: ApplicationProjectContext,
     masterProcessHandler: ProcessHandler,
     environment: ExecutionEnvironment,
     androidDebugger: AndroidDebugger<S>,
@@ -136,9 +131,11 @@ object DebugSessionStarter {
     consoleView: ConsoleView? = null,
     timeout: Long = 300
   ): XDebugSessionImpl = RunStats.from(environment).track(START_REATTACHING_DEBUGGER_SESSION) {
-    val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
+    val client = waitForClientReadyForDebug(device, listOf(applicationContext.applicationId), timeout, indicator)
     val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
-      environment.project, client,
+      environment.project,
+      client,
+      applicationContext,
       androidDebuggerState,
       consoleView
     )
@@ -146,7 +143,7 @@ object DebugSessionStarter {
     val reattachingProcessHandler = ReattachingProcessHandler(masterProcessHandler)
 
     val reattachingListener = ReattachingDebuggerListener(
-      environment.project, masterProcessHandler, appId,
+      environment.project, masterProcessHandler, applicationContext,
       androidDebugger, androidDebuggerState, consoleView, environment,
       reattachingProcessHandler
     )
@@ -174,12 +171,7 @@ object DebugSessionStarter {
       reattachingProcessHandler.subscribeOnDebugProcess(debugProcessHandler)
       session.runContentDescriptor.processHandler = reattachingProcessHandler
 
-      val executor = environment.executor
-      AndroidSessionInfo.create(
-        masterProcessHandler,
-        environment.runProfile as? RunConfiguration,
-        environment.executionTarget
-      )
+      AndroidSessionInfo.create(debugProcessHandler, listOf(device), applicationContext.applicationId)
       session as XDebugSessionImpl
     }
   }
@@ -189,35 +181,23 @@ object DebugSessionStarter {
    * Starts a new Debugging session for [client] and opens a tab with in Debug tool window.
    */
   @WorkerThread
-  @JvmOverloads
-  fun <S : AndroidDebuggerState> attachDebuggerToClientAndShowTab(
+  @Throws(ExecutionException::class)
+  suspend fun <S : AndroidDebuggerState> attachDebuggerToClientAndShowTab(
     project: Project,
     client: Client,
     androidDebugger: AndroidDebugger<S>,
-    androidDebuggerState: S,
-    indicator: ProgressIndicator = EmptyProgressIndicator()
-  ): XDebugSession = indicatorRunBlockingCancellable(indicator) {
+    androidDebuggerState: S
+  ): XDebugSession {
     val sessionName = "${androidDebugger.displayName} (${client.clientData.pid})"
-    try {
-      val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, androidDebuggerState)
+    val applicationContext = project.getProjectSystem().getApplicationProjectContext(client)
+      ?: throw ExecutionException("Cannot obtain RunningApplicationContext for client: $client")
+    val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, applicationContext, androidDebuggerState)
 
-      val session = withContext(uiThread) {
-        XDebuggerManager.getInstance(project).startSessionAndShowTab(sessionName, StudioIcons.Common.ANDROID_HEAD, null, false, starter)
-      }
-      val debugProcessHandler = session.debugProcess.processHandler
-      AndroidSessionInfo.create(
-        debugProcessHandler,
-        null,
-        ExecutionTargetManager.getActiveTarget(project)
-      )
-      session
-    } catch (e: Exception) {
-      if (e is ExecutionException) {
-        showError(project, e, sessionName)
-      } else {
-        LOG.error(e)
-      }
-      throw e
+    val session = withContext(uiThread) {
+      XDebuggerManager.getInstance(project).startSessionAndShowTab(sessionName, StudioIcons.Common.ANDROID_HEAD, null, false, starter)
     }
+    val debugProcessHandler = session.debugProcess.processHandler
+    AndroidSessionInfo.create(debugProcessHandler, listOf(client.device), applicationContext.applicationId)
+    return session
   }
 }

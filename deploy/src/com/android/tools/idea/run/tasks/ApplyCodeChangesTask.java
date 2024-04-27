@@ -39,13 +39,15 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
 
   /**
    * Creates a task to deploy a list of apks.
-   * @param project  the project that this task is running within.
-   * @param packages a collection of apks representing the packages this task will deploy.
-   * @param rerunOnSwapFailure rerun the app when swap fails
+   *
+   * @param project             the project that this task is running within.
+   * @param packages            a collection of apks representing the packages this task will deploy.
+   * @param rerunOnSwapFailure  rerun the app when swap fails
+   * @param installPathProvider
    */
   public ApplyCodeChangesTask(
     @NotNull Project project, @NotNull Collection<ApkInfo> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm,
-      Computable<String> installPathProvider) {
+    Computable<String> installPathProvider) {
     super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, installPathProvider);
   }
 
@@ -88,7 +90,7 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
     // TODO: support fallback on R- devices
     ImmutableMap<Integer, ClassRedefiner> debuggerRedefiners = makeDebuggerRedefiners(
       getProject(), device, getFastRerunOnSwapFailure() && deployer.supportsNewPipeline());
-    return deployer.codeSwap(getPathsToInstall(apkInfo), debuggerRedefiners, canceller);
+    return deployer.codeSwap(getAppToInstall(apkInfo), debuggerRedefiners, canceller);
   }
 
   @NotNull

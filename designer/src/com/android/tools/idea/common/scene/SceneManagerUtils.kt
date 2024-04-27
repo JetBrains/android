@@ -17,17 +17,17 @@ package com.android.tools.idea.common.scene
 
 import kotlinx.coroutines.future.await
 
-/** Suspendable equivalent to [SceneManager.requestRenderAsync]. */
-suspend fun SceneManager.render() {
-  requestRenderAsync().await()
-}
-
-/** Suspendable equivalent to [SceneManager.requestLayoutAndRenderAsync]. */
-suspend fun SceneManager.layoutAndRender(animate: Boolean) {
-  requestLayoutAndRenderAsync(animate).await()
-}
-
-/** Suspendable equivalent to [SceneManager.requestLayoutAsync]. */
-suspend fun SceneManager.layout(animate: Boolean) {
-  requestLayoutAsync(animate).await()
+/**
+ * Suspendable equivalent to [SceneManager.requestRenderAsync].
+ *
+ * @param onCompleteCallback callback to be executed if the `CompletionStage` completes normally.
+ */
+suspend fun SceneManager.render(onCompleteCallback: () -> Unit = {}) {
+  requestRenderAsync()
+    .whenComplete { _, throwable ->
+      if (throwable == null) {
+        onCompleteCallback()
+      }
+    }
+    .await()
 }

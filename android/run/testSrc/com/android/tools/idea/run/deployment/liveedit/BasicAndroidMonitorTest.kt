@@ -21,10 +21,12 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.ClientImpl
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
-import com.android.tools.idea.editors.literals.LiveEditService
-import com.android.tools.idea.editors.literals.LiveEditServiceImpl
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditService
+import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -65,7 +67,7 @@ class BasicAndroidMonitorTest {
   private val device: IDevice = MockitoKt.mock()
 
   @get:Rule
-  var projectRule = AndroidProjectRule.inMemory()
+  var projectRule = AndroidProjectRule.onDisk()
 
   @Before
   fun setUp() {
@@ -107,7 +109,7 @@ class BasicAndroidMonitorTest {
   }
 
   @Test
-  fun gradleSyncTest(){
+  fun syncNeededTest() {
     connection.clientChanged(client, Client.CHANGE_NAME)
 
     val editEvent = MockitoKt.mock<EditEvent>()
@@ -122,27 +124,16 @@ class BasicAndroidMonitorTest {
   }
 
   @Test
-  fun gradeTimeSyncTest(){
+  fun userSyncTest() {
     connection.clientChanged(client, Client.CHANGE_NAME)
 
-    val editEvent = MockitoKt.mock<EditEvent>()
     `when`(mySyncState.isSyncNeeded()).thenReturn(ThreeState.NO)
 
+    assertThat(monitor.isGradleSyncNeeded()).isFalse()
 
-    monitor.onPsiChanged(editEvent)
+    project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST).get()
 
-    val status = service.editStatus(device)
-
-    assertThat(status).isEqualTo(LiveEditStatus.UpToDate)
-
-    `when`(mySyncState.lastSyncFinishedTimeStamp).thenReturn(2)
-
-    monitor.onPsiChanged(editEvent)
-
-    val status2 = service.editStatus(device)
-
-    assertThat(status2.unrecoverable()).isTrue()
-    assertThat(status2.description).contains(gradleSyncString)
+    assertThat(monitor.isGradleSyncNeeded()).isTrue()
   }
 
   @Test

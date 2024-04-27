@@ -58,6 +58,7 @@ class ComposeProjectRule(
     RuleChain.outerRule(TestLoggerRule())
       .around(projectRule)
       .around(ComposeProjectRuleImpl(projectRule))
+
   override fun apply(base: Statement, description: Description): Statement =
     delegate.apply(base, description)
 }

@@ -28,5 +28,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

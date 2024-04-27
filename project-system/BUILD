@@ -19,6 +19,7 @@ iml_module(
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 

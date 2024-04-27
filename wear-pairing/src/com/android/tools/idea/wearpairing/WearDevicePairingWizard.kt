@@ -17,6 +17,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -55,13 +56,19 @@ class WearDevicePairingWizard {
         wizardDialog?.close(CANCEL_EXIT_CODE)
 
         if (project == null) {
-          ActionManager.getInstance().getAction("WelcomeScreen.RunDeviceManager").actionPerformed(
+          val actionId =
+            if (StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get()) "WelcomeScreen.RunDeviceManager2"
+            else "WelcomeScreen.RunDeviceManager"
+          ActionManager.getInstance().getAction(actionId).actionPerformed(
             AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null) { null }
           )
         }
         else {
-          // Action id is from com.android.tools.idea.devicemanager.DeviceManagerAction.
-          val deviceManagerAction = ActionManager.getInstance().getAction("Android.DeviceManager")
+          val actionId =
+              if (StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get())
+                "Android.DeviceManager2" // from com.android.tools.idea.devicemanagerv2.DeviceManager2Action
+              else "Android.DeviceManager" // from com.android.tools.idea.devicemanager.DeviceManagerAction
+          val deviceManagerAction = ActionManager.getInstance().getAction(actionId)
           val projectContext = SimpleDataContext.getProjectContext(project)
           ActionUtil.invokeAction(deviceManagerAction, projectContext, ActionPlaces.UNKNOWN, null, null)
         }

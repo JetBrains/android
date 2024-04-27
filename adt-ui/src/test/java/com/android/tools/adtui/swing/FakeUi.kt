@@ -76,7 +76,7 @@ class FakeUi @JvmOverloads constructor(
   init {
     if (root.parent == null && createFakeWindow) {
       val rootPane = root as? JRootPane ?: JRootPane().apply {
-        glassPane = IdeGlassPaneImpl(rootPane = this, installPainters = false)
+        glassPane = IdeGlassPaneImpl(this, false)
         isFocusCycleRoot = true
         bounds = root.bounds
         add(root)
@@ -184,6 +184,9 @@ class FakeUi @JvmOverloads constructor(
 
   fun getPosition(component: Component): Point {
     var comp: Component? = component
+    if (component.width == 0 && component.height == 0) {
+      layout() // The component has zero size. Force layout to give it a chance to acquire non-zero dimensions.
+    }
     var rx = 0
     var ry = 0
     while (comp !== root && comp != null) {
@@ -281,7 +284,8 @@ class FakeUi @JvmOverloads constructor(
       component.updateIcon()
     }
     if (component is ActionToolbar) {
-      PlatformTestUtil.waitForFuture(component.updateActionsAsync());
+      val toolbar = component as ActionToolbar
+      toolbar.updateActionsImmediately()
     }
     if (component is Container) {
       for (child in component.components) {

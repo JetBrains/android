@@ -44,8 +44,10 @@ internal class RenderXmlTagImpl(
 
   override val resourceNamespace: ResourceNamespace?
     get() = null
+
   override val isValid: Boolean
     get() = true
+
   override val attributes: List<RenderXmlAttribute>
     get() = attrsMap.values.toList()
 

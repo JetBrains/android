@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("unused") // TODO(161081452): remove once all features are implemented
 
 package com.android.tools.idea.sqlite.model
 
@@ -21,7 +22,9 @@ import java.nio.file.Path
 
 sealed class ExportFormat {
   object DB : ExportFormat()
+
   object SQL : ExportFormat()
+
   data class CSV(val delimiter: Delimiter) : ExportFormat()
 }
 

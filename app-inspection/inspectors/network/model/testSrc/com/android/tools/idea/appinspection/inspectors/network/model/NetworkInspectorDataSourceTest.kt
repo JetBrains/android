@@ -17,8 +17,10 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.CancellationException
+import java.util.concurrent.Executors
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -28,70 +30,45 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
-import studio.network.inspection.NetworkInspectorProtocol.Event
-import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
-import studio.network.inspection.NetworkInspectorProtocol.SpeedEvent
-import java.util.concurrent.Executors
-import kotlin.test.fail
 
 class NetworkInspectorDataSourceTest {
   private val executor = Executors.newSingleThreadExecutor()
   private val scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())
 
   @Test
-  fun basicSearch() = runBlocking {
-    val speedEvent =
-      Event.newBuilder()
-        .setTimestamp(1000)
-        .setSpeedEvent(SpeedEvent.newBuilder().setRxSpeed(10).setTxSpeed(20))
-        .build()
-    val httpEvent =
-      Event.newBuilder()
-        .setTimestamp(1002)
-        .setHttpConnectionEvent(
-          HttpConnectionEvent.newBuilder()
-            .setConnectionId(1)
-            .setHttpRequestStarted(
-              HttpConnectionEvent.RequestStarted.newBuilder()
-                .setFields("a")
-                .setMethod("http")
-                .setTrace("abc")
-                .setUrl("www.google.com")
-            )
-        )
-        .build()
+  fun basicSearch(): Unit = runBlocking {
+    val speedEvent = speedEvent(timestampNanos = 1000, rxSpeed = 10, txSpeed = 20)
+    val httpEvent = httpRequestStarted(id = 1, timestampNanos = 1002, url = "www.google.com")
     val testMessenger =
       TestMessenger(scope, flowOf(speedEvent.toByteArray(), httpEvent.toByteArray()))
-    val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
+    val dataSource =
+      NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
+    dataSource.start()
     testMessenger.await()
 
-    val speedEvents = dataSource.queryForSpeedData(Range(1.0, 2.0))
-    assertThat(speedEvents).hasSize(1)
-    assertThat(speedEvents[0]).isEqualTo(speedEvent)
+    assertThat(dataSource.queryForSpeedData(Range(1.0, 2.0))).containsExactly(speedEvent)
 
-    val httpEvents = dataSource.queryForHttpData(Range(1.0, 2.0))
-    assertThat(httpEvents).hasSize(1)
-    assertThat(httpEvents[0]).isEqualTo(httpEvent)
+    assertThat(dataSource.queryForConnectionData(Range(1.0, 2.0)))
+      .containsExactly(
+        HttpData.createHttpData(
+          id = 1,
+          updateTimeUs = 1,
+          requestStartTimeUs = 1,
+          url = "www.google.com"
+        )
+      )
   }
 
   @Test
   fun advancedSearch(): Unit = runBlocking {
-    val speedEvent1 =
-      Event.newBuilder().setTimestamp(1000).setSpeedEvent(SpeedEvent.getDefaultInstance()).build()
-    val speedEvent2 =
-      Event.newBuilder().setTimestamp(2000).setSpeedEvent(SpeedEvent.getDefaultInstance()).build()
-    val speedEvent3 =
-      Event.newBuilder().setTimestamp(2000).setSpeedEvent(SpeedEvent.getDefaultInstance()).build()
-    val speedEvent4 =
-      Event.newBuilder().setTimestamp(3000).setSpeedEvent(SpeedEvent.getDefaultInstance()).build()
-    val speedEvent5 =
-      Event.newBuilder().setTimestamp(3000).setSpeedEvent(SpeedEvent.getDefaultInstance()).build()
-    val speedEvent6 =
-      Event.newBuilder().setTimestamp(3000).setSpeedEvent(SpeedEvent.getDefaultInstance()).build()
-    val speedEvent7 =
-      Event.newBuilder().setTimestamp(3001).setSpeedEvent(SpeedEvent.getDefaultInstance()).build()
-    val speedEvent8 =
-      Event.newBuilder().setTimestamp(6000).setSpeedEvent(SpeedEvent.getDefaultInstance()).build()
+    val speedEvent1 = speedEvent(timestampNanos = 1000, rxSpeed = 10, txSpeed = 10)
+    val speedEvent2 = speedEvent(timestampNanos = 2000, rxSpeed = 10, txSpeed = 10)
+    val speedEvent3 = speedEvent(timestampNanos = 2000, rxSpeed = 10, txSpeed = 10)
+    val speedEvent4 = speedEvent(timestampNanos = 3000, rxSpeed = 10, txSpeed = 10)
+    val speedEvent5 = speedEvent(timestampNanos = 3000, rxSpeed = 10, txSpeed = 10)
+    val speedEvent6 = speedEvent(timestampNanos = 3000, rxSpeed = 10, txSpeed = 10)
+    val speedEvent7 = speedEvent(timestampNanos = 3001, rxSpeed = 10, txSpeed = 10)
+    val speedEvent8 = speedEvent(timestampNanos = 6000, rxSpeed = 10, txSpeed = 10)
 
     val testMessenger =
       TestMessenger(
@@ -107,7 +84,9 @@ class NetworkInspectorDataSourceTest {
           speedEvent8.toByteArray()
         )
       )
-    val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
+    val dataSource =
+      NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
+    dataSource.start()
     testMessenger.await()
 
     // basic inclusive search
@@ -161,150 +140,66 @@ class NetworkInspectorDataSourceTest {
   @Test
   fun searchHttpData(): Unit = runBlocking {
     // Request that starts in the selection range but ends outside of it.
-    val httpEvent =
-      Event.newBuilder()
-        .setTimestamp(1002)
-        .setHttpConnectionEvent(
-          HttpConnectionEvent.newBuilder()
-            .setConnectionId(1)
-            .setHttpRequestStarted(
-              HttpConnectionEvent.RequestStarted.newBuilder()
-                .setFields("a")
-                .setMethod("http")
-                .setTrace("abc")
-                .setUrl("www.google.com")
-            )
-        )
-        .build()
-    val httpEvent2 =
-      Event.newBuilder()
-        .setTimestamp(3000)
-        .setHttpConnectionEvent(
-          HttpConnectionEvent.newBuilder()
-            .setConnectionId(1)
-            .setHttpRequestCompleted(HttpConnectionEvent.RequestCompleted.getDefaultInstance())
-        )
-        .build()
+    val srart1 = httpRequestStarted(id = 1, timestampNanos = 1002, url = "www.url1.com")
+    val end1 = httpRequestCompleted(id = 1, timestampNanos = 3000)
 
-    // Request that starts outside of the range, but ends inside of it.
-    val httpEvent3 =
-      Event.newBuilder()
-        .setTimestamp(44)
-        .setHttpConnectionEvent(
-          HttpConnectionEvent.newBuilder()
-            .setConnectionId(2)
-            .setHttpRequestStarted(
-              HttpConnectionEvent.RequestStarted.newBuilder()
-                .setFields("a")
-                .setMethod("http")
-                .setTrace("abc")
-                .setUrl("www.google.com")
-            )
-        )
-        .build()
-    val httpEvent4 =
-      Event.newBuilder()
-        .setTimestamp(1534)
-        .setHttpConnectionEvent(
-          HttpConnectionEvent.newBuilder()
-            .setConnectionId(2)
-            .setHttpRequestCompleted(HttpConnectionEvent.RequestCompleted.getDefaultInstance())
-        )
-        .build()
+    // Request that starts outside the range, but ends inside of it.
+    val start2 = httpRequestStarted(id = 2, timestampNanos = 44, url = "www.url2.com")
+    val end2 = httpRequestCompleted(id = 2, timestampNanos = 1534)
 
     // Request that starts and ends outside the range, but spans over it.
-    val httpEvent5 =
-      Event.newBuilder()
-        .setTimestamp(55)
-        .setHttpConnectionEvent(
-          HttpConnectionEvent.newBuilder()
-            .setConnectionId(3)
-            .setHttpRequestStarted(
-              HttpConnectionEvent.RequestStarted.newBuilder()
-                .setFields("a")
-                .setMethod("http")
-                .setTrace("abc")
-                .setUrl("www.google.com")
-            )
-        )
-        .build()
-    val httpEvent6 =
-      Event.newBuilder()
-        .setTimestamp(4500)
-        .setHttpConnectionEvent(
-          HttpConnectionEvent.newBuilder()
-            .setConnectionId(3)
-            .setHttpRequestCompleted(HttpConnectionEvent.RequestCompleted.getDefaultInstance())
-        )
-        .build()
+    val start3 = httpRequestStarted(id = 3, timestampNanos = 55, url = "www.url3.com")
+    val end3 = httpRequestCompleted(id = 3, timestampNanos = 4500)
 
     // Request that starts and ends outside and not overlap the range.
-    val httpEvent7 =
-      Event.newBuilder()
-        .setTimestamp(58)
-        .setHttpConnectionEvent(
-          HttpConnectionEvent.newBuilder()
-            .setConnectionId(4)
-            .setHttpRequestStarted(
-              HttpConnectionEvent.RequestStarted.newBuilder()
-                .setFields("a")
-                .setMethod("http")
-                .setTrace("abc")
-                .setUrl("www.google.com")
-            )
-        )
-        .build()
-    val httpEvent8 =
-      Event.newBuilder()
-        .setTimestamp(67)
-        .setHttpConnectionEvent(
-          HttpConnectionEvent.newBuilder()
-            .setConnectionId(4)
-            .setHttpRequestCompleted(HttpConnectionEvent.RequestCompleted.getDefaultInstance())
-        )
-        .build()
+    val start4 = httpRequestStarted(id = 4, timestampNanos = 58, url = "www.url4.com")
+    val end4 = httpRequestCompleted(id = 4, timestampNanos = 67)
 
     val testMessenger =
       TestMessenger(
         scope,
         flowOf(
-          httpEvent.toByteArray(),
-          httpEvent2.toByteArray(),
-          httpEvent3.toByteArray(),
-          httpEvent4.toByteArray(),
-          httpEvent5.toByteArray(),
-          httpEvent6.toByteArray(),
-          httpEvent7.toByteArray(),
-          httpEvent8.toByteArray()
+          srart1.toByteArray(),
+          end1.toByteArray(),
+          start2.toByteArray(),
+          end2.toByteArray(),
+          start3.toByteArray(),
+          end3.toByteArray(),
+          start4.toByteArray(),
+          end4.toByteArray()
         )
       )
-    val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
+    val dataSource =
+      NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
+    dataSource.start()
     testMessenger.await()
 
-    val httpEvents = dataSource.queryForHttpData(Range(1.0, 2.0))
-    assertThat(httpEvents).hasSize(6)
-    assertThat(httpEvents).containsNoneOf(httpEvent7, httpEvent8)
+    assertThat(dataSource.queryForConnectionData(Range(1.0, 2.0)))
+      .containsExactly(
+        HttpData.createHttpData(
+          id = 2,
+          updateTimeUs = 1,
+          requestStartTimeUs = 0,
+          requestCompleteTimeUs = 1,
+          url = "www.url2.com"
+        ),
+        HttpData.createHttpData(
+          id = 3,
+          updateTimeUs = 4,
+          requestStartTimeUs = 0,
+          requestCompleteTimeUs = 4,
+          url = "www.url3.com"
+        ),
+        HttpData.createHttpData(
+          id = 1,
+          updateTimeUs = 3,
+          requestStartTimeUs = 1,
+          requestCompleteTimeUs = 3,
+          url = "www.url1.com"
+        ),
+      )
+      .inOrder()
   }
-
-  @Test
-  fun cleanUpChannelOnDispose() =
-    runBlocking<Unit> {
-      val testMessenger =
-        TestMessenger(scope, flow { throw ArithmeticException("Something went wrong!") })
-      val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
-      testMessenger.await()
-      try {
-        dataSource.queryForSpeedData(Range(0.0, 5.0))
-        fail()
-      } catch (e: Throwable) {
-        assertThat(e).isInstanceOf(CancellationException::class.java)
-        var cause: Throwable? = e.cause
-        while (cause != null && cause !is ArithmeticException) {
-          cause = cause.cause
-        }
-        assertThat(cause).isInstanceOf(ArithmeticException::class.java)
-      }
-    }
 }
 
 private class TestMessenger(override val scope: CoroutineScope, val flow: Flow<ByteArray>) :

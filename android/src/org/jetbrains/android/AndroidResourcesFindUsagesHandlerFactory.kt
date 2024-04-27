@@ -18,8 +18,6 @@ package org.jetbrains.android
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
-import com.android.tools.idea.res.findStyleableAttrFieldsForAttr
-import com.android.tools.idea.res.findStyleableAttrFieldsForStyleable
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_ELEMENT
@@ -33,6 +31,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.Processor
+import com.android.tools.idea.res.findStyleableAttrFieldsForAttr
+import com.android.tools.idea.res.findStyleableAttrFieldsForStyleable
 
 /**
  * Provides a custom [FindUsagesHandler] that understands how to search for all relevant Android Resources.

@@ -70,8 +70,6 @@ class StudioEmbeddedRenderTarget {
       if (StudioPathManager.isRunningFromSources()) {
         path = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/layoutlib/").toString()
       }
-
-      val notFoundPaths = mutableListOf<String>()
       val root = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL).findFileByPath(FileUtil.toSystemIndependentName(path))
       if (root != null) {
         val rootFile = VfsUtilCore.virtualToIoFile(root)
@@ -80,6 +78,7 @@ class StudioEmbeddedRenderTarget {
           return rootFile.absolutePath + File.separator
         }
       }
+      val notFoundPaths = mutableListOf<String>()
       notFoundPaths.add(path)
 
       AndroidLayoutlibDownloader.getInstance().makeSureComponentIsInPlace()

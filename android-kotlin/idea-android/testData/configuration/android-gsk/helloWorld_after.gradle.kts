@@ -1,4 +1,3 @@
-
 buildscript {
     val kotlin_version by extra("$VERSION$")
     dependencies {
@@ -34,10 +33,12 @@ android {
             proguardFiles("proguard-rules.pro")
         }
     }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${extra["kotlin_version"]}")
     compile("com.android.support:appcompat-v7:23.4.0")
     compile("com.android.support.constraint:constraint-layout:1.0.0-alpha8")
 }

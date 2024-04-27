@@ -245,8 +245,7 @@ class LayoutInspectorToolWindowFactoryTest {
     val toolWindow =
       LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find {
         it.id == "Layout Inspector"
-      }
-        ?: fail("Tool window not found")
+      } ?: fail("Tool window not found")
 
     assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidFacetChecker::class.qualifiedName)
   }
@@ -308,7 +307,7 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
       )
 
       val modelUpdatedLatch = ReportingCountDownLatch(1)
-      deviceViewContentPanel.inspectorModel.modificationListeners.add { _, _, _ ->
+      deviceViewContentPanel.inspectorModel.addModificationListener { _, _, _ ->
         modelUpdatedLatch.countDown()
       }
       discovery.fireConnected(MODERN_PROCESS)

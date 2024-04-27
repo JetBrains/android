@@ -18,14 +18,14 @@ package com.android.tools.idea.sdk.install;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.repository.api.LocalPackage;
-import com.android.repository.api.PackageOperation;
-import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.*;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.adb.AdbService;
 import java.nio.file.Path;
 import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 
 /**
  * Installer for platform-tools that stops ADB before installing or uninstalling.

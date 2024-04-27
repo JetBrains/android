@@ -41,9 +41,9 @@ import org.jetbrains.annotations.Nullable;
 public class CreateSampleDataDirectory extends AnAction {
   private static final Logger LOG = Logger.getInstance(CreateSampleDataDirectory.class);
 
+  @SuppressWarnings("UnusedDeclaration")
   public CreateSampleDataDirectory() {
-    super(AndroidBundle.messagePointer("new.sampledata.dir.action.title"),
-          AndroidBundle.messagePointer("new.sampledata.dir.action.description"),
+    super(AndroidBundle.message("new.sampledata.dir.action.title"), AndroidBundle.message("new.sampledata.dir.action.description"),
           PlatformIcons.FOLDER_ICON);
   }
 

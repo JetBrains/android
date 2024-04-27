@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.api;
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getToggleSizeActions;
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction;
 
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Placeholder;

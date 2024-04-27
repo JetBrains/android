@@ -16,7 +16,6 @@
 package com.android.layoutlib.reflection
 
 import com.android.ide.common.rendering.api.ILayoutLog
-import com.android.tools.idea.flags.StudioFlags.NELE_WARN_NEW_THREADS
 import com.intellij.openapi.application.ApplicationManager
 
 private const val RESTRICTION_MESSAGE = "It is not allowed to create new threads in the preview"
@@ -63,9 +62,6 @@ open class TrackingThread : Thread {
   }
 
   private fun reportIllegalThread() {
-    if (!NELE_WARN_NEW_THREADS.get()) {
-      return
-    }
     // Throwing should be the only option in the future but so far we just warn the users in production
     val throwable = createThrowable()
     if (ApplicationManager.getApplication().isUnitTestMode) {

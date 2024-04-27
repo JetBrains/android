@@ -26,7 +26,6 @@ import com.intellij.testFramework.LightPlatform4TestCase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import org.junit.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
 import java.util.concurrent.TimeUnit
@@ -51,8 +50,8 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
         keepAliveSemaphore.acquire()
       }
       null
-    }.whenever(device).executeShellCommand(ArgumentMatchers.anyString(),
-                                         ArgumentMatchers.any(), ArgumentMatchers.anyLong(), ArgumentMatchers.any())
+    }.whenever(device).executeShellCommand(Mockito.anyString(),
+                                         Mockito.any(), Mockito.anyLong(), Mockito.any())
   }
 
   @Test

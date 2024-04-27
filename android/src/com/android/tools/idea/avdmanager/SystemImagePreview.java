@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.sdklib.SystemImageTags;
+import com.android.tools.idea.ui.ChooseApiLevelDialog;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.ui.ChooseApiLevelDialog;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -29,26 +30,18 @@ import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import icons.AndroidIcons;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import javax.swing.Action;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
-import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.TestOnly;
 
 /**
@@ -118,7 +111,7 @@ public class SystemImagePreview {
    */
   private static boolean isChinaLocalizedWearOsImage(@Nullable SystemImageDescription image) {
     return image != null &&
-           SystemImage.WEAR_TAG.getId().equals(image.getTag().getId()) &&
+           SystemImageTags.WEAR_TAG.getId().equals(image.getTag().getId()) &&
            image.getSystemImage().getPackage().getPath().contains(SystemImage.WEAR_CN_DIRECTORY);
   }
 
@@ -237,13 +230,13 @@ public class SystemImagePreview {
     if (icon != null) {
       return icon;
     }
-    int size = JBUIScale.scale(128);
+    int size = JBUI.scale(128);
     Image image = ImageUtil.createImage(size, size, BufferedImage.TYPE_INT_ARGB);
     Graphics g = image.getGraphics();
     GraphicsUtil.setupAntialiasing(g);
     GraphicsUtil.setupAAPainting(g);
     Font f = StartupUiUtil.getLabelFont();
-    Font font = new Font(f.getName(), f.getStyle() | Font.BOLD, JBUIScale.scale(100));
+    Font font = new Font(f.getName(), f.getStyle() | Font.BOLD, JBUI.scale(100));
     g.setColor(JBColor.background());
     g.fillRect(0, 0, size, size);
     g.setColor(JBColor.foreground());

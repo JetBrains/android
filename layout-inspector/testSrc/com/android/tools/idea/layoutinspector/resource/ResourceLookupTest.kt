@@ -89,7 +89,9 @@ class ResourceLookupTest {
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup = ResourceLookup(projectRule.project)
+
         override fun get(id: Long): ViewNode = title
+
         override val selection: ViewNode? = null
       }
     val property =

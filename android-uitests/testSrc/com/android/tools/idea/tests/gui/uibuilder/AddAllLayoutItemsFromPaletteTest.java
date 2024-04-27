@@ -250,14 +250,14 @@ public class AddAllLayoutItemsFromPaletteTest {
     assertItemsAddedToCode(verificationIdOrTagInfoList, editor.getCurrentFileContents());
   }
 
-  @Ignore
+  @Ignore("b/303106910")
   public void testAddItemsFromContainersGroup() {
     // Need to implement Containers.
     /* TODO() */
   }
 
   //Ignoring as drag and drop is not working, need further investigation
-  @Ignore
+  @Ignore("b/303106910")
   public void testAddItemsFromHelpersGroup() {
     String groupName = "Helpers";
     String[] itemsInHelpersGroup = {"Group", "Barrier (Horizontal)", "Barrier (Vertical)", "Flow", "Guideline (Horizontal)", "Guideline (Vertical)", "Layer", "MockView"};

@@ -25,7 +25,7 @@ public class Main {
       System.load("/data/local/tmp/.studio/libscreen-sharing-agent.so");
     }
     catch (Throwable e) {
-      Log.e("ScreenSharing", "Unable to load libscreen-sharing-agent.so - " + e.getMessage());
+      Log.e("studio.screen.sharing", "Unable to load libscreen-sharing-agent.so - " + e.getMessage());
     }
     nativeMain(args);
   }

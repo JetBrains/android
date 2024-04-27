@@ -70,7 +70,7 @@ object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
           "Material Design recommends text fields to be no wider than ${TEXT_FIELD_MAX_DP_WIDTH}dp"
         )
     }
-    return VisualLintIssueContent(view, summary, provider)
+    return VisualLintIssueContent(view = view, message = summary, descriptionProvider = provider)
   }
 }
 

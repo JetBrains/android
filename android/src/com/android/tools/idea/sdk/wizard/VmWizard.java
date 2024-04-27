@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2016 The Android Open Source Project
  *
@@ -19,20 +20,20 @@ import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.install.VmType;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
-import com.android.tools.idea.welcome.install.Aehd;
 import com.android.tools.idea.welcome.install.ComponentInstaller;
+import com.android.tools.idea.welcome.install.Aehd;
 import com.android.tools.idea.welcome.install.Haxm;
 import com.android.tools.idea.welcome.install.InstallComponentsOperation;
 import com.android.tools.idea.welcome.install.InstallContext;
 import com.android.tools.idea.welcome.install.InstallOperation;
 import com.android.tools.idea.welcome.install.InstallableComponent;
 import com.android.tools.idea.welcome.install.InstallationCancelledException;
-import com.android.tools.idea.welcome.install.InstallationIntention;
+import com.android.tools.idea.welcome.install.VmInstallationIntention;
 import com.android.tools.idea.welcome.install.Vm;
+import com.android.tools.idea.sdk.install.VmType;
 import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -57,14 +58,14 @@ import org.jetbrains.annotations.NotNull;
  * Wizard that downloads (if necessary), configures, and installs VM.
  */
 public class VmWizard extends DynamicWizard {
-  @NotNull VmType myType;
-  @NotNull VmPath myVmPath;
-  boolean myInvokedToUninstall;
+  @NotNull private final VmType myType;
+  @NotNull private final VmPath myVmPath;
+  @NotNull private final VmInstallationIntention myInstallationIntention;
 
-  public VmWizard(boolean invokedToUninstall, @NotNull VmType type) {
+  public VmWizard(VmInstallationIntention installationIntention, @NotNull VmType type) {
     super(null, null, type.toString());
     myType = type;
-    myInvokedToUninstall = invokedToUninstall;
+    myInstallationIntention = installationIntention;
     myVmPath = new VmPath(type);
     addPath(myVmPath);
   }
@@ -83,7 +84,7 @@ public class VmWizard extends DynamicWizard {
 
     // The wizard was invoked to install, but installer invocation failed or was cancelled.
     // Have to ensure the SDK package is removed
-    if (!myInvokedToUninstall) {
+    if (myInstallationIntention.isInstall()) {
       try {
         AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
         ComponentInstaller componentInstaller = new ComponentInstaller(sdkHandler);
@@ -173,7 +174,7 @@ public class VmWizard extends DynamicWizard {
       final Collection<? extends InstallableComponent> selectedComponents = Lists.newArrayList(myVm);
 
       double configureVmProgressRatio = 1.0;
-      if (myVm.installationIntention == InstallationIntention.INSTALL_WITH_UPDATES) {
+      if (myVm.installationIntention.isInstall()) {
         configureVmProgressRatio = 0.5; // leave the first half of the progress to the updates check & install operation
       }
 
@@ -183,7 +184,7 @@ public class VmWizard extends DynamicWizard {
       }, configureVmProgressRatio);
 
       InstallOperation<File, File> opChain;
-      if (myVm.installationIntention == InstallationIntention.INSTALL_WITH_UPDATES) {
+      if (myVm.installationIntention.isInstall()) {
         InstallComponentsOperation install =
           new InstallComponentsOperation(installContext, selectedComponents, componentInstaller, 0.5);
         opChain = install.then(configureVmOperation);
@@ -202,7 +203,7 @@ public class VmWizard extends DynamicWizard {
         throw new RuntimeException(e);
       }
       finally {
-        if (!myVm.isInstallerSuccessfullyCompleted() && myVm.installationIntention != InstallationIntention.UNINSTALL) {
+        if (!myVm.isInstallerSuccessfullyCompleted() && myVm.installationIntention != VmInstallationIntention.UNINSTALL) {
           // The intention was to install VM, but the installation failed. Ensure we don't leave the SDK package behind
           sdkHandler.getSdkManager(myProgressIndicator).reloadLocalIfNeeded(myProgressIndicator);
           componentInstaller.ensureSdkPackagesUninstalled(myVm.getRequiredSdkPackages(), myProgressIndicator);
@@ -233,15 +234,14 @@ public class VmWizard extends DynamicWizard {
       final String key = "Show" + myType + "Steps";
       ScopedStateStore.Key<Boolean> canShow = ScopedStateStore.createKey(key, ScopedStateStore.Scope.PATH, Boolean.class);
       myState.put(canShow, true);
-      InstallationIntention vmInstallationIntention =
-        VmWizard.this.myInvokedToUninstall ? InstallationIntention.UNINSTALL : InstallationIntention.INSTALL_WITH_UPDATES;
-      myVm = myType == VmType.HAXM ? new Haxm(vmInstallationIntention, canShow)
-                                   : new Aehd(vmInstallationIntention, canShow);
+      myVm = myType == VmType.HAXM ? new Haxm(myInstallationIntention, canShow)
+                                   : new Aehd(myInstallationIntention, canShow);
 
+      // This is currently just the "We're about to (un)install" page.
       for (DynamicWizardStep step : myVm.createSteps()) {
         addStep(step);
       }
-      if (!VmWizard.this.myInvokedToUninstall) {
+      if (myInstallationIntention != VmInstallationIntention.UNINSTALL) {
         addStep(
           myLicenseAgreementStep = new LicenseAgreementStep(getWizard().getDisposable(), () -> myVm.getRequiredSdkPackages(),
                                                             AndroidSdks.getInstance()::tryToChooseSdkHandler)

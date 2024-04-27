@@ -137,7 +137,7 @@ public class ApkFileSystem extends ArchiveFileSystem {
       return bytes;
     }
 
-    return BinaryXmlParser.decodeXml(file.getName(), bytes);
+    return BinaryXmlParser.decodeXml(bytes);
   }
 
   @Override

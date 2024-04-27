@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.ddmlib.Client
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
@@ -26,10 +27,12 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildMode
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.module.ModuleDependencies
 import com.google.common.collect.HashMultimap
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -57,7 +60,7 @@ import java.util.concurrent.CountDownLatch
  */
 @Deprecated("Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project")
 class TestProjectSystem @JvmOverloads constructor(
-  val project: Project,
+  override val project: Project,
   availableDependencies: List<GradleCoordinate> = listOf(),
   private var sourceProvidersFactoryStub: SourceProvidersFactory = SourceProvidersFactoryStub(),
   @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS,
@@ -76,6 +79,15 @@ class TestProjectSystem @JvmOverloads constructor(
   @Deprecated("Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project")
   fun useInTests() {
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(this)
+    val provider = object : ApplicationProjectContextProvider, TestToken {
+      override val expectedInstance: TestProjectSystem = this@TestProjectSystem
+
+      override fun getApplicationProjectContextProvider(client: Client): ApplicationProjectContext {
+        return TestApplicationProjectContext(client.clientData.packageName ?: error("packagename must not be empty"))
+      }
+    }
+    project.extensionArea.getExtensionPoint(ApplicationProjectContextProvider.Companion.EP_NAME)
+      .registerExtension(provider, project)
   }
 
   private val dependenciesByModule: HashMultimap<Module, Dependency> = HashMultimap.create()
@@ -86,6 +98,7 @@ class TestProjectSystem @JvmOverloads constructor(
   var namespace: String? = null
   var manifestOverrides = ManifestOverrides()
   var useAndroidX: Boolean = false
+  var usesCompose: Boolean = false
 
   init {
     val sortedHighToLowDeps = availableDependencies.sortedWith(GradleCoordinate.COMPARE_PLUS_HIGHER).reversed()
@@ -130,7 +143,7 @@ class TestProjectSystem @JvmOverloads constructor(
       override val module = module
 
       override val moduleClassFileFinder: ClassFileFinder = object : ClassFileFinder {
-        override fun findClassFile(fqcn: String): VirtualFile? = null
+        override fun findClassFile(fqcn: String): ClassContent? = null
       }
 
       override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
@@ -241,10 +254,14 @@ class TestProjectSystem @JvmOverloads constructor(
         return module.getModuleWithDependenciesAndLibrariesScope(scopeType != ScopeType.MAIN)
       }
 
-      override fun getDependencyPath(coordinate: GradleCoordinate): Path? = null
-
       override val useAndroidX: Boolean
         get() = this@TestProjectSystem.useAndroidX
+
+      override val moduleDependencies: ModuleDependencies
+        get() = StudioModuleDependencies(module)
+
+      override val usesCompose: Boolean
+        get() = this@TestProjectSystem.usesCompose
     }
 
     return TestAndroidModuleSystemImpl()
@@ -310,11 +327,11 @@ class TestProjectSystem @JvmOverloads constructor(
   override fun getLightResourceClassService(): LightResourceClassService {
     return object : LightResourceClassService {
       override fun getLightRClasses(qualifiedName: String, scope: GlobalSearchScope) = emptyList<PsiClass>()
-      override fun getLightRClassesAccessibleFromModule(module: Module, includeTests: Boolean) = emptyList<PsiClass>()
+      override fun getLightRClassesAccessibleFromModule(module: Module) = emptyList<PsiClass>()
       override fun getLightRClassesContainingModuleResources(module: Module) = emptyList<PsiClass>()
       override fun findRClassPackage(qualifiedName: String): PsiPackage? = null
       override fun getAllLightRClasses() = emptyList<PsiClass>()
-      override fun getLightRClassesDefinedByModule(module: Module, includeTestClasses: Boolean) = emptyList<PsiClass>()
+      override fun getLightRClassesDefinedByModule(module: Module) = emptyList<PsiClass>()
     }
   }
 
@@ -332,6 +349,14 @@ class TestProjectSystem @JvmOverloads constructor(
 
   override fun isNamespaceOrParentPackage(packageName: String): Boolean {
     return false
+  }
+
+  override fun getKnownApplicationIds(): Set<String> {
+    return emptySet()
+  }
+
+  override fun findModulesWithApplicationId(applicationId: String): Collection<Module> {
+    return emptyList()
   }
 }
 
@@ -404,4 +429,15 @@ class TestProjectSystemBuildManager(
 
 private class SourceProvidersFactoryStub : SourceProvidersFactory {
   override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? = null
+}
+
+/**
+ * An [ApplicationProjectContext] used with the [TestProjectSystem]
+ */
+data class TestApplicationProjectContext(override val applicationId: String) : ApplicationProjectContext
+
+interface TestToken: ProjectSystemToken {
+  override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = projectSystem == expectedInstance
+
+  val expectedInstance: TestProjectSystem
 }

@@ -38,8 +38,6 @@ import com.intellij.build.BuildContentManager
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentContainer
 import com.intellij.openapi.util.Disposer
@@ -132,10 +130,8 @@ class BuildAttributionUiManagerImpl(
   override fun showBuildAnalysisReportById(buildID: String) {
     // Should not be called if the flag is off, but guard just in case anyway.
     if (!StudioFlags.BUILD_ANALYZER_HISTORY.get()) return
-    val buildResults = BuildAnalyzerStorageManager.getInstance(project).getHistoricBuildResultByID(buildID).get() // TODO
-    val reportFile = BuildReportFile(buildResults, project)
-    val fileDescriptor = OpenFileDescriptor(project, reportFile)
-    FileEditorManager.getInstance(project).openEditor(fileDescriptor, true)
+    val buildResults = BuildAnalyzerStorageManager.getInstance(project).getHistoricBuildResultByID(buildID).get()
+    // TODO (mlazeba): historical UI is not implemented now
   }
 
   override fun showNewReport() {

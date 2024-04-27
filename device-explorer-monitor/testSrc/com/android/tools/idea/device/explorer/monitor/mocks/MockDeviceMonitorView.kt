@@ -23,12 +23,15 @@ import com.android.tools.idea.device.explorer.monitor.ui.ProcessListTableBuilder
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
+import com.intellij.execution.RunManager
+import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import javax.swing.JComponent
 
-class MockDeviceMonitorView(model: DeviceMonitorModel): DeviceMonitorView {
+class MockDeviceMonitorView(project: Project, model: DeviceMonitorModel): DeviceMonitorView {
   private val table = ProcessListTableBuilder().build(model.tableModel)
-  private val viewImpl = DeviceMonitorViewImpl(model, table)
+  private val viewImpl = DeviceMonitorViewImpl(project, model, table)
+  private val runManager = RunManager.getInstance(project)
 
   override fun addListener(listener: DeviceMonitorViewListener) {
     viewImpl.addListener(listener)
@@ -61,7 +64,7 @@ class MockDeviceMonitorView(model: DeviceMonitorModel): DeviceMonitorView {
     if (table.model.rowCount > 0) {
       table.setRowSelectionInterval(0, 0)
     }
-    val menuItem = DebugMenuItem(viewImpl, MenuContext.Popup)
+    val menuItem = DebugMenuItem(viewImpl, MenuContext.Popup, runManager)
     menuItem.run()
   }
 }

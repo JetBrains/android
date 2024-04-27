@@ -25,7 +25,7 @@ import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Rule
@@ -70,7 +70,7 @@ class ColorPickerStateTest {
         )
         .apply { size = Dimension(300, 300) }
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui =
         FakeUi(card).apply {
           updateToolbars()

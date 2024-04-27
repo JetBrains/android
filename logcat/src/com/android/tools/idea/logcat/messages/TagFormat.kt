@@ -21,10 +21,13 @@ private const val DEFAULT_LENGTH = 23
 private const val MIN_LENGTH = 10
 private const val ELLIPSIS_LEN = 3
 
-/**
- * Provides formatting for the log tag.
- */
-internal data class TagFormat(val maxLength: Int = DEFAULT_LENGTH, val hideDuplicates: Boolean = false, val enabled: Boolean = true) {
+/** Provides formatting for the log tag. */
+internal data class TagFormat(
+  val maxLength: Int = DEFAULT_LENGTH,
+  val hideDuplicates: Boolean = false,
+  val enabled: Boolean = true,
+  val colorize: Boolean = true,
+) {
   init {
     assert(maxLength >= MIN_LENGTH)
   }
@@ -40,7 +43,8 @@ internal data class TagFormat(val maxLength: Int = DEFAULT_LENGTH, val hideDupli
       return "<no-tag>".padEnd(maxLength + 1)
     }
     if (tag.length > maxLength) {
-      return StringUtil.shortenTextWithEllipsis(tag, maxLength, (maxLength - ELLIPSIS_LEN) / 2) + " "
+      return StringUtil.shortenTextWithEllipsis(tag, maxLength, (maxLength - ELLIPSIS_LEN) / 2) +
+        " "
     }
     return tag.padEnd(maxLength + 1)
   }

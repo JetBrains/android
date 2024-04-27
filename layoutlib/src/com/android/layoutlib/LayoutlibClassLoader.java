@@ -16,20 +16,18 @@
 package com.android.layoutlib;
 
 import android.os._Original_Build;
+import com.android.tools.environment.Logger;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.org.objectweb.asm.ClassWriter;
-import org.jetbrains.org.objectweb.asm.ClassReader;
-import org.jetbrains.org.objectweb.asm.commons.ClassRemapper;
-import org.jetbrains.org.objectweb.asm.commons.Remapper;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.function.BiConsumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.org.objectweb.asm.ClassReader;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.commons.ClassRemapper;
+import org.jetbrains.org.objectweb.asm.commons.Remapper;
 
 /**
  * {@link ClassLoader} used for Layoutlib. Currently it only generates {@code android.os.Build} dynamically by copying the class in
@@ -72,7 +70,7 @@ public class LayoutlibClassLoader extends ClassLoader {
       @Override
       public String map(String typeName) {
         if (typeName.startsWith(originalBuildBinaryClassName)) {
-          return "android/os/Build" + StringUtil.trimStart(typeName, originalBuildBinaryClassName);
+          return "android/os/Build" + typeName.substring(originalBuildBinaryClassName.length());
         }
 
         return typeName;
@@ -81,8 +79,12 @@ public class LayoutlibClassLoader extends ClassLoader {
 
     while (!pendingClasses.isEmpty()) {
       String name = pendingClasses.pop();
+      String trimmedName =
+        name.startsWith(originalBuildClassName) ?
+        name.substring(originalBuildClassName.length()) :
+        name;
 
-      String newName = "android.os.Build" + StringUtil.trimStart(name, originalBuildClassName);
+      String newName = "android.os.Build" + trimmedName;
       String binaryName = toBinaryClassName(name);
 
       try (InputStream is = loader.getResourceAsStream(binaryName + ".class")) {

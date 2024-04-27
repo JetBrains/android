@@ -19,6 +19,6 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <notificationGroup id="Wear Preview Notification" displayType="NONE"/>
+    <notificationGroup id="Wear Tile Preview Notification" displayType="NONE"/>
   </extensions>
 </idea-plugin>

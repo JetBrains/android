@@ -30,7 +30,7 @@ class EaseOutModelTest {
     // After 1 second, fade out should start the next update.
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(updater.updatables).contains(model)
-    assertThat(model.percentageComplete).isWithin(0f).of(0f)
+    assertThat(model.ratioComplete).isWithin(0f).of(0f)
 
     // 1st update would start lerping the fade ratio
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -39,6 +39,6 @@ class EaseOutModelTest {
     // 2nd update to clamp the ratio all the way to zero as it's close enough to the threshold
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(updater.updatables).doesNotContain(model)
-    assertThat(model.percentageComplete).isWithin(0f).of(1f)
+    assertThat(model.ratioComplete).isWithin(0f).of(1f)
   }
 }

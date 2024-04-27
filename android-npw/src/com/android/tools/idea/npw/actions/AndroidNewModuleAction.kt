@@ -16,11 +16,11 @@
 
 package com.android.tools.idea.npw.actions
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.showDefaultWizard
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
@@ -33,10 +33,12 @@ open class AndroidNewModuleAction : AnAction, DumbAware {
 
   constructor(text: String?, description: String?, icon: Icon?) : super(text, description, icon) {}
 
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
-    e.project?.let {
-      e.presentation.isVisible = it.getProjectSystem().allowsFileCreation()
-      e.presentation.isEnabled = !GradleSyncState.getInstance(it).isSyncInProgress
+    e.project?.getProjectSystem()?.run {
+      e.presentation.isVisible = allowsFileCreation()
+      e.presentation.isEnabled = !getSyncManager().isSyncInProgress()
     }
   }
 

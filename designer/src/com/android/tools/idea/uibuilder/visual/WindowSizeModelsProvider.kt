@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
-import com.android.sdklib.devices.Device
 import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
@@ -27,9 +26,6 @@ import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.VisibleForTesting
-
-private const val PORTRAIT_DEVICE_KEYWORD = "phone"
 
 private const val EFFECTIVE_FLAGS =
   ConfigurationListener.CFG_ADAPTIVE_SHAPE or
@@ -41,8 +37,6 @@ private const val EFFECTIVE_FLAGS =
     ConfigurationListener.CFG_FONT_SCALE
 
 object WindowSizeModelsProvider : VisualizationModelsProvider {
-
-  @VisibleForTesting val deviceCaches = mutableMapOf<ConfigurationManager, List<Device>>()
 
   override fun createNlModels(
     parentDisposable: Disposable,
@@ -69,8 +63,7 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
       val betterFile =
         ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
       val model =
-        NlModel.builder(facet, betterFile, config)
-          .withParentDisposable(parentDisposable)
+        NlModel.builder(parentDisposable, facet, betterFile, config)
           .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()

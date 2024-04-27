@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
-import com.android.tools.idea.ui.resourcemanager.model.createTransferable
 import com.intellij.ide.dnd.FileCopyPasteUtil
 import java.awt.Cursor
 import java.awt.GraphicsEnvironment
@@ -38,8 +37,7 @@ import javax.swing.TransferHandler
  */
 fun resourceDragHandler(importResourceDelegate: ImportResourceDelegate) = if (GraphicsEnvironment.isHeadless()) {
   HeadlessDragHandler()
-}
-else {
+} else {
   ResourceDragHandlerImpl(importResourceDelegate)
 }
 
@@ -64,6 +62,39 @@ class HeadlessDragHandler internal constructor() : ResourceDragHandler {
 }
 
 /**
+ * Handles the transfers of the assets when they gets dragged
+ */
+private class ResourceFilesTransferHandler(
+  private val assetList: JList<ResourceAssetSet>,
+  private val importDelegate: ImportResourceDelegate
+): TransferHandler() {
+
+  override fun canImport(support: TransferSupport?): Boolean {
+    if (support == null) return false
+    if (support.sourceDropActions and COPY != COPY) return false
+    return FileCopyPasteUtil.isFileListFlavorAvailable(support.dataFlavors)
+  }
+
+  override fun importData(comp: JComponent?, t: Transferable?): Boolean {
+    if (t == null) return false
+    return importDelegate.doImport(t)
+  }
+
+  override fun getSourceActions(c: JComponent?) = COPY_OR_MOVE
+
+  override fun getDragImage() = createDragPreview(assetList)
+
+  override fun createTransferable(c: JComponent?): Transferable {
+    c?.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+    return com.android.tools.idea.ui.resourcemanager.model.createTransferable(assetList.selectedValue.getHighestDensityAsset())
+  }
+
+  override fun exportDone(source: JComponent?, data: Transferable?, action: Int) {
+    source?.cursor = Cursor.getDefaultCursor()
+  }
+}
+
+/**
  * Drag handler for the resources list in the resource explorer.
  *
  * It doesn't deal with importing, but since it may consume the event, delegates the import operation to a given [ImportResourceDelegate].
@@ -73,39 +104,18 @@ internal class ResourceDragHandlerImpl (private val importDelegate: ImportResour
   override fun registerSource(assetList: JList<ResourceAssetSet>) {
     assetList.dragEnabled = true
     assetList.dropMode = DropMode.ON
-    assetList.transferHandler = object : TransferHandler() {
-
-      override fun canImport(support: TransferSupport?): Boolean {
-        if (support == null) return false
-        if (support.sourceDropActions and COPY != COPY) return false
-        return FileCopyPasteUtil.isFileListFlavorAvailable(support.dataFlavors)
-      }
-
-      override fun importData(comp: JComponent?, t: Transferable?): Boolean {
-        if (t == null) return false
-        return importDelegate.doImport(t)
-      }
-
-      override fun getSourceActions(c: JComponent?) = COPY_OR_MOVE
-
-      override fun getDragImage() = createDragPreview(assetList, assetList.selectedValue, assetList.selectedIndex)
-
-      override fun createTransferable(c: JComponent?): Transferable {
-        c?.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-        return createTransferable(assetList.selectedValue.getHighestDensityAsset())
-      }
-
-      override fun exportDone(source: JComponent?, data: Transferable?, action: Int) {
-        source?.cursor = Cursor.getDefaultCursor()
-      }
-    }
+    assetList.transferHandler = ResourceFilesTransferHandler(assetList, importDelegate)
   }
 }
 
-private fun createDragPreview(jList: JList<ResourceAssetSet>,
-                              assetSet: ResourceAssetSet?,
-                              index: Int): BufferedImage {
-  val component = jList.cellRenderer.getListCellRendererComponent(jList, assetSet, index, false, false)
+private fun createDragPreview(draggedAssets: JList<ResourceAssetSet>): BufferedImage {
+  val component = draggedAssets.cellRenderer.getListCellRendererComponent(
+    draggedAssets,
+    draggedAssets.selectedValue, //show the preview of the focused and selected item
+    draggedAssets.selectedIndex,
+    false,
+    false
+  )
   // The component having no parent to lay it out an set its size, we need to manually to it, otherwise
   // validate() won't be executed.
   component.setSize(component.preferredSize.width, component.preferredSize.height)
@@ -114,7 +124,7 @@ private fun createDragPreview(jList: JList<ResourceAssetSet>,
   @Suppress("UndesirableClassUsage") // Dimensions for BufferedImage are pre-scaled.
   val image = BufferedImage(component.width, component.height, BufferedImage.TYPE_INT_ARGB)
   with(image.createGraphics()) {
-    color = jList.background
+    color = draggedAssets.background
     fillRect(0, 0, component.width, component.height)
     component.paint(this)
     dispose()

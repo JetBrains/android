@@ -1,580 +1,664 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.2.0-dev">
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="      res = String.format(&quot;%s %s %s %s %s %f&quot;,"
+        errorLine2="            ^">
         <location
             file="src/com/android/tools/idea/uibuilder/scout/ConstrainedWidget.java"
-            line="86"/>
+            line="86"
+            column="13"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
+        errorLine1="      connect = connect.substring(&quot;layout_constraint&quot;.length(), connect.length() - 2).replace(&quot;_to&quot;, &quot; to &quot;).toLowerCase();"
+        errorLine2="                                                                                                             ~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/common/scene/Scene.java"
-            line="661"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/uibuilder/analytics/AnimationToolbarAnalyticsManager.kt"
-            line="42"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/common/scene/target/CommonDragTarget.kt"
-            line="304"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/common/scene/target/CommonDragTarget.kt"
-            line="305"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/common/scene/draw/CompositeDrawCommand.kt"
-            line="27"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/common/surface/DesignSurfaceHelper.kt"
-            line="53"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/common/surface/DesignSurfaceShortcut.kt"
-            line="42"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
-            line="82"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
-            line="98"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
-            line="102"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
-            line="106"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/common/editor/SplitEditor.kt"
-            line="96"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/assistant/Template.kt"
-            line="64"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/VisualizationToolWindowFactory.kt"
-            line="171"/>
+            line="661"
+            column="110"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  @SwingCoordinate public static final int ANCHOR_SIZE = scale(6);"
+        errorLine2="                                                         ~~~~~">
         <location
             file="src/com/android/tools/idea/common/scene/target/AnchorTarget.java"
-            line="49"/>
+            line="49"
+            column="58"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  @SwingCoordinate public static final int EXPANDED_SIZE = scale(400);"
+        errorLine2="                                                           ~~~~~">
         <location
             file="src/com/android/tools/idea/common/scene/target/AnchorTarget.java"
-            line="50"/>
+            line="50"
+            column="60"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private int myThumbTipSize = JBUI.scale(THUMB_TIP_SIZE);"
+        errorLine2="                                    ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/AnimationToolbarSliderUI.java"
-            line="38"/>
+            line="38"
+            column="37"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    myThumbTipSize = JBUI.scale(THUMB_TIP_SIZE);"
+        errorLine2="                          ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/AnimationToolbarSliderUI.java"
-            line="151"/>
+            line="151"
+            column="27"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final int myResizeTriggerThreshold = JBUI.scale(200);"
+        errorLine2="                                                    ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/interaction/CanvasResizeInteraction.java"
-            line="124"/>
+            line="124"
+            column="53"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int GAP = scale(10);"
+        errorLine2="                                ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnection.java"
-            line="77"/>
+            line="77"
+            column="33"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  static final int ZIGZAG = scale(2);"
+        errorLine2="                            ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="41"/>
+            line="41"
+            column="29"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  static final int CENTER_ZIGZAG = scale(3);"
+        errorLine2="                                   ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="42"/>
+            line="42"
+            column="36"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int MARGIN_SPACING = scale(3);"
+        errorLine2="                                           ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="43"/>
+            line="43"
+            column="44"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int ARROW_SIDE = scale(6);"
+        errorLine2="                                       ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="66"/>
+            line="66"
+            column="40"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int CONNECTION_ARROW_SIZE = scale(5);"
+        errorLine2="                                                  ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="67"/>
+            line="67"
+            column="51"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int SMALL_ARROW_SIDE = scale(4);"
+        errorLine2="                                             ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="68"/>
+            line="68"
+            column="46"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int SMALL_ARROW_SIZE = scale(3);"
+        errorLine2="                                             ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/draw/DrawConnectionUtils.java"
-            line="69"/>
+            line="69"
+            column="46"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int SIZE = JBUI.scale(8);"
+        errorLine2="                                      ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/scene/draw/DrawResize.java"
-            line="34"/>
+            line="34"
+            column="39"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val IMAGE_SIZE = scale(48)"
+        errorLine2="                         ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/assistant/ImageViewAssistant.kt"
-            line="50"/>
+            line="50"
+            column="26"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int ourLeftColumnWidth = JBUI.scale(150);"
+        errorLine2="                                                    ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/editor/adapters/MEUI.java"
-            line="94"/>
+            line="94"
+            column="53"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int ourHeaderHeight = JBUI.scale(30);"
+        errorLine2="                                                 ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/editor/adapters/MEUI.java"
-            line="95"/>
+            line="95"
+            column="50"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    gc.insets.bottom = JBUI.scale(0);"
+        errorLine2="                            ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="210"/>
+            line="210"
+            column="29"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    gc.insets.left = JBUI.scale(2);"
+        errorLine2="                          ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="211"/>
+            line="211"
+            column="27"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    gc.insets.right = JBUI.scale(5);"
+        errorLine2="                           ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="212"/>
+            line="212"
+            column="28"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    gc.insets.top = JBUI.scale(2);"
+        errorLine2="                         ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="213"/>
+            line="213"
+            column="26"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    gc.insets.bottom = JBUI.scale(0);"
+        errorLine2="                            ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="219"/>
+            line="219"
+            column="29"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    gc.insets.left = JBUI.scale(0);"
+        errorLine2="                          ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="220"/>
+            line="220"
+            column="27"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    gc.insets.right = JBUI.scale(0);"
+        errorLine2="                           ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="221"/>
+            line="221"
+            column="28"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    gc.insets.top = JBUI.scale(0);"
+        errorLine2="                         ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="222"/>
+            line="222"
+            column="26"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="      gc.insets.left = JBUI.scale((i == 0) ? 5 : 0);"
+        errorLine2="                            ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="243"/>
+            line="243"
+            column="29"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="      gc.insets.right = JBUI.scale((i == 3) ? 5 : 0);"
+        errorLine2="                             ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="244"/>
+            line="244"
+            column="30"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    gc.insets.bottom = JBUI.scale(7);"
+        errorLine2="                            ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="248"/>
+            line="248"
+            column="29"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="      gc.insets.left = JBUI.scale((i == 0) ? 5 : 0);"
+        errorLine2="                            ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="262"/>
+            line="262"
+            column="29"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="      gc.insets.right = JBUI.scale((i == myHistoryButtons.length - 1) ? 5 : 0);"
+        errorLine2="                             ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="263"/>
+            line="263"
+            column="30"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    gc.insets.left = JBUI.scale(0);"
+        errorLine2="                          ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="269"/>
+            line="269"
+            column="27"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    gc.insets.right = JBUI.scale(5);"
+        errorLine2="                           ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/MarginPopup.java"
-            line="270"/>
+            line="270"
+            column="28"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val DEFAULT_PROPERTY_SIDE_WIDTH = JBUI.scale(280)"
+        errorLine2="                                               ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/property/NlPropertiesPanelDefinition.kt"
-            line="27"/>
+            line="27"
+            column="48"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int DRAG_THRESHOLD = JBUI.scale(10);"
+        errorLine2="                                                 ~~~~~">
         <location
             file="src/com/android/tools/idea/common/scene/Scene.java"
-            line="96"/>
+            line="96"
+            column="50"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    private final int TRACK_THICKNESS = JBUI.scale(5);"
+        errorLine2="                                             ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
-            line="277"/>
+            line="282"
+            column="46"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    private final int ARC_SIZE = JBUI.scale(2);"
+        errorLine2="                                      ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
-            line="278"/>
+            line="283"
+            column="39"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    private final int SLIDER_LENGTH = JBUI.scale(120);"
+        errorLine2="                                           ~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
-            line="279"/>
+            line="284"
+            column="44"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
+        message="This declaration implicitly references CommonNopTracker, which should only be accessed from tests or within private scope"
+        errorLine1="    val NOP_TRACKER = CommonNopTracker()"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/common/analytics/CommonUsageTracker.kt"
+            line="84"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within package private scope"
+        errorLine1="          interactionPane.addMouseListener("
+        errorLine2="          ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="109"/>
+            line="107"
+            column="11"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
+        message="This method should only be accessed from tests or within package private scope"
+        errorLine1="          interactionPane.addMouseListener("
+        errorLine2="          ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="109"/>
+            line="107"
+            column="11"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
+        message="This method should only be accessed from tests or within package private scope"
+        errorLine1="                interactionPane.requestFocus()"
+        errorLine2="                ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="112"/>
+            line="110"
+            column="17"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
+        message="This method should only be accessed from tests or within package private scope"
+        errorLine1="                interactionPane.requestFocus()"
+        errorLine2="                ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="112"/>
+            line="110"
+            column="17"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope">
+        message="This method should only be accessed from tests or within protected scope"
+        errorLine1="      if (surface.isRefreshing || !surface.sceneManagers.any { it.isOutOfDate })"
+        errorLine2="                                           ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/common/surface/notifications/DesignSurfaceNotificationProvider.kt"
-            line="40"/>
+            line="39"
+            column="44"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope">
+        message="This method should only be accessed from tests or within protected scope"
+        errorLine1="      if (surface.isRefreshing || !surface.sceneManagers.any { it.isOutOfDate })"
+        errorLine2="                                           ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/common/surface/notifications/DesignSurfaceNotificationProvider.kt"
-            line="40"/>
+            line="39"
+            column="44"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        screenViewProvider == NlScreenViewProvider.DEFAULT_SCREEN_MODE"
+        errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
-            line="83"/>
+            line="83"
+            column="52"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        screenViewProvider == NlScreenViewProvider.DEFAULT_SCREEN_MODE"
+        errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/actions/LayoutQualifierDropdownMenu.kt"
-            line="83"/>
+            line="83"
+            column="52"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
+        message="This method should only be accessed from tests or within package private scope"
+        errorLine1="        JComponent pane = designSurface.getInteractionPane();"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/editor/adapters/MESaveGif.java"
-            line="83"/>
+            line="83"
+            column="41"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    setLastUpdateCompleted(false);"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/property/MotionLayoutAttributesModel.java"
-            line="109"/>
+            line="109"
+            column="5"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        setUpdateCount(getUpdateCount() + 1);"
+        errorLine2="        ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/property/MotionLayoutAttributesModel.java"
-            line="127"/>
+            line="127"
+            column="9"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        setUpdateCount(getUpdateCount() + 1);"
+        errorLine2="                       ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/property/MotionLayoutAttributesModel.java"
-            line="127"/>
+            line="127"
+            column="24"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        setLastUpdateCompleted(true);"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/property/MotionLayoutAttributesModel.java"
-            line="128"/>
+            line="128"
+            column="9"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope">
+        message="This method should only be accessed from tests or within protected scope"
+        errorLine1="        Map&lt;LayoutlibSceneManager, RenderResult> results = getSceneManagers().stream()"
+        errorLine2="                                                           ~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="724"/>
+            line="747"
+            column="60"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope">
+        message="This method should only be accessed from tests or within protected scope"
+        errorLine1="  val sceneManager = surface.sceneManagers.first() as LayoutlibSceneManager"
+        errorLine2="                             ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/statelist/SelectorMenuAction.kt"
-            line="191"/>
+            line="191"
+            column="30"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope">
+        message="This method should only be accessed from tests or within protected scope"
+        errorLine1="  val sceneManager = surface.sceneManagers.first() as LayoutlibSceneManager"
+        errorLine2="                             ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/statelist/SelectorMenuAction.kt"
-            line="191"/>
+            line="191"
+            column="30"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope">
+        message="This method should only be accessed from tests or within protected scope"
+        errorLine1="    for (manager in surface.sceneManagers) {"
+        errorLine2="                            ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="613"/>
+            line="574"
+            column="29"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope">
+        message="This method should only be accessed from tests or within protected scope"
+        errorLine1="    for (manager in surface.sceneManagers) {"
+        errorLine2="                            ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="613"/>
+            line="574"
+            column="29"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope">
+        message="This method should only be accessed from tests or within protected scope"
+        errorLine1="    surface.sceneManagers"
+        errorLine2="            ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
-            line="207"/>
+            line="208"
+            column="13"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within protected scope">
+        message="This method should only be accessed from tests or within protected scope"
+        errorLine1="    surface.sceneManagers"
+        errorLine2="            ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
-            line="207"/>
+            line="208"
+            column="13"/>
     </issue>
 
 </issues>

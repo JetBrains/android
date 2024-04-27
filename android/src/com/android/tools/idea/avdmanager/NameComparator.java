@@ -39,7 +39,8 @@ import org.jetbrains.annotations.NotNull;
 final class NameComparator implements Comparator<Device> {
   @NotNull
   private static final Comparator<Device> COMPARATOR = Comparator.comparing(SortKey::valueOfDevice)
-    .thenComparing(Device::getDisplayName, Collator.getInstance(ULocale.ROOT).reversed());
+    .thenComparing(Device::getDisplayName, Collator.getInstance(ULocale.ROOT).reversed())
+    .thenComparing(Device::getId);
 
   private enum SortKey {
     SMALL_PHONE,

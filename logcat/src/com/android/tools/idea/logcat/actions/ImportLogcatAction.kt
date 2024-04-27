@@ -25,20 +25,25 @@ import com.intellij.openapi.project.DumbAwareAction
 private val LOGCAT_FILE_EXTENSIONS = setOf("logcat", "txt")
 
 internal class ImportLogcatAction :
-  DumbAwareAction(LogcatBundle.message("logcat.import.log.action.text"), null, AllIcons.ToolbarDecorator.Import) {
+  DumbAwareAction(
+    LogcatBundle.message("logcat.import.log.action.text"),
+    null,
+    AllIcons.ToolbarDecorator.Import
+  ) {
 
   override fun actionPerformed(e: AnActionEvent) {
     val logcatPresenter = e.getLogcatPresenter() ?: return
-    val descriptor = FileChooserDescriptor(true, false, false, false, false, false)
-      .withTitle(LogcatBundle.message("logcat.device.combo.file.chooser.title"))
-      .withFileFilter { it.name.substringAfterLast('.') in LOGCAT_FILE_EXTENSIONS }
-    val path = FileChooserFactory.getInstance()
-                 .createFileChooser(descriptor, e.project, null)
-                 .choose(e.project)
-                 .firstOrNull()
-                 ?.toNioPath()
-                 ?.normalize()
-               ?: return
+    val descriptor =
+      FileChooserDescriptor(true, false, false, false, false, false)
+        .withTitle(LogcatBundle.message("logcat.device.combo.file.chooser.title"))
+        .withFileFilter { it.name.substringAfterLast('.') in LOGCAT_FILE_EXTENSIONS }
+    val path =
+      FileChooserFactory.getInstance()
+        .createFileChooser(descriptor, e.project, null)
+        .choose(e.project)
+        .firstOrNull()
+        ?.toNioPath()
+        ?.normalize() ?: return
     logcatPresenter.openLogcatFile(path)
   }
 }

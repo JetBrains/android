@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.actions
 import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.intellij.execution.console.ConsoleConfigurable
 import com.intellij.idea.ActionsBundle
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.options.ShowSettingsUtil
@@ -25,10 +26,13 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.util.ui.UIUtil
 
 /**
- * A version of [com.intellij.execution.console.FoldLinesLikeThis] that works without a [com.intellij.execution.ui.ConsoleView]
+ * A version of [com.intellij.execution.console.FoldLinesLikeThis] that works without a
+ * [com.intellij.execution.ui.ConsoleView]
  */
-internal class LogcatFoldLinesLikeThisAction(private val editor: Editor)
-  : DumbAwareAction(ActionsBundle.message("action.ConsoleView.FoldLinesLikeThis.text")) {
+internal class LogcatFoldLinesLikeThisAction(private val editor: Editor) :
+  DumbAwareAction(ActionsBundle.message("action.ConsoleView.FoldLinesLikeThis.text")) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
   override fun update(e: AnActionEvent) {
     val enabled = getSingleLineSelection(editor) != null
     e.presentation.isEnabledAndVisible = enabled
@@ -36,17 +40,19 @@ internal class LogcatFoldLinesLikeThisAction(private val editor: Editor)
 
   override fun actionPerformed(e: AnActionEvent) {
     val selection = getSingleLineSelection(editor) ?: return
-    ShowSettingsUtil.getInstance().editConfigurable(editor.project, object : ConsoleConfigurable() {
-      override fun editFoldingsOnly() = true
+    ShowSettingsUtil.getInstance()
+      .editConfigurable(
+        editor.project,
+        object : ConsoleConfigurable() {
+          override fun editFoldingsOnly() = true
 
-      override fun reset() {
-        super.reset()
-        UIUtil.invokeLaterIfNeeded { addRule(selection) }
-      }
-    })
-    LogcatToolWindowFactory.logcatPresenters.forEach {
-      it.foldImmediately()
-    }
+          override fun reset() {
+            super.reset()
+            UIUtil.invokeLaterIfNeeded { addRule(selection) }
+          }
+        }
+      )
+    LogcatToolWindowFactory.logcatPresenters.forEach { it.foldImmediately() }
   }
 }
 
@@ -57,19 +63,18 @@ private fun getSingleLineSelection(editor: Editor): String? {
     val offset = editor.caretModel.offset
     if (offset <= document.textLength) {
       val lineNumber = document.getLineNumber(offset)
-      document.text.substring(document.getLineStartOffset(lineNumber), document.getLineEndOffset(lineNumber)).ifBlank { null }
-    }
-    else {
+      document.text
+        .substring(document.getLineStartOffset(lineNumber), document.getLineEndOffset(lineNumber))
+        .ifBlank { null }
+    } else {
       null
     }
-  }
-  else {
+  } else {
     val start = model.selectionStart
     val end = model.selectionEnd
     if (document.getLineNumber(start) == document.getLineNumber(end)) {
       document.text.substring(start, end).ifBlank { null }
-    }
-    else {
+    } else {
       null
     }
   }

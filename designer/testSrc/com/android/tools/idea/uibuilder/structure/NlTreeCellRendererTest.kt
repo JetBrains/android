@@ -26,17 +26,18 @@ import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito.mock
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JTree
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree.TreePath
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito.mock
 
 class NlTreeCellRendererTest {
 
+  @Suppress("MemberVisibilityCanBePrivate")
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
@@ -70,7 +71,9 @@ class NlTreeCellRendererTest {
     tree.setUI(
       object : BasicTreeUI() {
         override fun getLeftChildIndent() = 0
+
         override fun getRightChildIndent() = 0
+
         override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
       }
     )
@@ -100,7 +103,9 @@ class NlTreeCellRendererTest {
     tree.setUI(
       object : BasicTreeUI() {
         override fun getLeftChildIndent() = 0
+
         override fun getRightChildIndent() = 0
+
         override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
       }
     )
@@ -139,7 +144,9 @@ class NlTreeCellRendererTest {
     tree.setUI(
       object : BasicTreeUI() {
         override fun getLeftChildIndent() = 0
+
         override fun getRightChildIndent() = 0
+
         override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
       }
     )
@@ -178,7 +185,9 @@ class NlTreeCellRendererTest {
     tree.setUI(
       object : BasicTreeUI() {
         override fun getLeftChildIndent() = 0
+
         override fun getRightChildIndent() = 0
+
         override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
       }
     )
@@ -217,7 +226,9 @@ class NlTreeCellRendererTest {
     tree.setUI(
       object : BasicTreeUI() {
         override fun getLeftChildIndent() = 0
+
         override fun getRightChildIndent() = 0
+
         override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
       }
     )

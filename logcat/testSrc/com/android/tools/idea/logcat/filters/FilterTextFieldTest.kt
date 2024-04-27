@@ -65,21 +65,24 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JSeparator
 
-/**
- * Tests for [FilterTextField]
- */
+/** Tests for [FilterTextField] */
 class FilterTextFieldTest {
   private val projectRule = ProjectRule()
   private val usageTrackerRule = UsageTrackerRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), usageTrackerRule, disposableRule)
+  @get:Rule val rule = RuleChain(projectRule, EdtRule(), usageTrackerRule, disposableRule)
 
-  private val project get() = projectRule.project
+  private val project
+    get() = projectRule.project
+
   private val filterHistory by lazy { AndroidLogcatFilterHistory.getInstance() }
-  private val fakeLogcatPresenter by lazy { FakeLogcatPresenter().apply { Disposer.register(disposableRule.disposable, this) } }
-  private val logcatFilterParser by lazy { LogcatFilterParser(project, FakeProjectApplicationIdsProvider(project)) }
+  private val fakeLogcatPresenter by lazy {
+    FakeLogcatPresenter().apply { Disposer.register(disposableRule.disposable, this) }
+  }
+  private val logcatFilterParser by lazy {
+    LogcatFilterParser(project, FakeProjectApplicationIdsProvider(project))
+  }
 
   @After
   fun tearDown() {
@@ -123,7 +126,8 @@ class FilterTextFieldTest {
   fun createEditor_putsUserData() {
     val editorFactory = EditorFactory.getInstance()
     val androidProjectDetector = FakeAndroidProjectDetector(true)
-    val filterTextField = filterTextField(project, fakeLogcatPresenter, androidProjectDetector = androidProjectDetector)
+    val filterTextField =
+      filterTextField(project, fakeLogcatPresenter, androidProjectDetector = androidProjectDetector)
 
     val editor = filterTextField.getEditorEx()
 
@@ -154,7 +158,8 @@ class FilterTextFieldTest {
     val filterTextField = filterTextField(initialText = "bar")
     val textField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>()[0]
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
-    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
+    val favoriteButton =
+      fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
 
     fakeUi.clickOn(favoriteButton)
     val keyEvent = KeyEvent(textField, 0, 0L, 0, VK_ENTER, '\n')
@@ -167,7 +172,8 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun loosesFocus_addsToHistory() {
     val filterTextField = filterTextField()
-    val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
+    val editorTextField =
+      TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
 
     filterTextField.text = "foo"
     editorTextField.focusLost(FocusEvent(editorTextField, 0))
@@ -179,9 +185,11 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun loosesFocus_addsToHistory_favorite() {
     val filterTextField = filterTextField(initialText = "foo")
-    val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
+    val editorTextField =
+      TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
-    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
+    val favoriteButton =
+      fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
 
     fakeUi.clickOn(favoriteButton)
     editorTextField.focusLost(FocusEvent(editorTextField, 0))
@@ -193,19 +201,21 @@ class FilterTextFieldTest {
   @RunsInEdt
   fun addToHistory_logsUsage() {
     val filterTextField = filterTextField()
-    val editorTextField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
+    val editorTextField =
+      TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>().first()
 
     filterTextField.text = "foo"
     editorTextField.focusLost(FocusEvent(editorTextField, 0))
 
-    assertThat(usageTrackerRule.logcatEvents()).containsExactly(
-      LogcatUsageEvent.newBuilder()
-        .setType(FILTER_ADDED_TO_HISTORY)
-        .setLogcatFilter(
-          LogcatFilterEvent.newBuilder()
-            .setImplicitLineTerms(1)
-            .setIsFavorite(false))
-        .build())
+    assertThat(usageTrackerRule.logcatEvents())
+      .containsExactly(
+        LogcatUsageEvent.newBuilder()
+          .setType(FILTER_ADDED_TO_HISTORY)
+          .setLogcatFilter(
+            LogcatFilterEvent.newBuilder().setImplicitLineTerms(1).setIsFavorite(false)
+          )
+          .build()
+      )
   }
 
   @Test
@@ -213,141 +223,169 @@ class FilterTextFieldTest {
   fun addToHistory_favorite_logsUsage() {
     val filterTextField = filterTextField(initialText = "foo")
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
-    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
+    val favoriteButton =
+      fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
 
     fakeUi.clickOn(favoriteButton)
 
-    assertThat(usageTrackerRule.logcatEvents()).containsExactly(
-      LogcatUsageEvent.newBuilder()
-        .setType(FILTER_ADDED_TO_HISTORY)
-        .setLogcatFilter(
-          LogcatFilterEvent.newBuilder()
-            .setImplicitLineTerms(1)
-            .setIsFavorite(true))
-        .build())
+    assertThat(usageTrackerRule.logcatEvents())
+      .containsExactly(
+        LogcatUsageEvent.newBuilder()
+          .setType(FILTER_ADDED_TO_HISTORY)
+          .setLogcatFilter(
+            LogcatFilterEvent.newBuilder().setImplicitLineTerms(1).setIsFavorite(true)
+          )
+          .build()
+      )
   }
 
   @Suppress("OPT_IN_USAGE") // runTest is experimental
   @Test
   @RunsInEdt
-  fun historyList_render() = runTest(dispatchTimeoutMs = 5_000) {
-    filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
-    filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
-    fakeLogcatPresenter.processMessages(listOf(
-      logcatMessage(tag = "foobar"),
-      logcatMessage(tag = "bar"),
-    ))
+  fun historyList_render() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
+      filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
+      fakeLogcatPresenter.processMessages(
+        listOf(
+          logcatMessage(tag = "foobar"),
+          logcatMessage(tag = "bar"),
+        )
+      )
 
-    val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    advanceUntilIdle()
+      val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
+      advanceUntilIdle()
 
-    assertThat(historyList.renderToStrings()).containsExactly(
-      "*: foo ( 1 )",
-      "----------------------------------",
-      " : bar ( 2 )",
-    ).inOrder() // Order is reverse of the order added
-  }
-
-  @Suppress("OPT_IN_USAGE") // runTest is experimental
-  @Test
-  @RunsInEdt
-  fun historyList_renderOnlyFavorites() = runTest(dispatchTimeoutMs = 5_000) {
-    filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
-    filterHistory.add(logcatFilterParser, "bar", isFavorite = true)
-    fakeLogcatPresenter.processMessages(listOf(
-      logcatMessage(tag = "foobar"),
-      logcatMessage(tag = "bar"),
-    ))
-
-    val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    advanceUntilIdle()
-
-    assertThat(historyList.renderToStrings()).containsExactly(
-      "*: bar ( 2 )",
-      "*: foo ( 1 )",
-    ).inOrder() // Order is reverse of the order added
-  }
+      assertThat(historyList.renderToStrings())
+        .containsExactly(
+          "*: foo ( 1 )",
+          "----------------------------------",
+          " : bar ( 2 )",
+        )
+        .inOrder() // Order is reverse of the order added
+    }
 
   @Suppress("OPT_IN_USAGE") // runTest is experimental
   @Test
   @RunsInEdt
-  fun historyList_renderNoFavorites() = runTest(dispatchTimeoutMs = 5_000) {
-    filterHistory.add(logcatFilterParser, "foo", isFavorite = false)
-    filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
-    fakeLogcatPresenter.processMessages(listOf(
-      logcatMessage(tag = "foobar"),
-      logcatMessage(tag = "bar"),
-    ))
+  fun historyList_renderOnlyFavorites() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
+      filterHistory.add(logcatFilterParser, "bar", isFavorite = true)
+      fakeLogcatPresenter.processMessages(
+        listOf(
+          logcatMessage(tag = "foobar"),
+          logcatMessage(tag = "bar"),
+        )
+      )
 
-    val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    advanceUntilIdle()
+      val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
+      advanceUntilIdle()
 
-    assertThat(historyList.renderToStrings()).containsExactly(
-      " : bar ( 2 )",
-      " : foo ( 1 )",
-    ).inOrder() // Order is reverse of the order added
-  }
-
-  @Suppress("OPT_IN_USAGE") // runTest is experimental
-  @Test
-  @RunsInEdt
-  fun historyList_renderNamedFilter() = runTest(dispatchTimeoutMs = 5_000) {
-    filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
-    fakeLogcatPresenter.processMessages(listOf(logcatMessage(tag = "Foo")))
-
-    val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    advanceUntilIdle()
-
-    assertThat(historyList.renderToStrings()).containsExactly(
-      " : Foo ( 1 )",
-    ).inOrder()
-  }
+      assertThat(historyList.renderToStrings())
+        .containsExactly(
+          "*: bar ( 2 )",
+          "*: foo ( 1 )",
+        )
+        .inOrder() // Order is reverse of the order added
+    }
 
   @Suppress("OPT_IN_USAGE") // runTest is experimental
   @Test
   @RunsInEdt
-  fun historyList_renderNamedFilterWithSameName() = runTest(dispatchTimeoutMs = 5_000) {
-    filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
-    filterHistory.add(logcatFilterParser, "name:Foo tag:Foobar", isFavorite = false)
-    fakeLogcatPresenter.processMessages(listOf(
-      logcatMessage(tag = "Foo"),
-      logcatMessage(tag = "FooBar"),
-    ))
-    fakeLogcatPresenter.processMessages(listOf())
+  fun historyList_renderNoFavorites() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      filterHistory.add(logcatFilterParser, "foo", isFavorite = false)
+      filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
+      fakeLogcatPresenter.processMessages(
+        listOf(
+          logcatMessage(tag = "foobar"),
+          logcatMessage(tag = "bar"),
+        )
+      )
 
-    val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    advanceUntilIdle()
+      val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
+      advanceUntilIdle()
 
-    assertThat(historyList.renderToStrings()).containsExactly(
-      " : Foo: tag:Foobar ( 1 )",
-      " : Foo: tag:Foo ( 2 )",
-    ).inOrder() // Order is reverse of the order added
-  }
+      assertThat(historyList.renderToStrings())
+        .containsExactly(
+          " : bar ( 2 )",
+          " : foo ( 1 )",
+        )
+        .inOrder() // Order is reverse of the order added
+    }
 
   @Suppress("OPT_IN_USAGE") // runTest is experimental
   @Test
   @RunsInEdt
-  fun historyList_renderNamedNamedOrder() = runTest(dispatchTimeoutMs = 5_000) {
-    filterHistory.add(logcatFilterParser, "name:Foo named favorite", isFavorite = true)
-    filterHistory.add(logcatFilterParser, "favorite", isFavorite = true)
-    filterHistory.add(logcatFilterParser, "name:Foo named", isFavorite = false)
-    filterHistory.add(logcatFilterParser, "unnamed", isFavorite = false)
+  fun historyList_renderNamedFilter() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
+      fakeLogcatPresenter.processMessages(listOf(logcatMessage(tag = "Foo")))
 
-    val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    advanceUntilIdle()
+      val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
+      advanceUntilIdle()
 
-    // The order should be:
-    //   Favorites in reverse order added
-    //   Named
-    //   Unnamed
-    assertThat(historyList.renderToStrings()).containsExactly(
-      "*: favorite ( 0 )",
-      "*: Foo: named favorite ( 0 )",
-      "----------------------------------",
-      " : Foo: named ( 0 )",
-      " : unnamed ( 0 )"
-    ).inOrder() // Order is reverse of the order added
-  }
+      assertThat(historyList.renderToStrings())
+        .containsExactly(
+          " : Foo ( 1 )",
+        )
+        .inOrder()
+    }
+
+  @Suppress("OPT_IN_USAGE") // runTest is experimental
+  @Test
+  @RunsInEdt
+  fun historyList_renderNamedFilterWithSameName() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
+      filterHistory.add(logcatFilterParser, "name:Foo tag:Foobar", isFavorite = false)
+      fakeLogcatPresenter.processMessages(
+        listOf(
+          logcatMessage(tag = "Foo"),
+          logcatMessage(tag = "FooBar"),
+        )
+      )
+      fakeLogcatPresenter.processMessages(listOf())
+
+      val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
+      advanceUntilIdle()
+
+      assertThat(historyList.renderToStrings())
+        .containsExactly(
+          " : Foo: tag:Foobar ( 1 )",
+          " : Foo: tag:Foo ( 2 )",
+        )
+        .inOrder() // Order is reverse of the order added
+    }
+
+  @Suppress("OPT_IN_USAGE") // runTest is experimental
+  @Test
+  @RunsInEdt
+  fun historyList_renderNamedNamedOrder() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      filterHistory.add(logcatFilterParser, "name:Foo named favorite", isFavorite = true)
+      filterHistory.add(logcatFilterParser, "favorite", isFavorite = true)
+      filterHistory.add(logcatFilterParser, "name:Foo named", isFavorite = false)
+      filterHistory.add(logcatFilterParser, "unnamed", isFavorite = false)
+
+      val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
+      advanceUntilIdle()
+
+      // The order should be:
+      //   Favorites in reverse order added
+      //   Named
+      //   Unnamed
+      assertThat(historyList.renderToStrings())
+        .containsExactly(
+          "*: favorite ( 0 )",
+          "*: Foo: named favorite ( 0 )",
+          "----------------------------------",
+          " : Foo: named ( 0 )",
+          " : unnamed ( 0 )"
+        )
+        .inOrder() // Order is reverse of the order added
+    }
 
   @Test
   @RunsInEdt
@@ -379,7 +417,8 @@ class FilterTextFieldTest {
   fun emptyText_buttonPanelInvisible() {
     val filterTextField = filterTextField(initialText = "")
 
-    val favoriteButton = filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
+    val favoriteButton =
+      filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
     val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
 
@@ -393,7 +432,8 @@ class FilterTextFieldTest {
   fun nonEmptyText_buttonPanelVisible() {
     val filterTextField = filterTextField(initialText = "foo")
 
-    val favoriteButton = filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
+    val favoriteButton =
+      filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
     val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
 
@@ -406,7 +446,8 @@ class FilterTextFieldTest {
   @Test
   fun textBecomesEmpty_buttonPanelInvisible() {
     val filterTextField = filterTextField(initialText = "foo")
-    val favoriteButton = filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
+    val favoriteButton =
+      filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
     val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
 
@@ -421,7 +462,8 @@ class FilterTextFieldTest {
   @Test
   fun textBecomesNotEmpty_buttonPanelVisible() {
     val filterTextField = filterTextField(initialText = "")
-    val favoriteButton = filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
+    val favoriteButton =
+      filterTextField.getButtonWithIcon(StudioIcons.Logcat.Input.FAVORITE_OUTLINE)
     val clearButton = filterTextField.getButtonWithIcon(AllIcons.Actions.Close)
     val separator = TreeWalker(filterTextField).descendants().filterIsInstance<JSeparator>().first()
 
@@ -448,7 +490,8 @@ class FilterTextFieldTest {
     val filterTextField = filterTextField(initialText = "bar")
     val textField = TreeWalker(filterTextField).descendants().filterIsInstance<EditorTextField>()[0]
     val fakeUi = FakeUi(filterTextField, createFakeWindow = true)
-    val favoriteButton = fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
+    val favoriteButton =
+      fakeUi.getComponent<JLabel> { it.icon == StudioIcons.Logcat.Input.FAVORITE_OUTLINE }
     fakeUi.clickOn(favoriteButton)
 
     textField.text = "foo"
@@ -465,17 +508,22 @@ class FilterTextFieldTest {
     matchCase: Boolean = false,
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
   ) =
-    FilterTextField(project, logcatPresenter, filterParser, initialText, matchCase, androidProjectDetector).apply {
-      addNotify()  // Creates editor
-      Disposer.register(disposableRule.disposable) {
-        runInEdtAndWait {
-          removeNotify()
-        }
+    FilterTextField(
+        project,
+        logcatPresenter,
+        filterParser,
+        initialText,
+        matchCase,
+        androidProjectDetector
+      )
+      .apply {
+        addNotify() // Creates editor
+        Disposer.register(disposableRule.disposable) { runInEdtAndWait { removeNotify() } }
+        size = Dimension(100, 100) // Allows FakeUi mouse clicks
       }
-      size = Dimension(100, 100) // Allows FakeUi mouse clicks
-    }
 
   private fun getHistoryNonFavorites(): List<String> = filterHistory.nonFavorites
+
   private fun getHistoryFavorites(): List<String> = filterHistory.favorites
 }
 
@@ -484,8 +532,9 @@ private fun FilterTextField.getButtonWithIcon(icon: Icon) =
 
 private fun HistoryList.renderToStrings(): List<String> {
   return model.asSequence().toList().map {
-    val panel = cellRenderer.getListCellRendererComponent(this, it, 0, false, false) as? JPanel
-                ?: throw IllegalStateException("Unexpected component: ${it::class}")
+    val panel =
+      cellRenderer.getListCellRendererComponent(this, it, 0, false, false) as? JPanel
+        ?: throw IllegalStateException("Unexpected component: ${it::class}")
     panel.renderToString()
   }
 }
@@ -494,7 +543,8 @@ private fun JPanel.renderToString(): String {
   return when {
     components[0] is JSeparator -> "----------------------------------"
     layout is GroupLayout -> {
-      val favorite = if ((components[0] as JLabel).icon == StudioIcons.Logcat.Input.FAVORITE_FILLED) "*" else " "
+      val favorite =
+        if ((components[0] as JLabel).icon == StudioIcons.Logcat.Input.FAVORITE_FILLED) "*" else " "
       val text = (components[1] as SimpleColoredComponent).toString()
       val count = (components[2] as JLabel).text
       "$favorite: $text ($count)"

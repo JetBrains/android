@@ -25,7 +25,7 @@ import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLayeredPane;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -45,7 +45,6 @@ import org.jetbrains.annotations.Nullable;
 class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Disposable {
   private final String myBenchName;
   private final PropertiesComponent myPropertiesComponent;
-  private final JComponent myDefaultLayer;
   private final ThreeComponentsSplitter mySplitter;
   private final JPanel myContainer;
   private String myToolName;
@@ -61,14 +60,13 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
                @NotNull PropertiesComponent propertiesComponent) {
     myBenchName = benchName;
     myPropertiesComponent = propertiesComponent;
-    myDefaultLayer = defaultLayer;
     myContainer = new JPanel();
     myContainer.setOpaque(false);
     myContainer.addComponentListener(createWidthUpdater());
     mySplitter = new ThreeComponentsSplitter();
     mySplitter.setOpaque(false);
     mySplitter.setInnerComponent(myContainer);
-    mySplitter.setDividerWidth(JBUIScale.scale(0));
+    mySplitter.setDividerWidth(JBUI.scale(0));
     mySplitter.setFocusCycleRoot(false);
     mySplitter.setFocusTraversalPolicyProvider(true);
     mySplitter.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
@@ -77,6 +75,8 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
     add(defaultLayer, DEFAULT_LAYER);
     add(mySplitter, PALETTE_LAYER);
     model.addListener(this);
+
+    setFullOverlayLayout(true);
   }
 
   @VisibleForTesting
@@ -128,12 +128,6 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
   }
 
   @Override
-  public void doLayout() {
-    myDefaultLayer.setBounds(0, 0, getWidth(), getHeight());
-    mySplitter.setBounds(0, 0, getWidth(), getHeight());
-  }
-
-  @Override
   public void dispose() {
   }
 
@@ -163,7 +157,7 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
   private int getToolWidth(@NotNull AttachedToolWindow<T> tool) {
     int width = myPropertiesComponent.getInt(getUnscaledWidthPropertyName(), -1);
     if (width != -1) {
-      return JBUIScale.scale(width);
+      return JBUI.scale(width);
     }
     int scaledWidth = myPropertiesComponent.getInt(getScaledWidthPropertyName(), -1);
     if (scaledWidth == -1) {

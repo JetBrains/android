@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Note
@@ -36,7 +37,8 @@ data class AddNoteRequested(val issueId: IssueId, val message: String, val clock
   ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
     val sessionId = UUID.randomUUID().toString()
     val draft =
@@ -49,11 +51,7 @@ data class AddNoteRequested(val issueId: IssueId, val message: String, val clock
       )
 
     return StateTransition(
-      newState =
-        state.copy(
-          issues = state.issues.incrementPendingRequests(issueId),
-          currentNotes = state.currentNotes.addDraft(draft)
-        ),
+      newState = state.copy(currentNotes = state.currentNotes.addDraft(draft)),
       action = Action.AddNote(draft)
     )
   }
@@ -74,12 +72,12 @@ data class RollbackAddNoteRequest(val noteId: NoteId, val cause: LoadingState.Fa
   ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
     return StateTransition(
       newState =
         state.copy(
-          issues = state.issues.decrementPendingRequests(noteId.issueId),
           currentNotes = state.currentNotes.deleteDraft(noteId.sessionId!!),
           permission = state.permission.updatePermissionIfApplicable(cause)
         ),
@@ -102,7 +100,8 @@ data class RollbackAddNoteRequest(val noteId: NoteId, val cause: LoadingState.Fa
 data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
     state.connections.selected?.appId?.let { appId ->
       tracker.logNotesAction(
@@ -118,10 +117,7 @@ data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
     return StateTransition(
       newState =
         state.copy(
-          issues =
-            state.issues
-              .decrementPendingRequests(note.id.issueId)
-              .incrementNotesCount(note.id.issueId),
+          issues = state.issues.incrementNotesCount(note.id.issueId),
           currentNotes =
             if (state.selectedIssue?.id == note.id.issueId)
               state.currentNotes.markDraftDone(note, sessionId)
@@ -143,14 +139,6 @@ data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
     }
   }
 }
-
-internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.incrementPendingRequests(
-  issueId: IssueId
-) = applyUpdate(issueId, AppInsightsIssue::incrementPendingRequests)
-
-internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.decrementPendingRequests(
-  issueId: IssueId
-) = applyUpdate(issueId, AppInsightsIssue::decrementPendingRequests)
 
 internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.incrementNotesCount(
   issueId: IssueId

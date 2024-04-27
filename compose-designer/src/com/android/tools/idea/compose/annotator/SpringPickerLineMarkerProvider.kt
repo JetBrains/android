@@ -21,10 +21,7 @@ import com.android.tools.idea.compose.pickers.preview.utils.containingPackage
 import com.android.tools.idea.compose.pickers.spring.model.SpringPickerPropertiesModel
 import com.android.tools.idea.compose.pickers.spring.model.SpringPropertiesProvider
 import com.android.tools.idea.compose.pickers.spring.model.SpringPropertiesProviderK2
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.DECLARATION_FLOAT_SPEC
-import com.android.tools.idea.compose.preview.DECLARATION_SPRING
-import com.android.tools.idea.compose.preview.DECLARATION_SPRING_SPEC
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
@@ -46,9 +43,9 @@ import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.util.CommentSaver.Companion.tokenType
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtCallElement
@@ -57,6 +54,10 @@ import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.toUElementOfType
+
+private const val DECLARATION_SPRING_SPEC = "SpringSpec"
+private const val DECLARATION_FLOAT_SPEC = "FloatSpringSpec"
+private const val DECLARATION_SPRING = "spring"
 
 private val SpringTypesFqNames =
   setOf(
@@ -114,8 +115,7 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
       val uCallElement = callElement.toUElementOfType<UCallExpression>() ?: return null
       val resolvedType =
         (uCallElement.getExpressionType() as? PsiClassType)?.parameters?.firstOrNull()
-          as? PsiClassType
-          ?: return null
+          as? PsiClassType ?: return null
       val qualifiedName =
         (resolvedType as? PsiClassReferenceType)?.reference?.qualifiedName ?: return null
       if (!SpringTypesFqNames.contains(qualifiedName)) {

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.compose.annotator.check.device
 
+import com.android.ide.common.util.enumValueOfOrNull
 import com.android.tools.idea.compose.annotator.check.common.OpenEndedValueType
 import com.android.tools.idea.compose.annotator.check.common.ParameterRule.Companion.simpleParameterRule
-import com.android.tools.idea.compose.pickers.preview.property.DimUnit
-import com.android.tools.idea.compose.pickers.preview.property.Orientation
-import com.android.tools.idea.compose.pickers.preview.property.Shape
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec
-import com.android.tools.idea.kotlin.enumValueOfOrNull
+import com.android.tools.preview.config.DimUnit
+import com.android.tools.preview.config.Orientation
+import com.android.tools.preview.config.Preview.DeviceSpec
+import com.android.tools.preview.config.Shape
 
 /**
  * Parameter rules for the legacy format of the DeviceSpec.

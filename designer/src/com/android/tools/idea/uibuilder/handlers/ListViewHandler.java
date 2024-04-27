@@ -15,27 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_BACKGROUND;
-import static com.android.SdkConstants.ATTR_CACHE_COLOR_HINT;
-import static com.android.SdkConstants.ATTR_DIVIDER;
-import static com.android.SdkConstants.ATTR_DIVIDER_HEIGHT;
-import static com.android.SdkConstants.ATTR_ENTRIES;
-import static com.android.SdkConstants.ATTR_FOOTER_DIVIDERS_ENABLED;
-import static com.android.SdkConstants.ATTR_HEADER_DIVIDERS_ENABLED;
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_SCROLLBARS;
-import static com.android.SdkConstants.ATTR_STYLE;
-import static com.android.SdkConstants.NEW_ID_PREFIX;
-
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.xml.XmlBuilder;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <ListView>} layout

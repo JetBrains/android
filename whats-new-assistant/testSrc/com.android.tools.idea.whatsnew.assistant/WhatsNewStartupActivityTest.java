@@ -16,7 +16,7 @@
 package com.android.tools.idea.whatsnew.assistant;
 
 import com.android.repository.Revision;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.google.common.util.concurrent.SettableFuture;
@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.concurrent.FutureCallback;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -49,10 +48,10 @@ public class WhatsNewStartupActivityTest extends AndroidTestCase {
 
     mockUrlProvider = Mockito.mock(WhatsNewURLProvider.class);
     File serverFile = new File(myFixture.getTestDataPath(), "whatsnewassistant/server-3.3.0.xml");
-    Mockito.when(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(new URL("file:" + serverFile.getPath()));
+    Mockito.when(mockUrlProvider.getWebConfig(Mockito.anyString())).thenReturn(new URL("file:" + serverFile.getPath()));
 
     File resourceFile = new File(myFixture.getTestDataPath(), "whatsnewassistant/defaultresource-3.3.0.xml");
-    Mockito.when(mockUrlProvider.getResourceFileAsStream(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
+    Mockito.when(mockUrlProvider.getResourceFileAsStream(Mockito.any(), Mockito.anyString()))
       .thenAnswer(new Answer<InputStream>() {
         @Override
         public InputStream answer(InvocationOnMock invocation) throws IOException {
@@ -62,7 +61,7 @@ public class WhatsNewStartupActivityTest extends AndroidTestCase {
 
     Path tmpDir = TestUtils.createTempDirDeletedOnExit();
     Path localPath = tmpDir.resolve("local-3.3.0.xml");
-    Mockito.when(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath);
+    Mockito.when(mockUrlProvider.getLocalConfig(Mockito.anyString())).thenReturn(localPath);
   }
 
   /**

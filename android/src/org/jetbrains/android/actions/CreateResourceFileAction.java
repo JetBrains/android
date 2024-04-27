@@ -45,6 +45,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -68,7 +69,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
   }
 
   public CreateResourceFileAction() {
-    super(AndroidBundle.messagePointer("new.resource.action.title"), AndroidBundle.messagePointer("new.resource.action.description"),
+    super(AndroidBundle.message("new.resource.action.title"), AndroidBundle.message("new.resource.action.description"),
           XmlFileType.INSTANCE.getIcon());
   }
 

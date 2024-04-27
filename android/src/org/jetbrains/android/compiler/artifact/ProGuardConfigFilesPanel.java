@@ -6,7 +6,6 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -16,22 +15,20 @@ import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 
 public abstract class ProGuardConfigFilesPanel extends JPanel {
 
@@ -54,8 +51,8 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
         }
       }
     });
-    JPanel tablePanel = decorator.setPreferredSize(new Dimension(-1, JBUIScale.scale(120))).createPanel();
-    tablePanel.setMinimumSize(new Dimension(-1, JBUIScale.scale(120)));
+    JPanel tablePanel = decorator.setPreferredSize(new Dimension(-1, JBUI.scale(120))).createPanel();
+    tablePanel.setMinimumSize(new Dimension(-1, JBUI.scale(120)));
     add(tablePanel, BorderLayout.CENTER);
     final JBLabel label = new JBLabel("Config file paths:");
     label.setBorder(JBUI.Borders.empty(0, 0, 5, 0));
@@ -80,7 +77,7 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
     final FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
     final VirtualFile contentRoot = AndroidRootUtil.getMainContentRoot(facet);
     final VirtualFile file = FileChooser.chooseFile(descriptor, this, facet.getModule().getProject(), contentRoot);
-    return file != null ? FileUtilRt.toSystemDependentName(file.getPath()) : null;
+    return file != null ? FileUtil.toSystemDependentName(file.getPath()) : null;
   }
 
   @NotNull

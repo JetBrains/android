@@ -25,10 +25,10 @@ class GradleDslVersionCatalogHandler : GradleVersionCatalogHandler {
     }
   }
 
-  override fun getAccessorClass(context: PsiElement, catalogName: String): PsiClass {
+  override fun getAccessorClass(context: PsiElement, catalogName: String): PsiClass? {
     val project = context.project
     val scope = context.resolveScope
     val versionCatalogModel = ProjectBuildModel.get(project).versionCatalogsModel
-    return SyntheticVersionCatalogAccessor(project, scope, versionCatalogModel, catalogName)
+    return SyntheticVersionCatalogAccessor.create(project, scope, versionCatalogModel, catalogName)
   }
 }

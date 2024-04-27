@@ -15,51 +15,25 @@
  */
 package org.jetbrains.android.inspections;
 
-import static com.intellij.codeInspection.options.OptPane.checkbox;
-import static com.intellij.codeInspection.options.OptPane.pane;
-
 import com.intellij.codeInsight.daemon.JavaErrorBundle;
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightMessageUtil;
 import com.intellij.codeInsight.daemon.impl.analysis.JavaHighlightUtil;
-import com.intellij.codeInspection.AbstractBaseJavaLocalInspectionTool;
-import com.intellij.codeInspection.DeprecationUtil;
-import com.intellij.codeInspection.LocalQuickFix;
-import com.intellij.codeInspection.ProblemHighlightType;
-import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.codeInspection.*;
 import com.intellij.codeInspection.options.OptPane;
+import com.intellij.codeInspection.ui.MultipleCheckboxOptionsPanel;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.JavaElementVisitor;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.JavaResolveResult;
-import com.intellij.psi.PsiAnonymousClass;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassType;
-import com.intellij.psi.PsiCodeBlock;
-import com.intellij.psi.PsiDocCommentOwner;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.PsiExpressionList;
-import com.intellij.psi.PsiImportStatementBase;
-import com.intellij.psi.PsiImportStaticStatement;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiNewExpression;
-import com.intellij.psi.PsiReferenceExpression;
-import com.intellij.psi.PsiResolveHelper;
-import com.intellij.psi.PsiStatement;
-import com.intellij.psi.PsiSubstitutor;
-import com.intellij.psi.PsiType;
-import com.intellij.psi.PsiTypeParameter;
+import com.intellij.psi.*;
 import com.intellij.psi.infos.MethodCandidateInfo;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * This class is a copy of {@link com.intellij.codeInspection.deprecation.DeprecationInspection}
@@ -117,13 +91,13 @@ public class AndroidDeprecationInspection extends AbstractBaseJavaLocalInspectio
   @Override
   @NotNull
   public OptPane getOptionsPane() {
-    return pane(
-      checkbox("IGNORE_INSIDE_DEPRECATED", "Ignore inside deprecated members"),
-      checkbox("IGNORE_IMPORT_STATEMENTS", "Ignore inside non-static imports"),
-      checkbox(
+    return OptPane.pane(
+      OptPane.checkbox("IGNORE_INSIDE_DEPRECATED", "Ignore inside deprecated members"),
+      OptPane.checkbox("IGNORE_IMPORT_STATEMENTS", "Ignore inside non-static imports"),
+      OptPane.checkbox(
           "IGNORE_ABSTRACT_DEPRECATED_OVERRIDES",
           "<html>Ignore overrides of deprecated abstract methods from non-deprecated supers</html>"),
-      checkbox(IGNORE_METHODS_OF_DEPRECATED_NAME, "Ignore members of deprecated classes"));
+      OptPane.checkbox(IGNORE_METHODS_OF_DEPRECATED_NAME, "Ignore members of deprecated classes"));
   }
 
   private static class DeprecationElementVisitor extends JavaElementVisitor {

@@ -36,22 +36,20 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.ClientProperty
+import java.awt.event.KeyEvent
 import org.junit.Rule
 import org.junit.Test
-import java.awt.event.KeyEvent
 
-/**
- * Tests for [UserInputHandlers]
- */
+/** Tests for [UserInputHandlers] */
 @RunsInEdt
 class UserInputHandlersTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule
-  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
 
-  private val editor get() = logcatEditorRule.editor
+  private val editor
+    get() = logcatEditorRule.editor
 
   @Test
   fun typeText_appendsToEnd() {
@@ -325,7 +323,8 @@ class UserInputHandlersTest {
   }
 
   private fun EditorEx.getActions() =
-    ClientProperty.get(contentComponent, ACTIONS_KEY) ?: throw IllegalStateException("ACTIONS_KEY not found")
+    ClientProperty.get(contentComponent, ACTIONS_KEY)
+      ?: throw IllegalStateException("ACTIONS_KEY not found")
 
   private fun EditorEx.pressEnter() {
     getActions().first { it.shortcutSet == ENTER }.actionPerformed(TestActionEvent())
@@ -350,7 +349,8 @@ class UserInputHandlersTest {
 
   private fun EditorEx.getUserInputAreas(): List<String> {
     val markupModel = DocumentMarkupModel.forDocument(document, projectRule.project, false)
-    return markupModel.allHighlighters.filter { it.textAttributesKey == USER_INPUT.attributesKey }
+    return markupModel.allHighlighters
+      .filter { it.textAttributesKey == USER_INPUT.attributesKey }
       .map { document.text.substring(it.startOffset, it.endOffset) }
   }
 }

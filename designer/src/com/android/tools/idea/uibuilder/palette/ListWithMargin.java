@@ -77,7 +77,7 @@ public abstract class ListWithMargin<E> extends JBList<E> {
     }
 
     private int getRightMarginWidth() {
-      return ((ListWithMargin<?>)myComponent).getRightMarginWidth();
+      return ((ListWithMargin)myComponent).getRightMarginWidth();
     }
 
     @NotNull

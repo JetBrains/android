@@ -22,9 +22,7 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.android.sdk.AndroidSdkUtils
-import org.jetbrains.annotations.NonNls
-
-
+import java.util.Locale
 
 class AndroidSdkInitializer : ApplicationInitializedListener {
   override suspend fun execute(asyncScope: CoroutineScope) {

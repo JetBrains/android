@@ -17,8 +17,8 @@ package com.android.tools.idea.device.explorer.monitor
 
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
-import com.android.tools.idea.device.explorer.monitor.options.DeviceMonitorSettings
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
 import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorTableModel
@@ -34,29 +34,24 @@ import kotlinx.coroutines.sync.withLock
 class DeviceMonitorModel @NonInjectable constructor(
   private val processService: DeviceProcessService,
   private val packageNamesProvider: ProjectApplicationIdsProvider) {
-  private val settings: DeviceMonitorSettings = DeviceMonitorSettings.getInstance()
   private var activeDevice: AdbDevice? = null
   private val activeDeviceMutex = Mutex()
   val tableModel = DeviceMonitorTableModel()
-  val isPackageFilterActive = MutableStateFlow(settings.isPackageFilterActive)
+  val isPackageFilterActive = MutableStateFlow(DeviceExplorerSettings.getInstance().isPackageFilterActive)
   val isApplicationIdsEmpty = MutableStateFlow(true)
 
   constructor(project: Project, processService: DeviceProcessService) : this(processService, ProjectApplicationIdsProvider.getInstance(project))
 
   suspend fun setPackageFilter(isActive: Boolean) {
     if (isPackageFilterActive.value != isActive) {
-      setPackageFilterValue(isActive)
+      isPackageFilterActive.value = isActive
       refreshCurrentProcessList()
     }
   }
 
   suspend fun projectApplicationIdListChanged() {
     isApplicationIdsEmpty.value = packageNamesProvider.getPackageNames().isEmpty()
-    if (isApplicationIdsEmpty.value) {
-      setPackageFilterValue(false)
-    } else if (isPackageFilterActive.value) {
-      refreshCurrentProcessList()
-    }
+    refreshCurrentProcessList()
   }
 
   suspend fun activeDeviceChanged(device: IDevice?) {
@@ -107,11 +102,6 @@ class DeviceMonitorModel @NonInjectable constructor(
         processService.debugProcess(project, processInfo, it.device)
       }
     }
-  }
-
-  private fun setPackageFilterValue(value: Boolean) {
-    isPackageFilterActive.value = value
-    settings.isPackageFilterActive = value
   }
 
   private suspend fun invokeOnProcessInfo(rows: IntArray, block: suspend (ProcessInfo) -> Unit) {

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 import static com.intellij.ui.TableUtil.scrollSelectionToVisible;
+import static com.intellij.util.ui.JBUI.scale;
 import static com.intellij.util.ui.UIUtil.getTableFocusCellHighlightBorder;
 import static com.intellij.util.ui.UIUtil.getToolTipBackground;
 
@@ -27,7 +27,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.intellij.CommonBundle;
-import com.intellij.icons.AllIcons;
+import com.android.tools.idea.gradle.variant.conflict.ConflictSetKt;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -46,11 +47,11 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -61,6 +62,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.Icon;
@@ -86,7 +89,7 @@ public class BuildVariantView {
   private static final int VARIANT_COLUMN_INDEX = 1;
   private static final int ABI_COLUMN_INDEX = 2;
 
-  private static final Color CONFLICT_CELL_BACKGROUND = MessageType.ERROR.getPopupBackground();
+  public static final Color CONFLICT_CELL_BACKGROUND = MessageType.WARNING.getPopupBackground();
 
   private final Project myProject;
 
@@ -95,6 +98,7 @@ public class BuildVariantView {
   private JPanel myNotificationPanel;
   private JButton myImportDefaultsButton;
 
+  @NotNull
   private final List<Conflict> myConflicts = new ArrayList<>();
 
   @NotNull
@@ -115,7 +119,7 @@ public class BuildVariantView {
 
     myImportDefaultsButton = new JButton();
     myImportDefaultsButton.setToolTipText(
-        "Resets variant selection to the default variants (automatically selected if not specified in build.gradle)");
+        "Resets variant selection to the default variants (automatically selected if not specified in Gradle build files)");
     myImportDefaultsButton.addActionListener(
       event -> BuildVariantUpdater.requestGradleSync(myProject, null, true));
   }
@@ -156,8 +160,15 @@ public class BuildVariantView {
     updateContents();
   }
 
-  public void findAndSelect(@NotNull Module module) {
-    findAndSelect(module, MODULE_COLUMN_INDEX);
+  public void selectModule(int row) {
+    select(row, MODULE_COLUMN_INDEX);
+  }
+
+  public void select(int row, int col) {
+    myVariantsTable.getSelectionModel().setSelectionInterval(row, row);
+    myVariantsTable.getColumnModel().getSelectionModel().setSelectionInterval(col, col);
+    scrollSelectionToVisible(myVariantsTable);
+    myVariantsTable.requestFocusInWindow();
   }
 
   public void findAndSelectVariantEditor(@NotNull Module module) {
@@ -168,10 +179,7 @@ public class BuildVariantView {
     int rowCount = myVariantsTable.getRowCount();
     for (int row = 0; row < rowCount; row++) {
       if (module.equals(myVariantsTable.getValueAt(row, MODULE_COLUMN_INDEX))) {
-        myVariantsTable.getSelectionModel().setSelectionInterval(row, row);
-        myVariantsTable.getColumnModel().getSelectionModel().setSelectionInterval(columnIndex, columnIndex);
-        scrollSelectionToVisible(myVariantsTable);
-        myVariantsTable.requestFocusInWindow();
+        select(row, columnIndex);
         break;
       }
     }
@@ -185,7 +193,7 @@ public class BuildVariantView {
       Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
       setBackground(color == null ? getToolTipBackground() : color);
       setBorder(JBUI.Borders.empty(1, 15)); // Same as EditorNotificationPanel
-      setPreferredSize(new Dimension(-1, JBUIScale.scale(24)));
+      setPreferredSize(new Dimension(-1, scale(24)));
 
       JLabel textLabel = new JLabel("Variant selection conflicts found");
       textLabel.setOpaque(false);
@@ -222,25 +230,32 @@ public class BuildVariantView {
       add(toolbarComponent, BorderLayout.EAST);
     }
 
+    private int nextConflictModule(Function<Integer, Integer> getNextIndex) {
+      int index = getNextIndex.apply(myCurrentConflictIndex);
+      for(int i = 0; i < getVariantsTable().getRowCount(); i++) {
+        if(getVariantsTable().hasConflict(index)) {
+          return index;
+        }
+        index = getNextIndex.apply(index);
+      }
+      return myCurrentConflictIndex;
+    }
+
+    private int findConflictModuleForward() {
+      return nextConflictModule(index -> (index + 1) % getVariantsTable().getRowCount());
+    }
+
+    private int findConflictModuleBackwards() {
+      return nextConflictModule(index -> index <= 0 ? getVariantsTable().getRowCount() - 1 : index - 1);
+    }
+
     private void navigateConflicts(boolean forward) {
       int conflictCount = myConflicts.size();
       if (conflictCount == 0) {
         return;
       }
-      if (forward) {
-        myCurrentConflictIndex++;
-        if (myCurrentConflictIndex >= conflictCount) {
-          myCurrentConflictIndex = 0;
-        }
-      }
-      else {
-        myCurrentConflictIndex--;
-        if (myCurrentConflictIndex < 0) {
-          myCurrentConflictIndex = conflictCount - 1;
-        }
-      }
-      Conflict conflict = myConflicts.get(myCurrentConflictIndex);
-      findAndSelect(conflict.getSource());
+      myCurrentConflictIndex = forward ? findConflictModuleForward() : findConflictModuleBackwards();
+      selectModule(myCurrentConflictIndex);
     }
   }
 
@@ -274,7 +289,7 @@ public class BuildVariantView {
             Component editorComponent = getEditorComponent();
             if (editorComponent instanceof ComboBox) {
               editorComponent.requestFocusInWindow();
-              ((ComboBox<?>)editorComponent).showPopup();
+              ((ComboBox)editorComponent).showPopup();
             }
           }
         }
@@ -288,15 +303,27 @@ public class BuildVariantView {
      * @param row the row for which a conflict will be searched
      * @return the conflict for the provided row, if exists.
      */
-    @Nullable
-    Conflict findConflict(int row) {
-      for (Conflict conflict : myConflicts) {
-        Object module = getValueAt(row, MODULE_COLUMN_INDEX);
-        if (conflict.getSource().equals(module)) {
-          return conflict;
-        }
+    @NotNull
+    ImmutableList<Conflict> findConflict(int row) {
+      Object module = getValueAt(row, MODULE_COLUMN_INDEX);
+      if (!(module instanceof Module)) {
+        return ImmutableList.of();
       }
-      return null;
+      var conflicts = myConflicts.stream()
+        .filter(conflict -> conflict.hasAffectedModule((Module) module))
+        .collect(Collectors.toList());
+
+      return new ImmutableList.Builder<Conflict>().addAll(conflicts).build();
+    }
+
+    boolean hasConflict(int row) {
+      return !findConflict(row).isEmpty();
+    }
+
+    @Nullable
+    Module findModule(int row) {
+      Object module = getValueAt(row, MODULE_COLUMN_INDEX);
+      return module instanceof Module ? (Module) module : null;
     }
 
     @Override
@@ -427,13 +454,16 @@ public class BuildVariantView {
         JLabel component = (JLabel)c;
 
         Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
-        Conflict conflictFound = ((BuildVariantTable)table).findConflict(row);
-        if (conflictFound != null) {
+        ImmutableList<Conflict> conflictFound = ((BuildVariantTable)table).findConflict(row);
+        boolean hasConflicts = !conflictFound.isEmpty();
+        if (hasConflicts) {
           background = CONFLICT_CELL_BACKGROUND;
         }
         component.setBackground(background);
-
-        String toolTip = conflictFound != null ? conflictFound.toString() : variantsCellHelpTooltipText;
+        component.setFont(StartupUiUtil.getLabelFont());
+        Module module = ((BuildVariantTable)table).findModule(row);
+        String toolTip = hasConflicts && module != null ? ConflictSetKt.variantConflictMessage(module, conflictFound)
+                                      : variantsCellHelpTooltipText;
         component.setToolTipText(toolTip);
 
         // add some padding to table cells. It is hard to read text of combo box.
@@ -462,7 +492,7 @@ public class BuildVariantView {
         // Build Variant conflicts do not change the background color of ABI cells.
         Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
         component.setBackground(background);
-
+        component.setFont(StartupUiUtil.getLabelFont());
         // Build variant conflicts do not change the tooltip of ABI cells.
         component.setToolTipText(abisCellHelpTooltipText);
 
@@ -484,46 +514,25 @@ public class BuildVariantView {
   private static class ModuleTableCell extends AbstractTableCellEditor implements TableCellRenderer {
     private static final Border EMPTY_BORDER = JBUI.Borders.empty(1);
 
-    @Nullable private Conflict myConflict;
+    @NotNull
+    private ImmutableList<Conflict> myConflicts = ImmutableList.of();
 
     private JPanel myPanel;
     private JLabel myModuleNameLabel;
     private JPanel myButtonsPanel;
-    private JButton myFixButton;
 
-    private Object myValue;
+    private Module myValue;
 
     ModuleTableCell() {
       myModuleNameLabel = new JLabel();
       myModuleNameLabel.setOpaque(false);
-
-      myFixButton = createButton(AllIcons.Actions.QuickfixBulb);
-      myFixButton.setToolTipText("Fix problem");
-      myFixButton.addActionListener(e -> {
-        if (myConflict != null) {
-          Project project = myConflict.getSource().getProject();
-          boolean solved = solveSelectionConflict(myConflict);
-          if (solved) {
-            ConflictSet conflicts = ConflictSet.findConflicts(project);
-            conflicts.showSelectionConflicts();
-          }
-        }
-        stopCellEditing();
-      });
-
       myButtonsPanel = new JPanel();
       myButtonsPanel.setOpaque(false);
-      myButtonsPanel.add(myFixButton);
 
       myPanel = new JPanel(new BorderLayout()) {
         @Override
         public String getToolTipText(MouseEvent e) {
           String toolTip = getToolTipTextIfUnderX(myModuleNameLabel, e.getX());
-          if (toolTip != null) {
-            return toolTip;
-          }
-          int x = e.getX() - myButtonsPanel.getX();
-          toolTip = getToolTipTextIfUnderX(myFixButton, x);
           if (toolTip != null) {
             return toolTip;
           }
@@ -565,13 +574,14 @@ public class BuildVariantView {
     }
 
     private void setUpComponent(@NotNull JTable table, @Nullable Object value, boolean isSelected, boolean hasFocus, int row) {
-      myValue = value;
 
       String moduleName = null;
       Icon moduleIcon = null;
       boolean isAndriodGradleModule = false;
-      if (value instanceof Module) {
-        Module module = (Module)value;
+      Module module = null;
+      if (value != null) {
+        module = (Module) value;
+        myValue = module;
         if (!module.isDisposed()) {
           String modulePath = GradleProjectResolverUtil.getGradleIdentityPathOrNull(module);
           // Note: modulePath should never be null here.
@@ -581,24 +591,20 @@ public class BuildVariantView {
         }
       }
       myModuleNameLabel.setForeground(AdtUiUtils.DEFAULT_FONT_COLOR);
-      myModuleNameLabel.setFont(table.getFont());
+      myModuleNameLabel.setFont(StartupUiUtil.getLabelFont());
       myModuleNameLabel.setText(moduleName == null ? "" : moduleName);
       myModuleNameLabel.setIcon(moduleIcon);
 
       Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
 
       if (isAndriodGradleModule) {
-        myConflict = ((BuildVariantTable)table).findConflict(row);
+        myConflicts = ((BuildVariantTable)table).findConflict(row);
+        boolean hasConflicts = !myConflicts.isEmpty();
 
-        myModuleNameLabel.setToolTipText(myConflict != null ? myConflict.toString() : null);
-        myFixButton.setVisible(myConflict != null);
-        if (myConflict != null) {
+        myModuleNameLabel.setToolTipText(hasConflicts ? ConflictSetKt.variantConflictMessage(module, myConflicts) : null);
+        if (hasConflicts) {
           background = CONFLICT_CELL_BACKGROUND;
         }
-      }
-      else {
-        // TODO: Consider showing dependency graph and conflict resolution options for native android modules also.
-        myFixButton.setVisible(false);
       }
 
       myPanel.setBackground(background);

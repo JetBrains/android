@@ -25,6 +25,7 @@ import com.intellij.psi.PsiParameter
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtParameter
 import org.junit.Rule
@@ -92,9 +93,9 @@ class BindsInstanceDaggerConceptTest {
       .containsExactly(
         "Foo",
         setOf(
-          BindsInstanceBuilderMethodIndexValue("com.example.MyComponent.Builder", "foo"),
+          BindsInstanceBuilderMethodIndexValue(MY_COMPONENT_BUILDER_ID, "foo"),
           BindsInstanceFactoryMethodParameterIndexValue(
-            "com.example.MyComponent.Factory",
+            MY_COMPONENT_FACTORY_ID,
             "newMyComponent",
             "foo"
           )
@@ -102,7 +103,7 @@ class BindsInstanceDaggerConceptTest {
         "Foo2",
         setOf(
           BindsInstanceFactoryMethodParameterIndexValue(
-            "com.example.MyComponent.Factory",
+            MY_COMPONENT_FACTORY_ID,
             "newMyComponent",
             "foo2"
           )
@@ -112,7 +113,7 @@ class BindsInstanceDaggerConceptTest {
 
   @Test
   fun bindsInstanceBuilderMethodIndexValue_serialization() {
-    val indexValue = BindsInstanceBuilderMethodIndexValue("abc", "def")
+    val indexValue = BindsInstanceBuilderMethodIndexValue(MY_COMPONENT_FACTORY_ID, "def")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -155,7 +156,7 @@ class BindsInstanceDaggerConceptTest {
 
     // Expected to resolve
     assertThat(
-        BindsInstanceBuilderMethodIndexValue("com.example.MyComponent.Builder", "fooFunction")
+        BindsInstanceBuilderMethodIndexValue(MY_COMPONENT_BUILDER_ID, "fooFunction")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(fooProviderDaggerElement)
@@ -163,15 +164,15 @@ class BindsInstanceDaggerConceptTest {
     // Expected to not resolve
     val nonResolving =
       listOf(
-        "com.example.MyComponent.Builder" to "fooFunction2",
-        "com.example.MyComponent.Builder" to "fooFunction3",
-        "com.example.MyComponent.Builder" to "fooFunction4",
-        "com.example.MyComponent" to "fooFunction5",
+        MY_COMPONENT_BUILDER_ID to "fooFunction2",
+        MY_COMPONENT_BUILDER_ID to "fooFunction3",
+        MY_COMPONENT_BUILDER_ID to "fooFunction4",
+        MY_COMPONENT_ID to "fooFunction5",
       )
 
-    for ((classFqName, methodName) in nonResolving) {
+    for ((classId, methodName) in nonResolving) {
       assertThat(
-          BindsInstanceBuilderMethodIndexValue(classFqName, methodName)
+          BindsInstanceBuilderMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
         )
         .isEmpty()
@@ -217,7 +218,7 @@ class BindsInstanceDaggerConceptTest {
 
     // Expected to resolve
     assertThat(
-        BindsInstanceBuilderMethodIndexValue("com.example.MyComponent.Builder", "fooFunction")
+        BindsInstanceBuilderMethodIndexValue(MY_COMPONENT_BUILDER_ID, "fooFunction")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(fooProviderDaggerElement)
@@ -225,15 +226,15 @@ class BindsInstanceDaggerConceptTest {
     // Expected to not resolve
     val nonResolving =
       listOf(
-        "com.example.MyComponent.Builder" to "fooFunction2",
-        "com.example.MyComponent.Builder" to "fooFunction3",
-        "com.example.MyComponent.Builder" to "fooFunction4",
-        "com.example.MyComponent" to "fooFunction5",
+        MY_COMPONENT_BUILDER_ID to "fooFunction2",
+        MY_COMPONENT_BUILDER_ID to "fooFunction3",
+        MY_COMPONENT_BUILDER_ID to "fooFunction4",
+        MY_COMPONENT_ID to "fooFunction5",
       )
 
-    for ((classFqName, methodName) in nonResolving) {
+    for ((classId, methodName) in nonResolving) {
       assertThat(
-          BindsInstanceBuilderMethodIndexValue(classFqName, methodName)
+          BindsInstanceBuilderMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
         )
         .isEmpty()
@@ -242,7 +243,8 @@ class BindsInstanceDaggerConceptTest {
 
   @Test
   fun bindsInstanceFactoryMethodParameterIndexValue_serialization() {
-    val indexValue = BindsInstanceFactoryMethodParameterIndexValue("abc", "def", "ghi")
+    val indexValue =
+      BindsInstanceFactoryMethodParameterIndexValue(MY_COMPONENT_FACTORY_ID, "def", "ghi")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -284,7 +286,7 @@ class BindsInstanceDaggerConceptTest {
     // Expected to resolve
     assertThat(
         BindsInstanceFactoryMethodParameterIndexValue(
-            "com.example.MyComponent.Factory",
+            MY_COMPONENT_FACTORY_ID,
             "newMyComponent",
             "foo"
           )
@@ -295,14 +297,14 @@ class BindsInstanceDaggerConceptTest {
     // Expected to not resolve
     val nonResolving =
       listOf(
-        Triple("com.example.MyComponent.Factory", "newMyComponent", "foo2"),
-        Triple("com.example.MyComponent", "newMyComponent", "foo3"),
-        Triple("com.example.MyComponent", "newMyComponent", "foo4"),
+        Triple(MY_COMPONENT_FACTORY_ID, "newMyComponent", "foo2"),
+        Triple(MY_COMPONENT_ID, "newMyComponent", "foo3"),
+        Triple(MY_COMPONENT_ID, "newMyComponent", "foo4"),
       )
 
-    for ((classFqName, methodName, paramName) in nonResolving) {
+    for ((classId, methodName, paramName) in nonResolving) {
       assertThat(
-          BindsInstanceFactoryMethodParameterIndexValue(classFqName, methodName, paramName)
+          BindsInstanceFactoryMethodParameterIndexValue(classId, methodName, paramName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
         )
         .isEmpty()
@@ -347,7 +349,7 @@ class BindsInstanceDaggerConceptTest {
     // Expected to resolve
     assertThat(
         BindsInstanceFactoryMethodParameterIndexValue(
-            "com.example.MyComponent.Factory",
+            MY_COMPONENT_FACTORY_ID,
             "newMyComponent",
             "foo"
           )
@@ -358,17 +360,23 @@ class BindsInstanceDaggerConceptTest {
     // Expected to not resolve
     val nonResolving =
       listOf(
-        Triple("com.example.MyComponent.Factory", "newMyComponent", "foo2"),
-        Triple("com.example.MyComponent", "newMyComponent", "foo3"),
-        Triple("com.example.MyComponent", "newMyComponent", "foo4"),
+        Triple(MY_COMPONENT_FACTORY_ID, "newMyComponent", "foo2"),
+        Triple(MY_COMPONENT_ID, "newMyComponent", "foo3"),
+        Triple(MY_COMPONENT_ID, "newMyComponent", "foo4"),
       )
 
-    for ((classFqName, methodName, paramName) in nonResolving) {
+    for ((classId, methodName, paramName) in nonResolving) {
       assertThat(
-          BindsInstanceFactoryMethodParameterIndexValue(classFqName, methodName, paramName)
+          BindsInstanceFactoryMethodParameterIndexValue(classId, methodName, paramName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
         )
         .isEmpty()
     }
+  }
+
+  companion object {
+    private val MY_COMPONENT_ID = ClassId.fromString("com/example/MyComponent")
+    private val MY_COMPONENT_BUILDER_ID = ClassId.fromString("com/example/MyComponent.Builder")
+    private val MY_COMPONENT_FACTORY_ID = ClassId.fromString("com/example/MyComponent.Factory")
   }
 }

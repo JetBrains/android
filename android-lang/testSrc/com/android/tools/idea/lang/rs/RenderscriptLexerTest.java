@@ -17,12 +17,12 @@
 package com.android.tools.idea.lang.rs;
 
 import com.android.tools.idea.lang.LangTestDataKt;
+import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import junit.framework.TestCase;
@@ -103,7 +103,7 @@ public class RenderscriptLexerTest extends TestCase {
   public void testFile() throws IOException {
     String path = LangTestDataKt.getTestDataPath();
     String rsPath = "lang" + File.separator + "rs" + File.separator + "ball_physics.rs";
-    String input = Files.toString(new File(path, rsPath), StandardCharsets.UTF_8);
+    String input = Files.toString(new File(path, rsPath), Charsets.UTF_8);
 
     RenderscriptLexer lexer = new RenderscriptLexer();
 

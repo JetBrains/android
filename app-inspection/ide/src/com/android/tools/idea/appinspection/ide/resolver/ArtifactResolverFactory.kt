@@ -15,31 +15,41 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
-import com.android.tools.idea.analytics.currentIdeBrand
-import com.android.tools.idea.appinspection.ide.resolver.blaze.BlazeArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
-import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.io.FileService
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.Token
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
-class ArtifactResolverFactory(
-  private val fileService: FileService,
-  private val getIdeBrand: () -> AndroidStudioEvent.IdeBrand = { currentIdeBrand() }
-) : ArtifactResolverFactory {
+class ArtifactResolverFactory(private val fileService: FileService) : ArtifactResolverFactory {
   private val httpArtifactResolver =
     HttpArtifactResolver(fileService, AppInspectorArtifactPaths(fileService))
-  override fun getArtifactResolver(project: Project): ArtifactResolver =
-    if (getIdeBrand() == AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE) {
-      BlazeArtifactResolver(fileService, ModuleSystemArtifactFinder(project))
-    } else {
-      if (StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()) {
-        ModuleSystemArtifactResolver(fileService, ModuleSystemArtifactFinder(project))
-      } else {
-        httpArtifactResolver
-      }
-    }
+
+  override fun getArtifactResolver(project: Project): ArtifactResolver {
+    val projectSystem = project.getProjectSystem()
+    val token =
+      ArtifactResolverFactoryToken.EP_NAME.getExtensions(project).firstOrNull {
+        it.isApplicable(projectSystem)
+      } ?: return httpArtifactResolver
+    return token.getArtifactResolver(projectSystem, fileService, httpArtifactResolver)
+  }
+}
+
+interface ArtifactResolverFactoryToken<P : AndroidProjectSystem> : Token {
+  fun getArtifactResolver(
+    projectSystem: P,
+    fileService: FileService,
+    httpArtifactResolver: HttpArtifactResolver
+  ): ArtifactResolver
+
+  companion object {
+    val EP_NAME =
+      ExtensionPointName<ArtifactResolverFactoryToken<AndroidProjectSystem>>(
+        "com.android.tools.idea.appinspection.ide.resolver.artifactResolverFactoryToken"
+      )
+  }
 }

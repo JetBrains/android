@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import java.awt.GridBagLayout;
@@ -33,27 +32,27 @@ public class ProfilerLayout {
   /**
    * Common length for spacing between axis tick markers
    */
-  public static final int MARKER_LENGTH = JBUIScale.scale(5);
+  public static final int MARKER_LENGTH = JBUI.scale(5);
 
-  public static final int TIME_AXIS_HEIGHT = JBUIScale.scale(15);
+  public static final int TIME_AXIS_HEIGHT = JBUI.scale(15);
 
   /**
    * Common space left on top of a vertical axis to make sure label text can fit there
    */
-  public static final int Y_AXIS_TOP_MARGIN = JBUIScale.scale(30);
+  public static final int Y_AXIS_TOP_MARGIN = JBUI.scale(30);
 
   public static final Border MONITOR_LABEL_PADDING = JBUI.Borders.empty(5, 10);
 
   public static final Border MONITOR_BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER);
 
-  public static final int MONITOR_LEGEND_RIGHT_PADDING = JBUIScale.scale(12);
+  public static final int MONITOR_LEGEND_RIGHT_PADDING = JBUI.scale(12);
 
   /**
    * Space on the right for all legends when inside a profiler. Chosen so it lines up with the right axis units.
    */
-  public static final int PROFILER_LEGEND_RIGHT_PADDING = JBUIScale.scale(9);
+  public static final int PROFILER_LEGEND_RIGHT_PADDING = JBUI.scale(9);
 
-  public static final int ROW_HEIGHT_PADDING = JBUIScale.scale(4);
+  public static final int ROW_HEIGHT_PADDING = JBUI.scale(4);
 
   public static final Border TABLE_ROW_BORDER = JBUI.Borders.emptyLeft(10);
   public static final Border TABLE_COLUMN_HEADER_BORDER = JBUI.Borders.empty(3, 10, 3, 0);
@@ -62,20 +61,20 @@ public class ProfilerLayout {
   public static final Insets TABLE_COLUMN_CELL_INSETS = new Insets(3, 10, 3, 0);
   public static final Insets TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS = new Insets(3, 0, 3, 10);
 
-  public static final int TABLE_COLUMN_CELL_SPARKLINE_RIGHT_PADDING = JBUIScale.scale(2);
-  public static final int TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING = JBUIScale.scale(1);
+  public static final int TABLE_COLUMN_CELL_SPARKLINE_RIGHT_PADDING = JBUI.scale(2);
+  public static final int TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING = JBUI.scale(1);
 
   public static final Border TOOLTIP_BORDER = new JBEmptyBorder(8, 10, 8, 10);
 
-  public static final int PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER = JBUIScale.scale(16);
-  public static final int PROFILING_INSTRUCTIONS_ICON_PADDING = JBUIScale.scale(1);
+  public static final int PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER = JBUI.scale(16);
+  public static final int PROFILING_INSTRUCTIONS_ICON_PADDING = JBUI.scale(1);
 
-  public static final int FILTER_TEXT_FIELD_WIDTH = JBUIScale.scale(245);
+  public static final int FILTER_TEXT_FIELD_WIDTH = JBUI.scale(245);
   public static final int FILTER_TEXT_FIELD_TRIGGER_DELAY_MS = 250;
   public static final int FILTER_TEXT_HISTORY_SIZE = 5;
 
   // The total usable height of the toolbar is 30px the 1px is for a 1px border at the bottom of the toolbar.
-  public static final int TOOLBAR_HEIGHT = JBUIScale.scale(31);
+  public static final int TOOLBAR_HEIGHT = JBUI.scale(31);
   public static final Border TOOLBAR_LABEL_BORDER = JBUI.Borders.empty(3, 8, 3, 3);
   public static final Border TOOLBAR_ICON_BORDER = JBUI.Borders.empty(4);
 

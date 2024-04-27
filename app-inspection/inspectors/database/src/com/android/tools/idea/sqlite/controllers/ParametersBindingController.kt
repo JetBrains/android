@@ -96,6 +96,8 @@ sealed class SqliteParameterValue {
       }
     }
   }
+
   data class SingleValue(val value: SqliteValue) : SqliteParameterValue()
+
   data class CollectionValue(val value: List<SqliteValue>) : SqliteParameterValue()
 }

@@ -24,12 +24,48 @@ import org.jetbrains.kotlin.analysis.api.components.KtDiagnosticCheckerFilter
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithContent
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.diagnostics.Diagnostics
 
 // Adapted from the Kotlin test framework (after taking over android-kotlin sources).
 object DirectiveBasedActionUtils {
+  val FRONTEND get() = if (KotlinPluginModeProvider.isK2Mode()) "K2" else "K1"
+
+  private fun Array<out String>.expandByFrontend(separator: Char, prefix: String): List<String> {
+    val frontend = FRONTEND
+    return flatMap {
+      val directive = it.removePrefix(prefix)
+      listOf("${prefix}${frontend}${separator}${directive}", "${prefix}${directive}")
+    }
+  }
+
+  fun findLinesWithPrefixesRemovedByFrontend(
+      fileText: String,
+      vararg prefixes: String,
+      separator: Char = '_',
+      prefix: String = "// "): List<String> =
+    InTextDirectivesUtils.findLinesWithPrefixesRemoved(fileText, *prefixes.expandByFrontend(separator, prefix).toTypedArray())
+
+  fun isDirectiveDefinedForFrontend(
+      fileText: String,
+      directive: String,
+      separator: Char = '_',
+      prefix: String = "// "): Boolean =
+    findLinesWithPrefixesRemovedByFrontend(fileText, directive, separator = separator, prefix = prefix).isNotEmpty()
+
+  fun findStringWithPrefixesByFrontend(
+      fileText: String,
+      vararg directives: String,
+      separator: Char = '_',
+      prefix: String = "// "): String? {
+    for (directive in directives.expandByFrontend(separator, prefix)) {
+      InTextDirectivesUtils.findStringWithPrefixes(fileText, directive)?.let { return it }
+    }
+    return null
+  }
+
 
   private fun checkForUnexpectedErrorsBase(
     file: KtFile,
@@ -39,7 +75,11 @@ object DirectiveBasedActionUtils {
       return
     }
 
-    val expected = InTextDirectivesUtils.findLinesWithPrefixesRemoved(file.text, "// ERROR:").sorted()
+    val kotlinFrontendSpecificPrefix = if (KotlinPluginModeProvider.isK2Mode()) "K2" else "K1"
+    val expected =
+      InTextDirectivesUtils.findLinesWithPrefixesRemoved(
+        file.text, "// ERROR:", "// ${kotlinFrontendSpecificPrefix}-ERROR:"
+      ).sorted()
     val actual = diagnosticsCollectAndRenderer(file)
 
     UsefulTestCase.assertOrderedEquals(

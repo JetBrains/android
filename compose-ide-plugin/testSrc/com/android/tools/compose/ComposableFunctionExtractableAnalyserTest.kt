@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.Extracti
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionGeneratorConfiguration
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionGeneratorOptions
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionResult
+import org.jetbrains.kotlin.idea.refactoring.introduce.introduceConstant.KotlinIntroduceConstantHandler
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,10 +40,11 @@ import java.util.Collections
 
 class ComposableFunctionExtractableAnalyserTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
-  private val myFixture: CodeInsightTestFixtureImpl by lazy { projectRule.fixture as CodeInsightTestFixtureImpl }
+  private val myFixture: CodeInsightTestFixtureImpl by lazy {
+    projectRule.fixture as CodeInsightTestFixtureImpl
+  }
 
   @Before
   fun setUp() {
@@ -50,15 +52,24 @@ class ComposableFunctionExtractableAnalyserTest {
     myFixture.stubComposableAnnotation()
   }
 
-  private val helper = object : ExtractionEngineHelper(EXTRACT_FUNCTION) {
-    override fun configureAndRun(project: Project,
-                                 editor: Editor,
-                                 descriptorWithConflicts: ExtractableCodeDescriptorWithConflicts,
-                                 onFinish: (ExtractionResult) -> Unit) {
-      val newDescriptor = descriptorWithConflicts.descriptor.copy(suggestedNames = Collections.singletonList("newComposableFunction"))
-      doRefactor(ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT), onFinish)
+  private val helper =
+    object : ExtractionEngineHelper(EXTRACT_FUNCTION) {
+      override fun configureAndRun(
+        project: Project,
+        editor: Editor,
+        descriptorWithConflicts: ExtractableCodeDescriptorWithConflicts,
+        onFinish: (ExtractionResult) -> Unit
+      ) {
+        val newDescriptor =
+          descriptorWithConflicts.descriptor.copy(
+            suggestedNames = Collections.singletonList("newComposableFunction")
+          )
+        doRefactor(
+          ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT),
+          onFinish
+        )
+      }
     }
-  }
 
   @RunsInEdt
   @Test
@@ -75,13 +86,15 @@ class ComposableFunctionExtractableAnalyserTest {
       fun sourceFunction() {
         <selection>print(true)</selection>
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    ExtractKotlinFunctionHandler(helper = helper).invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
+    ExtractKotlinFunctionHandler(helper = helper)
+      .invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
 
     myFixture.checkResult(
-      //language=kotlin
+      // language=kotlin
       """
         package com.example
 
@@ -96,7 +109,8 @@ class ComposableFunctionExtractableAnalyserTest {
         private fun newComposableFunction() {
             print(true)
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -119,13 +133,15 @@ class ComposableFunctionExtractableAnalyserTest {
           <selection>print(true)</selection>
         }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    ExtractKotlinFunctionHandler(helper = helper).invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
+    ExtractKotlinFunctionHandler(helper = helper)
+      .invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
 
     myFixture.checkResult(
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
@@ -144,7 +160,52 @@ class ComposableFunctionExtractableAnalyserTest {
       private fun newComposableFunction() {
           print(true)
       }
-      """.trimIndent()
+      """
+        .trimIndent()
+    )
+  }
+
+  @RunsInEdt
+  @Test
+  fun testConstantInComposableFunction() {
+    // Regression test for b/301481575
+
+    myFixture.loadNewFile(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun sourceFunction() {
+        print(<selection>"foo"</selection>)
+      }
+      """
+        .trimIndent()
+    )
+
+    KotlinIntroduceConstantHandler(
+        helper = KotlinIntroduceConstantHandler.InteractiveExtractionHelper
+      )
+      .invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      private const val s = "foo"
+
+      @Composable
+      fun sourceFunction() {
+        print(s)
+      }
+      """
+        .trimIndent()
     )
   }
 }

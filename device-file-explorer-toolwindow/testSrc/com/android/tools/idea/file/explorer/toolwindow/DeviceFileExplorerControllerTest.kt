@@ -1157,7 +1157,6 @@ class DeviceFileExplorerControllerTest {
     assertEquals(3, fooNode.childCount)
   }
 
-  @org.junit.Ignore("b/255320854")
   @Test
   fun fileSystemTree_ContextMenu_Upload_SingleFile_Works() {
     // Prepare
@@ -1215,7 +1214,6 @@ class DeviceFileExplorerControllerTest {
     assertEquals(5, fooNode.childCount)
   }
 
-  @org.junit.Ignore("b/255320854")
   @Test
   fun fileSystemTree_ContextMenu_Upload_SingleFile_Cancellation_Works() {
     // Prepare
@@ -1324,7 +1322,6 @@ class DeviceFileExplorerControllerTest {
     assertEquals(5, fooNode.childCount)
   }
 
-  @org.junit.Ignore("b/255320854")
   @Test
   fun fileSystemTree_ContextMenu_Upload_DirectoryAndFile_Works() {
     // Prepare

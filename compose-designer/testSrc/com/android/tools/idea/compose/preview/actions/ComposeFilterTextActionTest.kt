@@ -18,9 +18,12 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.eq
+import org.mockito.Mockito.any
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import javax.swing.JTextField
@@ -34,12 +37,12 @@ class ComposeFilterTextActionTest {
     val filter = mock<ComposeViewFilter>()
 
     val action = ComposeFilterTextAction(filter)
-    val textFiled = action.createCustomComponent(Presentation(), ActionPlaces.UNKNOWN) as JTextField
+    val textField = action.createCustomComponent(Presentation(), ActionPlaces.UNKNOWN) as JTextField
 
-    textFiled.text = "Hello"
-    verify(filter, times(1)).filter("Hello")
+    textField.text = "Hello"
+    verify(filter, times(1)).filter(eq("Hello"), any(DataContext::class.java))
 
-    textFiled.text = "World"
-    verify(filter, times(1)).filter("World")
+    textField.text = "World"
+    verify(filter, times(1)).filter(eq("World"), any(DataContext::class.java))
   }
 }

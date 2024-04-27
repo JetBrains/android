@@ -25,7 +25,6 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -40,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,7 +74,7 @@ public class SdksCleanupUtil {
   @Nullable
   private static IAndroidTarget getTarget(@NotNull Sdk sdk) {
     AndroidSdkAdditionalData additionalData = AndroidSdkAdditionalData.from(sdk);
-    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+    AndroidSdkData sdkData = AndroidSdks.getSdkData(sdk);
     if (additionalData == null || sdkData == null) {
       return null;
     }

@@ -85,7 +85,7 @@ class AndroidNonTransitiveRClassKotlinCompletionContributor : CompletionContribu
    val innerRClass = PsiMultiReference(references, references.last().element).resolve() as? ResourceRepositoryInnerRClass ?: return
    val moduleRClass = innerRClass.containingClass as? ModuleRClass ?: return
    val rClassesAccessibleFromModule = ProjectLightResourceClassService.getInstance(element.project)
-     .getLightRClassesAccessibleFromModule(facet.module, false)
+     .getLightRClassesAccessibleFromModule(facet.module)
      .filter { !(it is ModuleRClass && it.facet == moduleRClass.facet) }
    val list = rClassesAccessibleFromModule
      .flatMap { it.findInnerClassByName(innerRClass.resourceType.getName(), false)?.allFields?.toList() ?: emptyList() }
@@ -145,7 +145,7 @@ class AndroidNonTransitiveRClassJavaCompletionContributor : CompletionContributo
     val result = JavaCompletionSorting.addJavaSorting(parameters, _result)
 
     val rClassesAccessibleFromModule = ProjectLightResourceClassService.getInstance(element.project)
-      .getLightRClassesAccessibleFromModule(facet.module, false)
+      .getLightRClassesAccessibleFromModule(facet.module)
       .filter { !(it is ModuleRClass && it.facet == moduleRClass.facet) }
     val lookupElements = rClassesAccessibleFromModule
       .flatMap { it.findInnerClassByName(typeName, false)?.allFields?.toList() ?: emptyList() }

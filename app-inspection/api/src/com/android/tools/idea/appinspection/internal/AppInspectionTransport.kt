@@ -25,9 +25,9 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.google.common.annotations.VisibleForTesting
+import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import java.util.concurrent.atomic.AtomicInteger
 
 fun Commands.Command.toExecuteRequest(): Transport.ExecuteRequest =
   Transport.ExecuteRequest.newBuilder().setCommand(this).build()

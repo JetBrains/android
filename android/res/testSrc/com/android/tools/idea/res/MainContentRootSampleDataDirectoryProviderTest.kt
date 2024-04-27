@@ -49,9 +49,12 @@ class MainContentRootSampleDataDirectoryProviderTest {
 
   @Test
   fun getOrCreateSampleDataDirectory() {
-    val sampleDataDir = WriteAction.computeAndWait(ThrowableComputable<VirtualFile?, Throwable> {
-      provider.getOrCreateSampleDataDirectory().toVirtualFile()
-    })
+    val sampleDataDir =
+      WriteAction.computeAndWait(
+        ThrowableComputable<VirtualFile?, Throwable> {
+          provider.getOrCreateSampleDataDirectory().toVirtualFile()
+        }
+      )
 
     assertThat(sampleDataDir).isNotNull()
     assertThat(sampleDataDir!!.parent).isEqualTo(mainContentRoot)

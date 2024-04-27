@@ -59,21 +59,17 @@ fun createLogcatEditor(project: Project): EditorEx {
   return editor
 }
 
-/**
- * Returns true if the caret is at the bottom of the editor document.
- */
+/** Returns true if the caret is at the bottom of the editor document. */
 @UiThread
-internal fun EditorEx.isCaretAtBottom() = document.let {
-  it.getLineNumber(caretModel.offset) >= it.lineCount - 1
-}
+internal fun EditorEx.isCaretAtBottom() =
+  document.let { it.getLineNumber(caretModel.offset) >= it.lineCount - 1 }
 
-/**
- * Returns true if the editor vertical scroll position is at the bottom.
- */
+/** Returns true if the editor vertical scroll position is at the bottom. */
 @UiThread
 internal fun EditorEx.isScrollAtBottom(useImmediatePosition: Boolean): Boolean {
   val scrollBar = scrollPane.verticalScrollBar
-  val position = if (useImmediatePosition) scrollBar.value else scrollingModel.visibleAreaOnScrollingFinished.y
+  val position =
+    if (useImmediatePosition) scrollBar.value else scrollingModel.visibleAreaOnScrollingFinished.y
   return scrollBar.maximum - scrollBar.visibleAmount == position
 }
 
@@ -83,14 +79,18 @@ internal fun EditorEx.getFilterHint(
 ): FilterHint? {
   var result: FilterHint? = null
   document.processRangeMarkersOverlappingWith(offset, offset) {
-    val header = it.getUserData(LOGCAT_MESSAGE_KEY)?.header ?: return@processRangeMarkersOverlappingWith true
+    val header =
+      it.getUserData(LOGCAT_MESSAGE_KEY)?.header ?: return@processRangeMarkersOverlappingWith true
     val pos = offset - it.startOffset
-    result = when {
-      formattingOptions.getTagRange().isWithin(pos) -> Tag(header.tag, formattingOptions.tagFormat.width() - 1)
-      formattingOptions.getAppIdRange().isWithin(pos) -> AppName(header.applicationId, formattingOptions.appNameFormat.width() - 1)
-      formattingOptions.getLeveRange().isWithin(pos) -> Level(header.logLevel)
-      else -> null
-    }
+    result =
+      when {
+        formattingOptions.getTagRange().isWithin(pos) ->
+          Tag(header.tag, formattingOptions.tagFormat.width() - 1)
+        formattingOptions.getAppIdRange().isWithin(pos) ->
+          AppName(header.applicationId, formattingOptions.appNameFormat.width() - 1)
+        formattingOptions.getLeveRange().isWithin(pos) -> Level(header.logLevel)
+        else -> null
+      }
     false
   }
   return result

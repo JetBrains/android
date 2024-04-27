@@ -41,6 +41,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
+import java.util.concurrent.Executor
+import javax.swing.JComponent
 import com.intellij.util.concurrency.ThreadingAssertions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -50,8 +52,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
-import java.util.concurrent.Executor
-import javax.swing.JComponent
 
 /** Intellij Project Service that holds the reference to the [DatabaseInspectorControllerImpl]. */
 interface DatabaseInspectorProjectService {

@@ -55,7 +55,7 @@ fun buildGradle(
   }
 
   return """
-${emptyPluginsBlock(isKts = useGradleKts, useVersionCatalog = useVersionCatalog)}
+${emptyPluginsBlock()}
 
 android {
     namespace '$packageName'

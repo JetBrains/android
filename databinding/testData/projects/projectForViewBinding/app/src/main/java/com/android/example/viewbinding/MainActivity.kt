@@ -1,7 +1,7 @@
 package com.android.example.viewbinding
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import com.example.testviewbinding.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {

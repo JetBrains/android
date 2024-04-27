@@ -4,10 +4,9 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module-library" scope="TEST">
-      <library name="hamcrest-core" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.hamcrest:hamcrest-core:1.3">
+      <library name="hamcrest-core-1.3" type="repository">
+        <properties maven-id="org.hamcrest:hamcrest-core:1.3">
           <verification>
             <artifact url="file://$MAVEN_REPOSITORY$/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar">
               <sha256sum>66fdef91e9739348df7a096aa384a5685f4e875584cce89386a7a47251c4d8e9</sha256sum>
@@ -25,39 +24,36 @@
     </orderEntry>
     <orderEntry type="module-library" exported="">
       <library name="precompiled-db-baseLibrarySupport" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.baseLibrarySupport:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.baseLibrarySupport:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrarySupport/231.0.26.0/studio.baseLibrarySupport-231.0.26.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrarySupport/232.1.23.0/studio.baseLibrarySupport-232.1.23.0.jar">
               <sha256sum>3fd6683938f24ff2532a2c742f3e74829745d20aef3950414a768e649ddf1d77</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrarySupport/231.0.26.0/studio.baseLibrarySupport-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrarySupport/232.1.23.0/studio.baseLibrarySupport-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrarySupport/231.0.26.0/studio.baseLibrarySupport-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-db-baseLibrarySupport-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.baseLibrarySupport_test:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.baseLibrarySupport_test:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrarySupport_test/231.0.26.0/studio.baseLibrarySupport_test-231.0.26.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrarySupport_test/232.1.23.0/studio.baseLibrarySupport_test-232.1.23.0.jar">
               <sha256sum>c4ed2e61a0d749743fcd7c647714f0ec3f2c948e2c681bdfe663628e8db09638</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrarySupport_test/231.0.26.0/studio.baseLibrarySupport_test-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrarySupport_test/232.1.23.0/studio.baseLibrarySupport_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrarySupport_test/231.0.26.0/studio.baseLibrarySupport_test-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
   </component>
 </module>

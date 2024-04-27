@@ -18,17 +18,14 @@ package com.android.tools.profilers.memory;
 import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
 import com.android.tools.adtui.RangeSelectionComponent;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
-import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.DismissibleMessage;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.RecordingOptionsView;
-import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.SupportLevel;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -38,17 +35,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.openapi.util.IconLoader;
-import icons.StudioIcons;
 import java.awt.BorderLayout;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,17 +50,14 @@ public class MainMemoryProfilerStageView extends BaseStreamingMemoryProfilerStag
     return Logger.getInstance(MainMemoryProfilerStageView.class);
   }
   private static final String SHOW_PROFILEABLE_MESSAGE = "profileable.memory.message";
-  private static final String FORCE_GARBAGE_COLLECTION = "Force garbage collection";
-
   private final MemoryProfilerStageLayout myLayout;
-
   @Nullable private final MemoryTimelineComponent myTimelineComponent;
   @Nullable private CaptureObject myCaptureObject = null;
-
   @NotNull private final JButton myForceGarbageCollectionButton;
   @NotNull private final DefaultContextMenuItem myForceGarbageCollectionAction;
   @NotNull private final RecordingOptionsView myRecordingOptionsView;
   @NotNull private final LoadingPanel myHeapDumpLoadingPanel;
+  @NotNull private final GarbageCollectionComponent myGarbageCollectionComponent;
 
   public MainMemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MainMemoryProfilerStage stage) {
     super(profilersView, stage);
@@ -77,6 +67,7 @@ public class MainMemoryProfilerStageView extends BaseStreamingMemoryProfilerStag
     myTimelineComponent = getStage().isMemoryCaptureOnly() ?
                           null :
                           new MemoryTimelineComponent(this, buildTimeAxis(profilersView.getStudioProfilers()));
+    myGarbageCollectionComponent = new GarbageCollectionComponent();
     CapturePanel capturePanel = new CapturePanel(getProfilersView(),
                                                  getStage().getCaptureSelection(),
                                                  getStage().isMemoryCaptureOnly() ? null : getSelectionTimeLabel(),
@@ -92,19 +83,12 @@ public class MainMemoryProfilerStageView extends BaseStreamingMemoryProfilerStag
     myHeapDumpLoadingPanel = getIdeComponents().createLoadingPanel(-1);
     myHeapDumpLoadingPanel.setLoadingText("Capturing heap dump");
 
-    myForceGarbageCollectionButton = new CommonButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
-    myForceGarbageCollectionButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION));
-    myForceGarbageCollectionButton.addActionListener(e -> {
-      getStage().forceGarbageCollection();
-      getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackForceGc();
-    });
-    myForceGarbageCollectionAction =
-      new DefaultContextMenuItem.Builder(FORCE_GARBAGE_COLLECTION)
-        .setContainerComponent(getComponent())
-        .setIcon(myForceGarbageCollectionButton.getIcon())
-        .setActionRunnable(() -> myForceGarbageCollectionButton.doClick(0))
-        .setEnableBooleanSupplier(() -> getGcSupportStatus().isSupported)
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_G, AdtUiUtils.getActionMask())).build();
+    myForceGarbageCollectionButton = myGarbageCollectionComponent.makeGarbageCollectionButton(
+      stage.getMemoryDataProvider(), profilersView.getStudioProfilers());
+
+    myForceGarbageCollectionAction = myGarbageCollectionComponent.makeGarbageCollectionAction(stage.getStudioProfilers(),
+                                                                                              myForceGarbageCollectionButton,
+                                                                                              getComponent());
     myForceGarbageCollectionButton.setToolTipText(myForceGarbageCollectionAction.getDefaultToolTipText());
 
     getStage().getAspect().addDependency(this)
@@ -364,29 +348,7 @@ public class MainMemoryProfilerStageView extends BaseStreamingMemoryProfilerStag
     getComponent().add(myLayout.getComponent());
   }
 
-  private GcSupportStatus getGcSupportStatus() {
-    StudioProfilers profilers = getStage().getStudioProfilers();
-    return !profilers.getSessionsManager().isSessionAlive() ? GcSupportStatus.SESSION_DEAD
-           : profilers.getSelectedSessionSupportLevel().isFeatureSupported(SupportLevel.Feature.MEMORY_GC) ? GcSupportStatus.ENABLED
-           : GcSupportStatus.PROFILEABLE_PROCESS;
-  }
-
   private void updateGcButton() {
-    GcSupportStatus gcSupportStatus = getGcSupportStatus();
-    myForceGarbageCollectionButton.setEnabled(gcSupportStatus.isSupported);
-    myForceGarbageCollectionButton.setToolTipText(gcSupportStatus.message);
-  }
-
-  enum GcSupportStatus {
-    ENABLED(true, FORCE_GARBAGE_COLLECTION),
-    SESSION_DEAD(false, "Forcing garbage collection is unavailable for ended sessions"),
-    PROFILEABLE_PROCESS(false, "Forcing garbage collection is not supported for profileable processes");
-
-    public final boolean isSupported;
-    public final String message;
-    GcSupportStatus(boolean isSupported, String message) {
-      this.isSupported = isSupported;
-      this.message = message;
-    }
+    myGarbageCollectionComponent.updateGcButton(getStage().getStudioProfilers(), myForceGarbageCollectionButton);
   }
 }

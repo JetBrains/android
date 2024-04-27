@@ -19,11 +19,10 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.idea.actions.OrientationMenuAction
 import com.android.tools.idea.common.actions.GotoComponentAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.configurations.ConfigurationHolder
-import com.android.tools.idea.configurations.OrientationMenuAction
 import com.android.tools.idea.naveditor.actions.ActivateComponentAction
 import com.android.tools.idea.naveditor.actions.ActivateSelectionAction
 import com.android.tools.idea.naveditor.actions.AddActionToolbarAction
@@ -62,10 +61,9 @@ import javax.swing.KeyStroke
  */
 // Open for testing only
 open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
-  private val configurationHolder = ConfigurationHolder { mySurface.configuration }
   private val gotoComponentAction: AnAction = GotoComponentAction(surface)
   private val autoArrangeAction: AnAction = AutoArrangeAction.instance
-  private val orientationAction = OrientationMenuAction(configurationHolder, false)
+  private val orientationAction = OrientationMenuAction(false)
   private val zoomInAction: AnAction = ZoomInAction.getInstance()
   private val zoomOutAction: AnAction = ZoomOutAction.getInstance()
   private val zoomToFitAction: AnAction = ZoomToFitAction.getInstance()
@@ -130,7 +128,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
   private fun addSurfaceGroup(group: DefaultActionGroup) {
     // Need to select the current orientation before showing the popup:
-    orientationAction.updateActionsImmediately()
+    orientationAction.updateActionsImmediately(mySurface::getData)
 
     group.add(selectAllAction)
 

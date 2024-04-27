@@ -55,7 +55,7 @@ private class ProguardR8JavaClassReferenceProvider(
       object : JavaClassReferenceSet(str, position, offsetInPosition, false, this) {
         // If true allows inner classes to be separated by a dollar sign "$", e.g.java.lang.Thread$State
         // We can't just use ALLOW_DOLLAR_NAMES flag because to make JavaClassReferenceSet work in the way we want
-        // language of PsiElement that we parse should be instance of XMLLanguage.
+        // language of PsiElement that we parse should be an instance of XMLLanguage.
         override fun isAllowDollarInNames() = treatDollarAsSeparator
 
       }.allReferences as Array<PsiReference>
@@ -90,7 +90,7 @@ fun resolveToPsiClass(className: ProguardR8QualifiedName): PsiClass? {
 }
 
 /**
- * Returns all resolvable psiClasses found in header, excluding classes that specified after "extends"/"implements" key words.
+ * Returns all resolvable psiClasses found in header, excluding classes that specified after "extends"/"implements" keywords.
  *
  * Example: for "-keep myClass1, myClass2 extends myClass3" returns "myClass1", "myClass2"
  */
@@ -99,7 +99,7 @@ fun resolvePsiClasses(classSpecificationHeader: ProguardR8ClassSpecificationHead
 }
 
 /**
- * Returns classes in header that specified after "extends"/"implements" key words.
+ * Returns classes in header that specified after "extends"/"implements" keywords.
  */
 fun resolveSuperPsiClasses(classSpecificationHeader: ProguardR8ClassSpecificationHeader): List<PsiClass> {
   return classSpecificationHeader.superClassNameList.mapNotNull { it.qualifiedName.resolveToPsiClass() }
@@ -127,7 +127,7 @@ fun getPsiPrimitive(proguardR8JavaPrimitive: ProguardR8JavaPrimitive): PsiPrimit
 /**
  * Returns number of dimensions or 0 if there is error
  *
- * Examnple: For int[][][] it returns 3
+ * Example: For int[][][] it returns 3
  */
 fun getNumberOfDimensions(array: ProguardR8ArrayType): Int {
   if (PsiTreeUtil.hasErrorElements(array)) return 0
@@ -153,7 +153,7 @@ fun matchesPsiType(type: ProguardR8Type, other: PsiType): Boolean {
   return when {
     type.javaPrimitive != null -> type.javaPrimitive!!.psiPrimitive == typeToMatch
     type.qualifiedName != null && typeToMatch is PsiClassReferenceType -> type.qualifiedName!!.resolveToPsiClass() == typeToMatch.resolve()
-    // "%" matches any primitive type ("boolean", "int", etc, but not "void").
+    // "%" matches any primitive type ("boolean", "int", etc., but not "void").
     type.anyPrimitiveType != null -> typeToMatch is PsiPrimitiveType && typeToMatch != PsiTypes.voidType()
     type.anyNotPrimitiveType != null -> typeToMatch is PsiClassReferenceType
     type.anyType != null -> true
@@ -164,7 +164,7 @@ fun matchesPsiType(type: ProguardR8Type, other: PsiType): Boolean {
 /**
  * Returns true if ProguardR8Parameters doesn't have errors and matches given "other" PsiParameterList otherwise returns false
  *
- * In general it checks if every type within ProguardR8Parameters [matchesPsiType] type in PsiParameterList at the same position.
+ * In general, it checks if every type within ProguardR8Parameters [matchesPsiType] type in PsiParameterList at the same position.
  * Tricky case is when ProguardR8Parameters ends with '...' (matches any number of arguments of any type). In this case we need to check
  * that all types at positions before '...' match and after if there are still some types remain at PsiParameterList, we just ignore them.
  */

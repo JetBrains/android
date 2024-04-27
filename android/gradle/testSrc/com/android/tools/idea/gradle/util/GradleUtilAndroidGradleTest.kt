@@ -76,7 +76,8 @@ class GradleUtilAndroidGradleTest {
       )
     }
     ) { project ->
-      assertTrue(GradleUtil.projectBuildFilesTypes(project).contains(SdkConstants.DOT_KTS))
+      assertTrue(
+        GradleProjectSystemUtil.projectBuildFilesTypes(project).contains(SdkConstants.DOT_KTS))
     }
   }
 
@@ -84,7 +85,8 @@ class GradleUtilAndroidGradleTest {
   fun testHasKtsBuildFilesGroovyBasedProject() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-      assertFalse(GradleUtil.projectBuildFilesTypes(project).contains(SdkConstants.DOT_KTS))
+      assertFalse(
+        GradleProjectSystemUtil.projectBuildFilesTypes(project).contains(SdkConstants.DOT_KTS))
     }
   }
 
@@ -105,7 +107,8 @@ class GradleUtilAndroidGradleTest {
     preparedProject.open { project ->
       val gradleHome = Paths.get(projectRule.getBaseTestPath(), "gradleHome").toString()
       ApplicationManager.getApplication().runWriteAction { GradleSettings.getInstance(project).serviceDirectoryPath = gradleHome }
-      val userGradlePropertiesFile = GradleUtil.getUserGradlePropertiesFile(project)
+      val userGradlePropertiesFile =
+        GradleProjectSystemUtil.getUserGradlePropertiesFile(project)
       assertThat(userGradlePropertiesFile).isEqualTo(File(gradleHome, "gradle.properties"))
     }
   }
@@ -114,7 +117,7 @@ class GradleUtilAndroidGradleTest {
     val basePath = project.basePath
     assertThat(basePath).isNotNull()
     val fullPath = Paths.get(basePath, *expectedPath)
-    val moduleBuildFile = GradleUtil.getGradleBuildFile(module)
+    val moduleBuildFile = GradleProjectSystemUtil.getGradleBuildFile(module)
     Truth.assertThat(moduleBuildFile).isNotNull()
     val modulePath = moduleBuildFile!!.path
     Truth.assertThat(modulePath).isNotNull()
@@ -131,7 +134,8 @@ class GradleUtilAndroidGradleTest {
       assertThat(basePath).isNotEmpty()
       val managerPath = GradleInstallationManager.getInstance().getGradleJvmPath(project, basePath!!)
       assertThat(managerPath).isNotNull()
-      val settings = GradleUtil.getOrCreateGradleExecutionSettings(project)
+      val settings = GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(
+        project)
       val settingsPath = settings.javaHome
       assertThat(settingsPath).isNotNull()
       assertThat(settingsPath).isNotEmpty()

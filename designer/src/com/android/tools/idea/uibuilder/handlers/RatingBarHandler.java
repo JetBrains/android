@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_IS_INDICATOR;
-import static com.android.SdkConstants.ATTR_NUM_STARS;
-import static com.android.SdkConstants.ATTR_RATING;
-import static com.android.SdkConstants.ATTR_STEP_SIZE;
-import static com.android.SdkConstants.ATTR_STYLE;
-
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 public class RatingBarHandler extends ProgressBarHandler {
   @Override

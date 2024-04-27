@@ -24,8 +24,6 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
-import com.android.prefs.AndroidLocationsSingleton;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.TestUtils;
 import com.android.tools.deployer.DeployerTestUtils;
 import com.android.tools.deployer.devices.DeviceId;
@@ -33,11 +31,10 @@ import com.android.tools.deployer.devices.FakeDevice;
 import com.android.tools.deployer.devices.FakeDeviceHandler;
 import com.android.tools.deployer.devices.FakeDeviceLibrary;
 import com.android.tools.idea.adb.AdbService;
+import com.android.tools.idea.execution.common.AndroidSessionInfo;
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler;
-import com.android.tools.idea.execution.common.processhandler.DeviceAwareProcessHandler;
 import com.android.tools.idea.run.deployable.DeviceBinder;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.install.patch.PatchInstallingRestarter;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -298,7 +295,7 @@ public class DeploymentTest {
       capturedAndroidDeviceHandler = RunContentManager.getInstance(myProject).getAllDescriptors().stream()
         .filter(descriptor -> descriptor.getProcessHandler() instanceof AndroidProcessHandler)
         .map(descriptor -> (AndroidProcessHandler)descriptor.getProcessHandler())
-        .filter(handler -> handler.getCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY) != null)
+        .filter(handler -> AndroidSessionInfo.Companion.from(handler) != null)
         .filter(handler -> handler.isAssociated(myTargetDevice))
         .filter(handler -> handler.getClient(myTargetDevice) != null)
         .findAny();
@@ -345,8 +342,6 @@ public class DeploymentTest {
     GuiActionRunner.execute(new GuiTask() {
       @Override
       protected void executeInEDT() {
-        AndroidSdkHandler handler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, TestUtils.getSdk());
-        new PatchInstallingRestarter(handler).restartAndInstallIfNecessary();
         for (com.intellij.openapi.module.Module module : ModuleManager.getInstance(myProject).getModules()) {
           LOGGER.debug(module.getName());
         }

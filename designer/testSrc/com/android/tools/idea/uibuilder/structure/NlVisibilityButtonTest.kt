@@ -22,10 +22,10 @@ import com.android.tools.idea.common.model.NlComponentModificationDelegate
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
 import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons.LayoutEditor.Properties
+import javax.swing.Icon
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito
-import javax.swing.Icon
 
 class NlVisibilityButtonTest {
 

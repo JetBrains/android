@@ -66,78 +66,24 @@ public class SdkUpdaterConfigurableTest {
   }
 
   @Test
-  public void testDiskSpaceMessagesFullAndPatchAndUninstall() {
-    final long fullInstallationDownloadSize = 70 * 1024 * 1024L + 42; // +42 just to avoid "nice" numbers
-    final long patchesDownloadSize = 20 * 1024 * 1024L + 42;
-    final long spaceToBeFreedUp = 10 * 1024 * 1024L + 42;
-
-    Pair<HtmlBuilder, HtmlBuilder> messages = SdkUpdaterConfigurable.getDiskUsageMessages(mySdkRoot, fullInstallationDownloadSize,
-                                                                                          patchesDownloadSize, spaceToBeFreedUp);
-    assertEquals(String.format(DISK_USAGE_HTML_TEMPLATE, "10.0 MB", "90.0 MB", "290.0 MB", "1.0 GB"),
-                 messages.getFirst().getHtml());
-    assertNull(messages.getSecond());
-  }
-
-  @Test
   public void testDiskSpaceMessagesFullAndUninstall() {
     final long fullInstallationDownloadSize = 70 * 1024 * 1024L + 42;
-    final long patchesDownloadSize = 0;
     final long spaceToBeFreedUp = 10 * 1024 * 1024L + 42;
 
     Pair<HtmlBuilder, HtmlBuilder> messages = SdkUpdaterConfigurable.getDiskUsageMessages(mySdkRoot, fullInstallationDownloadSize,
-                                                                                          patchesDownloadSize, spaceToBeFreedUp);
+                                                                                          spaceToBeFreedUp);
     assertEquals(String.format(DISK_USAGE_HTML_TEMPLATE, "10.0 MB", "70.0 MB", "270.0 MB", "1.0 GB"),
                  messages.getFirst().getHtml());
     assertNull(messages.getSecond());
   }
 
   @Test
-  public void testDiskSpaceMessagesPatchAndUninstall() {
-    final long fullInstallationDownloadSize = 0;
-    final long patchesDownloadSize = 20 * 1024 * 1024L + 42;
-    final long spaceToBeFreedUp = 9 * 1024 * 1024L + 42;
-
-    Pair<HtmlBuilder, HtmlBuilder> messages = SdkUpdaterConfigurable.getDiskUsageMessages(mySdkRoot, fullInstallationDownloadSize,
-                                                                                          patchesDownloadSize, spaceToBeFreedUp);
-    assertEquals(String.format(DISK_USAGE_HTML_TEMPLATE, "9.0 MB", "20.0 MB", "11.0 MB", "1.0 GB"),
-                 messages.getFirst().getHtml());
-    assertNull(messages.getSecond());
-  }
-
-  @Test
-  public void testDiskSpaceMessagesPatchAndUninstallWhenInsufficientSpace() {
-    final long fullInstallationDownloadSize = 0;
-    final long patchesDownloadSize = 1200 * 1024 * 1024L + 42;
-    final long spaceToBeFreedUp = 9 * 1024 * 1024L + 42;
-
-    Pair<HtmlBuilder, HtmlBuilder> messages = SdkUpdaterConfigurable.getDiskUsageMessages(mySdkRoot, fullInstallationDownloadSize,
-                                                                                          patchesDownloadSize, spaceToBeFreedUp);
-    assertEquals(String.format(DISK_USAGE_HTML_TEMPLATE, "9.0 MB", "1.2 GB", "1.2 GB", "1.0 GB"),
-                 messages.getFirst().getHtml());
-    assertEquals(WARNING_HTML, messages.getSecond().getHtml());
-  }
-
-  @Test
-  public void testDiskSpaceMessagesPatchWhenInsufficientSpace() {
-      final long fullInstallationDownloadSize = 0;
-      final long patchesDownloadSize = 1200*1024*1024L + 42;
-      final long spaceToBeFreedUp = 0;
-
-      Pair<HtmlBuilder, HtmlBuilder> messages = SdkUpdaterConfigurable.getDiskUsageMessages(mySdkRoot, fullInstallationDownloadSize,
-                                                                                            patchesDownloadSize, spaceToBeFreedUp);
-      assertEquals(String.format(DISK_USAGE_HTML_TEMPLATE_WITHOUT_SPACE_TO_FREE_UP, "1.2 GB", "1.2 GB", "1.0 GB"),
-                   messages.getFirst().getHtml());
-      assertEquals(WARNING_HTML, messages.getSecond().getHtml());
-  }
-
-  @Test
   public void testDiskSpaceMessagesUninstallOnly() {
       final long fullInstallationDownloadSize = 0;
-      final long patchesDownloadSize = 0;
       final long spaceToBeFreedUp = 800*1024*1024L + 42;
 
       Pair<HtmlBuilder, HtmlBuilder> messages = SdkUpdaterConfigurable.getDiskUsageMessages(mySdkRoot, fullInstallationDownloadSize,
-                                                                                            patchesDownloadSize, spaceToBeFreedUp);
+                                                                                            spaceToBeFreedUp);
       assertEquals(String.format(DISK_USAGE_HTML_TEMPLATE_WITHOUT_DOWNLOADS, "800.0 MB"),
                    messages.getFirst().getHtml());
       assertNull(messages.getSecond());

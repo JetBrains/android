@@ -5,9 +5,17 @@ import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.java.beans.PropertyKind
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.psi.*
+import com.intellij.psi.CommonClassNames
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassType
+import com.intellij.psi.PsiElementFactory
+import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.impl.light.LightClass
 import com.intellij.psi.impl.light.LightMethodBuilder
 import com.intellij.psi.search.GlobalSearchScope
@@ -15,41 +23,34 @@ import com.intellij.psi.util.PropertyUtilBase
 import org.jetbrains.plugins.gradle.service.resolve.GradleCommonClassNames
 
 /**
- * Serves as a client for PSI infrastructure and as a layer over TOML version catalog files at the same time
+ * This is a copy of JetBrains SyntheticVersionCatalogAccessor that provides access to Studio Version Catalog model.
+ * Class must be deleted once intellij.gradle.analysis is enabled in Studio or platform navigation relies on new
+ * gradle.dsl.api module.
  *
- * This is mostly a copy of JetBrains SyntheticVersionCatalogAccessor that provides access to Studio Version Catalog model.
- * Class must be deleted once intellij.gradle.analysis is enabled in Studio or platform navigation relies on
- * gradle.dsl.api module
- *
- * Multiple catalog support was introduced comparatively to platform
-*/
-class SyntheticVersionCatalogAccessor(project: Project, scope: GlobalSearchScope, model: GradleVersionCatalogsModel, className: String) :
-  LightClass(JavaPsiFacade.getInstance(project).findClass(CommonClassNames.JAVA_LANG_OBJECT, scope)!!) {
-  init{
-    assert(className in model.catalogNames())
-  }
+ * Serves as a client for PSI infrastructure and as a layer over TOML version catalog files at the same time.
+ */
+class SyntheticVersionCatalogAccessor(
+  project: Project,
+  scope: GlobalSearchScope,
+  model: GradleVersionCatalogsModel,
+  className: String,
+  delegate: PsiClass
+) :
+  LightClass(delegate) {
+
   private val libraries: Array<PsiMethod> =
     SyntheticAccessorBuilder(project, scope, className, Kind.LIBRARY)
-      .buildLibraryMethods(this,
-                    model.libraries(className)!!.properties,
-                    "")
+      .buildMethods(this, model.libraries(className)!!.properties.let(::assembleTree), "")
       .toTypedArray()
 
   private val plugins: PsiMethod = SyntheticAccessorBuilder(project, scope, className, Kind.PLUGIN)
-    .buildEnclosingMethod(this,
-                          model.plugins(className)!!.properties,
-                          "plugins")
+    .buildEnclosingMethod(this, model.plugins(className)!!.properties, "plugins")
 
   private val versions: PsiMethod = SyntheticAccessorBuilder(project, scope, className, Kind.VERSION)
-    .buildEnclosingMethod(this,
-                          model.versions(className)!!.properties,
-                          "versions")
+    .buildEnclosingMethod(this, model.versions(className)!!.properties, "versions")
 
   private val bundles: PsiMethod = SyntheticAccessorBuilder(project, scope, className, Kind.BUNDLE)
-    .buildEnclosingMethod(this,
-                          model.bundles(className)!!.properties,
-                          "bundles")
-
+    .buildEnclosingMethod(this, model.bundles(className)!!.properties, "bundles")
 
   private val className = "LibrariesFor${StringUtil.capitalize(className)}"
 
@@ -64,19 +65,48 @@ class SyntheticVersionCatalogAccessor(project: Project, scope: GlobalSearchScope
   override fun getName(): String = className
 
   companion object {
+
+    fun create(
+      project: Project,
+      scope: GlobalSearchScope,
+      model: GradleVersionCatalogsModel,
+      className: String
+    ): SyntheticVersionCatalogAccessor? {
+      val delegate = JavaPsiFacade.getInstance(project).findClass(CommonClassNames.JAVA_LANG_OBJECT, scope)
+      return delegate?.let { SyntheticVersionCatalogAccessor(project, scope, model, className, it) }
+    }
+
     private enum class Kind(val prefix: String) {
       LIBRARY("Library"), PLUGIN("Plugin"), BUNDLE("Bundle"), VERSION("Version")
     }
 
-    const val asProviderMethodName = "asProvider"
+    private class SyntheticAccessorBuilder(val project: Project, val gradleScope: GlobalSearchScope, val className: String, val kind: Kind) {
 
-    private class SyntheticAccessorBuilder(val project: Project, val scope: GlobalSearchScope, val className: String, val kind: Kind) {
-
-      private fun buildSyntheticInnerClass(mapping: List<GraphNode>,
+      private fun buildSyntheticInnerClass(mapping: List<Tree>,
                                            containingClass: PsiClass,
-                                           name: String): LightClass {
-        val clazz = object : LightClass(JavaPsiFacade.getInstance(project).findClass(CommonClassNames.JAVA_LANG_OBJECT, scope)!!) {
-          private val methods = buildMethods(this, mapping, name).toTypedArray()
+                                           name: String,
+                                           asProviderType: PsiClassType?): LightClass {
+        val factoryClass = JavaPsiFacade.getInstance(project).findClass("org.gradle.api.internal.catalog.ExternalModuleDependencyFactory", gradleScope)
+        val innerClassName = when(kind) {
+          Kind.LIBRARY -> "DependencyNotationSupplier"
+          Kind.PLUGIN -> "PluginNotationSupplier"
+          Kind.BUNDLE -> "BundleNotationSupplier"
+          Kind.VERSION -> "VersionNotationSupplier"
+        }
+        val stubClass = if (asProviderType != null) factoryClass?.innerClasses?.find { it.name == innerClassName } else factoryClass
+        val actualStub = stubClass ?: JavaPsiFacade.getInstance(project).findClass(CommonClassNames.JAVA_LANG_OBJECT, gradleScope)!!
+        val clazz = object : LightClass(actualStub) {
+          private val methods = buildMethods(this, mapping, name).let { addAsProviderMethod(it, this) }.toTypedArray()
+
+          fun addAsProviderMethod(list: List<LightMethodBuilder>, container: PsiClass) : List<LightMethodBuilder> {
+            if (asProviderType == null) {
+              return list
+            }
+            val method = LightMethodBuilder(containingClass.manager, JavaLanguage.INSTANCE, "asProvider")
+            method.setMethodReturnType(asProviderType)
+            method.containingClass = container
+            return list + method
+          }
 
           override fun getMethods(): Array<out PsiMethod> {
             return methods
@@ -91,48 +121,44 @@ class SyntheticVersionCatalogAccessor(project: Project, scope: GlobalSearchScope
           }
 
           override fun getQualifiedName(): String {
-            return "org.gradle.accessors.dm.LibrariesFor${StringUtil.capitalize(className)}.${name}${kind.prefix}Accessors"
+            return "org.gradle.accessors.dm.LibrariesFor${StringUtil.capitalize(innerClassName)}.${name}${kind.prefix}Accessors"
           }
         }
 
         return clazz
       }
 
-      fun buildLibraryMethods(constructedClass: PsiClass, model: List<GradlePropertyModel>, prefix: String): List<LightMethodBuilder> {
-        val graph = distributeNames(model)
-        return buildMethods(constructedClass, graph, prefix)
-      }
-
-      fun buildMethods(constructedClass: PsiClass, model: List<GraphNode>, prefix: String): List<LightMethodBuilder> {
+      fun buildMethods(constructedClass: PsiClass, model: List<Tree>, prefix: String): List<LightMethodBuilder> {
         val container = mutableListOf<LightMethodBuilder>()
-        for (propertyModel in model) {
-          val name = propertyModel.name
-          val getterName =
-            if (name == asProviderMethodName) name else PropertyUtilBase.getAccessorName(name, PropertyKind.GETTER)
+        for (modelTree in model) {
+          val name = modelTree.labelName
+          val getterName = PropertyUtilBase.getAccessorName(name, PropertyKind.GETTER)
           val method = LightMethodBuilder(PsiManager.getInstance(project), JavaLanguage.INSTANCE, getterName)
           method.containingClass = constructedClass
-          val innerModel = propertyModel.getChildren()
-          when (propertyModel) {
-            is LeafNode -> {
-              val fqn = when (kind) {
-                Kind.LIBRARY -> GradleCommonClassNames.GRADLE_API_ARTIFACTS_MINIMAL_EXTERNAL_MODULE_DEPENDENCY
-                Kind.PLUGIN -> GradleCommonClassNames.GRADLE_PLUGIN_USE_PLUGIN_DEPENDENCY
-                Kind.BUNDLE -> GradleCommonClassNames.GRADLE_API_ARTIFACTS_EXTERNAL_MODULE_DEPENDENCY_BUNDLE
-                Kind.VERSION -> CommonClassNames.JAVA_LANG_STRING
-              }
-              val provider = JavaPsiFacade.getInstance(project).findClass(GradleCommonClassNames.GRADLE_API_PROVIDER_PROVIDER, scope)
-                             ?: continue
-              val minimalDependency = PsiClassType.getTypeByName(fqn, project, scope)
-              method.setMethodReturnType(PsiElementFactory.getInstance(project).createType(provider, minimalDependency))
-            }
 
-            is PrefixBasedGraphNode, is PrefixBasedGraphNodeWithProvider -> {
-              val syntheticClass = buildSyntheticInnerClass(innerModel, constructedClass,
-                                                            prefix + StringUtil.capitalize(name))
-              method.setMethodReturnType(PsiElementFactory.getInstance(project).createType(syntheticClass, PsiSubstitutor.EMPTY))
+          val providerType = if (modelTree.root != null) {
+            val fqn = when (kind) {
+              Kind.LIBRARY -> GradleCommonClassNames.GRADLE_API_ARTIFACTS_MINIMAL_EXTERNAL_MODULE_DEPENDENCY
+              Kind.PLUGIN -> GradleCommonClassNames.GRADLE_PLUGIN_USE_PLUGIN_DEPENDENCY
+              Kind.BUNDLE -> GradleCommonClassNames.GRADLE_API_ARTIFACTS_EXTERNAL_MODULE_DEPENDENCY_BUNDLE
+              Kind.VERSION -> CommonClassNames.JAVA_LANG_STRING
             }
+            val provider = JavaPsiFacade.getInstance(project).findClass(GradleCommonClassNames.GRADLE_API_PROVIDER_PROVIDER, gradleScope)
+              ?: continue
+            val minimalDependency = PsiClassType.getTypeByName(fqn, project, gradleScope)
+            PsiElementFactory.getInstance(project).createType(provider, minimalDependency)
+          } else {
+            null
           }
 
+          val innerModel = modelTree.children
+          if (innerModel.isNotEmpty()) {
+            val syntheticClass = buildSyntheticInnerClass(innerModel, constructedClass, prefix + StringUtil.capitalize(name), providerType)
+            method.setMethodReturnType(PsiElementFactory.getInstance(project).createType(syntheticClass, PsiSubstitutor.EMPTY))
+          }
+          else {
+            method.setMethodReturnType(providerType)
+          }
           container.add(method)
         }
         return container
@@ -142,63 +168,38 @@ class SyntheticVersionCatalogAccessor(project: Project, scope: GlobalSearchScope
         val accessorName = PropertyUtilBase.getAccessorName(enclosingMethodName, PropertyKind.GETTER)
         val method = LightMethodBuilder(PsiManager.getInstance(project), JavaLanguage.INSTANCE, accessorName)
         method.containingClass = constructedClass
-        val graph = distributeNames(model)
-        val syntheticClass = buildSyntheticInnerClass(graph, constructedClass, "")
+        val graph= assembleTree(model)
+        val syntheticClass = buildSyntheticInnerClass(graph, constructedClass, "", null)
         method.setMethodReturnType(PsiElementFactory.getInstance(project).createType(syntheticClass, PsiSubstitutor.EMPTY))
         return method
       }
     }
 
-    private interface GraphNode {
-      val name: String
-      fun getChildren(): List<GraphNode>
-    }
+    private data class Tree(val labelName: String, val root: GradlePropertyModel?, val children: List<Tree>)
 
-    private class LeafNode(override val name: String) : GraphNode {
-      override fun getChildren(): List<GraphNode> = listOf()
-    }
+    private fun assembleTree(properties: List<GradlePropertyModel>) : List<Tree> {
 
-    private class PrefixBasedGraphNode(override val name: String, val nested: List<GraphNode>?) : GraphNode {
-      override fun getChildren(): List<GraphNode> = nested ?: listOf()
-    }
-
-    /**
-     * This class covers case when node has value and children at the same time. I.e:
-     * a = "dependency"
-     * a_ext = "another dependency"
-     */
-    private class PrefixBasedGraphNodeWithProvider(override val name: String, val nested: List<GraphNode>) : GraphNode {
-      override fun getChildren(): List<GraphNode> = nested + LeafNode(asProviderMethodName)
-    }
-
-    /**
-     * Building tree of nodes
-     */
-    private fun distributeNames(model:List<GradlePropertyModel>): List<GraphNode> {
-      val dict = model.associateBy { it.name.replace("[_-]".toRegex(), ".") }
-
-      fun createTree(continuation: List<List<String>>, path:List<String>): List<GraphNode>? {
-        if (continuation.isEmpty()) {
-          return null
-        }
-        val grouped: Map<String, List<List<String>>> = continuation.groupBy({ it[0] }) { it.drop(1).takeIf(List<String>::isNotEmpty) }.mapValues { it.value.filterNotNull() }
-        return grouped.map { (name, cont) ->
-          val child = createTree(cont, path + name)
-          val fullName = (path + name).joinToString(".")
-          val value = dict[fullName]
-
-          if(child != null && value != null) {
-            PrefixBasedGraphNodeWithProvider(name, child)
-          } else if(value != null) {
-            LeafNode(name)
-          } else {
-            PrefixBasedGraphNode(name, child)
+      fun assembleTreeLocally(uncompressed: List<Pair<IdentifierPath, GradlePropertyModel>>) : List<Tree> {
+        val result = mutableListOf<Tree>()
+        val initialPrefixes = uncompressed.groupBy { (path, _) -> path[0] }
+        for ((rootLabel, matching) in initialPrefixes) {
+          val rest = matching.map { (path, model) -> path.drop(1) to model }
+          val (leaves, nodes) = rest.partition { (path, _) -> path.isEmpty() }
+          if (leaves.size >= 2) {
+            thisLogger().error("There should be only one leaf in version catalog tree : $properties")
           }
+          val nestedTrees = assembleTreeLocally(nodes)
+          result.add(Tree(rootLabel, leaves.singleOrNull()?.second, nestedTrees))
         }
+        return result
       }
 
-      return createTree(dict.map{it.key.split(".")}, listOf()) ?: listOf()
+      val uncompressedPropertiesMapping = properties.map { it.name.split(Regex("[-_]")) to it }
+
+      return assembleTreeLocally(uncompressedPropertiesMapping)
     }
   }
 
 }
+
+private typealias IdentifierPath = List<String>

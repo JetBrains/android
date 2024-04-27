@@ -24,15 +24,21 @@ import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil
 import org.jetbrains.android.dom.drawable.CustomDrawableDomElement
 
 /**
- * Root tag based on user classes. If we can't parse tag as known one (see [checkFile]), we assume it comes from class.
+ * Root tag based on user classes. If we can't parse tag as known one (see [checkFile]), we assume
+ * it comes from class.
  */
 class CustomDrawableElementDomFileDescription :
-  CustomLogicResourceDomFileDescription<CustomDrawableDomElement>(CustomDrawableDomElement::class.java, ResourceFolderType.DRAWABLE,
-                                                                  "customDrawable") {
+  CustomLogicResourceDomFileDescription<CustomDrawableDomElement>(
+    CustomDrawableDomElement::class.java,
+    ResourceFolderType.DRAWABLE,
+    "customDrawable"
+  ) {
 
   override fun checkFile(file: XmlFile, module: Module?): Boolean {
-    val nonCustomDrawableTags = module?.androidFacet?.let { AndroidDrawableDomUtil.getPossibleRoots(it) } ?: return false
-    val isNonCustomDrawableTag = file.rootTag != null && nonCustomDrawableTags.contains(file.rootTag!!.name)
+    val nonCustomDrawableTags =
+      module?.androidFacet?.let { AndroidDrawableDomUtil.getPossibleRoots(it) } ?: return false
+    val isNonCustomDrawableTag =
+      file.rootTag != null && nonCustomDrawableTags.contains(file.rootTag!!.name)
     return !isNonCustomDrawableTag
   }
 }

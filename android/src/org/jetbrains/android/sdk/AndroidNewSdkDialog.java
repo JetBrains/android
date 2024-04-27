@@ -3,12 +3,11 @@ package org.jetbrains.android.sdk;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.CollectionComboBoxModel;
-import java.util.List;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.List;
 
 public class AndroidNewSdkDialog extends DialogWrapper {
   private JPanel myContentPanel;

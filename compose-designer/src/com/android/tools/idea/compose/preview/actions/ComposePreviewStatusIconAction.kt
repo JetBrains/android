@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.SceneViewIssueNodeVisitor
-import com.android.tools.idea.common.error.setIssuePanelVisibility
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.ComposePreviewManager
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.fastPreviewManager
-import com.android.tools.idea.uibuilder.scene.hasRenderErrors
+import com.android.tools.idea.preview.actions.hasSceneViewErrors
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -32,8 +30,7 @@ import com.intellij.openapi.project.Project
 import icons.StudioIcons
 
 /** [AnAction] that can be used to show an icon according to the Compose Preview status */
-internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?) :
-  DumbAwareAction() {
+internal class ComposePreviewStatusIconAction : DumbAwareAction() {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
@@ -41,7 +38,7 @@ internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?)
     val project = e.project ?: return
     val previewStatus = composePreviewManager.status()
     e.presentation.apply {
-      if (sceneView?.hasRenderErrors() == true && !isLoading(project, previewStatus)) {
+      if (hasSceneViewErrors(e.dataContext) && !isLoading(project, previewStatus)) {
         isVisible = true
         isEnabled = true
         icon = StudioIcons.Common.WARNING
@@ -55,18 +52,13 @@ internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?)
   }
 
   private fun isLoading(project: Project, previewStatus: ComposePreviewManager.Status): Boolean =
-    previewStatus.interactiveMode.isStartingOrStopping() ||
-      previewStatus.isRefreshing ||
-      project.fastPreviewManager.isCompiling
+    previewStatus.isRefreshing || project.fastPreviewManager.isCompiling
 
   override fun actionPerformed(e: AnActionEvent) {
-    e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(show = true, userInvoked = true) {
-      if (sceneView == null) {
-        return@setIssuePanelVisibility
-      }
-      val project = e.project ?: return@setIssuePanelVisibility
-      val service = IssuePanelService.getInstance(project)
-      service.setSelectedNode(SceneViewIssueNodeVisitor(sceneView))
+    val project = e.project ?: return
+    val service = IssuePanelService.getInstance(project)
+    service.setSharedIssuePanelVisibility(true) {
+      e.getData(SCENE_VIEW)?.let { service.setSelectedNode(SceneViewIssueNodeVisitor(it)) }
     }
   }
 }

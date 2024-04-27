@@ -16,17 +16,14 @@
 package com.android.tools.idea.sdk.extensions
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.projectRoots.ProjectJdkTable
-import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.projectRoots.SdkTypeId
 import com.intellij.openapi.projectRoots.SimpleJavaSdkType
+import com.intellij.openapi.projectRoots.impl.MockSdk
 import com.intellij.openapi.roots.AnnotationOrderRootType
 import com.intellij.openapi.roots.OrderRootType
-import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.testFramework.DisposableRule
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.containers.MultiMap
 import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.kotlin.idea.framework.KotlinSdkType
 import org.junit.Rule
@@ -36,13 +33,8 @@ import kotlin.test.assertTrue
 
 class SdkExtensionsTest {
 
-  @Rule
-  @JvmField
+  @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
-
-  @Rule
-  @JvmField
-  val disposableRule = DisposableRule()
 
   @Test
   fun `Given Sdks with different naming When compare They are different`() {
@@ -122,27 +114,11 @@ class SdkExtensionsTest {
     version: String = "version",
     sdkTpe: SdkTypeId = SimpleJavaSdkType(),
     roots: List<Pair<OrderRootType, String>> = emptyList()
-  ): Sdk {
-    val sdk = ProjectJdkTable.getInstance().createSdk(name, sdkTpe)
-    val sdkModificator = sdk.sdkModificator
-    sdkModificator.homePath = path
-    sdkModificator.versionString = version
-
-    val application = ApplicationManager.getApplication()
-    application.invokeAndWait {
-      application.runWriteAction {
-        val virtualFileManager = VirtualFileManager.getInstance()
-        roots.forEach { (rootType, name) ->
-          val tmpVirtualFile = virtualFileManager.findFileByUrl("temp:///")!!
-          val virtualFile = tmpVirtualFile.findOrCreateChildData(null, name)
-          sdkModificator.addRoot(virtualFile, rootType)
-        }
-        sdkModificator.commitChanges()
-      }
+  ): MockSdk {
+    val rootsMap = MultiMap.create<OrderRootType, VirtualFile>()
+    roots.forEach { (rootType, name) ->
+      rootsMap.putValue(rootType, MockVirtualFile(name))
     }
-    (sdk as? Disposable)?.let {
-      Disposer.register(disposableRule.disposable, it)
-    }
-    return sdk
+    return MockSdk(name, path, version, rootsMap, sdkTpe)
   }
 }

@@ -34,7 +34,7 @@ fun baselineProfilesBuildGradle(
   useGradleKts: Boolean,
   targetModule: Module,
   useGmd: GmdSpec?,
-  useVersionCatalog: Boolean
+  useInstrumentationArgumentForAppId: Boolean
 ): String {
   val packageName = newModule.packageName
   val apis = newModule.apis
@@ -43,6 +43,21 @@ fun baselineProfilesBuildGradle(
   // TODO(b/149203281): Fix support for composite builds.
   val targetModuleGradlePath = targetModule.getGradleProjectPath()?.path
   val flavorsConfiguration = flavorsConfigurationsBuildGradle(flavors, useGradleKts)
+
+  val addTargetAppIdAsInstrumentationArgumentBlock = if (useInstrumentationArgumentForAppId) {
+    """
+
+      androidComponents {
+          onVariants${if (useGradleKts) "" else "(selector().all())"} {  v ->
+              v.instrumentationRunnerArguments.put(
+                  "targetAppId",
+                  v.testedApks.map { v.artifacts.getBuiltArtifactsLoader().load(it)?.applicationId }
+              )
+          }
+      }
+
+    """.trimIndent()
+  } else ""
 
   val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
     """
@@ -89,7 +104,7 @@ fun baselineProfilesBuildGradle(
 
   return """
 ${renderIf(useGmd != null) { "import com.android.build.api.dsl.ManagedVirtualDevice" }}
-${emptyPluginsBlock(isKts = useGradleKts, useVersionCatalog = useVersionCatalog)}
+${emptyPluginsBlock()}
 
 android {
   namespace '$packageName'
@@ -121,5 +136,5 @@ $pluginConfiguration
 dependencies {
 }
 
-""".gradleToKtsIfKts(useGradleKts)
+""".gradleToKtsIfKts(useGradleKts) + addTargetAppIdAsInstrumentationArgumentBlock
 }

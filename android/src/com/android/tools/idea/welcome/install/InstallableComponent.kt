@@ -25,6 +25,7 @@ import com.android.tools.idea.welcome.isWritable
 import com.android.tools.idea.welcome.wizard.getSizeLabel
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.intellij.openapi.diagnostic.thisLogger
 
 private val PROGRESS_LOGGER = StudioLoggerProgressIndicator(InstallableComponent::class.java)
 
@@ -111,8 +112,11 @@ abstract class InstallableComponent(
         else -> isSelectedByDefault()
       }
     )
-    isInstalled = sdkHandler != null && packagesToInstall.isEmpty() && unavailablePackages.isEmpty()
-    isUnavailable = sdkHandler == null || unavailablePackages.isNotEmpty()
+    isInstalled = packagesToInstall.isEmpty() && unavailablePackages.isEmpty()
+    isUnavailable = unavailablePackages.isNotEmpty()
+    if (isUnavailable) {
+      thisLogger().warn("$name depends on the the packages that are not available: ${unavailablePackages.joinToString(", ")}")
+    }
   }
 
   override fun toggle(isSelected: Boolean) {

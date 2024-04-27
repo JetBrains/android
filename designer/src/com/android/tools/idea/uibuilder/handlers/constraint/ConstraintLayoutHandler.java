@@ -16,15 +16,6 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
-import static com.android.AndroidXConstants.CLASS_MOTION_LAYOUT;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
 import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL;
@@ -42,8 +33,17 @@ import static com.android.SdkConstants.ATTR_MIN_WIDTH;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_VALUE;
 import static com.android.SdkConstants.AUTO_URI;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
+import static com.android.AndroidXConstants.CLASS_MOTION_LAYOUT;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.SdkConstants.CLASS_VIEWGROUP;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
 import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
@@ -66,6 +66,7 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
 import com.android.ide.common.rendering.api.AttrResourceValueImpl;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -102,13 +103,13 @@ import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
+import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintResizeTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCycleTarget;
@@ -135,7 +136,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.LafIconLookup;
 import icons.StudioIcons;
 import java.awt.Color;
@@ -422,7 +423,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     childComponent.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
 
     listBuilder.add(
-      new ConstraintDragTarget(),
       new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
       new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
       new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
@@ -443,6 +443,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
 
     return listBuilder.build();
+  }
+
+  @Override
+  public boolean shouldAddCommonDragTarget(@NotNull SceneComponent component) {
+    return true;
   }
 
   @Override
@@ -472,14 +477,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    * @param layout     the layout being dragged over/into
    * @param components the components being dragged
    * @param type       the <b>initial</b> type of drag, which can change along the way
-   * @return instance of a ConstraintDragHandler
+   * @return instance of a CommonDragHandler
    */
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent layout,
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
-    return new ConstraintDragHandler(editor, this, layout, components, type);
+    return new CommonDragHandler(editor, this, layout, components, type);
   }
 
   @Override
@@ -1246,7 +1251,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         XmlTag tag = myComponent.getBackend().getTag();
         assert tag != null;
         ResourceResolver resolver = configurationManager.getConfiguration(tag.getContainingFile().getVirtualFile()).getResourceResolver();
-        ResourceValue unresolved = new AttrResourceValueImpl(ResourceNamespace.RES_AUTO, "dimens", null);
+        ResourceValueImpl unresolved = new AttrResourceValueImpl(ResourceNamespace.RES_AUTO, "dimens", null);
         unresolved.setValue(resourceRef);
         ResourceValue resolvedValue = resolver.resolveResValue(unresolved);
         String marginDp = getMarginInDp(resolvedValue);
@@ -1325,7 +1330,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           @Override
           public void paintIcon(Component c, Graphics g, int x, int y) {
             g.setColor(JBColor.foreground());
-            g.setFont(g.getFont().deriveFont(Font.PLAIN, JBUIScale.scaleFontSize(DEFAULT_ICON_FONT_SIZE)));
+            g.setFont(g.getFont().deriveFont(Font.PLAIN, JBUI.scaleFontSize(DEFAULT_ICON_FONT_SIZE)));
             String m = myPreviousDisplay;
             FontMetrics metrics = g.getFontMetrics();
             int strWidth = metrics.stringWidth(m);
@@ -1341,12 +1346,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
           @Override
           public int getIconWidth() {
-            return JBUIScale.scale(DEFAULT_ICON_WIDTH);
+            return JBUI.scale(DEFAULT_ICON_WIDTH);
           }
 
           @Override
           public int getIconHeight() {
-            return JBUIScale.scale(DEFAULT_ICON_HEIGHT);
+            return JBUI.scale(DEFAULT_ICON_HEIGHT);
           }
         };
       }

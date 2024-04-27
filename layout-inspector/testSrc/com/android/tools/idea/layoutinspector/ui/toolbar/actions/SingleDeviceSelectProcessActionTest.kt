@@ -23,7 +23,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.runningdevices.withAutoConnect
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -222,10 +222,7 @@ class SingleDeviceSelectProcessActionTest {
   }
 
   @Test
-  fun testActionIsNotVisibleByDefault() {
-    val value = LayoutInspectorSettings.getInstance().autoConnectEnabled
-    LayoutInspectorSettings.getInstance().autoConnectEnabled = true
-
+  fun testActionIsNotVisibleByDefault() = withAutoConnect {
     val processPicker =
       SingleDeviceSelectProcessAction(
         mock(),
@@ -237,12 +234,10 @@ class SingleDeviceSelectProcessActionTest {
     processPicker.update(fakeEvent)
     assertThat(fakeEvent.presentation.isVisible).isFalse()
 
-    LayoutInspectorSettings.getInstance().autoConnectEnabled = false
+    enableAutoConnect = false
 
     processPicker.update(fakeEvent)
     assertThat(fakeEvent.presentation.isVisible).isTrue()
-
-    LayoutInspectorSettings.getInstance().autoConnectEnabled = value
   }
 }
 

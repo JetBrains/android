@@ -1,4 +1,3 @@
-// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.dom;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
@@ -70,7 +69,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,7 +77,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       Key.create("ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE");
 
   @Override
-  public @Nls String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
+  public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
     if (element instanceof ResourceReferencePsiElement) {
       return ((ResourceReferencePsiElement)element).getResourceReference().getResourceUrl().toString();
     }
@@ -87,7 +85,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   }
 
   @Override
-  public @Nls String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
+  public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
     if (element instanceof ProvidedDocumentationPsiElement) {
       return ((ProvidedDocumentationPsiElement)element).getDocumentation();
     }
@@ -256,7 +254,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     XmlName xmlName = description.getXmlName();
 
     Map<XmlName, CachedValue<String>> cachedDocsMap =
-        dereference(originalElement.getUserData(ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY));
+      dereference(originalElement.getUserData(ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY));
 
     if (cachedDocsMap != null) {
       CachedValue<String> cachedDoc = cachedDocsMap.get(xmlName);

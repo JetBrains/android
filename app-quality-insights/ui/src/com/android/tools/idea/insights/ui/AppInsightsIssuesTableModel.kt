@@ -35,40 +35,34 @@ class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) :
           override fun valueOf(item: AppInsightsIssue) = item
 
           override fun getComparator(): Comparator<AppInsightsIssue> {
-            return Comparator.comparing { it.issueDetails.title }
+            return Comparator.comparing { issue ->
+              issue.issueDetails.getDisplayTitle().toList().joinToString(".")
+            }
           }
 
           override fun getRenderer(item: AppInsightsIssue) = renderer
         },
-        object : ColumnInfo<AppInsightsIssue, Int>("Events") {
-          override fun valueOf(item: AppInsightsIssue) = item.issueDetails.eventsCount.toInt()
-
-          override fun getComparator(): Comparator<AppInsightsIssue> {
-            return Comparator.comparingInt { it.issueDetails.eventsCount.toInt() }
-          }
-
-          override fun getMaxStringValue() =
-            items.maxOfOrNull { it.issueDetails.eventsCount }?.toString()
-
-          override fun getRenderer(item: AppInsightsIssue?): TableCellRenderer =
-            NumberColumnRenderer
-        },
-        object : ColumnInfo<AppInsightsIssue, Int>("Users") {
-          override fun valueOf(item: AppInsightsIssue) =
-            item.issueDetails.impactedDevicesCount.toInt()
-
-          override fun getComparator(): Comparator<AppInsightsIssue> {
-            return Comparator.comparingInt { it.issueDetails.impactedDevicesCount.toInt() }
-          }
-
-          override fun getMaxStringValue() =
-            items.maxOfOrNull { it.issueDetails.impactedDevicesCount }?.toString()
-
-          override fun getRenderer(item: AppInsightsIssue?): TableCellRenderer =
-            NumberColumnRenderer
-        }
+        FormattedNumberColumnInfo("Events") { it.issueDetails.eventsCount },
+        FormattedNumberColumnInfo("Users") { it.issueDetails.impactedDevicesCount }
       )
     isSortable = true
+  }
+
+  private inner class FormattedNumberColumnInfo(
+    name: String,
+    private val selector: (AppInsightsIssue) -> Long
+  ) : ColumnInfo<AppInsightsIssue, String>(name) {
+    override fun valueOf(item: AppInsightsIssue): String =
+      selector(item).formatNumberToPrettyString()
+
+    override fun getComparator(): Comparator<AppInsightsIssue> {
+      return Comparator.comparingInt { selector(it).toInt() }
+    }
+
+    override fun getMaxStringValue() =
+      items.maxOfOrNull { selector(it) }?.formatNumberToPrettyString()
+
+    override fun getRenderer(item: AppInsightsIssue?): TableCellRenderer = NumberColumnRenderer
   }
 }
 
@@ -85,6 +79,7 @@ private object NumberColumnRenderer : DefaultTableCellRenderer() {
     row: Int,
     column: Int
   ): Component =
-    super.getTableCellRendererComponent(table, value.ifZero("-"), isSelected, false, row, column)
-      .apply { border = BorderFactory.createCompoundBorder(JBUI.Borders.emptyRight(5), border) }
+    super.getTableCellRendererComponent(table, value, isSelected, false, row, column).apply {
+      border = BorderFactory.createCompoundBorder(JBUI.Borders.emptyRight(5), border)
+    }
 }

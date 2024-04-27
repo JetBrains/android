@@ -28,10 +28,6 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
@@ -41,6 +37,10 @@ import java.util.concurrent.CompletableFuture
 import java.util.function.Function
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
 
 class InteractionHandlerTest {
 
@@ -55,6 +55,7 @@ class InteractionHandlerTest {
           mouseY: Int,
           modifiersEx: Int
         ): Interaction? = null
+
         override fun createInteractionOnDrag(
           mouseX: Int,
           mouseY: Int,

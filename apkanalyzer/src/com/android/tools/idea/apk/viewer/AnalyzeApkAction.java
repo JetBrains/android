@@ -19,6 +19,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
@@ -48,6 +49,11 @@ public class AnalyzeApkAction extends DumbAwareAction {
 
     e.getPresentation().setEnabledAndVisible(
       IdeInfo.getInstance().isAndroidStudio() || ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID));
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

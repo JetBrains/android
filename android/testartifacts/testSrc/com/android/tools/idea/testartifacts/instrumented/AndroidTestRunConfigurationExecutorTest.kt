@@ -23,7 +23,7 @@ import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.editor.NoApksProvider
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
@@ -38,7 +38,6 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Computable
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.UIUtil
-import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Rule
@@ -105,13 +104,13 @@ class AndroidTestRunConfigurationExecutorTest {
     val processHandler = runContentDescriptor.processHandler!!
     processHandler.startNotify()
 
-    Truth.assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
-    Truth.assertThat((processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo("testApplicationId")
+    assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
+    assertThat((processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo("testApplicationId")
     // AndroidProcessHandler should not be closed even if the target application process is killed. During an
     // instrumentation tests, the target application may be killed in between test cases by test executor. Only test
     // executor knows when all test run completes.
-    Truth.assertThat(processHandler.autoTerminate).isEqualTo(false)
-    Truth.assertThat(processHandler.isAssociated(device)).isEqualTo(true)
+    assertThat(processHandler.autoTerminate).isEqualTo(false)
+    assertThat(processHandler.isAssociated(device)).isEqualTo(true)
     startDownLatch.countDown()
     processHandler.waitFor()
     if (!historyLatch.await(20, TimeUnit.SECONDS)) {
@@ -182,7 +181,13 @@ class AndroidTestRunConfigurationExecutorTest {
 
   @Test
   fun androidProcessHandlerMonitorsMasterProcessId() {
-    fakeAdb.connectAndWaitForDevice()
+    val deviceState = fakeAdb.connectAndWaitForDevice()
+    val startDownLatch = CountDownLatch(3)
+    deviceState.setActivityManager { args, _ ->
+      if (args[0] == "instrument") {
+        startDownLatch.await()
+      }
+    }
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
     var executionOptions = TestExecutionOption.HOST
 
@@ -203,8 +208,8 @@ class AndroidTestRunConfigurationExecutorTest {
     }
     val executor = AndroidTestRunConfigurationExecutor(
       env,
-
-      DeviceFutures.forDevices(listOf(device))) { NoApksProvider() }
+      DeviceFutures.forDevices(listOf(device))
+    ) { NoApksProvider() }
     val historyLatch = CountDownLatch(3)
     val testHistoryConfiguration = mock<TestHistoryConfiguration>()
     whenever(testHistoryConfiguration.registerHistoryItem(any(), any(), any())).then {
@@ -215,14 +220,16 @@ class AndroidTestRunConfigurationExecutorTest {
       executionOptions = TestExecutionOption.HOST
       val runContentDescriptor = ProgressManager.getInstance()
         .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
-      Truth.assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo("testApplicationId")
+      startDownLatch.countDown()
+      assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo("testApplicationId")
     }
 
     run {
       executionOptions = TestExecutionOption.ANDROID_TEST_ORCHESTRATOR
       val runContentDescriptor = ProgressManager.getInstance()
         .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
-      Truth.assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
+      startDownLatch.countDown()
+      assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
         ORCHESTRATOR_APP_ID)
     }
 
@@ -230,7 +237,8 @@ class AndroidTestRunConfigurationExecutorTest {
       executionOptions = TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR
       val runContentDescriptor = ProgressManager.getInstance()
         .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
-      Truth.assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
+      startDownLatch.countDown()
+      assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
         ANDROIDX_ORCHESTRATOR_APP_ID)
     }
     if (!historyLatch.await(60, TimeUnit.SECONDS)) {

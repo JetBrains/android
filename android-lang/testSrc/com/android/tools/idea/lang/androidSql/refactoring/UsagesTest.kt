@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.androidSql.refactoring
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.lang.androidSql.createStubRoomClasses
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.moveCaret

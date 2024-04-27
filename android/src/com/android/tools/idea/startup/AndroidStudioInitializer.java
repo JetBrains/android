@@ -23,9 +23,9 @@ import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.analytics.SystemInfoStatsMonitor;
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.install.patch.PatchInstallingRestarter;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.ConsentDialog;
+//import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.ide.ApplicationInitializedListenerJavaShim;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -38,7 +38,8 @@ import com.intellij.openapi.application.ApplicationManager;
  * {@link GradleSpecificInitializer} instead.
  * </p>
  */
-public final class AndroidStudioInitializer extends ApplicationInitializedListenerJavaShim {
+public class AndroidStudioInitializer extends ApplicationInitializedListenerJavaShim {
+
   @Override
   public void componentsInitialized() {
     configureUpdateUrls();
@@ -46,7 +47,10 @@ public final class AndroidStudioInitializer extends ApplicationInitializedListen
 
     // Initialize System Health Monitor after Analytics.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      AndroidStudioSystemHealthMonitor.getInstance().start();
+      AndroidStudioSystemHealthMonitor instance = AndroidStudioSystemHealthMonitor.getInstance();
+      if (instance != null) {
+        instance.start();
+      }
     });
 
     // TODO: Remove this once the issue has been properly fixed in the IntelliJ platform
@@ -59,7 +63,6 @@ public final class AndroidStudioInitializer extends ApplicationInitializedListen
     if (IdeSdks.getInstance().getAndroidSdkPath() != null) {
       AndroidSdkHandler handler =
         AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, IdeSdks.getInstance().getAndroidSdkPath().toPath());
-      new PatchInstallingRestarter(handler).restartAndInstallIfNecessary();
       // We need to start the system info monitoring even in case when user never
       // runs a single emulator instance: e.g., incompatible hypervisor might be
       // the reason why emulator is never run, and that's exactly the data

@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:utils.bzl", "java_jarjar")
 
 # managed by go/iml_to_build
 iml_module(
@@ -31,6 +32,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/explainer:intellij.android.explainer[module]",
+        "//tools/adt/idea/logcat:logcat-proto",
     ],
 )
 
@@ -75,4 +77,13 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/explainer:intellij.android.explainer[module, test]",
     ],
+)
+
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "logcat-proto",
+    jars = ["//tools/adt/idea/logcat/proto:logcat-proto.jar"],
+    visibility = ["//visibility:public"],
 )

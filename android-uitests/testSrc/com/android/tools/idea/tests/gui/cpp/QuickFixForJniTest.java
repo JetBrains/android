@@ -82,6 +82,8 @@ public class QuickFixForJniTest {
     editor.moveBetween("public native String  stringFromJNI();", "")
       .enterText("\npublic native void printFromJNI();");
 
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
       .clickButton("Analyze");
 
@@ -115,8 +117,8 @@ public class QuickFixForJniTest {
     // Verify the content of the popup menu. It should contain both native source files in this project and
     // place the file that has existing JNI definitions (hello-jni.c) on top.
     nativeSourcePopupFixture.requireItemCount(2);
-    assertThat(nativeSourcePopupFixture.item(0).value()).isEqualTo("OCFile:hello-jni.c");
-    assertThat(nativeSourcePopupFixture.item(1).value()).isEqualTo("OCFile:jni.cpp");
+    assertThat(nativeSourcePopupFixture.item(0).value()).isEqualTo("hello-jni.c");
+    assertThat(nativeSourcePopupFixture.item(1).value()).isEqualTo("jni.cpp");
     nativeSourcePopupFixture.item(1).click();
 
     // Check skeleton added to C/C++ file.

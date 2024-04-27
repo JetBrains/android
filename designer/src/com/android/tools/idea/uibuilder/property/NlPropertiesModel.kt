@@ -29,6 +29,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
@@ -55,12 +56,13 @@ import com.intellij.util.Alarm
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.TestOnly
 import java.util.Collections
 import java.util.concurrent.Callable
 import java.util.function.Consumer
 import javax.swing.event.ChangeListener
+import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 
 private const val UPDATE_QUEUE_NAME = "propertysheet"
 private const val UPDATE_DELAY_MILLI_SECONDS = 250
@@ -95,6 +97,9 @@ open class NlPropertiesModel(
   private val liveChangeListener: ChangeListener = ChangeListener {
     firePropertyValueChangeIfNeeded()
   }
+
+  /** [CoroutineScope] to be used by any operations constrained to the lifetime of the model. */
+  internal val supervisorScope: CoroutineScope = AndroidCoroutineScope(parentDisposable)
 
   constructor(
     parentDisposable: Disposable,
@@ -482,8 +487,7 @@ open class NlPropertiesModel(
         resourceReference,
         tag,
         folderConfiguration
-      )
-        ?: return
+      ) ?: return
     if (targetElement is Navigatable) {
       targetElement.navigate(true)
     }

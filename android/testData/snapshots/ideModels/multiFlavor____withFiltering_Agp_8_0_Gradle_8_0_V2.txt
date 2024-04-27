@@ -297,7 +297,7 @@ MODULE                        : MultiFlavor
         externalSystemId              : GRADLE
 MODULE                        : MultiFlavor.app
     GradleModuleModel
-        agpVersion                    : 8.0.0-beta04
+        agpVersion                    : 8.0.2
         gradlePath                    : :app
         gradleVersion                 : 8.0
         buildFile                     : <ROOT>/app/build.gradle
@@ -318,7 +318,7 @@ MODULE                        : MultiFlavor.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.0.0-beta04
+    ModelVersion                  : 8.0.2
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -361,7 +361,6 @@ MODULE                        : MultiFlavor.app
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-        EnableVcsInfo                 : false
     - basicVariant:               : firstAbcSecondAbcDebug
         applicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
         testApplicationId             : com.example.multiflavor.firstAbc.secondAbc.debug.test
@@ -500,7 +499,7 @@ MODULE                        : MultiFlavor.app
             VersionNameSuffix             : -release
             ResValues
                 string/v_b                    : (string, v_b, release)
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.0.0-beta04 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.0.2 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             ManifestPlaceholders
                 b                             : release
@@ -772,10 +771,6 @@ MODULE                        : MultiFlavor.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/firstAbcSecondAbcDebug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createFirstAbcSecondAbcDebugVariantModel
-                    File                          : <ROOT>/app/build/intermediates/variant_model/firstAbcSecondAbcDebug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileFirstAbcSecondAbcDebugAndroidTestSources

@@ -17,10 +17,10 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.intellij.ui.ComponentUtil
 import com.intellij.ui.components.JBTextField
+import javax.swing.JButton
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import javax.swing.JButton
 
 class CustomConfigurationSetCreatePaletteTest {
 

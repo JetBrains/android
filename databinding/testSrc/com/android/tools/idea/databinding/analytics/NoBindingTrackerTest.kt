@@ -31,12 +31,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tracking on a project without view binding or data binding enabled on it.
- */
+/** Tracking on a project without view binding or data binding enabled on it. */
 class NoBindingTrackerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -53,38 +50,47 @@ class NoBindingTrackerTest {
   @Before
   fun setUp() {
     assertThat(facet.isViewBindingEnabled()).isFalse()
-    fixture.addFileToProject("src/main/AndroidManifest.xml", """
+    fixture.addFileToProject(
+      "src/main/AndroidManifest.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
   }
 
   @Test
   fun trackNonViewBindingEnabledProject() {
-    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+    fixture.addFileToProject(
+      "src/main/res/layout/activity_main.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
         <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     val tracker = TestUsageTracker(VirtualTimeScheduler())
-      try {
-        UsageTracker.setWriterForTest(tracker)
-        DataBindingTrackerSyncListener(projectRule.project).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
-        val viewBindingPollMetadata = tracker.usages
+    try {
+      UsageTracker.setWriterForTest(tracker)
+      DataBindingTrackerSyncListener(projectRule.project)
+        .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      val viewBindingPollMetadata =
+        tracker.usages
           .map { it.studioEvent }
           .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
           .map { it.dataBindingEvent.viewBindingMetadata }
           .lastOrNull()
 
-        assertThat(viewBindingPollMetadata).isNull()
-      }
-      finally {
-        tracker.close()
-        UsageTracker.cleanAfterTesting()
-      }
+      assertThat(viewBindingPollMetadata).isNull()
+    } finally {
+      tracker.close()
+      UsageTracker.cleanAfterTesting()
+    }
   }
 }

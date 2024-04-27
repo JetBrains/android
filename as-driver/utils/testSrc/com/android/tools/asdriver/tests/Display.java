@@ -19,8 +19,6 @@ import com.intellij.openapi.util.SystemInfo;
 import java.io.IOException;
 
 public interface Display extends AutoCloseable {
-  void debugTakeScreenshot(String fileName) throws IOException;
-
   String getDisplay();
 
   static Display createDefault() throws IOException {

@@ -19,8 +19,8 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;

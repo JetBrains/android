@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.repositories.search;
 
+import com.android.ide.common.gradle.Version;
+import org.junit.Test;
+
 import static com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories.ANDROID_REPOSITORY_NAME;
 import static com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories.GOOGLE_REPOSITORY_NAME;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
-
-import com.android.ide.common.gradle.Version;
-import org.junit.Test;
 
 public class FoundArtifactTest {
   @Test

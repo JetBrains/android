@@ -44,6 +44,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/.idea/libraries:mockito",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
     ],
 )
 

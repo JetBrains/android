@@ -22,11 +22,13 @@ import com.intellij.util.concurrency.ThreadingAssertions
 @UiThread
 interface DatabaseInspectorModel {
   fun getOpenDatabaseIds(): List<SqliteDatabaseId>
+
   fun getCloseDatabaseIds(): List<SqliteDatabaseId>
 
   fun getDatabaseSchema(databaseId: SqliteDatabaseId): SqliteSchema?
 
   fun addDatabaseSchema(databaseId: SqliteDatabaseId, sqliteSchema: SqliteSchema)
+
   fun removeDatabaseSchema(databaseId: SqliteDatabaseId)
 
   fun updateSchema(databaseId: SqliteDatabaseId, newSchema: SqliteSchema)
@@ -34,6 +36,7 @@ interface DatabaseInspectorModel {
   fun clearDatabases()
 
   fun addListener(modelListener: Listener)
+
   fun removeListener(modelListener: Listener)
 
   @UiThread
@@ -42,6 +45,7 @@ interface DatabaseInspectorModel {
       openDatabaseIds: List<SqliteDatabaseId>,
       closeDatabaseIds: List<SqliteDatabaseId>
     )
+
     fun onSchemaChanged(
       databaseId: SqliteDatabaseId,
       oldSchema: SqliteSchema,

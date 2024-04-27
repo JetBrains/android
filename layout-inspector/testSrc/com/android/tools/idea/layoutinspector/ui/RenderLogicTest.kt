@@ -27,7 +27,7 @@ import com.android.resources.ResourceType
 import com.android.resources.ScreenRound
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
@@ -824,8 +824,7 @@ class RenderLogicTest {
     val graphics = image.createGraphics()
     // add a gray background
     graphics.color = Color(250, 250, 250)
-    graphics.fillRect(
-      0, 0, renderDimension.width, renderDimension.height)
+    graphics.fillRect(0, 0, renderDimension.width, renderDimension.height)
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     // add transform to center render in buffered image
     graphics.transform = transform

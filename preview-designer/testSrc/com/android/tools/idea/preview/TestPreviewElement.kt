@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.tools.preview.DisplayPositioning
+import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.PreviewElement
+
 internal class TestPreviewElement(
   displayName: String = "",
   groupName: String? = null,

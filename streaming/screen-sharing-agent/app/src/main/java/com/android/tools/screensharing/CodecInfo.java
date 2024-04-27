@@ -24,28 +24,30 @@ import android.media.MediaCodecInfo.VideoCapabilities;
 import android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint;
 import android.media.MediaCodecList;
 import android.os.Build.VERSION;
-import android.util.Log;
 import android.util.Range;
 import java.util.List;
 
 /**
  * Basic codec information and a static method to select a video encoder.
  * This code is in Java because NDK doesn't provide access to {@link MediaCodecList} and
- * {@link MediaCodecInfo}. Used from native code.
+ * {@link MediaCodecInfo}.
  */
+@SuppressWarnings("unused") // Called through JNI.
 public class CodecInfo {
   public final String name;
   public final int maxWidth;
   public final int maxHeight;
   public final int widthAlignment;
   public final int heightAlignment;
+  public final int maxFrameRate;
 
-  private CodecInfo(String name, int maxWidth, int maxHeight, int widthAlignment, int heightAlignment) {
+  private CodecInfo(String name, int maxWidth, int maxHeight, int widthAlignment, int heightAlignment, int maxFrameRate) {
     this.name = name;
     this.maxWidth = maxWidth;
     this.maxHeight = maxHeight;
     this.widthAlignment = widthAlignment;
     this.heightAlignment = heightAlignment;
+    this.maxFrameRate = maxFrameRate;
   }
 
   /**
@@ -69,7 +71,8 @@ public class CodecInfo {
             Range<Integer> heights = videoCapabilities.getSupportedHeights();
             Range<Integer> widths = videoCapabilities.getSupportedWidths();
             return new CodecInfo(codecInfo.getName(), widths.getUpper(), heights.getUpper(),
-                                 videoCapabilities.getWidthAlignment(), videoCapabilities.getHeightAlignment());
+                                 videoCapabilities.getWidthAlignment(), videoCapabilities.getHeightAlignment(),
+                                 videoCapabilities.getSupportedFrameRates().getUpper());
           }
         }
       }

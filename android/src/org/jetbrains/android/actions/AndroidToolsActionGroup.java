@@ -18,6 +18,7 @@ package org.jetbrains.android.actions;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -32,6 +33,12 @@ import org.jetbrains.annotations.NotNull;
  * IDE users developing cross-platform applications (e.g. with react native) using android tools, e.g. AVD Manager.
  */
 public class AndroidToolsActionGroup extends DefaultActionGroup implements DumbAware {
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
   @Override
   public void update(@NotNull AnActionEvent e) {
     final Project project = e.getData(CommonDataKeys.PROJECT);

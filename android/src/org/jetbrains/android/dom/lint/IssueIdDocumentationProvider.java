@@ -15,6 +15,9 @@
  */
 package org.jetbrains.android.dom.lint;
 
+import static com.android.tools.lint.detector.api.TextFormat.TEXT;
+
+import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.Vendor;
 import com.android.tools.lint.detector.api.Issue;
@@ -32,7 +35,6 @@ import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
 import java.util.List;
 import org.jetbrains.android.dom.ProvidedDocumentationPsiElement;
-import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +42,7 @@ public class IssueIdDocumentationProvider implements DocumentationProvider {
 
   @Nullable
   @Override
-  public @Nls String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
+  public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
     // Check whether the element is attribute value
     if (!(element instanceof XmlAttributeValue)) {
       return null;

@@ -41,9 +41,9 @@ import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
+import java.util.IdentityHashMap
 import org.jetbrains.android.dom.AndroidDomUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import java.util.IdentityHashMap
 
 private const val TEXT_APPEARANCE_SUFFIX = "TextAppearance"
 
@@ -71,8 +71,8 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
     val support =
       cachedEnumSupport.get(property.namespace, property.name)
         ?: provideEnumSupportFromViewHandler(property.name, property.components)
-          ?: getDropDownValuesFromSpecialCases(property)
-          ?: property.definition?.let { provideEnumSupportFromAttributeDefinition(it) }
+        ?: getDropDownValuesFromSpecialCases(property)
+        ?: property.definition?.let { provideEnumSupportFromAttributeDefinition(it) }
     if (support is CachedEnumSupport) {
       cachedEnumSupport.put(property.namespace, property.name, support)
     }

@@ -80,6 +80,12 @@ interface IdeBaseArtifactCore : Serializable {
   val isTestArtifact: Boolean
   val unresolvedDependencies: List<IdeUnresolvedDependency>
   val generatedClassPaths: Map<String, File>
+
+  /**
+   * All bytecode transformations done by AGP or 3P plugins. If this information is not provided by AGP,
+   * `null` is returned.
+   */
+  val bytecodeTransforms: Collection<IdeBytecodeTransformation>?
 }
 
 sealed interface IdeBaseArtifact : IdeBaseArtifactCore {

@@ -18,7 +18,7 @@ package com.android.tools.profilers.cpu
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilersTestData
-import com.android.tools.profilers.cpu.config.PerfettoConfiguration
+import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -40,7 +40,7 @@ class CpuCaptureHandlerTest {
 
   @Test
   fun parsingFailureShowsNotificationAndTracksExceptionType() {
-    val config = PerfettoConfiguration("Test", false)
+    val config = PerfettoSystemTraceConfiguration("Test", false)
     val services = FakeIdeProfilerServices()
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
     val model = CpuCaptureHandler(services, CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), 123, config, null, 0)

@@ -1,16 +1,17 @@
 package com.android.tools.idea.sdk
 
-import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.ApkFacetChecker
 import com.android.tools.idea.IdeInfo
 import com.google.common.truth.Truth.assertThat
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.replaceService
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -28,7 +29,12 @@ class AndroidEnvironmentCheckerTest {
   val rule = RuleChain(projectRule, disposableRule)
 
   private val mockIdeInfo by lazy { Mockito.spy(IdeInfo.getInstance()) }
-  private val mockApkFacetChecker = mock<ApkFacetChecker>()
+  private val mockProjectFacetManager by lazy { Mockito.spy(ProjectFacetManager.getInstance(project)) }
+
+  @Before
+  fun setup() {
+    project.registerOrReplaceServiceInstance(ProjectFacetManager::class.java, mockProjectFacetManager, disposableRule.disposable)
+  }
 
   @Test
   fun isLibraryExists() {
@@ -38,10 +44,9 @@ class AndroidEnvironmentCheckerTest {
   @Test
   fun isLibraryExists_notAndroidStudio_withoutAndroidFacet() {
     whenever(mockIdeInfo.isAndroidStudio).thenReturn(false)
-    whenever(mockApkFacetChecker.hasApkFacet()).thenReturn(false)
+    whenever(mockProjectFacetManager.hasFacets(AndroidFacet.ID)).thenReturn(false)
 
     ApplicationManager.getApplication().replaceService(IdeInfo::class.java, mockIdeInfo, disposable)
-    project.registerOrReplaceServiceInstance(ApkFacetChecker::class.java, mockApkFacetChecker, disposable)
 
     assertThat(AndroidEnvironmentChecker().isLibraryExists(project)).isFalse()
   }
@@ -49,10 +54,9 @@ class AndroidEnvironmentCheckerTest {
   @Test
   fun isLibraryExists_notAndroidStudio_withAndroidFacet() {
     whenever(mockIdeInfo.isAndroidStudio).thenReturn(false)
-    whenever(mockApkFacetChecker.hasApkFacet()).thenReturn(true)
+    whenever(mockProjectFacetManager.hasFacets(AndroidFacet.ID)).thenReturn(true)
 
     ApplicationManager.getApplication().replaceService(IdeInfo::class.java, mockIdeInfo, disposable)
-    project.registerOrReplaceServiceInstance(ApkFacetChecker::class.java, mockApkFacetChecker, disposable)
 
     assertThat(AndroidEnvironmentChecker().isLibraryExists(project)).isTrue()
   }

@@ -53,7 +53,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
   fun testDefaultState() {
     whenever(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(ArrayList()))
     myStateManager.refresh()
-    IdeEventQueue.getInstance().flushQueue()
+    IdeEventQueue.getInstance().flushQueue();
     TestCase.assertEquals(DefaultActionState.ERROR_RETRY, myStateManager.getState(project, emptyActionData))
   }
 
@@ -61,7 +61,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
   fun testLoadingState() {
     whenever(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture())
     myStateManager.refresh()
-    IdeEventQueue.getInstance().flushQueue()
+    IdeEventQueue.getInstance().flushQueue();
     TestCase.assertEquals(DefaultActionState.IN_PROGRESS, myStateManager.getState(project, emptyActionData))
   }
 
@@ -71,7 +71,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
     devices.add(UsbDevice("test", "test", "test"))
     whenever(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(devices))
     myStateManager.refresh()
-    IdeEventQueue.getInstance().flushQueue()
+    IdeEventQueue.getInstance().flushQueue();
     TestCase.assertEquals(CustomSuccessState, myStateManager.getState(project, emptyActionData))
   }
 
@@ -81,7 +81,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
     exceptionFuture.completeExceptionally(IOException())
     whenever(testUsbDeviceCollector.listUsbDevices()).thenReturn(exceptionFuture)
     myStateManager.refresh()
-    IdeEventQueue.getInstance().flushQueue()
+    IdeEventQueue.getInstance().flushQueue();
     TestCase.assertEquals(DefaultActionState.ERROR_RETRY, myStateManager.getState(project, emptyActionData))
   }
 }

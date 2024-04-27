@@ -23,8 +23,9 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.tools.res.AbstractResourceRepositoryWithLocking;
+import com.android.tools.res.CacheableResourceRepository;
 import com.google.common.collect.ListMultimap;
-import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -126,18 +127,18 @@ import org.jetbrains.annotations.VisibleForTesting;
  * </p>
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
-public abstract class LocalResourceRepository extends AbstractResourceRepositoryWithLocking implements CacheableResourceRepository {
+public abstract class LocalResourceRepository<T> extends AbstractResourceRepositoryWithLocking implements CacheableResourceRepository {
   protected static final AtomicLong ourModificationCounter = new AtomicLong();
 
   private final String myDisplayName;
 
   @GuardedBy("ITEM_MAP_LOCK")
-  @Nullable private List<MultiResourceRepository> myParents;
+  @Nullable private List<MultiResourceRepository<T>> myParents;
 
   private volatile long myGeneration;
 
   private final Object RESOURCE_DIRS_LOCK = new Object();
-  @Nullable private Set<VirtualFile> myResourceDirs;
+  @Nullable private Set<T> myResourceDirs;
 
   protected LocalResourceRepository(@NotNull String displayName) {
     super();
@@ -150,7 +151,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     return myDisplayName;
   }
 
-  public void addParent(@NotNull MultiResourceRepository parent) {
+  public void addParent(@NotNull MultiResourceRepository<T> parent) {
     synchronized (ITEM_MAP_LOCK) {
       if (myParents == null) {
         myParents = new ArrayList<>(2); // Don't expect many parents
@@ -159,7 +160,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
   }
 
-  public void removeParent(@NotNull MultiResourceRepository parent) {
+  public void removeParent(@NotNull MultiResourceRepository<T> parent) {
     synchronized (ITEM_MAP_LOCK) {
       if (myParents != null) {
         myParents.remove(parent);
@@ -170,7 +171,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   @GuardedBy("ITEM_MAP_LOCK")
   protected void invalidateParentCaches() {
     if (myParents != null) {
-      for (MultiResourceRepository parent : myParents) {
+      for (MultiResourceRepository<T> parent : myParents) {
         parent.invalidateCache();
       }
     }
@@ -179,7 +180,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   @GuardedBy("ITEM_MAP_LOCK")
   protected void invalidateParentCaches(@NotNull SingleNamespaceResourceRepository repository, @NotNull ResourceType... types) {
     if (myParents != null) {
-      for (MultiResourceRepository parent : myParents) {
+      for (MultiResourceRepository<T> parent : myParents) {
         parent.invalidateCache(repository, types);
       }
     }
@@ -221,7 +222,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   @NotNull
-  public final Set<VirtualFile> getResourceDirs() {
+  public final Set<T> getResourceDirs() {
     synchronized (RESOURCE_DIRS_LOCK) {
       if (myResourceDirs != null) {
         return myResourceDirs;
@@ -231,7 +232,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
   }
 
-  @NotNull protected abstract Set<VirtualFile> computeResourceDirs();
+  @NotNull protected abstract Set<T> computeResourceDirs();
 
   public final void invalidateResourceDirs() {
     synchronized (RESOURCE_DIRS_LOCK) {
@@ -239,7 +240,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
     synchronized (ITEM_MAP_LOCK) {
       if (myParents != null) {
-        for (LocalResourceRepository parent : myParents) {
+        for (LocalResourceRepository<T> parent : myParents) {
           parent.invalidateResourceDirs();
         }
       }
@@ -272,7 +273,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     return 0;
   }
 
-  public static final class EmptyRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
+  public static final class EmptyRepository<T> extends LocalResourceRepository<T> implements SingleNamespaceResourceRepository {
     @NotNull private final ResourceNamespace myNamespace;
 
     public EmptyRepository(@NotNull ResourceNamespace namespace) {
@@ -282,7 +283,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
     @Override
     @NotNull
-    protected Set<VirtualFile> computeResourceDirs() {
+    protected Set<T> computeResourceDirs() {
       return Collections.emptySet();
     }
 

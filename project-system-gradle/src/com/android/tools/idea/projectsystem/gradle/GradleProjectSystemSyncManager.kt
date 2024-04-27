@@ -37,7 +37,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     val syncResult = SettableFuture.create<SyncResult>()
 
     // Listen for the next sync result.
-    val connection = project.messageBus.connect().apply {
+    val connection = project.messageBus.connect(project).apply {
       subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
         override fun syncEnded(result: SyncResult) {
           disconnect()

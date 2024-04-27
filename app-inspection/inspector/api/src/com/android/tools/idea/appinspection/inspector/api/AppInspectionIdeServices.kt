@@ -57,6 +57,7 @@ interface AppInspectionIdeServices {
   private constructor(val fileName: String?, val fqcn: String?, val lineNumber: Int?) {
     companion object {
       fun forClass(fqcn: String) = CodeLocation(null, fqcn, null)
+
       fun forFile(fileName: String, lineNumber: Int? = null) =
         CodeLocation(fileName, null, lineNumber)
     }

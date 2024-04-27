@@ -19,8 +19,6 @@ import static com.intellij.openapi.application.ApplicationManager.getApplication
 
 import com.android.SdkConstants;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -60,7 +58,6 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -92,11 +89,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -372,14 +367,6 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   @NotNull
-  public static List<AndroidFacet> getApplicationFacets(@NotNull Project project) {
-    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).stream()
-      .filter(facet -> facet.getConfiguration().isAppProject())
-      .sorted(Comparator.comparing(facet -> facet.getModule().getName()))
-      .collect(Collectors.toList());
-  }
-
-  @NotNull
   public static List<AndroidFacet> getAndroidLibraryDependencies(@NotNull Module module) {
     List<AndroidFacet> depFacets = new ArrayList<>();
 
@@ -639,7 +626,7 @@ public class AndroidUtils extends CommonAndroidUtil {
       if (sdkHomeCanonicalPath != null) {
         url = StringUtil.replace(url, AndroidFacetProperties.SDK_HOME_MACRO, sdkHomeCanonicalPath);
       }
-      result.add(FileUtilRt.toSystemDependentName(VfsUtilCore.urlToPath(url)));
+      result.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(url)));
     }
     return result;
   }
@@ -658,14 +645,11 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   /**
-   * Checks if the project contains a module with an Android, an Apk or a Gradle facet.
-   * See also {@link com.android.tools.idea.FacetUtils#hasAndroidOrApkFacet}.
+   * Checks if the project contains a module with an Android facet.
    */
   public static boolean hasAndroidFacets(@NotNull Project project) {
     ProjectFacetManager facetManager = ProjectFacetManager.getInstance(project);
-    return facetManager.hasFacets(AndroidFacet.ID) ||
-           facetManager.hasFacets(ApkFacet.ID) ||
-           facetManager.hasFacets(GradleFacet.getFacetTypeId());
+    return facetManager.hasFacets(AndroidFacet.ID);
   }
 
   /**

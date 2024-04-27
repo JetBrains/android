@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.memorysettings;
 
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,8 +38,10 @@ import com.intellij.xml.util.XmlStringUtil;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Optional;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JList;
@@ -45,7 +49,6 @@ import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.internal.daemon.DaemonsUi;
 
 /**
  * A class to provide a memory settings configurable dialog.
@@ -81,7 +84,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
   @Override
   public boolean isModified() {
-    return myComponent.isMemorySettingsModified();
+    return myComponent.isModified();
   }
 
   @Override
@@ -102,7 +105,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     myComponent = null;
   }
 
-  private static class MyComponent {
+  static class MyComponent {
     private static final int MIN_IDE_XMX = 1024;
     private static final int DEFAULT_IDE_XMX = 2048;
     private static final int SIZE_INCREMENT = 1024;
@@ -110,35 +113,31 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
     private JPanel myPanel;
     private ComboBox<Integer> myIdeXmxBox;
-    private ComboBox<Integer> myGradleDaemonXmxBox;
     private JBLabel myInfoLabel;
     private HyperlinkLabel myApplyRecommendationLabel;
-    private JPanel myDaemonPanel;
-    private ComboBox myKotlinDaemonXmxBox;
-    private JBLabel myDaemonInfoLabel;
-    private HyperlinkLabel myShowDaemonsLabel;
+    private JPanel myBuildSystemPanel;
+
+    private BuildSystemComponent myBuildSystemComponent;
     private JBLabel myIdeBottomLabel;
     private JBLabel myIdeInfoLabel;
     private Project myProject;
     private int myCurrentIdeXmx;
-    private int myRecommendedIdeXmx;
-    private int myCurrentGradleXmx;
-    private int myCurrentKotlinXmx;
+    private final int myRecommendedIdeXmx;
     private int mySelectedIdeXmx;
-    private int mySelectedGradleXmx;
-    private int mySelectedKotlinXmx;
-    private DaemonMemorySettings myDaemonMemorySettings;
 
     MyComponent() {
       // Set the memory settings panel
       myCurrentIdeXmx = MemorySettingsUtil.getCurrentXmx();
       mySelectedIdeXmx = myCurrentIdeXmx;
-      myProject = MemorySettingsUtil.getCurrentProject();
       myRecommendedIdeXmx = MemorySettingsRecommendation.getRecommended(myProject, myCurrentIdeXmx);
 
       setUI();
+      BuildSystemComponent.BuildSystemXmxs currentXmxs = new BuildSystemComponent.BuildSystemXmxs();
+      if (myBuildSystemComponent != null) {
+        myBuildSystemComponent.fillCurrent(currentXmxs);
+      }
       MemorySettingsUtil.log(MemorySettingsEvent.EventKind.SHOW_CONFIG_DIALOG,
-                             myCurrentIdeXmx, myCurrentGradleXmx, myCurrentKotlinXmx,
+                             myCurrentIdeXmx, currentXmxs.gradleXmx, currentXmxs.kotlinXmx,
                              myRecommendedIdeXmx, -1, -1,
                              -1, -1, -1);
     }
@@ -160,8 +159,12 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
           protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
             myIdeXmxBox.setSelectedItem(myRecommendedIdeXmx);
             mySelectedIdeXmx = myRecommendedIdeXmx;
+            BuildSystemComponent.BuildSystemXmxs currentXmxs = new BuildSystemComponent.BuildSystemXmxs();
+            if (myBuildSystemComponent != null) {
+              myBuildSystemComponent.fillCurrent(currentXmxs);
+            }
             MemorySettingsUtil.log(MemorySettingsEvent.EventKind.APPLY_RECOMMENDATION_BUTTON_CLICKED,
-                                   myCurrentIdeXmx, myCurrentGradleXmx, myCurrentKotlinXmx,
+                                   myCurrentIdeXmx, currentXmxs.gradleXmx, currentXmxs.kotlinXmx,
                                    myRecommendedIdeXmx, -1, -1,
                                    myRecommendedIdeXmx, -1, -1);
           }
@@ -175,93 +178,26 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       int machineMem = MemorySettingsUtil.getMachineMem();
       int maxXmx = getMaxXmxInMB(machineMem);
       setXmxBox(myIdeXmxBox, myCurrentIdeXmx, myRecommendedIdeXmx, DEFAULT_IDE_XMX, maxXmx, SIZE_INCREMENT,
-                new ItemListener() {
-                  @Override
-                  public void itemStateChanged(ItemEvent event) {
-                    if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
-                      mySelectedIdeXmx = (int)event.getItem();
-                    }
+                event -> {
+                  if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
+                    mySelectedIdeXmx = (int)event.getItem();
                   }
                 });
-
-      if (myProject != null) {
-        myDaemonMemorySettings = new DaemonMemorySettings(myProject);
-        myCurrentGradleXmx = myDaemonMemorySettings.getProjectGradleDaemonXmx();
-        mySelectedGradleXmx = myCurrentGradleXmx;
-        myCurrentKotlinXmx = myDaemonMemorySettings.getProjectKotlinDaemonXmx();
-        mySelectedKotlinXmx = myCurrentKotlinXmx;
-
-        if (myDaemonMemorySettings.hasUserPropertiesPath()) {
-          setXmxBoxWithOnlyCurrentValue(myGradleDaemonXmxBox, myCurrentGradleXmx);
-          setXmxBoxWithOnlyCurrentValue(myKotlinDaemonXmxBox, myCurrentKotlinXmx);
-          myDaemonInfoLabel
-            .setText(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.has.user.properties",
-                                                                    myDaemonMemorySettings.getUserPropertiesPath())));
-          myShowDaemonsLabel.setVisible(false);
-        }
-        else {
-          setDaemonPanelWhenNoUserGradleProperties();
-        }
+      if (myBuildSystemComponent != null) {
+        myBuildSystemComponent.setUI();
       }
       else {
-        myDaemonPanel.setVisible(false);
-        myDaemonInfoLabel.setVisible(false);
-        myShowDaemonsLabel.setVisible(false);
+        myBuildSystemPanel.setVisible(false);
       }
     }
 
-    private void setDaemonPanelWhenNoUserGradleProperties() {
-      setXmxBox(myGradleDaemonXmxBox, myCurrentGradleXmx, -1,
-                myDaemonMemorySettings.getDefaultGradleDaemonXmx(),
-                DaemonMemorySettings.MAX_GRADLE_DAEMON_XMX_IN_MB,
-                SIZE_INCREMENT / 2,
-                new ItemListener() {
-                  @Override
-                  public void itemStateChanged(ItemEvent event) {
-                    if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
-                      mySelectedGradleXmx = (int)event.getItem();
-                    }
-                  }
-                });
 
-      setXmxBox(myKotlinDaemonXmxBox, myCurrentKotlinXmx, -1,
-                myDaemonMemorySettings.getDefaultKotlinDaemonXmx(),
-                DaemonMemorySettings.MAX_KOTLIN_DAEMON_XMX_IN_MB,
-                SIZE_INCREMENT / 2,
-                new ItemListener() {
-                  @Override
-                  public void itemStateChanged(ItemEvent event) {
-                    if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
-                      mySelectedKotlinXmx = (int)event.getItem();
-                    }
-                  }
-                });
-
-      myDaemonInfoLabel.setText(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.panel.daemon.info")));
-      myShowDaemonsLabel.setHyperlinkText(AndroidBundle.message("memory.settings.panel.show.daemons.info"));
-      myShowDaemonsLabel.addHyperlinkListener(
-        new HyperlinkAdapter() {
-          DaemonsUi myUi;
-
-          @Override
-          protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
-            myUi = new DaemonsUi(myProject) {
-              @Override
-              public void dispose() {
-                myUi = null;
-              }
-            };
-            myUi.show();
-          }
-        });
-    }
-
-    private void setXmxBoxWithOnlyCurrentValue(JComboBox box, int current) {
+    public static void setXmxBoxWithOnlyCurrentValue(JComboBox<Integer> box, int current) {
       box.setEditable(false);
       box.removeAllItems();
       box.addItem(current);
       box.setSelectedItem(current);
-      box.setRenderer(new ColoredListCellRenderer<Integer>() {
+      box.setRenderer(new ColoredListCellRenderer<>() {
         @Override
         protected void customizeCellRenderer(@NotNull JList<? extends Integer> list,
                                              Integer value,
@@ -274,12 +210,12 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       });
     }
 
-    private void setXmxBox(JComboBox box, int current, int recommended,
+    public static void setXmxBox(JComboBox<Integer> box, int current, int recommended,
                            int defaultSize, int max, int increment, ItemListener listener) {
       box.setEditable(false);
       box.removeAllItems();
 
-      ArrayList<Integer> items = new ArrayList();
+      ArrayList<Integer> items = new ArrayList<>();
 
       items.add(current);
       if (recommended > 0 && recommended != current) {
@@ -303,22 +239,22 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       box.setSelectedItem(current);
       box.addItemListener(listener);
 
-      box.setRenderer(new ColoredListCellRenderer<Integer>() {
+      box.setRenderer(new ColoredListCellRenderer<>() {
         @Override
         protected void customizeCellRenderer(@NotNull JList<? extends Integer> list,
                                              Integer value,
                                              int index,
                                              boolean selected,
                                              boolean hasFocus) {
-          if (value.equals(Integer.valueOf(current))) {
+          if (value.equals(current)) {
             append(String.format(Locale.US, "%s - current", memSizeText(current)),
                    SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
           }
-          else if (value.equals(Integer.valueOf(defaultSize))) {
+          else if (value.equals(defaultSize)) {
             append(String.format(Locale.US, "%s - default", memSizeText(defaultSize)),
                    SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
           }
-          else if (value.equals(Integer.valueOf(recommended))) {
+          else if (value.equals(recommended)) {
             append(String.format(Locale.US, "%s - recommended", memSizeText(recommended)),
                    new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, null));
           }
@@ -329,50 +265,37 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       });
     }
 
-    private boolean isMemorySettingsModified() {
-      return isIdeXmxModified() || isGradleDaemonXmxModified() || isKotlinDaemonXmxModified();
+    private boolean isModified() {
+      return isIdeXmxModified() || (myBuildSystemComponent == null ? false : myBuildSystemComponent.isModified());
     }
 
     private boolean isIdeXmxModified() {
       return mySelectedIdeXmx != myCurrentIdeXmx;
     }
 
-    private boolean isGradleDaemonXmxModified() {
-      return mySelectedGradleXmx != myCurrentGradleXmx;
-    }
-
-    private boolean isKotlinDaemonXmxModified() {
-      return mySelectedKotlinXmx != myCurrentKotlinXmx;
-    }
-
     private void reset() {
       myIdeXmxBox.setSelectedItem(myCurrentIdeXmx);
       mySelectedIdeXmx = myCurrentIdeXmx;
-      myGradleDaemonXmxBox.setSelectedItem(myCurrentGradleXmx);
-      mySelectedGradleXmx = myCurrentGradleXmx;
-      myKotlinDaemonXmxBox.setSelectedItem(myCurrentKotlinXmx);
-      mySelectedKotlinXmx = myCurrentKotlinXmx;
+      if (myBuildSystemComponent != null) {
+        myBuildSystemComponent.reset();
+      }
     }
 
     private void apply() {
+      BuildSystemComponent.BuildSystemXmxs currentXmxs = new BuildSystemComponent.BuildSystemXmxs();
+      BuildSystemComponent.BuildSystemXmxs selectedXmxs = new BuildSystemComponent.BuildSystemXmxs();
+      if (myBuildSystemComponent != null) {
+        myBuildSystemComponent.fillCurrent(currentXmxs);
+        myBuildSystemComponent.fillChanged(selectedXmxs);
+      }
       MemorySettingsUtil.log(MemorySettingsEvent.EventKind.SETTINGS_CHANGE_SAVED,
-                             myCurrentIdeXmx, myCurrentGradleXmx, myCurrentKotlinXmx,
+                             myCurrentIdeXmx, currentXmxs.gradleXmx, currentXmxs.kotlinXmx,
                              myRecommendedIdeXmx, -1, -1,
-                             mySelectedIdeXmx, mySelectedGradleXmx, mySelectedKotlinXmx);
+                             mySelectedIdeXmx, selectedXmxs.gradleXmx, selectedXmxs.kotlinXmx);
 
-      boolean changed = false;
-
-      boolean isGradleXmxModified = isGradleDaemonXmxModified();
-      boolean isKotlinXmxModified = isKotlinDaemonXmxModified();
-      if (isGradleXmxModified || isKotlinXmxModified) {
-          if (isGradleXmxModified) {
-            myCurrentGradleXmx = mySelectedGradleXmx;
-          }
-          if (isKotlinXmxModified) {
-            myCurrentKotlinXmx = mySelectedKotlinXmx;
-          }
-          myDaemonMemorySettings.saveProjectDaemonXmx(myCurrentGradleXmx, myCurrentKotlinXmx);
-          changed = true;
+      boolean needsUpdate = isModified();
+      if (myBuildSystemComponent != null && myBuildSystemComponent.isModified()) {
+        myBuildSystemComponent.apply();
       }
 
       if (isIdeXmxModified()) {
@@ -388,11 +311,34 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
           ((ApplicationEx)ApplicationManager.getApplication()).restart(true);
         }
-        changed = true;
       }
-      if (changed) {
+      if (needsUpdate) {
         // repaint
         setUI();
+      }
+    }
+
+    private void createUIComponents() {
+      myProject = MemorySettingsUtil.getCurrentProject();
+      if (myProject == null) {
+        myBuildSystemPanel = new JPanel();
+        return;
+      }
+      AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(myProject);
+      Optional<MemorySettingsToken<AndroidProjectSystem>> maybeToken =
+        Arrays.stream(MemorySettingsToken.EP_NAME.getExtensions(myProject)).filter((it) -> it.isApplicable(projectSystem))
+          .findFirst();
+      if (maybeToken.isPresent()) {
+        myBuildSystemComponent = maybeToken.get().createBuildSystemComponent(projectSystem);
+        if (myBuildSystemComponent != null) {
+          myBuildSystemPanel = myBuildSystemComponent.getPanel();
+        }
+        else {
+          myBuildSystemPanel = new JPanel();
+        }
+      }
+      else {
+        myBuildSystemPanel = new JPanel();
       }
     }
 

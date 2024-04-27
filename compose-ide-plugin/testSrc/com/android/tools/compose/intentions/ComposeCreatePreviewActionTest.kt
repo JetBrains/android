@@ -20,14 +20,12 @@ import com.android.tools.compose.COMPOSE_UI_TOOLING_PREVIEW_PACKAGE
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
 
-/**
- * Test for [ComposeCreatePreviewAction]
- */
-class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
+/** Test for [ComposeCreatePreviewAction] */
+class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
   override fun setUp() {
     super.setUp()
     myFixture.stubComposableAnnotation()
@@ -49,17 +47,22 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val action = myFixture.availableIntentions.find { it.text == "Create Preview" }
     assertThat(action).isNotNull()
 
-    WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
-      // Within unit tests ListPopupImpl.showInBestPositionFor doesn't open popup and acts like fist item was selected.
-      // In our case wrap in Container will be selected.
-      action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
-    })
+    WriteCommandAction.runWriteCommandAction(
+      myFixture.project,
+      Runnable {
+        // Within unit tests ListPopupImpl.showInBestPositionFor doesn't open popup and acts like
+        // fist item was selected.
+        // In our case wrap in Container will be selected.
+        action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
+      }
+    )
 
     myFixture.checkResult(
       // language=kotlin
@@ -76,7 +79,8 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
   }
 
@@ -97,17 +101,22 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
       }
 
       </selection>
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     var action = myFixture.availableIntentions.find { it.text == "Create Preview" }
     assertThat(action).isNotNull()
 
-    WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
-      // Within unit tests ListPopupImpl.showInBestPositionFor doesn't open popup and acts like fist item was selected.
-      // In our case wrap in Container will be selected.
-      action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
-    })
+    WriteCommandAction.runWriteCommandAction(
+      myFixture.project,
+      Runnable {
+        // Within unit tests ListPopupImpl.showInBestPositionFor doesn't open popup and acts like
+        // fist item was selected.
+        // In our case wrap in Container will be selected.
+        action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
+      }
+    )
 
     myFixture.checkResult(
       // language=kotlin
@@ -126,9 +135,9 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
       }
 
 
-    """.trimIndent()
+    """
+        .trimIndent()
     )
-
 
     myFixture.loadNewFile(
       "src/com/example/Test2.kt",
@@ -148,17 +157,22 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
       }
 
       </selection>
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     action = myFixture.availableIntentions.find { it.text == "Create Preview" }
     assertThat(action).isNotNull()
 
-    WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
-      // Within unit tests ListPopupImpl.showInBestPositionFor doesn't open popup and acts like fist item was selected.
-      // In our case wrap in Container will be selected.
-      action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
-    })
+    WriteCommandAction.runWriteCommandAction(
+      myFixture.project,
+      Runnable {
+        // Within unit tests ListPopupImpl.showInBestPositionFor doesn't open popup and acts like
+        // fist item was selected.
+        // In our case wrap in Container will be selected.
+        action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
+      }
+    )
 
     myFixture.checkResult(
       // language=kotlin
@@ -178,7 +192,8 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
       }
 
 
-    """.trimIndent()
+    """
+        .trimIndent()
     )
   }
 }

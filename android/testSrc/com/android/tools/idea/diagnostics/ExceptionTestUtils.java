@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.diagnostics;
 
-import static org.junit.Assert.assertTrue;
-
 import com.google.common.base.Splitter;
+import java.util.ArrayList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Assert;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Assert;
+
+import static org.junit.Assert.assertTrue;
 
 public class ExceptionTestUtils {
   /**

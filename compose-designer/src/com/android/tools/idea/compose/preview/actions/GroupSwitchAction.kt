@@ -17,8 +17,8 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.compose.preview.PreviewGroup
-import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.findComposePreviewManagerForContext
+import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -39,7 +39,7 @@ internal class GroupSwitchAction :
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       if (state) {
-        findComposePreviewManagersForContext(e.dataContext).forEach { it.groupFilter = group }
+        findComposePreviewManagerForContext(e.dataContext)?.groupFilter = group
       }
     }
   }
@@ -50,25 +50,24 @@ internal class GroupSwitchAction :
     super.update(e)
 
     val presentation = e.presentation
-    val previewManagers = findComposePreviewManagersForContext(e.dataContext)
-    val availableGroups = previewManagers.flatMap { it.availableGroupsFlow.value }.toSet()
-    presentation.isVisible =
-      availableGroups.isNotEmpty() && previewManagers.none { it.isFilterEnabled }
+    val previewManager = findComposePreviewManagerForContext(e.dataContext)
+    val availableGroups = previewManager?.availableGroupsFlow?.value?.toSet() ?: emptySet()
+    presentation.isVisible = availableGroups.isNotEmpty() && previewManager?.isFilterEnabled != true
 
     presentation.isEnabled =
-      availableGroups.isNotEmpty() && !previewManagers.any { it.status().isRefreshing }
+      availableGroups.isNotEmpty() && previewManager?.status()?.isRefreshing != true
     if (presentation.isVisible) {
-      presentation.text = previewManagers.map { it.groupFilter.displayName }.firstOrNull()
+      presentation.text = previewManager?.groupFilter?.displayName
     }
   }
 
   override fun updateActions(context: DataContext): Boolean {
     removeAll()
-    val previewManagers = findComposePreviewManagersForContext(context)
-    val availableGroups = previewManagers.flatMap { it.availableGroupsFlow.value }.toSet()
+    val previewManager = findComposePreviewManagerForContext(context)
+    val availableGroups = previewManager?.availableGroupsFlow?.value?.toSet() ?: emptySet()
     if (availableGroups.isEmpty()) return true
 
-    val selectedGroup = previewManagers.map { it.groupFilter }.firstOrNull() ?: PreviewGroup.All
+    val selectedGroup = previewManager?.groupFilter ?: PreviewGroup.All
     addGroups(availableGroups, selectedGroup)
     return true
   }

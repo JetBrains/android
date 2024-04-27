@@ -17,7 +17,7 @@
 package trebuchet.collections
 
 @Suppress("UNCHECKED_CAST", "unused")
-class SparseArray<E>(initialCapacity: Int = 10) {
+class SparseArray<E> constructor(initialCapacity: Int = 10) {
     private var mGarbage = false
 
     private var mKeys: IntArray

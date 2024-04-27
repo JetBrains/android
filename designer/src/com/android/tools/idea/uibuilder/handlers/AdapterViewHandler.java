@@ -17,21 +17,19 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.common.api.DragType;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Placeholder;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.ScrollHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
-import com.android.tools.idea.uibuilder.graphics.NlGraphics;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
 import java.util.Collections;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /** Handler for subclasses of the {@code AdapterView} ViewGroup. */
 public class AdapterViewHandler extends ViewGroupHandler {
@@ -41,23 +39,7 @@ public class AdapterViewHandler extends ViewGroupHandler {
                                        @NotNull SceneComponent layout,
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
-    return new DragHandler(editor, this, layout, components, type) {
-      @Nullable
-      @Override
-      public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers, @NotNull SceneContext sceneContext) {
-        super.update(x, y, modifiers, sceneContext);
-
-        return String.format(
-          "%1$s cannot be configured via XML; add content to the AdapterView using Java code",
-          layout.getNlComponent().getTagName());
-      }
-
-      @Override
-      public void paint(@NotNull NlGraphics graphics) {
-        graphics.useStyle(NlDrawingStyle.INVALID);
-        graphics.drawRectDp(layout.getDrawX(), layout.getDrawY(), layout.getDrawWidth(), layout.getDrawHeight());
-      }
-    };
+    return new CommonDragHandler(editor, this, layout, components, type);
   }
 
   @Override

@@ -16,11 +16,12 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.google.common.collect.ImmutableMap;
-import java.awt.Dimension;
-import java.awt.image.BufferedImage;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.Map;
 
 public class BitmapDecoder {
   enum PixelFormat {

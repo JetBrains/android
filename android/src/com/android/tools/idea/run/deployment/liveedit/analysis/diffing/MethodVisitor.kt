@@ -16,8 +16,8 @@
 package com.android.tools.idea.run.deployment.liveedit.analysis.diffing
 
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAccessFlag
-import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAnnotation
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrInstructionList
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAnnotation
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLocalVariable
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrParameter
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrTryCatchBlock

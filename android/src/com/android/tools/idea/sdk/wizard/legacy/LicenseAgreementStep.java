@@ -22,11 +22,13 @@ import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.AndroidSdkLicenseTemporaryData;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.Splitter;
@@ -39,8 +41,6 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,10 +70,10 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   private final JRadioButton myAcceptRadioButton;
 
   private DefaultTreeModel myTreeModel = new DefaultTreeModel(null);
-  private final Map<String, Boolean> myAcceptances = new HashMap<>();
-  private final Set<String> myVisibleLicenses = new HashSet<>();
+  private final Map<String, Boolean> myAcceptances = Maps.newHashMap();
+  private final Set<String> myVisibleLicenses = Sets.newHashSet();
   private String myCurrentLicense;
-  private final Set<License> myLicenses = new HashSet<>();
+  private final Set<License> myLicenses = Sets.newHashSet();
   private final Supplier<List<String>> myInstallRequestsProvider;
   private final Supplier<AndroidSdkHandler> mySdkHandlerSupplier;
 
@@ -275,7 +275,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   }
 
   private void setChanges(List<Change> changes) {
-    Map<String, DefaultMutableTreeNode> licenseNodeMap = new HashMap<>();
+    Map<String, DefaultMutableTreeNode> licenseNodeMap = Maps.newHashMap();
     myVisibleLicenses.clear();
 
     DefaultMutableTreeNode root = new DefaultMutableTreeNode();

@@ -15,31 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_ADDITIONAL_PADDING_END_FOR_ICON;
-import static com.android.SdkConstants.ATTR_ADDITIONAL_PADDING_START_FOR_ICON;
-import static com.android.SdkConstants.ATTR_BACKGROUND;
-import static com.android.SdkConstants.ATTR_BACKGROUND_TINT;
-import static com.android.SdkConstants.ATTR_BACKGROUND_TINT_MODE;
-import static com.android.SdkConstants.ATTR_CORNER_RADIUS;
-import static com.android.SdkConstants.ATTR_ELEVATION;
-import static com.android.SdkConstants.ATTR_ICON;
-import static com.android.SdkConstants.ATTR_ICON_PADDING;
-import static com.android.SdkConstants.ATTR_ICON_TINT;
-import static com.android.SdkConstants.ATTR_ICON_TINT_MODE;
-import static com.android.SdkConstants.ATTR_INSET_BOTTOM;
-import static com.android.SdkConstants.ATTR_INSET_LEFT;
-import static com.android.SdkConstants.ATTR_INSET_RIGHT;
-import static com.android.SdkConstants.ATTR_INSET_TOP;
-import static com.android.SdkConstants.ATTR_ON_CLICK;
-import static com.android.SdkConstants.ATTR_RIPPLE_COLOR;
-import static com.android.SdkConstants.ATTR_STATE_LIST_ANIMATOR;
-import static com.android.SdkConstants.ATTR_STROKE_COLOR;
-import static com.android.SdkConstants.ATTR_STROKE_WIDTH;
-import static com.android.SdkConstants.ATTR_STYLE;
-
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 public class ButtonHandler extends TextViewHandler {
   @Override

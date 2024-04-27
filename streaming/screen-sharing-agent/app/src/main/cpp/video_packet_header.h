@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <inttypes.h>
-
 #include <cstdint>
 #include <string>
 
@@ -25,18 +23,27 @@ namespace screensharing {
 
 // The header of a video packet.
 struct VideoPacketHeader {
+  int32_t display_id;
   int32_t display_width;
   int32_t display_height;
   uint8_t display_orientation; // In quadrants.
   // The difference between display_orientation and the orientation according to the DisplayInfo Android data structure.
   uint8_t display_orientation_correction; // In quadrants.
-  int16_t display_round; // 1 if the display is round, 0 otherwise.
-  int32_t packet_size;
-  int64_t frame_number;  // Starts from 1.
+  int16_t flags; // A combination of FLAG_* values.
+  int32_t bit_rate;
+  uint32_t frame_number;  // Starts from 1.
   int64_t origination_timestamp_us;
   int64_t presentation_timestamp_us;  // Zero means a config packet.
+  int32_t packet_size;
 
   std::string ToDebugString() const;
+
+  // Device display is round.
+  static constexpr int FLAG_DISPLAY_ROUND = 0x01;
+  // Bit rate reduced compared to the previous frame or, for the very first flame, to the initial value.
+  static constexpr int FLAG_BIT_RATE_REDUCED = 0x02;
+
+  static size_t SIZE;  // Similar to sizeof(VideoPacketHeader) but without the trailing alignment.
 };
 
 }  // namespace screensharing

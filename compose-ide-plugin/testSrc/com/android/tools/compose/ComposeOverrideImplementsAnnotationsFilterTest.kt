@@ -21,17 +21,20 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
 import com.intellij.openapi.command.WriteCommandAction
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
-/** Tests both [ComposeOverrideImplementsAnnotationsFilter] and that it's defined correctly in extension XML. */
+/**
+ * Tests both [ComposeOverrideImplementsAnnotationsFilter] and that it's defined correctly in
+ * extension XML.
+ */
 @RunWith(JUnit4::class)
 class ComposeOverrideImplementsAnnotationsFilterTest {
-  @get:Rule
-  var projectRule = AndroidProjectRule.inMemory()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory()
 
   @Before
   fun setup() {
@@ -42,10 +45,11 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
   @Test
   fun composableAnnotationRetainedOnFunction() {
     val fixture = projectRule.fixture
-    val file = fixture.loadNewFile(
-      "src/com/example/Foo.kt",
-      // language=kotlin
-      """
+    val file =
+      fixture.loadNewFile(
+        "src/com/example/Foo.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -57,10 +61,13 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
 
       class Impleme<caret>ntation : Interface {
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
-    val intention = fixture.availableIntentions.singleOrNull { it.familyName == "Implement members" } ?: error("Intention not found")
+    val intention =
+      fixture.availableIntentions.singleOrNull { it.familyName == "Implement members" }
+        ?: error("Intention not found")
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       intention.invoke(fixture.project, fixture.editor, file)
     }
@@ -83,7 +90,8 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
               TODO("Not yet implemented")
           }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -91,10 +99,11 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
   fun composableAnnotationRetainedOnArgument() {
 
     val fixture = projectRule.fixture
-    val file = fixture.loadNewFile(
-      "src/com/example/Foo.kt",
-      // language=kotlin
-      """
+    val file =
+      fixture.loadNewFile(
+        "src/com/example/Foo.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -105,14 +114,18 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
 
       class Impleme<caret>ntation : Interface {
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
-    val intention = fixture.availableIntentions.singleOrNull { it.familyName == "Implement members" } ?: error("Intention not found")
+    val intention =
+      fixture.availableIntentions.singleOrNull { it.familyName == "Implement members" }
+        ?: error("Intention not found")
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       intention.invoke(fixture.project, fixture.editor, file)
     }
 
+    val argumentType = if (KotlinPluginModeProvider.isK2Mode()) "@Composable (() -> Unit)" else "@Composable () -> Unit"
     fixture.checkResult(
       // language=kotlin
       """
@@ -125,11 +138,12 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
       }
 
       class Implementation : Interface {
-          override fun Function(argument: @Composable () -> Unit) {
+          override fun Function(argument: $argumentType) {
               TODO("Not yet implemented")
           }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 }

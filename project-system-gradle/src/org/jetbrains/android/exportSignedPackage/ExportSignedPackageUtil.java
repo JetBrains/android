@@ -23,7 +23,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
@@ -103,7 +103,7 @@ public class ExportSignedPackageUtil {
         final FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
         final VirtualFile file = FileChooser.chooseFile(descriptor, form.getPanel(), project, defaultFile);
         if (file != null) {
-          form.getKeyStorePathField().setText(FileUtilRt.toSystemDependentName(file.getPath()));
+          form.getKeyStorePathField().setText(FileUtil.toSystemDependentName(file.getPath()));
         }
         form.keyStoreSelected();
       }

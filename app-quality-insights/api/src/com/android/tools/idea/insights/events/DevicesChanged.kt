@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.Device
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
@@ -26,7 +27,8 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 data class DevicesChanged(val devices: Set<Device>) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
     val newState = state.selectDevices(devices)
     if (newState == state) {
@@ -35,6 +37,8 @@ data class DevicesChanged(val devices: Set<Device>) : ChangeEvent {
     return StateTransition(
       newState.copy(
         issues = LoadingState.Loading,
+        currentIssueVariants = LoadingState.Ready(null),
+        currentEvents = LoadingState.Ready(null),
         currentIssueDetails = LoadingState.Ready(null),
         currentNotes = LoadingState.Ready(null)
       ),

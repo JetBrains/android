@@ -19,7 +19,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.FakeJBPopupFactory
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceView
@@ -30,7 +30,6 @@ import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
-import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Correspondence
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
@@ -40,6 +39,7 @@ import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.replaceService
@@ -73,7 +73,6 @@ class StreamingHardwareInputActionTest {
 
   @Before
   fun setUp() {
-    StudioFlags.STREAMING_HARDWARE_INPUT_BUTTON.override(true, testRootDisposable)
     application.replaceService(JBPopupFactory::class.java, popupFactory, testRootDisposable)
     Registry.get("ide.tooltip.initialReshowDelay").setValue(0, testRootDisposable)
   }
@@ -151,9 +150,9 @@ class StreamingHardwareInputActionTest {
   }
 
   private fun createDeviceView(device: FakeDevice): DeviceView {
-    val client =
-        DeviceClient(testRootDisposable, device.serialNumber, device.handle, device.configuration, device.deviceState.cpuAbi, project)
-    return DeviceView(testRootDisposable, client, UNKNOWN_ORIENTATION, project)
+    val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
+    Disposer.register(testRootDisposable, deviceClient)
+    return DeviceView(testRootDisposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project)
   }
 
   private fun showPopup(presentation: Presentation): FakeJBPopup<Unit> {

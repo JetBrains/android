@@ -15,18 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.absolute;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_LAYOUT_X;
-import static com.android.SdkConstants.ATTR_LAYOUT_Y;
-import static com.android.SdkConstants.VALUE_N_DP;
-
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
 
 public class AbsoluteResizeTarget extends ResizeWithSnapBaseTarget {
 

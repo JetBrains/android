@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.targets;
 
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.TEXT_VIEW;
-
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.AdtUiUtils;
@@ -38,8 +34,11 @@ import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+
+import static com.android.SdkConstants.BUTTON;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
 
 public class MotionLayoutAnchorTargetTest extends SceneTest {
 
@@ -416,13 +415,13 @@ public class MotionLayoutAnchorTargetTest extends SceneTest {
     topEdge.setComponent(root);
     topEdge.addHit(myScreen.getScreen().getContext(), picker, InputEvent.BUTTON3_DOWN_MASK);
     picker.find(inner.getCenterX(), inner.getDrawY() - 200);
-    Mockito.verify(listener, Mockito.never()).over(ArgumentMatchers.eq(topEdge), ArgumentMatchers.anyDouble());
+    Mockito.verify(listener, Mockito.never()).over(Mockito.eq(topEdge), Mockito.anyDouble());
 
     MotionLayoutAnchorTarget leftEdge = new MotionLayoutAnchorTarget(AnchorTarget.Type.LEFT, true);
     leftEdge.setComponent(root);
     leftEdge.addHit(myScreen.getScreen().getContext(), picker, InputEvent.BUTTON3_DOWN_MASK);
     picker.find(inner.getDrawX() - 200, inner.getCenterY());
-    Mockito.verify(listener, Mockito.never()).over(ArgumentMatchers.eq(leftEdge), ArgumentMatchers.anyDouble());
+    Mockito.verify(listener, Mockito.never()).over(Mockito.eq(leftEdge), Mockito.anyDouble());
   }
 
   @Override

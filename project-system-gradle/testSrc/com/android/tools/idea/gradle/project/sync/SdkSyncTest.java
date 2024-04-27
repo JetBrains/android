@@ -17,14 +17,13 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
@@ -58,7 +57,7 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
     });
 
     createEmptyLocalPropertiesFile();
-    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, myProject);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
 
     assertProjectSdkSet();
   }
@@ -69,7 +68,7 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
     });
 
     assertNoLocalPropertiesExists();
-    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, myProject);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       assertProjectSdkSet();
@@ -88,7 +87,7 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
     myLocalProperties.setAndroidSdkPath(new File("randomPath"));
     myLocalProperties.save();
 
-    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, myProject);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
 
     assertProjectSdkSet();
   }
@@ -97,7 +96,7 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
     myLocalProperties.setAndroidSdkPath(myAndroidSdkPath);
     myLocalProperties.save();
 
-    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, myProject);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
 
     assertDefaultSdkSet();
   }
@@ -107,7 +106,7 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
     SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
       @Nullable
       @Override
-      File selectValidSdkPath(Project project) {
+      File selectValidSdkPath() {
         selectSdkDialogShown.set(true);
         return myAndroidSdkPath;
       }
@@ -133,7 +132,7 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
     SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
       @Nullable
       @Override
-      File selectValidSdkPath(Project project) {
+      File selectValidSdkPath() {
         selectSdkDialogShown.set(true);
         return myAndroidSdkPath;
       }
@@ -158,7 +157,7 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
     SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
       @Nullable
       @Override
-      File selectValidSdkPath(Project project) {
+      File selectValidSdkPath() {
         return null;
       }
     };

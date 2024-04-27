@@ -41,13 +41,13 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import java.io.File
 import java.util.UUID
 import java.util.function.Consumer
 import javax.swing.DefaultComboBoxModel
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 
 /** Control that provides controls for animations (play, pause, stop and frame-by-frame steps). */
 class AnimatedSelectorToolbar
@@ -205,6 +205,7 @@ private object EmptyModelUpdater : NlModel.NlModelUpdaterInterface {
     newRoot: XmlTag?,
     roots: MutableList<NlModel.TagSnapshotTreeNode>
   ) = Unit
+
   override fun updateFromViewInfo(model: NlModel, viewInfos: MutableList<ViewInfo>) = Unit
 }
 
@@ -283,8 +284,7 @@ class AnimatedSelectorModel(
       val animationTag =
         transition.subTags.firstOrNull {
           it.name == SdkConstants.TAG_ANIMATED_VECTOR || it.name == SdkConstants.TAG_ANIMATION_LIST
-        }
-          ?: continue
+        } ?: continue
       val transitionId = "$fromId to $toId"
       maps[transitionId] = animationTag
     }
@@ -302,8 +302,7 @@ class AnimatedSelectorModel(
     val psiXmlFile = file.toPsiFile(project) as XmlFile
     psiXmlFile.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
 
-    return NlModel.builder(facet, file, config)
-      .withParentDisposable(parentDisposable)
+    return NlModel.builder(parentDisposable, facet, file, config)
       .withComponentRegistrar(componentRegistrar)
       .withModelUpdater(EmptyModelUpdater)
       .withXmlProvider { _, _ -> psiXmlFile }

@@ -37,7 +37,10 @@ fun buildResourceId(packageId: Byte, typeId: Byte, entryId: Short): Int =
   (packageId.toInt() shl 24) or (typeId.toInt() shl 16) or (entryId.toInt() and 0xffff)
 
 /** Studio agnostic implementation of [ResourceIdManager]. */
-open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModule) : ResourceIdManager {
+open class ResourceIdManagerBase(
+  private val module: ResourceIdManagerModelModule,
+  private val searchFrameworkIds: Boolean = false,
+) : ResourceIdManager {
   private var generationCounter = 1L
 
   /**
@@ -48,6 +51,7 @@ open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModul
    * [compiledIds] assigned by real aapt in a normal-size project (although there is no mechanism to check that).
    */
   private class IdProvider(private val packageByte: Byte) {
+    @OptIn(ExperimentalStdlibApi::class)
     private val counters: ShortArray = ShortArray(ResourceType.entries.size) { 0xffff.toShort() }
 
     fun getNext(type: ResourceType): Int {
@@ -107,7 +111,13 @@ open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModul
     }
 
   @Synchronized
-  override fun findById(id: Int): ResourceReference? = compiledIds?.findById(id) ?: dynamicFromIdMap[id]
+  override fun findById(id: Int): ResourceReference? {
+    val ref = compiledIds?.findById(id) ?: dynamicFromIdMap[id]
+    if (ref == null && searchFrameworkIds) {
+      return frameworkIds.findById(id)
+    }
+    return ref
+  }
 
   /**
    * Returns the compiled id of the given resource, if known.
@@ -181,7 +191,7 @@ open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModul
       toIdMap[ResourceType.STYLE] = Object2IntOpenHashMap(794)
     }
 
-    val rClass = LayoutLibraryLoader.LayoutLibraryProvider.EP_NAME.computeSafeIfAny { provider -> provider.frameworkRClass }
+    val rClass = LayoutLibraryLoader.getLayoutLibraryProvider().map { provider -> provider.frameworkRClass }.orElse(null)
     if (rClass != null) {
       loadIdsFromResourceClass(rClass, into = frameworkIds, lookForAttrsInStyleables = true)
     }
@@ -293,7 +303,7 @@ open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModul
   /**
    * Keeps a bidirectional mapping between type+name and a numeric id, for a known namespace.
    */
-  private class SingleNamespaceIdMapping(val namespace: ResourceNamespace) {
+  protected class SingleNamespaceIdMapping(private val namespace: ResourceNamespace) {
     var toIdMap = EnumMap<ResourceType, Object2IntOpenHashMap<String>>(ResourceType::class.java)
     var fromIdMap = Int2ObjectOpenHashMap<Pair<ResourceType, String>>()
 

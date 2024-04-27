@@ -38,8 +38,8 @@ import org.junit.rules.RuleChain
  * This class compiles a real project with view binding that has multiple library modules with the
  * same package as each other and the layouts with the same name. The project compiles because only
  * one of the two modules is added as a dependency. We want to make sure that the IDE handles this
- * scenario well, since the layout binding cache is project wide and was previously only keeping
- * one class per fqcn around.
+ * scenario well, since the layout binding cache is project wide and was previously only keeping one
+ * class per fqcn around.
  *
  * See also: https://issuetracker.google.com/159948398
  */
@@ -47,8 +47,7 @@ class ViewBindingSamePackageModulesTest {
 
   private val projectRule = AndroidGradleProjectRule()
 
-  @get:Rule
-  val chainedRule = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val chainedRule = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @Test
   @RunsInEdt
@@ -67,14 +66,24 @@ class ViewBindingSamePackageModulesTest {
     // Trigger initialization
     StudioResourceRepositoryManager.getModuleResources(appFacet)
 
-    val bindingClassFinder = PsiElementFinder.EP.findExtension(BindingClassFinder::class.java, project)!!
+    val bindingClassFinder =
+      PsiElementFinder.EP.findExtension(BindingClassFinder::class.java, project)!!
 
     val context = fixture.findClass("com.example.samepackage.MainActivity")
     val libBindingClassName = "com.example.samepackage.lib.databinding.ActivityLibBinding"
-    assertThat(bindingClassFinder.findClasses(libBindingClassName, GlobalSearchScope.everythingScope(project))).hasLength(2)
+    assertThat(
+        bindingClassFinder.findClasses(
+          libBindingClassName,
+          GlobalSearchScope.everythingScope(project)
+        )
+      )
+      .hasLength(2)
     fixture.findClass(libBindingClassName, context)
 
     // Before, this would return null, because lib2's entry used to overwrite lib1's entry
-    assertThat(JavaPsiFacade.getInstance(project).findClass(libBindingClassName, context.resolveScope)).isNotNull()
+    assertThat(
+        JavaPsiFacade.getInstance(project).findClass(libBindingClassName, context.resolveScope)
+      )
+      .isNotNull()
   }
 }

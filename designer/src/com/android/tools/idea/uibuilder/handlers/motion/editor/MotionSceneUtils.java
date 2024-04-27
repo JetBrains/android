@@ -22,6 +22,8 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
+import java.util.HashMap;
 
 /**
  * Provide static accessor to various MotionLayout Related functions

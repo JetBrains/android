@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.sdklib.AndroidCoordinate
 import com.android.sdklib.devices.Device
-import com.android.tools.idea.common.model.AndroidCoordinate
-import com.android.tools.idea.uibuilder.surface.DeviceSizeList.DeviceSize
-import com.android.tools.idea.uibuilder.surface.DeviceSizeList.DeviceSize.Companion.create
 import com.google.common.annotations.VisibleForTesting
-import kotlin.math.abs
 
 /** List of [DeviceSize]. Optimized for [snapToDevice] */
 class DeviceSizeList {
@@ -122,7 +119,7 @@ class DeviceSizeList {
   }
 
   private fun isInRange(threshold: Int, x: Int, y: Int, px: Int, py: Int): Boolean {
-    if (abs(x - px) < threshold && Math.abs(y - py) < threshold) {
+    if (Math.abs(x - px) < threshold && Math.abs(y - py) < threshold) {
       return true
     }
     return false

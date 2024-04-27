@@ -88,7 +88,6 @@ object AdbUtils {
   fun getAdbFuture(project: Project): ListenableFuture<AndroidDebugBridge?> {
     return AdbFileProvider.fromProject(project).get()?.let {
       AdbService.getInstance()?.getDebugBridge(it)
-    }
-      ?: Futures.immediateFuture(null)
+    } ?: Futures.immediateFuture(null)
   }
 }

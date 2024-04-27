@@ -18,16 +18,21 @@ package com.android.tools.idea.run.deployment.liveedit.analysis
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.FieldDiff
+import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.LocalVariableDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.MethodDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.MethodVisitor
+import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.TryCatchBlockDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.EnclosingMethod
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAccessFlag
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrField
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrInstructionList
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLocalVariable
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrTryCatchBlock
+import com.android.utils.ILogger
 
 // TODO: which annotations from Compose and Kotlin do we need to allow-list? Once we know, modifying other annotations should be an error.
-class RegularClassVisitor(private val className: String) : ClassVisitor {
+class RegularClassVisitor(private val className: String, private val logger: ILogger) : ClassVisitor {
   private val changedMethods = mutableListOf<MethodDiff>()
   val modifiedMethods: List<MethodDiff> = changedMethods
 
@@ -55,35 +60,23 @@ class RegularClassVisitor(private val className: String) : ClassVisitor {
     handleUnsupportedChange("interfaces changed; added '$added' and removed'$removed'")
   }
 
-  override fun visitVersion(old: Int, new: Int) {
-    handleUnsupportedChange("version changed from '$old' to '$new'")
-  }
-
   override fun visitEnclosingMethod(old: EnclosingMethod?, new: EnclosingMethod?) {
     handleUnsupportedChange("enclosing method changed from '$old' to '$new'")
   }
 
+  // Allow adding and removing synthetic methods, such as compiler-generated accessor methods.
   override fun visitMethods(added: List<IrMethod>, removed: List<IrMethod>, modified: List<MethodDiff>) {
-    if (added.isNotEmpty()) {
+    if (added.filterNot { it.isSynthetic() }.isNotEmpty()) {
       val msg = "added method(s): " + added.joinToString(", ") { it.name + it.desc }
       handleUnsupportedChange(msg)
     }
 
-    if (removed.isNotEmpty()) {
+    if (removed.filterNot { it.isSynthetic() }.isNotEmpty()) {
       val msg = "removed method(s): " + removed.joinToString(", ") { it.name + it.desc }
       handleUnsupportedChange(msg)
     }
 
     for (method in modified) {
-      if (method.name == "<init>") {
-        handleUnsupportedChange("modified constructor $className${method.desc.trimEnd('V')}")
-      }
-
-      if (method.name == "<clinit>") {
-        // We can probably parse the instruction list to get a better error message here, but this is fine for now.
-        handleUnsupportedChange("modified static initializer (did a field's initial value change?)")
-      }
-
       val visitor = RegularMethodVisitor(className, method.name, method.desc)
       method.accept(visitor)
       if (visitor.hasNonSourceInfoChanges) changedMethods.add(method)
@@ -114,14 +107,21 @@ class RegularClassVisitor(private val className: String) : ClassVisitor {
   }
 }
 
-// No override for visiting try/catch or locals, because those are all supported changes.
 private class RegularMethodVisitor(val className: String, val methodName: String, val methodDesc: String) : MethodVisitor {
   var hasNonSourceInfoChanges: Boolean = false
     private set
 
+  override fun visitLocalVariables(added: List<IrLocalVariable>, removed: List<IrLocalVariable>, modified: List<LocalVariableDiff>) {
+    hasNonSourceInfoChanges = true
+  }
+
+  override fun visitTryCatchBlocks(added: List<IrTryCatchBlock>, removed: List<IrTryCatchBlock>, modified: List<TryCatchBlockDiff>) {
+    hasNonSourceInfoChanges = true
+  }
+
   override fun visitInstructions(old: IrInstructionList, new: IrInstructionList) {
     // Filter out the debugging info that compose modifies on every change
-    hasNonSourceInfoChanges = !onlyHasSourceInfoChanges(old, new)
+    hasNonSourceInfoChanges = !onlyComposeDebugConstantChanges(old, new)
   }
 
   override fun visitAccess(added: Set<IrAccessFlag>, removed: Set<IrAccessFlag>) {

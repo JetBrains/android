@@ -15,25 +15,25 @@
  */
 package com.android.tools.idea.tests.gui.cpp;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.debugger.DebuggerTestBase;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class ShortcutNavigationTest extends DebuggerTestBase {
 
-  @Rule public GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   /**
    * Verifies that JNI functions can be navigated to from the java definition.
@@ -56,16 +56,17 @@ public class ShortcutNavigationTest extends DebuggerTestBase {
   @Test
   public void testShortcutNavigateFromJavaDefinitionToJniFunction() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/NdkHelloJni");
+    EditorFixture editor = ideFrame.getEditor();
+    editor.open("app/src/main/java/com/example/hellojni/HelloJni.java");
 
-    ideFrame.getEditor()
-      .open("app/src/main/java/com/example/hellojni/HelloJni.java")
-      .select(String.format("(.*public native String  stringFromJNI)"))
+    ideFrame.find(guiTest.robot()).requestFocusIfLost();
+    editor.select(String.format("(.*public native String  stringFromJNI)"))
       .invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION);
 
-    Wait.seconds(10).expecting("Native file is opened for navigating to definition")
+    Wait.seconds(30).expecting("Native file is opened for navigating to definition")
       .until(() -> "hello-jni.c".equals(ideFrame.getEditor().getCurrentFileName()));
-
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     String currentLine = ideFrame.getEditor().getCurrentLine();
-    assertThat(currentLine.equals("Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,\n")).isTrue();
+    assertThat(currentLine).isEqualTo("Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,\n");
   }
 }

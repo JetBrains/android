@@ -16,6 +16,8 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceAction
+import com.android.sdklib.deviceprovisioner.DeviceActionException
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
@@ -29,15 +31,19 @@ internal class FakeDeviceTemplate(
   constructor(
     name: String
   ) : this(
-    DeviceProperties.build {
+    DeviceProperties.buildForTest {
       model = name
       icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
     }
   )
 
+  override val id = DeviceId("Fake", true, properties.title)
+
   override val activationAction =
     object : TemplateActivationAction {
-      override suspend fun activate(duration: Duration?) = throw UnsupportedOperationException()
+      override suspend fun activate(duration: Duration?) =
+        throw DeviceActionException("Device is unavailable")
+
       override val durationUsed = false
       override val presentation =
         MutableStateFlow(DeviceAction.Presentation("", StudioIcons.Avd.RUN, true))

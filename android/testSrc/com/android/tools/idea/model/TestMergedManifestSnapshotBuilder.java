@@ -203,7 +203,7 @@ public class TestMergedManifestSnapshotBuilder {
                                       myIcon, myLabel, myRtl,
                                       myDebuggable,
                                       myDocument,
-                                      myFiles,
+                                      myFiles != null ? myFiles : ImmutableList.of(),
                                       myPermissions != null ? myPermissions : ImmutablePermissionHolder.EMPTY,
                                       myHasAppCode,
                                       myActivities != null ? myActivities : ImmutableList.of(),

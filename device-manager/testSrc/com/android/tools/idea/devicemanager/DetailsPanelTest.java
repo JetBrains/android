@@ -27,7 +27,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentMatcher;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
@@ -86,6 +85,6 @@ public final class DetailsPanelTest {
                                 "Name 1 Value 1%n" +
                                 "Name 2 Value 2%n");
 
-    Mockito.verify(clipboard).setContents(ArgumentMatchers.argThat(new TransferableArgumentMatcher(data)), ArgumentMatchers.isNull());
+    Mockito.verify(clipboard).setContents(Mockito.argThat(new TransferableArgumentMatcher(data)), Mockito.isNull());
   }
 }

@@ -15,20 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
-import static com.android.SdkConstants.CONSTRAINT_BARRIER_END;
-import static com.android.SdkConstants.CONSTRAINT_BARRIER_LEFT;
-import static com.android.SdkConstants.CONSTRAINT_BARRIER_RIGHT;
-import static com.android.SdkConstants.CONSTRAINT_BARRIER_START;
-import static com.android.SdkConstants.SHERPA_URI;
-
 import com.android.AndroidXConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import icons.StudioIcons;
-import java.util.List;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.Icon;
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for Barrier Helper

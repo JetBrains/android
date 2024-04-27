@@ -16,10 +16,13 @@
 package com.android.tools.idea.dagger.index.psiwrappers
 
 import com.intellij.psi.PsiJavaFile
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtFile
 
 internal abstract class ImportHelperBase {
-  private val possibleAnnotations: MutableMap<String, Set<String>> = mutableMapOf()
+  private val possibleAnnotations: MutableMap<DaggerAnnotation, Set<String>> = mutableMapOf()
 
   /**
    * Returns the set of names that might be used to refer to an annotation in code.
@@ -38,11 +41,11 @@ internal abstract class ImportHelperBase {
    * there are a few potential names that might be skipped in that case. That's ok, since this is
    * only used for Dagger annotations, and none are defined in that manner.
    */
-  fun getPossibleAnnotationText(fqName: String): Set<String> {
-    return possibleAnnotations.getOrPut(fqName) { buildPossibleAnnotationText(fqName) }
+  fun getPossibleAnnotationText(annotation: DaggerAnnotation): Set<String> {
+    return possibleAnnotations.getOrPut(annotation) { buildPossibleAnnotationText(annotation) }
   }
 
-  protected abstract fun buildPossibleAnnotationText(fqName: String): Set<String>
+  protected abstract fun buildPossibleAnnotationText(annotation: DaggerAnnotation): Set<String>
 }
 
 /** Utility class used to compute and cache information related to imports in a Kotlin file. */
@@ -55,94 +58,126 @@ internal class KotlinImportHelper(private val ktFile: KtFile) : ImportHelperBase
         .associate { it.aliasName!! to it.importedFqName!!.asString().substringAfterLast(".") }
     }
 
-  override fun buildPossibleAnnotationText(fqName: String): Set<String> {
-    val desiredSimpleName = fqName.substringAfterLast(".")
-    val desiredPackageName = fqName.substringBeforeLast(".", missingDelimiterValue = "")
+  override fun buildPossibleAnnotationText(annotation: DaggerAnnotation): Set<String> {
+    val desiredPackageName = annotation.classId.packageFqName
+    val desiredClassName = annotation.classId.relativeClassName
 
-    // fqName is always allowed.
-    val result: MutableSet<String> = mutableSetOf(fqName)
+    // Fully-qualified annotation name is always allowed.
+    val result: MutableSet<String> = mutableSetOf(annotation.fqNameString)
 
-    // If the annotation is in the same package or a subpackage, it can be referred to in a
-    // shortened form.
-    val packagePrefix = "${ktFile.packageFqName}."
-    if (fqName.startsWith(packagePrefix)) {
-      result.add(fqName.substring(packagePrefix.length))
+    // If the annotation is in the same package, it can be referred to using only the
+    // relative class name.
+    if (desiredPackageName == ktFile.packageFqName) {
+      result.add(desiredClassName.asString())
     }
 
     // Process the import list to figure out what other values might be allowed.
     for (import in ktFile.importDirectives) {
-      val importedFqName = import.importedFqName?.asString() ?: continue
+      val importedFqName = import.importedFqName ?: continue
 
-      // If this is a ".*" import match the package, then the simple name can be used directly.
+      // If this is a ".*" import matching the package, we can use the relative class name.
       if (import.isAllUnder) {
-        if (importedFqName == desiredPackageName) result.add(desiredSimpleName)
+        if (desiredPackageName == importedFqName) {
+          result.add(desiredClassName.asString())
+        }
         continue
       }
 
       // Otherwise, figure out if the import can match the given fully-qualified name, or some
       // part of it that can be used for a partially-qualified reference.
-      if (fqName.startsWith(importedFqName)) {
-        // Case 1
-        // Looking for `fqName`: "com.example.Foo"
-        //     `importedFqName`: "com.example.Foo"
-        //              result : "Foo"
-        // Case 2
-        // Looking for `fqName`: "com.example.Foo.Inner.Nested"
-        //     `importedFqName`: "com.example.Foo"
-        //              result : "Foo.Inner.Nested"
-        // Case 3
-        // Looking for `fqName`: "com.example.Foo.Inner.Nested"
-        //     `importedFqName`: "com.example.Foo as MyFoo"
-        //              result : "MyFoo.Inner.Nested"
-        val importedSimpleName =
-          import.aliasName ?: importedFqName.substringAfterLast('.', importedFqName)
-        result.add(fqName.replace(importedFqName, importedSimpleName))
+      val nameSequenceAfterImport = annotation.classId.getNameSequenceAfterImport(importedFqName)
+      if (nameSequenceAfterImport != null) {
+        result.add(
+          buildString {
+            append(import.aliasName ?: importedFqName.shortName().asString())
+            nameSequenceAfterImport.forEach {
+              append('.')
+              append(it.asString())
+            }
+          }
+        )
       }
     }
 
     return result
   }
+
+  /**
+   * The sequence of names needed to refer to this ClassId after an import of importFqName, or
+   * `null` if importFqName cannot refer to this ClassId.
+   *
+   * The sequence may be empty if the import was an exact match to the class ID.
+   *
+   * Examples on classId = ClassId.fromString("com/example/Foo.Bar"):
+   * - FqName("com.example.Foo") -> ["Bar"]
+   * - FqName("com.example.Foo.Bar") -> []
+   * - FqName("com.example.Baz") -> null
+   * - FqName("com.example.Foo.Baz") -> null
+   * - FqName("com.example") -> null
+   */
+  private fun ClassId.getNameSequenceAfterImport(importFqName: FqName): List<Name>? {
+    val importSegments = importFqName.pathSegments()
+    val classPackageSegments = packageFqName.pathSegments()
+    // Imported name must contain all labels in the package name, plus one for the imported
+    // class name.
+    if (importSegments.size <= classPackageSegments.size) {
+      return null
+    }
+    val allClassSegments = classPackageSegments + relativeClassName.pathSegments()
+    // All labels in the imported name must match labels in the FQ class name.
+    if (importSegments != allClassSegments.take(importSegments.size)) {
+      return null
+    }
+    // Return any labels not matched by the above check (potentially none).
+    return allClassSegments.drop(importSegments.size)
+  }
 }
 
 /** Utility class used to compute and cache information related to imports in a Java file. */
 internal class JavaImportHelper(private val psiJavaFile: PsiJavaFile) : ImportHelperBase() {
-  override fun buildPossibleAnnotationText(fqName: String): Set<String> {
+  override fun buildPossibleAnnotationText(annotation: DaggerAnnotation): Set<String> {
     // fqName is always allowed.
-    val result: MutableSet<String> = mutableSetOf(fqName)
+    val result: MutableSet<String> = mutableSetOf(annotation.fqNameString)
 
-    // If the annotation is in the same package or a subpackage, it can be referred to in a
-    // shortened form.
-    val packagePrefix = "${psiJavaFile.packageName}."
-    if (fqName.startsWith(packagePrefix)) {
-      result.add(fqName.substring(packagePrefix.length))
+    // Special case: If we're in the same package as the annotation, we can refer to
+    // the annotation by its relative class name.
+    if (annotation.classId.packageFqName.asString() == psiJavaFile.packageName) {
+      result.add(annotation.classId.relativeClassName.asString())
     }
 
-    // For a given fully-qualified name, check each section to see if it can be referred to by
-    // simple name.
-    // For example, given the name "com.example.a.b.c.d.e" and the statement "import
-    // com.example.a.b", we could refer to the given name as "b.c.d.e".
-    val innerDotIndices = fqName.indices.drop(1).dropLast(1).filter { fqName[it] == '.' }
-    for (index in innerDotIndices) {
-      val desiredPackageName = fqName.take(index)
-      val fullNameAfterDot = fqName.drop(index + 1)
-      val desiredSimpleName = fullNameAfterDot.substringBefore('.')
-
-      if (isSimpleNameAllowed(desiredPackageName, desiredSimpleName)) result.add(fullNameAfterDot)
+    // For each containing class name, see if we have an import for that class name.
+    // This also accounts for the annotation being in the same package as the file (rare).
+    // For example, for com.example.Foo.Bar, we check for imports of com.example.Foo, and add
+    // Foo.Bar if we have one, then check for imports of com.example.Foo.Bar, adding Bar if we do.
+    var importFqName = annotation.classId.packageFqName
+    val relativeNameSequence = annotation.classId.relativeClassName.pathSegments()
+    for ((i, name) in relativeNameSequence.withIndex()) {
+      if (isSimpleNameAllowed(importFqName, name)) {
+        result.add(
+          relativeNameSequence.subList(i, relativeNameSequence.size).joinToString(".") {
+            it.asString()
+          }
+        )
+      }
+      importFqName = importFqName.child(name)
     }
 
     return result
   }
 
-  private fun isSimpleNameAllowed(desiredPackageName: String, desiredSimpleName: String): Boolean {
+  private fun isSimpleNameAllowed(containerName: FqName, desiredSimpleName: Name): Boolean {
     // Simple name is allowed if:
-    // 1. We're in the same package.
+    // 1. We're in the same package (handled above).
     // 2. There's a full import for the fully-qualified name.
     // 3. There's a .* import for the package the name is in.
-    if (desiredPackageName == psiJavaFile.packageName) return true
     val importList = psiJavaFile.importList ?: return false
 
-    val fqImportName = "$desiredPackageName.$desiredSimpleName"
-    return (importList.findSingleClassImportStatement(fqImportName) != null ||
-      importList.findOnDemandImportStatement(desiredPackageName) != null)
+    val containerNameString = containerName.asString()
+    val simpleNameString = desiredSimpleName.asString()
+    val importStatement =
+      importList.findSingleClassImportStatement("${containerNameString}.${simpleNameString}")
+        ?: importList.findOnDemandImportStatement(containerNameString)
+
+    return (importStatement != null)
   }
 }

@@ -19,17 +19,17 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.StudioConfigurationModelModule;
 import com.android.tools.idea.res.AndroidDependenciesCache;
+import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
-import com.android.tools.res.ResourceClassRegistry;
 import com.android.tools.res.ids.ResourceIdManager;
-import com.android.tools.sdk.AndroidTargetData;
 import com.google.common.collect.ImmutableCollection;
 import com.intellij.openapi.module.Module;
 import java.util.Objects;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatforms;
+import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 
 public class RenderUtils {

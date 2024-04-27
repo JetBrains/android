@@ -1,0 +1,5 @@
+[dependencies]
+testCompile = [
+    { notation = "org.gradle.test.classifiers:service:1.0" },
+    { notation = "com.google.guava:guava:+" }
+]

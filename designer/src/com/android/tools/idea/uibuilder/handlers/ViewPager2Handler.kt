@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
-import com.android.SdkConstants.ANDROIDX_VIEW_PAGER2_LIB_ARTIFACT
 import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_VIEWPAGER2
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.google.common.collect.ImmutableList
 
 class ViewPager2Handler : ViewGroupHandler() {
   override fun getInspectorProperties(): List<String> = ImmutableList.of(ATTR_VISIBILITY)
-  override fun getGradleCoordinateId(tagName: String): String = ANDROIDX_VIEW_PAGER2_LIB_ARTIFACT
+
+  override fun getGradleCoordinateId(tagName: String) = ANDROIDX_VIEWPAGER2
 }

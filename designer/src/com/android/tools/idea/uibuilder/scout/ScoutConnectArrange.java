@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.scoutConnect;
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.wouldCreateLoop;
-
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+
 import java.util.List;
+
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.scoutConnect;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.wouldCreateLoop;
 
 public class ScoutConnectArrange {
 

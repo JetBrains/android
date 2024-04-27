@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 class StringTableImpl(strings: List<LayoutInspectorViewProtocol.StringEntry>) : StringTable {
   private val table = strings.associateBy({ it.id }, { it.str })
   override val keys: Set<Int> = table.keys
+
   override operator fun get(id: Int): String = table[id].orEmpty()
 
   operator fun get(resource: Resource?): ResourceReference? {

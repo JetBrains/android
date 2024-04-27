@@ -107,6 +107,8 @@ class TraceProcessorServiceImpl(
 
       // Now let's add the queries that we limit for the processes we're interested in:
       for (id in processes.map { it.id }) {
+        // Note the order matters here that `addTraceEvents` must run after `addSchedulingEvents` because it consumes
+        // thread scheduling events to calculate the CPU time of a trace event.
         requests.add(RequestBuilder({
                                       setTraceEventsRequest(
                                         QueryParameters.TraceEventsParameters.newBuilder().setProcessId(id.toLong())) },

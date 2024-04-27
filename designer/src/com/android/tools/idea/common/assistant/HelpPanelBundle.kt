@@ -83,7 +83,7 @@ class HelpPanelToolWindowListener private constructor(private var project: Proje
     get() = metrics[currActionId]
 
   init {
-    project.messageBus.connect().subscribe(ToolWindowManagerListener.TOPIC, this)
+    project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, this)
     Disposer.register(project, this)
   }
 

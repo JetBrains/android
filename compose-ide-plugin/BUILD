@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
@@ -19,7 +20,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
-        "//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.5.1",
+        "//tools/adt/idea/compose-ide-plugin:compiler-hosted",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/android-material:intellij.android.android-material[module]",
@@ -30,7 +31,6 @@ iml_module(
 iml_module(
     name = "intellij.android.compose-ide-plugin.tests",
     iml_files = ["intellij.android.compose-ide-plugin.tests.iml"],
-    project = "unb",
     tags = ["no_test_windows"],  # b/208245297
     test_class = "com.android.tools.tests.ComposeTestSuite",
     test_data = [
@@ -68,17 +68,16 @@ iml_module(
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api[module, test]",
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
-        "//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.5.1",
+        "//tools/adt/idea/compose-ide-plugin:compiler-hosted",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-material:intellij.android.android-material[module, test]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
     ],
 )
 
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
-
 # managed by go/iml_to_build
 jvm_import(
-    name = "compiler-hosted-1.5.1",
-    jars = ["lib/compiler-hosted-1.5.1.jar"],
+    name = "compiler-hosted",
+    jars = ["lib/compiler-hosted.jar"],
     visibility = ["//visibility:public"],
 )

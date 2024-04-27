@@ -32,7 +32,7 @@ public class GradleDslElementEnum extends GradlePropertiesDslElement {
     }
   }
 
-  public static class EnumValue {
+  public class EnumValue {
     @NotNull private final String myValue;
 
     private EnumValue(@NotNull String value) {

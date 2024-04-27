@@ -25,7 +25,7 @@ import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.io.Serializable
 
-data class IdePreResolvedModuleLibraryImpl(
+data class IdePreResolvedModuleLibraryImpl constructor(
   override val buildId: String,
   override val projectPath: String,
   override val variant: String?,
@@ -47,7 +47,7 @@ data class IdePreResolvedModuleLibraryImpl(
   val displayName: String get() = moduleLibraryDisplayName(buildId, projectPath, variant, sourceSet)
 }
 
-class IdeUnresolvedKmpAndroidModuleLibraryImpl(
+data class IdeUnresolvedKmpAndroidModuleLibraryImpl(
   override val buildId: String,
   override val projectPath: String,
   override val lintJar: File?,
@@ -62,7 +62,7 @@ class IdeUnresolvedKmpAndroidModuleLibraryImpl(
   )
 }
 
-data class IdeUnresolvedModuleLibraryImpl(
+data class IdeUnresolvedModuleLibraryImpl constructor(
   override val buildId: String,
   override val projectPath: String,
   override val variant: String?,
@@ -84,7 +84,7 @@ data class IdeUnresolvedModuleLibraryImpl(
   val displayName: String get() = moduleLibraryDisplayName(buildId, projectPath, variant, null)
 }
 
-data class IdeModuleLibraryImpl(
+data class IdeModuleLibraryImpl constructor(
   override val buildId: String,
   override val projectPath: String,
   override val variant: String?,

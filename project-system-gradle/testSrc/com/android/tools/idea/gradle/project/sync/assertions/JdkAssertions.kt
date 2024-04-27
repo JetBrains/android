@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
-import io.ktor.util.reflect.instanceOf
 import org.jetbrains.plugins.gradle.util.GradleBundle
 import java.io.File
 import kotlin.reflect.KClass
@@ -122,7 +121,7 @@ class AssertOnFailure(
   private val expect: Expect
 ) {
   fun assertException(expectedException: KClass<out Exception>) {
-    expect.that(exception).instanceOf(expectedException)
+    expect.that(exception).isInstanceOf(expectedException::class.java)
   }
 }
 

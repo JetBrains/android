@@ -15,23 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_EXPANDED;
-import static com.android.SdkConstants.ATTR_FITS_SYSTEM_WINDOWS;
-import static com.android.SdkConstants.ATTR_LAYOUT_SCROLL_FLAGS;
-import static com.android.SdkConstants.ATTR_THEME;
-
 import com.android.AndroidXConstants;
-import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
-import com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
-import java.util.Collections;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationDialog;
+import com.android.tools.idea.common.model.NlComponent;
+
+import java.util.Collections;
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 public class AppBarLayoutHandler extends LinearLayoutHandler {
   @Override

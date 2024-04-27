@@ -16,7 +16,7 @@
 package com.android.tools.idea.dagger.index.psiwrappers
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.findParentElement
+import com.android.tools.idea.testing.getEnclosing
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
@@ -56,17 +56,63 @@ class DaggerIndexParameterWrapperTest {
       package com.example
 
       class Foo {
-        fun bar(arg: Bat): Baz {} 
+        fun bar(arg: Bat): Baz {}
       }
       """
           .trimIndent()
       ) as KtFile
 
-    val element: KtParameter = myFixture.findParentElement("a|rg")
+    val element: KtParameter = myFixture.getEnclosing("a|rg")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("arg")
-    assertThat(wrapper.getType().getSimpleName()).isEqualTo("Bat")
+    assertThat(wrapper.getType()?.getSimpleName()).isEqualTo("Bat")
+  }
+
+  @Test
+  fun kotlinParameterWithoutType() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example
+
+      class Foo {
+        fun bar(arg): Baz {}
+      }
+      """
+          .trimIndent()
+      ) as KtFile
+
+    val element: KtParameter = myFixture.getEnclosing("a|rg")
+    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
+
+    assertThat(wrapper.getSimpleName()).isEqualTo("arg")
+    assertThat(wrapper.getType()).isNull()
+  }
+
+  @Test
+  fun kotlinParameterWithoutName() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example
+
+      class Foo {
+        fun bar(: Int): Baz {}
+      }
+      """
+          .trimIndent()
+      ) as KtFile
+
+    val element: KtParameter = myFixture.getEnclosing("bar(|: Int)")
+    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
+
+    assertThat(wrapper.getSimpleName()).isNull()
+    assertThat(wrapper.getType()?.getSimpleName()).isEqualTo("Int")
   }
 
   @Test
@@ -77,7 +123,7 @@ class DaggerIndexParameterWrapperTest {
         // language=java
         """
       package com.example;
-      
+
       public class Foo {
         public Baz bar(Bat arg) {}
       }
@@ -85,10 +131,10 @@ class DaggerIndexParameterWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element: PsiParameter = myFixture.findParentElement("a|rg")
+    val element: PsiParameter = myFixture.getEnclosing("a|rg")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("arg")
-    assertThat(wrapper.getType().getSimpleName()).isEqualTo("Bat")
+    assertThat(wrapper.getType()?.getSimpleName()).isEqualTo("Bat")
   }
 }

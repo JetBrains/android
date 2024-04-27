@@ -16,9 +16,15 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.flags.ExperimentalSettingsConfigurable
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
+import com.android.tools.idea.layoutinspector.runningdevices.actions.EMBEDDED_LAYOUT_INSPECTOR_MIN_API
+import com.android.tools.idea.layoutinspector.runningdevices.getRunningDevicesExistingTabsDeviceSerialNumber
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
@@ -26,13 +32,16 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.ide.DataManager
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.ui.EditorNotificationPanel
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
@@ -50,6 +59,16 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     val disposable = toolWindow.disposable
     val layoutInspector = LayoutInspectorProjectService.getInstance(project).getLayoutInspector()
     val devicePanel = createDevicePanel(disposable, layoutInspector)
+
+    layoutInspector.inspectorModel.addConnectionListener { client ->
+      if (client != null) {
+        showTryEmbeddedLayoutInspectorBanner(
+          layoutInspector.inspectorModel.project,
+          layoutInspector.notificationModel,
+          client
+        )
+      }
+    }
 
     val workbench =
       WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, disposable).apply {
@@ -145,4 +164,57 @@ constructor(
       clientLauncher.enabled = isWindowVisible
     }
   }
+}
+
+private const val SHOW_TRY_EMBEDDED_INSPECTOR_KEY =
+  "com.android.tools.idea.layoutinspector.try.embedded.layout.inspector.key"
+const val TRY_EMBEDDED_INSPECTOR_BANNER_ID = "try.embedded.layout.inspector"
+
+private fun showTryEmbeddedLayoutInspectorBanner(
+  project: Project,
+  notificationModel: NotificationModel,
+  client: InspectorClient
+) {
+  val defaultValue = true
+  val shouldShowBanner = {
+    PropertiesComponent.getInstance().getBoolean(SHOW_TRY_EMBEDDED_INSPECTOR_KEY, defaultValue)
+  }
+  val setValue: (Boolean) -> Unit = {
+    PropertiesComponent.getInstance().setValue(SHOW_TRY_EMBEDDED_INSPECTOR_KEY, it, defaultValue)
+  }
+
+  val deviceSerialNumber = client.process.device.serial
+  val deviceApiLevel = client.process.device.apiLevel
+
+  if (
+    shouldShowBanner() &&
+      isDeviceInRunningDevicesToolWindow(project, deviceSerialNumber) &&
+      deviceApiLevel >= EMBEDDED_LAYOUT_INSPECTOR_MIN_API
+  ) {
+    notificationModel.addNotification(
+      id = TRY_EMBEDDED_INSPECTOR_BANNER_ID,
+      text = LayoutInspectorBundle.message(TRY_EMBEDDED_INSPECTOR_BANNER_ID),
+      status = EditorNotificationPanel.Status.Info,
+      actions =
+        listOf(
+          StatusNotificationAction(LayoutInspectorBundle.message("do.not.show.again")) {
+            notification ->
+            setValue(false)
+            notificationModel.removeNotification(notification.id)
+          },
+          StatusNotificationAction(LayoutInspectorBundle.message("turn.on")) {
+            ShowSettingsUtil.getInstance()
+              .showSettingsDialog(project, ExperimentalSettingsConfigurable::class.java)
+          }
+        )
+    )
+  }
+}
+
+private fun isDeviceInRunningDevicesToolWindow(
+  project: Project,
+  requiredDeviceId: String
+): Boolean {
+  val devicesIds = project.getRunningDevicesExistingTabsDeviceSerialNumber()
+  return devicesIds.map { it.serialNumber }.contains(requiredDeviceId)
 }

@@ -51,12 +51,17 @@ interface AppInsightsProjectLevelController {
 
   // events
   fun refresh()
+
   fun selectIssue(value: AppInsightsIssue?, selectionSource: IssueSelectionSource)
+
   fun selectVersions(values: Set<Version>)
 
   fun selectDevices(values: Set<Device>)
+
   fun selectOperatingSystems(values: Set<OperatingSystemInfo>)
+
   fun selectTimeInterval(value: TimeIntervalFilter)
+
   fun toggleFailureType(value: FailureType)
 
   fun enterOfflineMode()
@@ -69,11 +74,24 @@ interface AppInsightsProjectLevelController {
   )
 
   fun revertToSnapshot(state: AppInsightsState)
+
   fun selectSignal(value: SignalType)
+
   fun selectConnection(value: Connection)
+
+  fun nextEvent()
+
+  fun previousEvent()
+
   fun openIssue(issue: AppInsightsIssue)
+
   fun closeIssue(issue: AppInsightsIssue)
+
   fun addNote(issue: AppInsightsIssue, message: String)
+
   fun deleteNote(note: Note)
+
   fun selectVisibilityType(value: VisibilityType)
+
+  fun selectIssueVariant(variant: IssueVariant?)
 }

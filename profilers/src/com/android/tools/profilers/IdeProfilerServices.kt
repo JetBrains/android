@@ -24,6 +24,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Supplier
@@ -43,10 +44,14 @@ interface IdeProfilerServices {
   /**
    * Compute expensive intermediate value on "pool", then resume it on "main"
    */
-  fun <R> runAsync(supplier: Supplier<R>, consumer: Consumer<R>) {
+  fun <R> runAsync(supplier: Supplier<R>, consumer: Consumer<R>, timeoutMs: Long) {
     CompletableFuture
-      .supplyAsync(supplier, poolExecutor)
+      .supplyAsync(supplier, poolExecutor).orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
       .whenComplete { result: R , action -> mainExecutor.execute { consumer.accept(result) } }
+  }
+
+  fun <R> runAsync(supplier: Supplier<R>, consumer: Consumer<R>) {
+    runAsync(supplier, consumer, Long.MAX_VALUE)
   }
 
   /**
@@ -149,6 +154,13 @@ interface IdeProfilerServices {
   fun getUserCpuProfilerConfigs(apiLevel: Int): List<ProfilingConfiguration>
 
   /**
+   * Returns the profiling configurations saved by the user for a project in task-based UX.
+   * apiLevel is the Android API level for the selected device, and the apiLevel is used to return only
+   * the appropriate configurations that are available to run on a particular device.
+   */
+  fun getTaskCpuProfilerConfigs(apiLevel: Int): List<ProfilingConfiguration>
+
+  /**
    * Returns the default profiling configurations.
    * apiLevel is the Android API level for the selected device, so that it return only
    * the appropriate configurations that are available to run on a particular device.
@@ -162,9 +174,9 @@ interface IdeProfilerServices {
   val isNativeProfilingConfigurationPreferred: Boolean
 
   /**
-   * Get the native memory sampling rate based on the current configuration.
+   * Get the native allocations memory sampling rate.
    */
-  val nativeMemorySamplingRateForCurrentConfig: Int
+  val nativeAllocationsMemorySamplingRate: Int
 
   /**
    * Pops up a toast that contains information contained in the notification,
@@ -186,5 +198,5 @@ interface IdeProfilerServices {
   /**
    * If profileableMode is true, performs the ProfileProfileableAction, otherwise performs the ProfileDebuggableAction.
    */
-  fun buildAndLaunchAction(profileableMode: Boolean, component: JComponent)
+  fun buildAndLaunchAction(profileableMode: Boolean)
 }

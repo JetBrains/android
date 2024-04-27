@@ -18,23 +18,33 @@
 
 #include <android/log.h>
 
-#include <string>
-
 #include "agent.h"
+#include "string_printf.h"
 
 namespace screensharing {
 
 using namespace std;
 
-static constexpr char TAG[] = "studio.screen.sharing";
+namespace {
 
-Log::Level Log::level_ = Log::Level::INFO;
+string FormatErrorMessage(const JThrowable* throwable, const char* message, va_list args) {
+  string formattedMessage = StringVPrintf(message, args);
+  return throwable == nullptr || throwable->IsNull() ? formattedMessage : formattedMessage + " - " + throwable->Describe();
+}
+
+void LogFatalError(const JThrowable* throwable, const char* message, va_list args) {
+  string formattedMessage = FormatErrorMessage(throwable, message, args);
+  __android_log_print(ANDROID_LOG_ERROR, ATTRIBUTION_TAG, "%s", formattedMessage.c_str());
+  fprintf(stderr, "%s", formattedMessage.c_str());
+}
+
+}  // namespace
 
 void Log::V(const char* message, ...) {
   if (IsEnabled(Level::VERBOSE)) {
     va_list args;
     va_start(args, message);
-    __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, message, args);
+    __android_log_vprint(ANDROID_LOG_VERBOSE, ATTRIBUTION_TAG, message, args);
     va_end(args);
   }
 }
@@ -43,7 +53,7 @@ void Log::D(const char* message, ...) {
   if (IsEnabled(Level::DEBUG)) {
     va_list args;
     va_start(args, message);
-    __android_log_vprint(ANDROID_LOG_DEBUG, TAG, message, args);
+    __android_log_vprint(ANDROID_LOG_DEBUG, ATTRIBUTION_TAG, message, args);
     va_end(args);
   }
 }
@@ -52,7 +62,7 @@ void Log::I(const char* message, ...) {
   if (IsEnabled(Level::INFO)) {
     va_list args;
     va_start(args, message);
-    __android_log_vprint(ANDROID_LOG_INFO, TAG, message, args);
+    __android_log_vprint(ANDROID_LOG_INFO, ATTRIBUTION_TAG, message, args);
     va_end(args);
   }
 }
@@ -61,40 +71,56 @@ void Log::W(const char* message, ...) {
   if (IsEnabled(Level::WARN)) {
     va_list args;
     va_start(args, message);
-    __android_log_vprint(ANDROID_LOG_WARN, TAG, message, args);
+    string formattedMessage = FormatErrorMessage(nullptr, message, args);
     va_end(args);
+    __android_log_print(ANDROID_LOG_WARN, ATTRIBUTION_TAG, "%s", formattedMessage.c_str());
+  }
+}
+
+void Log::W(JThrowable throwable, const char* message, ...) {
+  if (IsEnabled(Level::WARN)) {
+    va_list args;
+    va_start(args, message);
+    string formattedMessage = FormatErrorMessage(&throwable, message, args);
+    va_end(args);
+    __android_log_print(ANDROID_LOG_WARN, ATTRIBUTION_TAG, "%s", formattedMessage.c_str());
   }
 }
 
 void Log::E(const char* message, ...) {
   va_list args;
   va_start(args, message);
-  __android_log_vprint(ANDROID_LOG_ERROR, TAG, message, args);
+  string formattedMessage = FormatErrorMessage(nullptr, message, args);
   va_end(args);
+  __android_log_print(ANDROID_LOG_ERROR, ATTRIBUTION_TAG, "%s", formattedMessage.c_str());
 }
 
-void Log::Fatal(const char* message, ...) {
+void Log::E(JThrowable throwable, const char* message, ...) {
   va_list args;
   va_start(args, message);
-  __android_log_vprint(ANDROID_LOG_ERROR, TAG, message, args);
+  string formattedMessage = FormatErrorMessage(&throwable, message, args);
   va_end(args);
-  va_start(args, message);
-  vfprintf(stderr, message, args);
-  va_end(args);
-  Agent::RestoreEnvironment();
-  Jvm::Exit(EXIT_FAILURE);
+  __android_log_print(ANDROID_LOG_ERROR, ATTRIBUTION_TAG, "%s", formattedMessage.c_str());
 }
 
 void Log::Fatal(ExitCode exit_code, const char* message, ...) {
   va_list args;
   va_start(args, message);
-  __android_log_vprint(ANDROID_LOG_ERROR, TAG, message, args);
+  LogFatalError(nullptr, message, args);
   va_end(args);
-  va_start(args, message);
-  vfprintf(stderr, message, args);
-  va_end(args);
-  Agent::RestoreEnvironment();
+  Agent::Shutdown();
   Jvm::Exit(exit_code);
 }
+
+void Log::Fatal(ExitCode exit_code, JThrowable throwable, const char* message, ...) {
+  va_list args;
+  va_start(args, message);
+  LogFatalError(&throwable, message, args);
+  va_end(args);
+  Agent::Shutdown();
+  Jvm::Exit(exit_code);
+}
+
+Log::Level Log::level_ = Log::Level::INFO;
 
 }  // namespace screensharing

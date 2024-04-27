@@ -19,8 +19,9 @@ package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
+import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.concurrency.readOnPooledThread
-import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.transformNullable
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
 import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
@@ -80,8 +81,7 @@ fun languageLevels(model: PsAndroidModule): ListenableFuture<List<ValueDescripto
   )
   model.compileSdkVersion.maybeValue?.toIntOrNull()?.let { compileSdkVersion ->
     // API 34 supports Java 17 https://developer.android.com/build/jdks
-    // TODO Update with proper AndroidVersion b/291757992
-    if(compileSdkVersion >= 34) {
+    if(compileSdkVersion >= VersionCodes.UPSIDE_DOWN_CAKE) {
       languageLevels.add(ValueDescriptor(value = LanguageLevel.JDK_17, description = "Java 17"))
     }
   }
@@ -180,10 +180,10 @@ fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<Va
     directExecutor())
 
 fun versionValues(): ListenableFuture<KnownValues<String>> =
-  GradleVersionsRepository.getKnownVersionsFuture().transform(directExecutor()) {
+  GradleVersionsRepository.getKnownVersionsFuture().transformNullable(directExecutor()) { versions: List<String>? ->
     object : KnownValues<String> {
       override val literals: List<ValueDescriptor<String>> =
-        it.sortedByDescending { Version.parse(it) }.map { ValueDescriptor(it) }
+        versions?.sortedByDescending { Version.parse(it) }?.map { ValueDescriptor(it) } ?: emptyList()
       override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<String>>): Boolean = false
     }
   }

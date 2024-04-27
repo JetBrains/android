@@ -43,27 +43,20 @@ private val TAG = Regex("(?<tag>.*?)")
  * Pattern for "logcat -v long" ([ MM-DD HH:MM:SS.mmm PID:TID LEVEL/TAG ]) or "logcat -v long,epoch"
  * header ([ SSSSSSSSSS.mmm PID:TID LEVEL/TAG ]). Example:
  *
- * `[ 08-18 16:39:11.760  2977: 2988 D/PhoneInterfaceManager ]`
+ * `[ 08-18 16:39:11.760 2977: 2988 D/PhoneInterfaceManager ]`
  *
- * `[ 1619728495.554  2977: 2988 D/PhoneInterfaceManager ]`
+ * `[ 1619728495.554 2977: 2988 D/PhoneInterfaceManager ]`
  */
-private val HEADER_EPOCH_REGEX = Regex(
-  "^\\[ +$EPOCH +$PID: *$TID +$PRIORITY/$TAG +]$"
-)
+private val HEADER_EPOCH_REGEX = Regex("^\\[ +$EPOCH +$PID: *$TID +$PRIORITY/$TAG +]$")
 
-private val HEADER_STANDARD_REGEX = Regex(
-  "^\\[ +$DATE +$TIME +$PID: *$TID +$PRIORITY/$TAG +]$"
-)
-
+private val HEADER_STANDARD_REGEX = Regex("^\\[ +$DATE +$TIME +$PID: *$TID +$PRIORITY/$TAG +]$")
 
 /**
  * Parses a Logcat header from the output of `logcat -v long -v epoch` or `logcat -v long`
  *
- * Header line looks like this:
- * `[          1654196406.333  1722: 2393 I/DisplayPowerController[0] ]`
+ * Header line looks like this: `[ 1654196406.333 1722: 2393 I/DisplayPowerController[0] ]`
  *
- * Or:
- * `[ 06-02 19:00:00.710 +0000  1722: 2393 I/DisplayPowerController[0] ]`
+ * Or: `[ 06-02 19:00:00.710 +0000 1722: 2393 I/DisplayPowerController[0] ]`
  */
 internal class LogcatHeaderParser(
   private val format: LogcatFormat,
@@ -78,22 +71,23 @@ internal class LogcatHeaderParser(
   }
 
   /**
-   * Parse a header line into a [LogcatHeader] object, or `null` if the input line
-   * doesn't match the expected format.
+   * Parse a header line into a [LogcatHeader] object, or `null` if the input line doesn't match the
+   * expected format.
    *
-   * @param line   raw text that should be the header line from `logcat -v long` or
-   * `logcat -v long,epoch`.
-   * @param serialNumber the serial number of the device from which these log messages have been received
-   * @return a [LogcatHeader] which represents the passed in text or null if text is not a
-   * header.
+   * @param line raw text that should be the header line from `logcat -v long` or `logcat -v
+   *   long,epoch`.
+   * @param serialNumber the serial number of the device from which these log messages have been
+   *   received
+   * @return a [LogcatHeader] which represents the passed in text or null if text is not a header.
    */
   fun parseHeader(line: String, serialNumber: String): LogcatHeader? {
     val result = format.regex.matchEntire(line) ?: return null
 
-    val timestamp = when (format) {
-      EPOCH_FORMAT -> result.getEpochTimestamp()
-      LogcatFormat.STANDARD_FORMAT -> result.getStandardTimestamp(defaultYear, defaultZoneId)
-    }
+    val timestamp =
+      when (format) {
+        EPOCH_FORMAT -> result.getEpochTimestamp()
+        LogcatFormat.STANDARD_FORMAT -> result.getStandardTimestamp(defaultYear, defaultZoneId)
+      }
 
     // We can use `!!.` below because the regex matched so the group must exist
     val groups = result.groups
@@ -112,13 +106,14 @@ internal class LogcatHeaderParser(
   }
 
   /**
-   * Parses the [priority part of a logcat message header:](https://developer.android.com/studio/command-line/logcat.html)
+   * Parses the
+   * [priority part of a logcat message header:](https://developer.android.com/studio/command-line/logcat.html)
    * , the "I" in
    *
-   * `[          1517949446.554  2848: 2848 I/MainActivity ]`
+   * `[ 1517949446.554 2848: 2848 I/MainActivity ]`
    *
-   * @return the log level corresponding to the priority. If the argument is not one of the
-   *     expected letters returns LogLevel.WARN.
+   * @return the log level corresponding to the priority. If the argument is not one of the expected
+   *   letters returns LogLevel.WARN.
    */
   private fun parsePriority(string: String): LogLevel {
     val priority = LogLevel.getByLetter(string)
@@ -136,7 +131,8 @@ private fun MatchResult.getEpochTimestamp(): Instant {
   // We can use `!!.` below because the regex matched so the group must exist
   return Instant.ofEpochSecond(
     parseEpochSeconds(groups["epochSec"]!!.value),
-    MILLISECONDS.toNanos(groups["epochMilli"]?.value!!.toLong()))
+    MILLISECONDS.toNanos(groups["epochMilli"]?.value!!.toLong())
+  )
 }
 
 private fun MatchResult.getStandardTimestamp(defaultYear: Int, defaultZoneId: ZoneId): Instant {
@@ -159,8 +155,7 @@ private fun MatchResult.getStandardTimestamp(defaultYear: Int, defaultZoneId: Zo
 private fun parseEpochSeconds(string: String): Long {
   return try {
     string.toLong()
-  }
-  catch (exception: NumberFormatException) {
+  } catch (exception: NumberFormatException) {
     0
   }
 }
@@ -169,8 +164,7 @@ private fun parseEpochSeconds(string: String): Long {
 private fun parsePid(string: String): Int {
   return try {
     string.toInt()
-  }
-  catch (exception: NumberFormatException) {
+  } catch (exception: NumberFormatException) {
     -1
   }
 }
@@ -179,8 +173,7 @@ private fun parsePid(string: String): Int {
 private fun parseThreadId(string: String): Int {
   return try {
     Integer.decode(string)
-  }
-  catch (exception: NumberFormatException) {
+  } catch (exception: NumberFormatException) {
     -1
   }
 }

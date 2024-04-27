@@ -21,9 +21,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Test
 
-/**
- * Tests for [MessageBacklog]
- */
+/** Tests for [MessageBacklog] */
 class MessageBacklogTest {
   private val message1 = logcatMessage(message = "Message 1")
   private val message2 = logcatMessage(message = "Message 2")
@@ -55,9 +53,7 @@ class MessageBacklogTest {
     assertThat(messageBacklog.messages).containsExactly(message2, message3)
   }
 
-  /**
-   * This test indirectly verifies that [MessageBacklog.clear] is implemented properly.
-   */
+  /** This test indirectly verifies that [MessageBacklog.clear] is implemented properly. */
   @Test
   fun clear_resetsSize() {
     // We use a MessageBacklog that can hold 2 of our messages.
@@ -70,14 +66,13 @@ class MessageBacklogTest {
     // And add 2 messages again
     messageBacklog.addAll(listOf(message1, message2))
 
-    // If clear() did not also reset the internal size, we would have an empty backlog because as each message is added, the size would
+    // If clear() did not also reset the internal size, we would have an empty backlog because as
+    // each message is added, the size would
     // exceed the max size and the message would be deleted.
     assertThat(messageBacklog.messages).containsExactly(message1, message2)
   }
 
-  /**
-   * This test indirectly verifies that [MessageBacklog.clear] is implemented properly.
-   */
+  /** This test indirectly verifies that [MessageBacklog.clear] is implemented properly. */
   @Test
   fun clear_resetsSize_largeBatch() {
     // We use a MessageBacklog that can hold 2 of our messages.
@@ -90,7 +85,8 @@ class MessageBacklogTest {
     // And add 4 messages
     messageBacklog.addAll(listOf(message1, message1, message2, message3))
 
-    // If clear() did not also reset the internal size, we would have an empty backlog because as each message is added, the size would
+    // If clear() did not also reset the internal size, we would have an empty backlog because as
+    // each message is added, the size would
     // exceed the max size and the message would be deleted.
     assertThat(messageBacklog.messages).containsExactly(message2, message3)
   }

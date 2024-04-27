@@ -31,7 +31,13 @@ fun androidProjectGradleSettings(appTitle: String,
     """
 pluginManagement {
   repositories {$injectedRepositories
-    google()
+    google {
+      content {
+        includeGroupByRegex("com\\.android.*")
+        includeGroupByRegex("com\\.google.*")
+        includeGroupByRegex("androidx.*")
+      }
+    }
     mavenCentral()
     gradlePluginPortal()
   }

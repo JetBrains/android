@@ -1,12 +1,13 @@
-// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.help.AndroidWebHelpProvider;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.ConfigurationTypeBase;
-import com.intellij.execution.configurations.ConfigurationTypeUtil;
-import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.compiler.options.CompileStepBeforeRun;
+import com.intellij.execution.BeforeRunTask;
+import com.intellij.execution.configurations.*;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.NotNullLazyValue;
 import icons.StudioIcons;
 import org.jetbrains.android.util.AndroidBundle;
@@ -19,7 +20,7 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
     super(ID,
           AndroidBundle.message("android.run.configuration.type.name"),
           AndroidBundle.message("android.run.configuration.type.description"),
-          NotNullLazyValue.lazy(() -> StudioIcons.Shell.Filetree.ANDROID_PROJECT));
+          NotNullLazyValue.createValue(() -> StudioIcons.Shell.Filetree.ANDROID_PROJECT));
 
     addFactory(new AndroidRunConfigurationFactory());
   }

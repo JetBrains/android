@@ -27,7 +27,7 @@ import com.android.ide.common.resources.TestResourceRepository;
 import com.android.resources.AarTestUtils;
 import com.android.resources.ResourceType;
 import com.android.resources.aar.AarSourceResourceRepository;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.res.ids.ResourceClassGenerator;
 import com.android.tools.res.ids.ResourceIdManager;
@@ -103,7 +103,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
                                "<resources>\n" +
                                "    <string name=\"show_all_apps\">Todo</string>\n" +
                                "</resources>\n",});
-    LocalResourceRepository resources = new LocalResourceRepositoryDelegate("test", repository);
+    LocalResourceRepository<VirtualFile> resources = new LocalResourceRepositoryDelegate("test", repository);
     AppResourceRepository appResources =
         AppResourceRepository.createForTest(myFacet, Collections.singletonList(resources), Collections.emptyList());
 
@@ -219,7 +219,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
         "    <declare-styleable name=\"AppStyleable\">\n" +
         "    </declare-styleable>" +
         "</resources>\n"});
-    LocalResourceRepository resourcesA = new LocalResourceRepositoryDelegate("A", repositoryA);
+    LocalResourceRepository<VirtualFile> resourcesA = new LocalResourceRepositoryDelegate("A", repositoryA);
     Path aarPath = TestUtils.resolveWorkspacePath(AarTestUtils.TEST_DATA_DIR + "/my_aar_lib/res");
     AarSourceResourceRepository libraryRepository = AarSourceResourceRepository.create(aarPath, LIBRARY_NAME);
     AppResourceRepository appResources =
@@ -293,7 +293,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
                            attributes.toString() +
                            "    </declare-styleable>\n" +
                            "</resources>\n"});
-    LocalResourceRepository resources = new LocalResourceRepositoryDelegate("resources", repository);
+    LocalResourceRepository<VirtualFile> resources = new LocalResourceRepositoryDelegate("resources", repository);
     AppResourceRepository appResources = AppResourceRepository.createForTest(myFacet, ImmutableList.of(resources), Collections.emptyList());
 
     assertEquals(1, appResources.getResources(RES_AUTO, ResourceType.STYLEABLE).size());
@@ -311,7 +311,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertEquals(1000, iArray.length);
   }
 
-  private static class LocalResourceRepositoryDelegate extends LocalResourceRepository implements SingleNamespaceResourceRepository {
+  private static class LocalResourceRepositoryDelegate extends LocalResourceRepository<VirtualFile> implements SingleNamespaceResourceRepository {
     private final TestResourceRepository myDelegate;
 
     protected LocalResourceRepositoryDelegate(@NotNull String displayName, TestResourceRepository delegate) {

@@ -28,19 +28,13 @@ import com.intellij.openapi.progress.ProgressManager
  * A ConstraintSet is a state that defines a specific layout of the contents in a ConstraintLayout.
  */
 internal class ConstraintSetModel(jsonProperty: JsonProperty) : JsonPropertyModel(jsonProperty) {
-  /**
-   * List of properties that have a constraint block assigned to it.
-   */
+  /** List of properties that have a constraint block assigned to it. */
   private val propertiesWithConstraints = innerProperties.filter { it.name != KeyWords.Extends }
 
-  /**
-   * Name of the ConstraintSet this is extending constraints from.
-   */
+  /** Name of the ConstraintSet this is extending constraints from. */
   val extendsFrom: String? = (findProperty(KeyWords.Extends)?.value as? JsonStringLiteral)?.value
 
-  /**
-   * List of IDs declared in this ConstraintSet.
-   */
+  /** List of IDs declared in this ConstraintSet. */
   val declaredIds = propertiesWithConstraints.map { it.name }
 
   /**
@@ -49,19 +43,20 @@ internal class ConstraintSetModel(jsonProperty: JsonProperty) : JsonPropertyMode
    * Note that it does not resolve constraints inherited from [extendsFrom].
    */
   val constraintsById: Map<String, ConstraintsModel> =
-    propertiesWithConstraints.associate { property ->
-      property.name to ConstraintsModel(property)
-    }
+    propertiesWithConstraints.associate { property -> property.name to ConstraintsModel(property) }
 
-  // TODO(b/207030860): Add a method that can pull all resolved constraints for each widget ID, it could be useful to make sure we are not
+  // TODO(b/207030860): Add a method that can pull all resolved constraints for each widget ID, it
+  // could be useful to make sure we are not
   //  offering options that are implicitly present from the 'Extends' ConstraintSet
 
   companion object {
     /**
-     * Returns a [ConstraintSetModel], for when the completion is performed on a property or the value of a property within a ConstraintSet
-     * declaration.
+     * Returns a [ConstraintSetModel], for when the completion is performed on a property or the
+     * value of a property within a ConstraintSet declaration.
      */
-    fun getModelForCompletionOnConstraintSetProperty(parameters: CompletionParameters): ConstraintSetModel? {
+    fun getModelForCompletionOnConstraintSetProperty(
+      parameters: CompletionParameters
+    ): ConstraintSetModel? {
       val parentJsonProperty = getJsonPropertyParent(parameters) ?: return null
       ProgressManager.checkCanceled()
       return ConstraintSetModel(parentJsonProperty)

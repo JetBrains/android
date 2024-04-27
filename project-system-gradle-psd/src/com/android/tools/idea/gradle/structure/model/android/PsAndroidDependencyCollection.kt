@@ -96,7 +96,11 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
   artifact.parent.parent
 ), PsAndroidDependencyCollection<PsResolvedLibraryAndroidDependency, PsResolvedJarAndroidDependency, PsResolvedModuleAndroidDependency> {
 
-  internal val reverseDependencies: Map<PsLibraryKey, Set<ReverseDependency>> = collectReverseDependencies()
+  internal val reverseDependencies: Map<PsLibraryKey, Set<ReverseDependency>>
+
+  init {
+    reverseDependencies = collectReverseDependencies()
+  }
 
   override fun collectResolvedDependencies(container: PsAndroidArtifact) {
     val artifact = container

@@ -31,16 +31,16 @@ import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifier;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -59,7 +59,7 @@ public class ViewLoader {
   private static final int ALLOWED_NESTED_VIEWS = 100;
 
   @NotNull private final RenderModelModule myModule;
-  @NotNull private final Map<String, Class<?>> myLoadedClasses = new HashMap<>();
+  @NotNull private final Map<String, Class<?>> myLoadedClasses = Maps.newHashMap();
   /** Classes that are being loaded currently. */
   @NotNull private final Multiset<Class<?>> myLoadingClasses = HashMultiset.create(5);
   /** Classes that have been modified after compilation. */
@@ -99,13 +99,13 @@ public class ViewLoader {
     // right namespace.
     if (CLASS_RECYCLER_VIEW_ADAPTER.newName().equals(className)) {
       className = RecyclerViewHelper.CN_ANDROIDX_CUSTOM_ADAPTER;
-      constructorSignature = ArrayUtilRt.EMPTY_CLASS_ARRAY;
-      constructorArgs = ArrayUtilRt.EMPTY_OBJECT_ARRAY;
+      constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
+      constructorArgs = ArrayUtil.EMPTY_OBJECT_ARRAY;
     }
     else if (CLASS_RECYCLER_VIEW_ADAPTER.oldName().equals(className)) {
       className = RecyclerViewHelper.CN_SUPPORT_CUSTOM_ADAPTER;
-      constructorSignature = ArrayUtilRt.EMPTY_CLASS_ARRAY;
-      constructorArgs = ArrayUtilRt.EMPTY_OBJECT_ARRAY;
+      constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
+      constructorArgs = ArrayUtil.EMPTY_OBJECT_ARRAY;
     }
     return loadClass(className, constructorSignature, constructorArgs, false);
   }
@@ -406,13 +406,14 @@ public class ViewLoader {
   }
 
   private void loadRClasses(@NotNull ResourceIdManager.RClassParser rClassParser) {
-    myModule.getDependencies().getRClassesNames().forEach((rClassName) -> {
+    myModule.getDependencies().getResourcePackageNames(true).forEach((resourcePackageName) -> {
       try {
-        if (rClassName == null) {
+        if (resourcePackageName == null) {
           LOG.info(
             String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
           return;
         }
+        String rClassName = resourcePackageName + '.' + SdkConstants.R_CLASS;
         myLogger.setResourceClass(rClassName);
         loadAndParseRClass(rClassName, rClassParser);
       }

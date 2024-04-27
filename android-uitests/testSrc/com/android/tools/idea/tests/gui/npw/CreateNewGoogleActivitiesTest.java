@@ -26,6 +26,7 @@ import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewPr
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -101,9 +102,10 @@ public class CreateNewGoogleActivitiesTest {
 
     String versionCatalogFileContents = editorFixture.open("gradle/libs.versions.toml")
       .getCurrentFileContents();
-    assertThat(versionCatalogFileContents).contains("play-services-maps = { group = \"com.google.android.gms\", name = \"play-services-maps\", version.ref = \"play-services-maps\" }");
+    assertThat(versionCatalogFileContents).contains("play-services-maps = { group = \"com.google.android.gms\", name = \"play-services-maps\", version.ref = \"playServicesMaps\" }");
 
-    assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
+    assertThat(ideFrame.invokeProjectMake(Wait.seconds(300)).isBuildSuccessful())
+      .isTrue();
   }
 
   /***
@@ -153,8 +155,9 @@ public class CreateNewGoogleActivitiesTest {
 
     String versionCatalogFileContents = editorFixture.open("gradle/libs.versions.toml")
       .getCurrentFileContents();
-    assertThat(versionCatalogFileContents).contains("play-services-wallet = { group = \"com.google.android.gms\", name = \"play-services-wallet\", version.ref = \"play-services-wallet\" }");
+    assertThat(versionCatalogFileContents).contains("play-services-wallet = { group = \"com.google.android.gms\", name = \"play-services-wallet\", version.ref = \"playServicesWallet\" }");
 
-    assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
+    assertThat(ideFrame.invokeProjectMake(Wait.seconds(300)).isBuildSuccessful())
+      .isTrue();
   }
 }

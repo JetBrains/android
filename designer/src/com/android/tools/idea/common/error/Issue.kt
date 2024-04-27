@@ -19,6 +19,7 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.rendering.errors.ui.MessageTip
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.intellij.icons.AllIcons
 import com.intellij.lang.annotation.HighlightSeverity
@@ -32,10 +33,7 @@ import javax.swing.event.HyperlinkListener
 class NlComponentIssueSource(component: NlComponent) : IssueSource, NlAttributesHolder {
   private val componentRef = WeakReference(component)
 
-  @Suppress(
-    "RedundantNullableReturnType"
-  ) // May be null when using mocked NlModel in the test environment.
-  override val file: VirtualFile? = component.model.virtualFile
+  override val files: Set<VirtualFile> = setOf(component.model.virtualFile)
   override val displayText: String =
     listOfNotNull(component.model.modelDisplayName, component.id, "<${component.tagName}>")
       .joinToString(" ")
@@ -62,16 +60,16 @@ class NlComponentIssueSource(component: NlComponent) : IssueSource, NlAttributes
     val component = componentRef.get() ?: return false
     val otherComponent = other.componentRef.get() ?: return false
     if (component != otherComponent) return false
-    if (file != other.file) return false
+    if (files != other.files) return false
     return displayText == other.displayText
   }
 
-  override fun hashCode(): Int = Objects.hash(component, file, displayText)
+  override fun hashCode(): Int = Objects.hash(component, files, displayText)
 }
 
 /** Interface that represents the source for a given [Issue]. */
 interface IssueSource {
-  val file: VirtualFile?
+  val files: Set<VirtualFile>
 
   /** The display text to show in the issue panel. */
   val displayText: String
@@ -80,7 +78,7 @@ interface IssueSource {
     @JvmField
     val NONE =
       object : IssueSource {
-        override val file: VirtualFile? = null
+        override val files: Set<VirtualFile> = emptySet()
         override val displayText: String = ""
 
         override fun equals(other: Any?): Boolean = other === this
@@ -92,23 +90,20 @@ interface IssueSource {
     @JvmStatic
     fun fromNlModel(model: NlModel): IssueSource =
       object : IssueSource {
-        @Suppress(
-          "RedundantNullableReturnType"
-        ) // May be null when using mocked NlModel in the test environment.
-        override val file: VirtualFile? = model.virtualFile
+        override val files: Set<VirtualFile> = setOf(model.virtualFile)
         override val displayText: String = model.modelDisplayName.orEmpty()
 
         override fun equals(other: Any?): Boolean =
           other is IssueSource &&
-            Objects.equals(file, other.file) &&
+            Objects.equals(files, other.files) &&
             Objects.equals(displayText, other.displayText)
 
-        override fun hashCode(): Int = Objects.hash(file, displayText)
+        override fun hashCode(): Int = Objects.hash(files, displayText)
       }
   }
 }
 
-/** Represent an Error that can be displayed in the [IssuePanel]. */
+/** Represent an Error that can be displayed in the shared issues panel. */
 abstract class Issue {
   /** A short summary of the error description */
   abstract val summary: String
@@ -123,6 +118,9 @@ abstract class Issue {
 
   /** The priority between 1 and 10. */
   abstract val category: String
+
+  /** A short message and an action showing some tips on how to solve the issue */
+  open val messageTips: List<MessageTip> = emptyList()
 
   /** Allows the [Issue] to return an HyperlinkListener to handle embedded links */
   open val hyperlinkListener: HyperlinkListener? = createDefaultHyperLinkListener()

@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
@@ -45,6 +45,11 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
+import java.awt.EventQueue
+import java.awt.event.KeyEvent
+import java.nio.file.Paths
+import javax.swing.JPanel
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -53,11 +58,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.awt.BorderLayout
-import java.awt.EventQueue
-import java.awt.event.KeyEvent
-import java.nio.file.Paths
-import javax.swing.JPanel
 
 class NlDesignSurfaceZoomControlsTest {
   private val androidProjectRule = AndroidProjectRule.withSdk()
@@ -69,6 +69,7 @@ class NlDesignSurfaceZoomControlsTest {
 
   private val facet: AndroidFacet
     get() = androidProjectRule.module.androidFacet!!
+
   private lateinit var layout: PsiFile
   private lateinit var surface: DesignSurface<LayoutlibSceneManager>
   private lateinit var fakeUi: FakeUi
@@ -112,8 +113,12 @@ class NlDesignSurfaceZoomControlsTest {
     }
 
     val model =
-      NlModel.builder(facet, layout.virtualFile, configuration)
-        .withParentDisposable(androidProjectRule.testRootDisposable)
+      NlModel.builder(
+          androidProjectRule.testRootDisposable,
+          facet,
+          layout.virtualFile,
+          configuration
+        )
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
 

@@ -4,43 +4,39 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="module" module-name="android.sdktools.jdwppacket" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-jdwptracer" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwptracer:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwptracer:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer/231.0.26.0/studio.android.sdktools.jdwptracer-231.0.26.0.jar">
-              <sha256sum>42f5e21e34d38d3c778db902743208571b25957942d2420a3d0be47442843482</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer/232.1.23.0/studio.android.sdktools.jdwptracer-232.1.23.0.jar">
+              <sha256sum>d20d233279c9d21f5143cba545334011784e34d7211dfdcd1fb22289c2be239d</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer/231.0.26.0/studio.android.sdktools.jdwptracer-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer/232.1.23.0/studio.android.sdktools.jdwptracer-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer/231.0.26.0/studio.android.sdktools.jdwptracer-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-jdwptracer-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwptracer_test:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwptracer_test:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer_test/231.0.26.0/studio.android.sdktools.jdwptracer_test-231.0.26.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer_test/232.1.23.0/studio.android.sdktools.jdwptracer_test-232.1.23.0.jar">
               <sha256sum>ac8f6c32e9cb526eb1762c3bf201fa9dda9e0933f257cc613b8bafa862af5c2e</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer_test/231.0.26.0/studio.android.sdktools.jdwptracer_test-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer_test/232.1.23.0/studio.android.sdktools.jdwptracer_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer_test/231.0.26.0/studio.android.sdktools.jdwptracer_test-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
+    <orderEntry type="module" module-name="android.sdktools.jdwppacket" />
   </component>
 </module>

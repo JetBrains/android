@@ -63,7 +63,6 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -658,7 +657,7 @@ public class ConfigurationMatcher {
       if (activeEditor != null) {
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
-        if (file != null && !file.equals(myFile) && FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE)
+        if (file != null && !file.equals(myFile) && file.getFileType() == XmlFileType.INSTANCE
             && ResourceFilesUtil.getFolderType(myFile) == ResourceFilesUtil.getFolderType(file)) {
           Configuration configuration = ConfigurationManager.getOrCreateInstance(myConfiguration.getModule()).getConfiguration(file);
           FolderConfiguration fullConfig = configuration.getFullConfig();
@@ -842,13 +841,13 @@ public class ConfigurationMatcher {
       mDensitySort.put(Density.HIGH.getDpiValue(), ++i);
       mDensitySort.put(Density.MEDIUM.getDpiValue(), ++i);
       mDensitySort.put(Density.XHIGH.getDpiValue(), ++i);
-      mDensitySort.put(Density.DPI_400.getDpiValue(), ++i);
+      mDensitySort.put(400, ++i);
       mDensitySort.put(Density.XXHIGH.getDpiValue(), ++i);
-      mDensitySort.put(Density.DPI_560.getDpiValue(), ++i);
+      mDensitySort.put(560, ++i);
       mDensitySort.put(Density.XXXHIGH.getDpiValue(), ++i);
-      mDensitySort.put(Density.DPI_420.getDpiValue(), ++i);
-      mDensitySort.put(Density.DPI_360.getDpiValue(), ++i);
-      mDensitySort.put(Density.DPI_280.getDpiValue(), ++i);
+      mDensitySort.put(420, ++i);
+      mDensitySort.put(360, ++i);
+      mDensitySort.put(280, ++i);
       mDensitySort.put(Density.TV.getDpiValue(), ++i);
       mDensitySort.put(Density.LOW.getDpiValue(), ++i);
 

@@ -17,41 +17,17 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.SdkConstants
-import com.android.tools.idea.kotlin.isSubclassOf
-import org.jetbrains.android.dom.manifest.Manifest
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
-import org.jetbrains.kotlin.android.isSubclassOf
-import org.jetbrains.kotlin.asJava.toLightClass
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
-import org.jetbrains.kotlin.psi.KtClass
+import com.intellij.psi.PsiClass
+import org.jetbrains.android.dom.AndroidAttributeValue
+import org.jetbrains.android.dom.manifest.Application
+import org.jetbrains.android.dom.manifest.Service
 
 
-class AddServiceToManifest : AbstractRegisterComponentAction("Add service to manifest") {
-    override fun isApplicableTo(element: KtClass, manifest: Manifest): Boolean =
-            element.isSubclassOfService() && !element.isRegisteredService(manifest)
-
-    override fun applyTo(element: KtClass, manifest: Manifest) {
-        val psiClass = element.toLightClass() ?: return
-        manifest.application.addService().serviceClass.value = psiClass
-    }
-
-    private fun KtClass.isRegisteredService(manifest: Manifest) = manifest.application.services.any {
-        it.serviceClass.value?.qualifiedName == fqName?.asString()
-    }
-
-    @OptIn(KtAllowAnalysisOnEdt::class)
-    private fun KtClass.isSubclassOfService() = if (KotlinPluginModeProvider.isK2Mode()) {
-        allowAnalysisOnEdt {
-            analyze(this@isSubclassOfService) {
-                isSubclassOf(this@isSubclassOfService, SdkConstants.CLASS_SERVICE, strict = true)
-            }
-        }
-    }
-    else {
-        (descriptor as? ClassDescriptor)?.defaultType?.isSubclassOf(SdkConstants.CLASS_SERVICE, strict = true) ?: false
-    }
+class AddServiceToManifest : AbstractRegisterComponentAction<Service>(
+    text = "Add service to manifest",
+    componentClassName = SdkConstants.CLASS_SERVICE,
+) {
+    override fun Application.getCurrentComponents(): List<Service> = services
+    override fun Application.addComponent(): Service = addService()
+    override fun Service.getComponentClass(): AndroidAttributeValue<PsiClass> = serviceClass
 }

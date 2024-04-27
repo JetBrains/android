@@ -19,6 +19,7 @@ import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.RESOURCE_DESIGN_ASSETS_KEY
 import com.android.tools.idea.ui.resourcemanager.rendering.SlowResource.Companion.isSlowResource
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
@@ -37,6 +38,8 @@ class RefreshDesignAssetAction(private val refreshAssetsCallback: (Array<DesignA
       refreshAssetsCallback(assets)
     }
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = canRefresh(e.getData(RESOURCE_DESIGN_ASSETS_KEY))

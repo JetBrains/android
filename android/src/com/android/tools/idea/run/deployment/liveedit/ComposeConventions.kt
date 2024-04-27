@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.org.objectweb.asm.ClassReader
 import java.nio.file.Files
 import java.nio.file.Paths
-import kotlin.math.ceil
 
 const val SLOTS_PER_INT = 10
 const val BITS_PER_INT = 31
@@ -51,7 +50,7 @@ fun calcStateParamCount(realValueParamsCount : Int, numDefaults : Int = 0) : Int
   // The formula follows the one found in ComposableFunctionBodyTransformer.kt
   var totalSyntheticParamCount = 0
   if (realValueParamsCount == 0) {
-    totalSyntheticParamCount += 1
+    totalSyntheticParamCount += 1;
   } else {
     val totalParams = realValueParamsCount
     totalSyntheticParamCount += Math.ceil(totalParams.toDouble() / SLOTS_PER_INT.toDouble()).toInt()
@@ -60,7 +59,7 @@ fun calcStateParamCount(realValueParamsCount : Int, numDefaults : Int = 0) : Int
   if (realValueParamsCount != 0 && numDefaults != 0) {
     totalSyntheticParamCount += Math.ceil(realValueParamsCount.toDouble() / BITS_PER_INT.toDouble()).toInt()
   }
-  return totalSyntheticParamCount
+  return totalSyntheticParamCount;
 }
 
 /**

@@ -115,7 +115,7 @@ PROJECT                       : project_sm_src
         LinkedProjectPath             : <PROJECT>_sm_src/app
         RootProjectPath               : <PROJECT>_sm_src
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugAndroidTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -263,8 +263,8 @@ PROJECT                       : project_sm_src
         ORDER_ENTRY                   : project_sm_src.app.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugAndroidTest/classes
-            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
+            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>_sm_src/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -310,7 +310,7 @@ PROJECT                       : project_sm_src
         LinkedProjectPath             : <PROJECT>_sm_src/app
         RootProjectPath               : <PROJECT>_sm_src
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>_sm_src/app/build/intermediates/javac/debug/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>_sm_src/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/project_sm_src.app.main.iml [-]
@@ -397,8 +397,8 @@ PROJECT                       : project_sm_src
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.google.guava:guava:19.0 [=]
         Classes
-            -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debug/classes
-            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
+            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>_sm_src/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -444,7 +444,7 @@ PROJECT                       : project_sm_src
         LinkedProjectPath             : <PROJECT>_sm_src/app
         RootProjectPath               : <PROJECT>_sm_src
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -567,8 +567,8 @@ PROJECT                       : project_sm_src
         ORDER_ENTRY                   : project_sm_src.app.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugUnitTest/classes
-            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>_sm_src/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
+            -                             : jar://<PROJECT>_sm_src/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -742,7 +742,7 @@ PROJECT                       : project_sm_src
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>_sm_src::app:createMockableJar, <PROJECT>_sm_src::app:generateDebugAndroidTestSources, <PROJECT>_sm_src::app:generateDebugSources
-            ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+            ASSEMBLE                      : <PROJECT>_sm_src::app:assembleDebug, <PROJECT>_sm_src::app:assembleDebugAndroidTest, <PROJECT>_sm_src::app:assembleDebugUnitTest
             REBUILD                       : <PROJECT>_sm_src::app:assembleDebug, <PROJECT>_sm_src::app:assembleDebugAndroidTest, <PROJECT>_sm_src::app:assembleDebugUnitTest, <PROJECT>_sm_src::app:clean
             COMPILE_JAVA                  : <PROJECT>_sm_src::app:compileDebugAndroidTestSources, <PROJECT>_sm_src::app:compileDebugSources, <PROJECT>_sm_src::app:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>_sm_src::app:createMockableJar, <PROJECT>_sm_src::app:generateDebugAndroidTestSources, <PROJECT>_sm_src::app:generateDebugSources
@@ -750,7 +750,7 @@ PROJECT                       : project_sm_src
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>_sm_src::app:generateDebugAndroidTestSources, <PROJECT>_sm_src::app:generateDebugSources
-            ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+            ASSEMBLE                      : <PROJECT>_sm_src::app:assembleDebug, <PROJECT>_sm_src::app:assembleDebugAndroidTest
             REBUILD                       : <PROJECT>_sm_src::app:assembleDebug, <PROJECT>_sm_src::app:assembleDebugAndroidTest, <PROJECT>_sm_src::app:clean
             COMPILE_JAVA                  : <PROJECT>_sm_src::app:compileDebugAndroidTestSources, <PROJECT>_sm_src::app:compileDebugSources
             SOURCE_GEN                    : <PROJECT>_sm_src::app:generateDebugAndroidTestSources, <PROJECT>_sm_src::app:generateDebugSources
@@ -758,7 +758,7 @@ PROJECT                       : project_sm_src
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>_sm_src::app:createMockableJar, <PROJECT>_sm_src::app:generateDebugSources
-            ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+            ASSEMBLE                      : <PROJECT>_sm_src::app:assembleDebug, <PROJECT>_sm_src::app:assembleDebugUnitTest
             REBUILD                       : <PROJECT>_sm_src::app:assembleDebug, <PROJECT>_sm_src::app:assembleDebugUnitTest, <PROJECT>_sm_src::app:clean
             COMPILE_JAVA                  : <PROJECT>_sm_src::app:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>_sm_src::app:createMockableJar, <PROJECT>_sm_src::app:generateDebugSources
@@ -766,7 +766,7 @@ PROJECT                       : project_sm_src
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>_sm_src::app:generateDebugSources
-            ASSEMBLE                      : :app:assembleDebug
+            ASSEMBLE                      : <PROJECT>_sm_src::app:assembleDebug
             REBUILD                       : <PROJECT>_sm_src::app:assembleDebug, <PROJECT>_sm_src::app:clean
             COMPILE_JAVA                  : <PROJECT>_sm_src::app:compileDebugSources
             SOURCE_GEN                    : <PROJECT>_sm_src::app:generateDebugSources

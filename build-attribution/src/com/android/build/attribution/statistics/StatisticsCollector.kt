@@ -15,12 +15,12 @@
  */
 package com.android.build.attribution.statistics
 
-import com.android.build.attribution.BuildAnalysisResults
 import com.android.build.attribution.BuildAnalyzerStorageManager
+import com.android.build.attribution.HistoricBuildAnalysisResults
 import com.intellij.openapi.project.Project
 import java.util.function.Consumer
 
-abstract class SingleStatisticsCollector : Consumer<BuildAnalysisResults>
+abstract class SingleStatisticsCollector : Consumer<HistoricBuildAnalysisResults>
 
 class StatisticsCollector(private val project: Project) {
 
@@ -29,7 +29,7 @@ class StatisticsCollector(private val project: Project) {
    */
   fun collectStatistics(singleCollector: SingleStatisticsCollector): SingleStatisticsCollector {
     BuildAnalyzerStorageManager.getInstance(project).getListOfHistoricBuildDescriptors().sortedBy { it.buildFinishedTimestamp }.forEach { resultDescriptor ->
-      var result: BuildAnalysisResults? = null
+      var result: HistoricBuildAnalysisResults? = null
       try {
         result = BuildAnalyzerStorageManager.getInstance(project).getHistoricBuildResultByID(resultDescriptor.buildSessionID).get()
       }

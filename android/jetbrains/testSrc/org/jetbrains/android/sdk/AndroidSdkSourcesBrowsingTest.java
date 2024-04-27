@@ -2,10 +2,9 @@ package org.jetbrains.android.sdk;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.res.AndroidInternalRClassFinder;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -175,7 +174,8 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     SdkModificator modificator = sdk.getSdkModificator();
     modificator.addRoot(sourcesDir, OrderRootType.SOURCES);
     modificator.addRoot(classesJar, OrderRootType.CLASSES);
-    ApplicationManager.getApplication().runWriteAction(() -> modificator.commitChanges());
+    modificator.commitChanges();
+
     return sourcesDir.getPath();
   }
 }

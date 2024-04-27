@@ -17,4 +17,4 @@ package com.android.build.attribution.data
 
 import java.time.Duration
 
-data class AnnotationProcessorData(val className: String, val compilationDuration: Duration)
+data class AnnotationProcessorData constructor(val className: String, val compilationDuration: Duration)

@@ -36,15 +36,15 @@ import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.jetbrains.plugins.gradle.properties.GradlePropertiesFileKt.GRADLE_JAVA_HOME_PROPERTY;
 import static java.util.Collections.emptyList;
+import static org.jetbrains.plugins.gradle.properties.GradlePropertiesFileKt.GRADLE_JAVA_HOME_PROPERTY;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.AgpVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
@@ -242,7 +242,7 @@ public class AndroidGradleTests {
         contents = updateBuildToolsVersion(contents);
         contents = updateCompileSdkVersion(contents, compileSdkVersion);
         contents = updateTargetSdkVersion(contents);
-        contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion[ (](\\d+)");
+        contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion *[(=]? *(\\d+)");
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdk *= *(\\d+)");
         contents = updateLocalRepositories(contents, localRepositories);
 
@@ -330,14 +330,14 @@ public class AndroidGradleTests {
 
   @NotNull
   public static String updateCompileSdkVersion(@NotNull String contents, @NotNull String compileSdkVersion) {
-    contents = replaceRegexGroup(contents, "compileSdkVersion[ (]([0-9]+)", compileSdkVersion);
+    contents = replaceRegexGroup(contents, "compileSdkVersion *[(=]? *([0-9]+)", compileSdkVersion);
     contents = replaceRegexGroup(contents, "compileSdk *[(=]? *([0-9]+)", compileSdkVersion);
     return contents;
   }
 
   @NotNull
   public static String updateTargetSdkVersion(@NotNull String contents) {
-    contents = replaceRegexGroup(contents, "targetSdkVersion[ (]([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
+    contents = replaceRegexGroup(contents, "targetSdkVersion *[(=]? *([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
     contents = replaceRegexGroup(contents, "targetSdk *[(=]? *([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
     return contents;
   }
@@ -643,15 +643,13 @@ public class AndroidGradleTests {
       }
 
       Sdks.allowAccessToSdk(projectDisposable);
-
       final var oldAndroidSdkPath = ideSdks.getAndroidSdkPath();
       ideSdks.setAndroidSdkPath(androidSdkPath);
       Disposer.register(projectDisposable, () -> {
         WriteAction.runAndWait(() -> {
-          AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.toPath().toString() : null);
+            AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.getAbsolutePath() : null);
         });
       });
-
       IdeSdks.removeJdksOn(projectDisposable);
 
       LOG.info("Set IDE Sdk Path to " + androidSdkPath);
@@ -672,7 +670,7 @@ public class AndroidGradleTests {
 
   public static void prepareProjectForImportCore(@NotNull File srcRoot,
                                                  @NotNull File projectRoot,
-                                                 @NotNull ThrowableConsumer<? super File, ? extends IOException> patcher)
+                                                 @NotNull ThrowableConsumer<File, IOException> patcher)
     throws IOException {
     TestCase.assertTrue(srcRoot.getPath(), srcRoot.exists());
 

@@ -23,6 +23,7 @@ import studio.network.inspection.NetworkInspectorProtocol.StartInspectionCommand
 
 interface NetworkInspectorClient {
   suspend fun getStartTimeStampNs(): Long
+
   suspend fun interceptResponse(command: InterceptCommand)
 }
 

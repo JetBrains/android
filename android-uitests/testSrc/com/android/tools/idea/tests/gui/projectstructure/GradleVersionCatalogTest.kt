@@ -47,39 +47,42 @@ class GradleVersionCatalogTest {
   private val versionsFilePath: String = "gradle/libs.versions.toml"
   private val appBuildFilePath: String = "app/build.gradle"
 
-  /**
-   * Gradle version catalog - Update/Revert agp version using AGP upgrade assistant
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * Bug: b/262759141
-   * <p>
-   *
-   * <pre>
-   *   Test Prerequisite:
-   *    1. Sample Project with "libs.versions.toml" already present.
-   *   Test Steps:
-   *    1. Open Sample project with older AGP version (AGP version <<< current AGP release) and wait for the project sync to be completed.
-   *    2. Open/Check "libs.versions.toml" file is present.
-   *    3. Open Upgrade Assistant (Verify 1)
-   *    4. Select the latest AGP version from the Combo box and upgrade the version. (Verify 2, 3, 4).
-   *    5. Click on the revert project files. (Verify 2, 4, 6)
-   *   Verify:
-   *    1. AGP upgrade assistant tool window should open.
-   *    2. AGP upgrade should be successful.
-   *    3. Check if the AGP version is updated in the "libs.versions.toml" file.
-   *    4. Verify if the AGP upgrade assistant window is not stuck in loading state.
-   *    5. Check if the AGP version is reverted to the previous AGP in "libs.versions.toml" file.
-   * </pre>
-   * <p>
-   */
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   @Throws(Exception::class)
   fun testAGPUpgradeUsingUpgradeAssistant() {
+
+    /**
+     * Gradle version catalog - Update/Revert agp version using AGP upgrade assistant
+     * <p>
+     * This is run to qualify releases. Please involve the test team in substantial changes.
+     * <p>
+     * Bug: b/262759141
+     * <p>
+     *
+     * <pre>
+     *   Test Prerequisite:
+     *    1. Sample Project with "libs.versions.toml" already present.
+     *   Test Steps:
+     *    1. Open Sample project with older AGP version (AGP version <<< current AGP release) and wait for the project sync to be completed.
+     *    2. Open/Check "libs.versions.toml" file is present.
+     *    3. Open Upgrade Assistant (Verify 1)
+     *    4. Select the latest AGP version from the Combo box and upgrade the version. (Verify 2, 3, 4).
+     *    5. Click on the revert project files. (Verify 2, 4, 6)
+     *   Verify:
+     *    1. AGP upgrade assistant tool window should open.
+     *    2. AGP upgrade should be successful.
+     *    3. Check if the AGP version is updated in the "libs.versions.toml" file.
+     *    4. Verify if the AGP upgrade assistant window is not stuck in loading state.
+     *    5. Check if the AGP version is reverted to the previous AGP in "libs.versions.toml" file.
+     * </pre>
+     * <p>
+     */
+
     val ideFrame: IdeFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish(projectName,
                                                                                        null,
                                                                                        "7.4.1",
-                                                                                       "1.8.10",
+                                                                                       "1.9.0",
                                                                                        null,
                                                                                        GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
@@ -137,38 +140,41 @@ class GradleVersionCatalogTest {
     assertTrue { versionsFileContentsAfterRevertingProject.contains(agpVersionBeforeUpgrade) }
   }
 
-  /**
-   * Gradle version catalog - check PSD
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * Bug: b/262756517
-   * <p>
-   *
-   * <pre>
-   *   Test Steps:
-   *    1. Open Sample project and wait for the project sync to be completed.
-   *    2. Open/Check "libs.versions.toml" file is present.
-   *    3. Open Project Structure Dialog -> Project. (Verification 1)
-   *   Test PSD variables.
-   *    1. Open Project Structure Dialog -> Variables view. (Verification 2)
-   *    2. Check the variables and versions. (Verification 3)
-   *    3. Change any catalog version in variable.
-   *    4. Click Ok. (Verification 4, 5)
-   *   Test PSD Dependencies.
-   *    1. Open Project Structure Dialog -> Dependencies view -> App. (Verification 6)
-   *    2. Choose any of the dependencies and change the version from the dropdown.
-   *    3. Click Ok (Verification 7)
-   * </pre>
-   * <p>
-   */
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   @Throws(Exception::class)
   fun testProjectStructureDialog() {
+
+    /**
+     * Gradle version catalog - check PSD
+     * <p>
+     * This is run to qualify releases. Please involve the test team in substantial changes.
+     * <p>
+     * Bug: b/262756517
+     * <p>
+     *
+     * <pre>
+     *   Test Steps:
+     *    1. Open Sample project and wait for the project sync to be completed.
+     *    2. Open/Check "libs.versions.toml" file is present.
+     *    3. Open Project Structure Dialog -> Project. (Verification 1)
+     *   Test PSD variables.
+     *    1. Open Project Structure Dialog -> Variables view. (Verification 2)
+     *    2. Check the variables and versions. (Verification 3)
+     *    3. Change any catalog version in variable.
+     *    4. Click Ok. (Verification 4, 5)
+     *   Test PSD Dependencies.
+     *    1. Open Project Structure Dialog -> Dependencies view -> App. (Verification 6)
+     *    2. Choose any of the dependencies and change the version from the dropdown.
+     *    3. Click Ok (Verification 7)
+     * </pre>
+     * <p>
+     */
+
     val ideFrame: IdeFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish(projectName,
                                                                                        null,
                                                                                        "7.4.1",
-                                                                                       "1.8.10",
+                                                                                       "1.9.0",
                                                                                        null,
                                                                                        GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
 
@@ -195,7 +201,7 @@ class GradleVersionCatalogTest {
         enter()
         Truth.assertThat(contents()).containsAllIn(listOf(
           "agp" to "7.4.1",
-          "kotlin" to "1.8.10",
+          "kotlin" to "1.9.0",
           "material" to "1.5.0",
           "appcompat" to "1.3.0",
           "constraintlayout" to "2.1.3",
@@ -218,7 +224,7 @@ class GradleVersionCatalogTest {
         enter()
         Truth.assertThat(contents()).containsAllIn(listOf(
           "agp" to "7.4.1",
-          "kotlin" to "1.8.10",
+          "kotlin" to "1.9.0",
           "material" to "1.8.0",
           "appcompat" to "1.3.0",
           "constraintlayout" to "2.1.3",
@@ -244,7 +250,7 @@ class GradleVersionCatalogTest {
 
       Truth.assertThat(versionMap.toList()).containsExactly(
       "agp" to "7.4.1",
-      "kotlin" to "1.8.10",
+      "kotlin" to "1.9.0",
       "material" to "1.8.0",
       "appcompat" to "1.3.0",
       "constraintlayout" to "2.1.3",
@@ -284,5 +290,28 @@ class GradleVersionCatalogTest {
     val appBuildFileContent: String = editor.open(appBuildFilePath).currentFileContents
 
     assertTrue(appBuildFileContent.contains("implementation libs.appcompat"))
+
+    // need run upgrade assistant before doing build
+    val upgradeAssistant: AGPUpgradeAssistantToolWindowFixture = ideFrame.getUgradeAssistantToolWindow(true)
+
+    upgradeAssistant.selectAGPVersion(ANDROID_GRADLE_PLUGIN_VERSION)
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
+    upgradeAssistant.clickRunSelectedStepsButton()
+    ideFrame.waitForGradleSyncToFinish(null)
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
+    assertTrue { upgradeAssistant.syncStatus }
+    assertTrue { upgradeAssistant.isRefreshButtonEnabled }
+    assertFalse { upgradeAssistant.isShowUsagesEnabled }
+    assertFalse { upgradeAssistant.isRunSelectedStepsButtonEnabled }
+
+    upgradeAssistant.hide();
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
+    IdeFrameFixture.find(guiTest.robot()).requestFocusIfLost();
+
+    val buildSuccess = guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful
+    Truth.assertThat(buildSuccess).isTrue()
   }
 }

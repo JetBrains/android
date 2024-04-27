@@ -24,7 +24,6 @@ import com.intellij.openapi.util.Computable
 import com.intellij.util.Consumer
 import com.intellij.util.Function
 import com.intellij.util.Processor
-import org.mockito.Mockito.mock
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Font
@@ -32,6 +31,7 @@ import java.awt.event.ActionListener
 import javax.swing.JComponent
 import javax.swing.KeyStroke
 import javax.swing.ListCellRenderer
+import org.mockito.Mockito.mock
 
 open class FakePopupChooserBuilder : IPopupChooserBuilder<SqliteDatabaseId> {
 
@@ -130,7 +130,9 @@ open class FakePopupChooserBuilder : IPopupChooserBuilder<SqliteDatabaseId> {
     cancelOnWindowDeactivation: Boolean
   ): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setCancelOnOtherWindowOpen(cancelOnWindow: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setCancelOnOtherWindowOpen(
+    cancelOnWindow: Boolean
+  ): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setSelectionMode(selection: Int): IPopupChooserBuilder<SqliteDatabaseId> = this
 
@@ -152,7 +154,8 @@ open class FakePopupChooserBuilder : IPopupChooserBuilder<SqliteDatabaseId> {
   override fun setVisibleRowCount(visibleRowCount: Int): IPopupChooserBuilder<SqliteDatabaseId> =
     this
 
-  override fun withFixedRendererSize(dimension: Dimension): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun withFixedRendererSize(dimension: Dimension): IPopupChooserBuilder<SqliteDatabaseId> =
+    this
 
   override fun getBackgroundUpdater(): GenericListComponentUpdater<SqliteDatabaseId>? = null
 }

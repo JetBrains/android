@@ -31,13 +31,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
 
-
-/**
- * Tests for [LogcatApplicationSettingsConfigurable]
- */
+/** Tests for [LogcatApplicationSettingsConfigurable] */
 class LogcatApplicationSettingsConfigurableTest {
-  @get:Rule
-  val rule = RuleChain(ApplicationRule(), EdtRule())
+  @get:Rule val rule = RuleChain(ApplicationRule(), EdtRule())
 
   private val logcatSettings = AndroidLogcatSettings()
 
@@ -70,8 +66,9 @@ class LogcatApplicationSettingsConfigurableTest {
       configurable.cycleBufferSizeTextField.text = it
 
       assertThat(configurable.isModified).named(it).isFalse()
-      assertThat(configurable.cyclicBufferSizeWarningLabel.text).named(it).isEqualTo(
-        "Invalid. Please enter an integer between 1 and 102400 (1KB-100MB)")
+      assertThat(configurable.cyclicBufferSizeWarningLabel.text)
+        .named(it)
+        .isEqualTo("Invalid. Please enter an integer between 1 and 102400 (1KB-100MB)")
     }
   }
 
@@ -94,7 +91,8 @@ class LogcatApplicationSettingsConfigurableTest {
     configurable.cycleBufferSizeTextField.text = (LARGE_FOR_CONTENT_LOADING / 1024 + 1).toString()
 
     assertThat(configurable.isModified).isTrue()
-    assertThat(configurable.cyclicBufferSizeWarningLabel.text).isEqualTo("Warning: large buffer size can cause performance degradation")
+    assertThat(configurable.cyclicBufferSizeWarningLabel.text)
+      .isEqualTo("Warning: large buffer size can cause performance degradation")
   }
 
   @Test
@@ -147,11 +145,13 @@ class LogcatApplicationSettingsConfigurableTest {
   @Test
   @RunsInEdt
   fun apply() {
-    val logcatSettings = AndroidLogcatSettings(
-      bufferSize = 100 * 1024,
-      defaultFilter = "foo",
-      mostRecentlyUsedFilterIsDefault = false,
-      ignoredTags = emptySet())
+    val logcatSettings =
+      AndroidLogcatSettings(
+        bufferSize = 100 * 1024,
+        defaultFilter = "foo",
+        mostRecentlyUsedFilterIsDefault = false,
+        ignoredTags = emptySet()
+      )
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
     configurable.cycleBufferSizeTextField.text = "200"
     configurable.defaultFilterTextField.text = "bar"
@@ -160,11 +160,15 @@ class LogcatApplicationSettingsConfigurableTest {
 
     configurable.apply()
 
-    assertThat(logcatSettings).isEqualTo(AndroidLogcatSettings(
-      bufferSize = 200 * 1024,
-      defaultFilter = "bar",
-      mostRecentlyUsedFilterIsDefault = true,
-      ignoredTags = setOf("foo", "bar")))
+    assertThat(logcatSettings)
+      .isEqualTo(
+        AndroidLogcatSettings(
+          bufferSize = 200 * 1024,
+          defaultFilter = "bar",
+          mostRecentlyUsedFilterIsDefault = true,
+          ignoredTags = setOf("foo", "bar")
+        )
+      )
   }
 
   @Test
@@ -207,9 +211,7 @@ class LogcatApplicationSettingsConfigurableTest {
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
     assertThat(configurable.isModified).isFalse()
 
-    runInEdtAndWait {
-      configurable.ignoreTagsTextField.component.text = "foobar"
-    }
+    runInEdtAndWait { configurable.ignoreTagsTextField.component.text = "foobar" }
 
     assertThat(configurable.isModified).isTrue()
   }
@@ -244,11 +246,10 @@ class LogcatApplicationSettingsConfigurableTest {
     assertThat(configurable.defaultFilterTextField.isEnabled).isTrue()
   }
 
-  private fun logcatApplicationSettingsConfigurable(logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings())
-    : LogcatApplicationSettingsConfigurable =
+  private fun logcatApplicationSettingsConfigurable(
+    logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings()
+  ): LogcatApplicationSettingsConfigurable =
     LogcatApplicationSettingsConfigurable(logcatSettings).apply {
-      runInEdtAndWait {
-        createComponent()
-      }
+      runInEdtAndWait { createComponent() }
     }
 }

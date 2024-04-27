@@ -21,7 +21,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.ui.NewUiValue;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.util.ui.FocusUtil;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
@@ -48,7 +48,7 @@ public class WorkBenchManager implements Disposable {
 
   public WorkBenchManager() {
     myWorkBenches = Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
-    if (NewUiValue.isEnabled()) {
+    if (ExperimentalUI.isNewUI()) {
       FocusUtil.addFocusOwnerListener(this, evt -> findActiveToolWindow());
     }
   }

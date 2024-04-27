@@ -16,6 +16,19 @@
 package com.android.tools.idea.rendering
 
 import com.android.tools.rendering.RenderResult
+import java.util.concurrent.CancellationException
+
+/**
+ * Extension implementing some heuristics to detect custom View rendering errors. This allows to
+ * identify render errors better.
+ */
+fun RenderResult?.isErrorResult(): Boolean =
+  this != null // If there is not result, we have no errors.
+  && (!renderResult.isSuccess
+      || (logger.hasErrors() && renderResult.exception !is CancellationException))
+
+fun RenderResult?.isCancellationException(): Boolean =
+  this != null && renderResult.exception is CancellationException
 
 /**
  * Extension implementing some heuristics to detect custom View rendering errors. This allows to
@@ -23,19 +36,8 @@ import com.android.tools.rendering.RenderResult
  * @param customViewFqcn
  */
 fun RenderResult?.isErrorResult(customViewFqcn: String): Boolean {
-  if (this == null) {
-    return true
-  }
-
-  // Renders might fail with onLayout exceptions hiding actual errors. This will return an
-  // empty image
-  // result. We can detect this by checking for a 1x1 or 0x0 image and the logger having errors.
-  if (logger.hasErrors() && renderedImage.width <= 1 && renderedImage.height <= 1) {
-    return true
-  }
-
-  return logger.brokenClasses.values.any {
+  return isErrorResult() || this?.logger?.brokenClasses?.values?.any {
     it is ReflectiveOperationException &&
     it.stackTrace.any { ex -> customViewFqcn == ex.className }
-  }
+  } ?: true
 }

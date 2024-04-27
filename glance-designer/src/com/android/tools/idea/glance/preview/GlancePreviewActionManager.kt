@@ -18,10 +18,9 @@ package com.android.tools.idea.glance.preview
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.preview.actions.PreviewStatusIcon
-import com.android.tools.idea.preview.actions.createStatusIcon
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import javax.swing.JComponent
 
@@ -30,7 +29,7 @@ import javax.swing.JComponent
  *
  * TODO(b/239802877): add toolbar functionality similar for the Compose one.
  */
-class GlancePreviewActionManager(private val surface: DesignSurface<LayoutlibSceneManager>) :
+class GlancePreviewActionManager(surface: DesignSurface<LayoutlibSceneManager>) :
   ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
   override fun registerActionsShortcuts(component: JComponent) {}
 
@@ -38,6 +37,5 @@ class GlancePreviewActionManager(private val surface: DesignSurface<LayoutlibSce
 
   override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
 
-  override fun getSceneViewStatusIcon(sceneView: SceneView) =
-    createStatusIcon(PreviewStatusIcon(sceneView), surface)
+  override fun getSceneViewStatusIconAction(): AnAction = PreviewStatusIcon()
 }

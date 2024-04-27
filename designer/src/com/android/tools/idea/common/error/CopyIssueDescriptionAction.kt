@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.error
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.ide.CopyPasteManager
@@ -27,6 +28,8 @@ class CopyIssueDescriptionAction : DumbAwareAction() {
     val description = getSelectedNode(event)?.getDescription()
     event.presentation.isEnabledAndVisible = description != null
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   override fun actionPerformed(event: AnActionEvent) {
     val description = getSelectedNode(event)?.getDescription() ?: return

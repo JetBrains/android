@@ -102,7 +102,9 @@ class SnapshotInfo(val snapshotFolder: Path,
 
     other as SnapshotInfo
 
-    return snapshotFolder == other.snapshotFolder
+    if (snapshotFolder != other.snapshotFolder) return false
+
+    return true
   }
 
   override fun hashCode(): Int {

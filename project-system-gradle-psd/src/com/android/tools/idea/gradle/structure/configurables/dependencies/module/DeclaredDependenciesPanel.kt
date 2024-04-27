@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.enqueueTagged
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsModule
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonShortcuts
@@ -206,6 +207,8 @@ internal class DeclaredDependenciesPanel(
       val details = currentDependencyDetails
       e.presentation.isEnabled = details != null
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
       val dependency = selection

@@ -17,26 +17,40 @@ package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.io.grpc.Status
+import com.android.tools.idea.io.grpc.StatusRuntimeException
+import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil.toTitleCase
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeout
 import java.io.EOFException
 import java.io.IOException
+import java.util.EnumSet
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.Icon
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 /**
  * Controls the device by sending control messages to it.
  */
-class DeviceController(
+internal class DeviceController(
   disposableParent: Disposable,
   controlChannel: SuspendingSocketChannel
 ) : Disposable {
@@ -48,12 +62,17 @@ class DeviceController(
   private val receiverScope: CoroutineScope
   private val deviceClipboardListeners: MutableList<DeviceClipboardListener> = ContainerUtil.createLockFreeCopyOnWriteList()
   private val deviceStateListeners: MutableList<DeviceStateListener> = ContainerUtil.createLockFreeCopyOnWriteList()
+  private val displayListeners:  MutableList<DisplayListener> = ContainerUtil.createLockFreeCopyOnWriteList()
   @Volatile
   internal var supportedFoldingStates: List<FoldingState> = emptyList()
     private set
   @Volatile
   internal var currentFoldingState: FoldingState? = null
     private set
+  private val responseCallbacks = ResponseCallbackMap()
+  private val requestIdCounter = AtomicInteger()
+  private val requestIdGenerator: () -> Int
+    get() = { requestIdCounter.getAndIncrement() }
 
   init {
     Disposer.register(disposableParent, this)
@@ -61,11 +80,53 @@ class DeviceController(
     startReceivingMessages()
   }
 
+  /**
+   * Sends a control message to the device. The control message is not expected to trigger a response.
+   */
   fun sendControlMessage(message: ControlMessage) {
     if (!executor.isShutdown) {
       executor.submit {
         send(message)
       }
+    }
+  }
+
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
+  suspend fun getDisplayConfigurations(): List<DisplayDescriptor> {
+    val request = DisplayConfigurationRequest(requestIdGenerator)
+    return (sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? DisplayConfigurationResponse)?.displays ?:
+           throw RuntimeException("Unexpected response")
+  }
+
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
+  suspend fun getUiSettings(): UiSettingsResponse {
+    val request = UiSettingsRequest(requestIdGenerator)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsResponse
+           ?: throw RuntimeException("Unexpected response")
+  }
+
+  /**
+   * Sends a request message to the device and returns the received response.
+   * The [request] has to implement the [CorrelatedMessage] interface.
+   */
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
+  private suspend fun sendRequest(request: ControlMessage, timeout: Long, unit: TimeUnit): ControlMessage {
+    require(request is CorrelatedMessage)
+    try {
+      return withTimeout(unit.toMillis(timeout)) {
+        suspendCancellableCoroutine { continuation ->
+          responseCallbacks.put(request.requestId, continuation)
+          executor.submit {
+            send(request)
+          }
+        }
+      }
+    }
+    catch (e: TimeoutCancellationException) {
+      throw TimeoutException()
+    }
+    finally {
+      responseCallbacks.remove(request.requestId)
     }
   }
 
@@ -76,6 +137,7 @@ class DeviceController(
 
   override fun dispose() {
     executor.shutdown()
+    responseCallbacks.cancelAll()
     try {
       executor.awaitTermination(2, TimeUnit.SECONDS)
     }
@@ -105,6 +167,15 @@ class DeviceController(
     deviceStateListeners.remove(listener)
   }
 
+  /** Adds a listener of that is called when device displays are added or removed. */
+  internal fun addDisplayListener(listener: DisplayListener) {
+    displayListeners.add(listener)
+  }
+
+  internal fun removeDisplayListener(listener: DisplayListener) {
+    displayListeners.remove(listener)
+  }
+
   private fun startReceivingMessages() {
     receiverScope.launch {
       while (true) {
@@ -113,9 +184,12 @@ class DeviceController(
             suspendingInputStream.waitForData(1)
           }
           when (val message = ControlMessage.deserialize(inputStream)) {
+            is CorrelatedMessage -> onResponse(message)
             is ClipboardChangedNotification -> onDeviceClipboardChanged(message)
             is SupportedDeviceStatesNotification -> onSupportedDeviceStatesChanged(message)
             is DeviceStateNotification -> onDeviceStateChanged(message)
+            is DisplayAddedNotification -> onDisplayAdded(message)
+            is DisplayRemovedNotification -> onDisplayRemoved(message)
             else -> thisLogger().error("Unexpected type of a received message: ${message.type}")
           }
         }
@@ -129,6 +203,16 @@ class DeviceController(
           throw e
         }
       }
+    }
+  }
+
+  private fun onResponse(response: CorrelatedMessage) {
+    val continuation = responseCallbacks.remove(response.requestId) ?: return
+    if (response is ErrorResponse) {
+      continuation.resumeWithException(StatusRuntimeException(Status.UNKNOWN.withDescription(response.errorMessage)))
+    }
+    else {
+      continuation.resume(response)
     }
   }
 
@@ -165,25 +249,44 @@ class DeviceController(
    * ```
    */
   private fun parseDeviceStates(text: String): List<FoldingState> {
-    val regex = Regex("DeviceState\\{identifier=(?<id>\\d+), name='(?<name>\\w+)'(, app_accessible=(?<accessible>true|false))?(, .*)?}")
+    val regex = Regex("DeviceState\\{identifier=(?<id>\\d+), name='(?<name>\\w+)'(?<flags>(, \\w+=\\w+)+)?}")
     return regex.findAll(text).map {
       val groups = it.groups
       val id = groups["id"]?.value?.toInt() ?: throw IllegalArgumentException()
       val name = groups["name"]?.value ?: throw IllegalArgumentException()
-      val accessible = groups["accessible"]?.value != "false"
-      FoldingState(id, deviceStateNameToFoldingStateName(name), accessible)
+      val flagsSection = groups["flags"]?.value ?: ""
+      val flags = parseDeviceStateFlags(flagsSection)
+      FoldingState(id, deviceStateNameToFoldingStateName(name), flags)
     }.toList()
   }
 
+  private fun parseDeviceStateFlags(flagsText: String): Set<FoldingState.Flag> {
+    val flags = EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE)
+    for (keyValue in flagsText.split(", ")) {
+      val parts = keyValue.split('=')
+      if (parts.size == 2) {
+        for (flag in FoldingState.Flag.values()) {
+          if (parts[0].equals(flag.name, ignoreCase = true)) {
+            when (parts[1]) {
+              "true" -> flags.add(flag)
+              "false" -> flags.remove(flag)
+            }
+          }
+        }
+      }
+    }
+    return flags
+  }
+
   private fun deviceStateNameToFoldingStateName(name: String): String {
-    var correctedName = name.removeSuffix("_STATE")
+    var correctedName = name.replaceSuffix("_STATE", "_MODE")
     correctedName = when (correctedName) {
       "CLOSE" -> "CLOSED"
       "OPENED" -> "OPEN"
       "HALF_CLOSED" -> "HALF_OPEN"
       "HALF_FOLDED" -> "HALF_OPEN"
       "HALF_OPENED" -> "HALF_OPEN"
-      "CONCURRENT_INNER_DEFAULT" -> "BOTH_DISPLAYS"
+      "CONCURRENT_INNER_DEFAULT" -> "DUAL_DISPLAY_MODE"
       else -> correctedName
     }
     if (correctedName.startsWith("HALF_")) {
@@ -193,10 +296,30 @@ class DeviceController(
   }
 
   private fun onDeviceStateChanged(message: DeviceStateNotification) {
-    currentFoldingState = supportedFoldingStates.find { it.id == message.deviceState }
+    setFoldingState(message.deviceState)
     for (listener in deviceStateListeners) {
       listener.onDeviceStateChanged(message.deviceState)
     }
+  }
+
+  fun setFoldingState(stateId: Int) {
+    currentFoldingState = supportedFoldingStates.find { it.id == stateId }
+  }
+
+  private fun onDisplayAdded(message: DisplayAddedNotification) {
+    for (listener in displayListeners) {
+      listener.onDisplayAdded(message.displayId)
+    }
+  }
+
+  private fun onDisplayRemoved(message: DisplayRemovedNotification) {
+    for (listener in displayListeners) {
+      listener.onDisplayRemoved(message.displayId)
+    }
+  }
+
+  private fun String.replaceSuffix(old: String, new: String): String {
+    return if (endsWith(old)) substring(0, length - old.length) + new else this
   }
 
   internal interface DeviceClipboardListener {
@@ -211,10 +334,47 @@ class DeviceController(
     @AnyThread
     fun onDeviceStateChanged(deviceState: Int)
   }
+
+  internal interface DisplayListener {
+    @AnyThread
+    fun onDisplayAdded(displayId: Int)
+
+    @AnyThread
+    fun onDisplayRemoved(displayId: Int)
+  }
+
+  private class ResponseCallbackMap {
+    private val responseCallbacks = Int2ObjectOpenHashMap<CancellableContinuation<ControlMessage>>()
+
+    @Synchronized
+    fun put(requestId: Int, callback: CancellableContinuation<ControlMessage>) {
+      if (responseCallbacks.put(requestId, callback) != null) {
+        logger<DeviceController>().error("Duplicate request ID: $requestId")
+      }
+    }
+
+    @Synchronized
+    fun remove(requestId: Int): CancellableContinuation<ControlMessage>? {
+      return responseCallbacks.remove(requestId)
+    }
+
+    @Synchronized
+    fun cancelAll() {
+      for (continuation in responseCallbacks.values) {
+        continuation.cancel()
+      }
+    }
+  }
 }
 
-internal data class FoldingState(val id: Int, val name: String, val appAccessible: Boolean) {
+internal data class FoldingState(val id: Int, val name: String, val flags: Set<Flag>) {
   val icon: Icon? = FOLDING_STATE_ICONS[name]
+
+  enum class Flag {
+    APP_ACCESSIBLE, CANCEL_WHEN_REQUESTER_NOT_ON_TOP
+  }
 }
 
 private const val CONTROL_MSG_BUFFER_SIZE = 4096
+
+private const val RESPONSE_TIMEOUT_SEC = 10L

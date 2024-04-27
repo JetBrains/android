@@ -57,7 +57,7 @@ class DrawableSlowPreviewProvider(
       // Delegate framework resources to FrameworkDrawableRenderer. DesignAssetRendererManager fails to provide an image for framework xml
       // resources, it tries to just use the file reference in ResourceValue but it needs a whole ResourceValue from the ResourceResolver
       // that also points to LayoutLib's framework resources instead of the local Android Sdk.
-      return renderFrameworkDrawable(resolveValue, configContext, designAsset, dimension)?.get()
+      return renderFrameworkDrawable(resolveValue, configContext, designAsset, dimension)?.get() ?: return null
     }
 
     val file = resourceResolver.resolveDrawable(resolveValue, project) ?: designAsset.file

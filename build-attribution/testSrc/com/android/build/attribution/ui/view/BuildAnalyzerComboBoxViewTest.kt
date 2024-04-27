@@ -173,7 +173,7 @@ class BuildAnalyzerComboBoxViewTest {
 
   @Test
   @RunsInEdt
-  @Ignore("Re-enable once we have more settings for build analyzer history")
+  @Ignore("b/303116012")
   fun testActionToolbarIsSetProperly() {
     val toolbar = TreeWalker(view.wholePanel).descendants().filterIsInstance<ActionToolbar>().single()
 

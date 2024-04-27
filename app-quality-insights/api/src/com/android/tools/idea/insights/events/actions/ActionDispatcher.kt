@@ -15,26 +15,26 @@
  */
 package com.android.tools.idea.insights.events.actions
 
-import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CancellableTimeoutException
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
+import com.android.tools.idea.insights.EventPage
+import com.android.tools.idea.insights.EventsChanged
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
-import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.ChangeEvent
 import com.android.tools.idea.insights.events.EnterOfflineMode
 import com.android.tools.idea.insights.events.EnterOnlineMode
 import com.android.tools.idea.insights.events.ErrorThrown
 import com.android.tools.idea.insights.events.IssueDetailsChanged
 import com.android.tools.idea.insights.events.IssueToggled
+import com.android.tools.idea.insights.events.IssueVariantsChanged
 import com.android.tools.idea.insights.events.IssuesChanged
 import com.android.tools.idea.insights.events.NoteAdded
 import com.android.tools.idea.insights.events.NoteDeleted
@@ -54,6 +54,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
 
 data class ActionContext(
@@ -69,6 +70,7 @@ data class ActionContext(
           Selection.emptySelection(),
           defaultFilters,
           LoadingState.Loading,
+          LoadingState.Ready(null),
           LoadingState.Ready(null)
         ),
         null
@@ -82,13 +84,13 @@ class ActionDispatcher(
   private val scope: CoroutineScope,
   private val clock: Clock,
   private val appInsightsClient: AppInsightsClient,
-  private val queue: AppInsightsActionQueue,
   private val defaultFilters: Filters,
   private val cache: AppInsightsCache,
   private val eventEmitter: suspend (ChangeEvent) -> Unit,
   private val onErrorAction: (String, HyperlinkListener?) -> Unit,
 ) {
   private val actions = Channel<ActionContext>()
+
   suspend fun dispatch(ctx: ActionContext) {
     actions.send(ctx)
   }
@@ -123,9 +125,10 @@ class ActionDispatcher(
       is Action.CloseIssue -> closeIssue(connection, action)
       is Action.CancelFetches -> CancellationToken.noop(action)
       is Action.FetchNotes -> fetchNotes(connection, currentState, action)
-      is Action.AddNote -> addNote(connection, action, currentState.mode)
-      is Action.DeleteNote -> deleteNote(connection, action, currentState.mode)
-      is Action.RetryPendingActions -> retryPendingActions(action, ctx)
+      is Action.AddNote -> addNote(connection, action)
+      is Action.DeleteNote -> deleteNote(connection, action)
+      is Action.FetchIssueVariants -> fetchIssueVariants(currentState, action)
+      is Action.ListEvents -> listEvents(currentState, action)
     }
   }
 
@@ -173,27 +176,12 @@ class ActionDispatcher(
     return scope
       .launch {
         val fetchedNotes = appInsightsClient.listNotes(connection, action.id, state.mode)
-        val result =
-          fetchedNotes.map { notes -> queue.applyPendingNoteRequests(notes, action.id) }
-            as LoadingState.Done
-        eventEmitter(
-          NotesFetched(
-            action.id,
-            result,
-            state.mode == ConnectionMode.ONLINE &&
-              state.permission == Permission.FULL &&
-              queue.size > 0
-          )
-        )
+        eventEmitter(NotesFetched(action.id, fetchedNotes))
       }
       .toToken(action)
   }
 
-  private fun addNote(
-    connection: Connection,
-    action: Action.AddNote,
-    mode: ConnectionMode
-  ): CancellationToken {
+  private fun addNote(connection: Connection, action: Action.AddNote): CancellationToken {
     return scope
       .launch {
         when (
@@ -214,8 +202,6 @@ class ActionDispatcher(
             )
             eventEmitter(RollbackAddNoteRequest(action.note.id, result))
             if (result is LoadingState.NetworkFailure) {
-              // b/260206459: disable queueing of actions
-              // queue.offer(action)
               eventEmitter(EnterOfflineMode)
             }
           }
@@ -224,11 +210,7 @@ class ActionDispatcher(
       .toToken(action)
   }
 
-  private fun deleteNote(
-    connection: Connection,
-    action: Action.DeleteNote,
-    mode: ConnectionMode
-  ): CancellationToken {
+  private fun deleteNote(connection: Connection, action: Action.DeleteNote): CancellationToken {
     return scope
       .launch {
         when (val result = appInsightsClient.deleteNote(connection, action.noteId)) {
@@ -243,8 +225,6 @@ class ActionDispatcher(
             eventEmitter(RollbackDeleteNoteRequest(action.noteId, result))
             if (result is LoadingState.NetworkFailure) {
               eventEmitter(EnterOfflineMode)
-              // b/260206459: disable queueing of actions
-              // queue.offer(action)
             }
           }
         }
@@ -270,7 +250,10 @@ class ActionDispatcher(
           return@launch
         }
         eventEmitter(
-          IssueDetailsChanged(action.id, appInsightsClient.getIssueDetails(action.id, issueRequest))
+          IssueDetailsChanged(
+            action.id,
+            appInsightsClient.getIssueDetails(action.id, issueRequest, action.variantId)
+          )
         )
       }
       .toToken(action)
@@ -290,7 +273,6 @@ class ActionDispatcher(
           delay(10_000L)
           eventEmitter(ErrorThrown(RevertibleException(lastGoodState, CancellableTimeoutException)))
         }
-        val issuesWithPendingRequests = getIssuesWithPendingRequests(issueRequest.connection)
         val fetchResult =
           appInsightsClient.listTopOpenIssues(
             issueRequest,
@@ -304,13 +286,7 @@ class ActionDispatcher(
             if (connectionMode == ConnectionMode.ONLINE && state.mode == ConnectionMode.OFFLINE) {
               eventEmitter(EnterOnlineMode)
             }
-            eventEmitter(
-              IssuesChanged(
-                fetchResult.mergeWithPendingIssues(issuesWithPendingRequests),
-                clock,
-                lastGoodState
-              )
-            )
+            eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState))
           }
           is LoadingState.Failure -> {
             eventEmitter(IssuesChanged(fetchResult, clock, lastGoodState))
@@ -320,41 +296,46 @@ class ActionDispatcher(
       .toToken(action)
   }
 
-  private fun retryPendingActions(action: Action.Single, ctx: ActionContext): CancellationToken {
+  private fun fetchIssueVariants(
+    state: AppInsightsState,
+    action: Action.FetchIssueVariants
+  ): CancellationToken {
+    val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
     return scope
       .launch {
-        var pending = queue.poll()
-        while (pending != null) {
-          dispatch(ctx.copy(action = pending))
-          pending = queue.poll()
-        }
+        eventEmitter(
+          IssueVariantsChanged(
+            // TODO(b/294097863): support cache variants
+            if (state.mode == ConnectionMode.OFFLINE) {
+              LoadingState.NetworkFailure("Variants data is not available")
+            } else {
+              appInsightsClient.getIssueVariants(issueRequest, action.id)
+            }
+          )
+        )
       }
       .toToken(action)
   }
 
-  private fun LoadingState.Done<IssueResponse>.mergeWithPendingIssues(
-    pendingIssues: List<AppInsightsIssue>
-  ): LoadingState.Done<IssueResponse> =
-    map { issueResponse ->
-      val fetchedIssues = issueResponse.issues.associateBy { it.id }
-      val pinnedIssues =
-        pendingIssues.map { issue ->
-          fetchedIssues[issue.id]?.copy(pendingRequests = issue.pendingRequests) ?: issue
-        }
-      val pendingIssueIds = pendingIssues.map { it.id }.toSet()
-      val otherIssues = issueResponse.issues.filterNot { it.id in pendingIssueIds }
-      issueResponse.copy(issues = pinnedIssues + otherIssues)
-    }
-      as LoadingState.Done
-
-  // The cache does not know about pending requests, so the pending request counters are incremented
-  // here.
-  private fun getIssuesWithPendingRequests(connection: Connection): List<AppInsightsIssue> {
-    val issues = cache.getIssues(connection, queue.getPendingIssueIds())
-    val pendingIssuesByCount = queue.filterIsInstance<Action.IssueAction>().groupBy { it.id }
-    return issues.map { issue ->
-      pendingIssuesByCount[issue.id]?.count()?.let { issue.copy(pendingRequests = it) } ?: issue
-    }
+  private fun listEvents(state: AppInsightsState, action: Action.ListEvents): CancellationToken {
+    val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
+    if (state.selectedIssue?.id != action.id || state.selectedVariant?.id != action.variantId)
+      return CancellationToken.noop(Action.NONE)
+    return scope
+      .launch {
+        eventEmitter(
+          if (state.mode == ConnectionMode.OFFLINE) {
+            EventsChanged(
+              LoadingState.Ready(EventPage(listOf(state.selectedIssue!!.sampleEvent), ""))
+            )
+          } else {
+            EventsChanged(
+              appInsightsClient.listEvents(action.id, action.variantId, issueRequest, action.token)
+            )
+          }
+        )
+      }
+      .toToken(action)
   }
 
   private fun <T, U> ReceiveChannel<T>.batchFold(

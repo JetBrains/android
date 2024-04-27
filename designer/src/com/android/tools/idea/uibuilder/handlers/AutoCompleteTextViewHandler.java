@@ -15,17 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_BACKGROUND_TINT;
-import static com.android.SdkConstants.ATTR_COMPLETION_HINT;
-import static com.android.SdkConstants.ATTR_DROPDOWN_HEIGHT;
-import static com.android.SdkConstants.ATTR_DROPDOWN_WIDTH;
-import static com.android.SdkConstants.ATTR_IME_OPTIONS;
-import static com.android.SdkConstants.ATTR_POPUP_BACKGROUND;
-import static com.android.SdkConstants.ATTR_STYLE;
-
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 public class AutoCompleteTextViewHandler extends TextViewHandler {
   @Override

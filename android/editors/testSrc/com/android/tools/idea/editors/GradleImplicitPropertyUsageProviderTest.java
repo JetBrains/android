@@ -55,4 +55,16 @@ public class GradleImplicitPropertyUsageProviderTest extends AndroidTestCase {
       }
     }
   }
+
+  // Regression test for b/298540715
+  public void testResourcesProperties() {
+    VirtualFile vFile = myFixture.createFile("resources.properties", "unqualifiedResLocale=en-US");
+    PsiFile file = PsiManager.getInstance(getProject()).findFile(vFile);
+    assertNotNull(file);
+    PropertiesFile propertiesFile = (PropertiesFile) file;
+    GradleImplicitPropertyUsageProvider provider = new GradleImplicitPropertyUsageProvider();
+    IProperty unqualifiedResLocale = propertiesFile.getProperties().get(0);
+    String name = unqualifiedResLocale.getName();
+    assertTrue(name, provider.isUsed((Property) unqualifiedResLocale));
+  }
 }

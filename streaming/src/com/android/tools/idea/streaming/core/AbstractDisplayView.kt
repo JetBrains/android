@@ -34,8 +34,6 @@ import com.intellij.ui.components.htmlComponent
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.Nls
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
@@ -60,6 +58,7 @@ import javax.swing.AbstractAction
 import javax.swing.JButton
 import javax.swing.KeyStroke
 import javax.swing.SwingUtilities
+import javax.swing.event.HyperlinkListener
 import kotlin.math.floor
 import kotlin.math.log2
 import kotlin.math.max
@@ -90,7 +89,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   /** Size of the device's native display. */
   internal abstract val deviceDisplaySize: Dimension
   /** The number of the last rendered display frame. */
-  var frameNumber: Int = 0
+  var frameNumber: UInt = 0u
     protected set
 
   private val disconnectedStatePanel = DisconnectedStatePanel()
@@ -177,7 +176,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
   }
 
-  internal fun showLongRunningOperationIndicator(@Nls text: String) {
+  internal fun showLongRunningOperationIndicator(text: String) {
     findLoadingPanel()?.apply {
       setLoadingText(text)
       startLoading()
@@ -192,10 +191,11 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     findLoadingPanel()?.stopLoadingInstantly()
   }
 
-  protected fun showDisconnectedStateMessage(message: String, reconnector: Reconnector? = null) {
+  protected fun showDisconnectedStateMessage(
+      message: String, hyperlinkListener: HyperlinkListener? = null, reconnector: Reconnector? = null) {
     hideLongRunningOperationIndicatorInstantly()
     zoom(ZoomType.FIT)
-    disconnectedStatePanel.showPanel(message, reconnector)
+    disconnectedStatePanel.showPanel(message, hyperlinkListener, reconnector)
   }
 
   protected fun hideDisconnectedStateMessage() {
@@ -241,7 +241,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   }
 
   internal fun interface FrameListener {
-    fun frameRendered(frameNumber: Int, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage)
+    fun frameRendered(frameNumber: UInt, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage)
   }
 
   internal fun toDeviceDisplayCoordinates(p: Point): Point? {
@@ -279,33 +279,30 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
       CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this))
 
   protected fun isHardwareInputEnabled(): Boolean =
-    getProject()?.service<HardwareInputStateStorage>()?.isHardwareInputEnabled(deviceId) ?: false
+      getProject()?.service<HardwareInputStateStorage>()?.isHardwareInputEnabled(deviceId) ?: false
 
   final override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
-    if (!isHardwareInputEnabled()) return false
+    if (!isHardwareInputEnabled()) {
+      return false
+    }
     val stroke = KeyStroke.getKeyStrokeForEvent(event)
-    for (keyStroke in KeymapUtil.getKeyStrokes(
-        KeymapUtil.getActiveKeymapShortcuts(StreamingHardwareInputAction.ACTION_ID))) {
-      if (stroke == keyStroke) return false
+    for (keyStroke in KeymapUtil.getKeyStrokes(KeymapUtil.getActiveKeymapShortcuts(StreamingHardwareInputAction.ACTION_ID))) {
+      if (stroke == keyStroke) {
+        return false
+      }
     }
     return true
   }
 
   internal open fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {
-    if (!enabled) hardwareInput.resetMetaKeys()
+    if (!enabled) {
+      hardwareInput.resetMetaKeys()
+    }
   }
 
   protected open class HardwareInput {
+
     private var pressedModifierKeys = 0
-    companion object {
-      private val vkToMask = mapOf(
-        KeyEvent.VK_SHIFT to InputEvent.SHIFT_DOWN_MASK,
-        KeyEvent.VK_CONTROL to InputEvent.CTRL_DOWN_MASK,
-        KeyEvent.VK_ALT to InputEvent.ALT_DOWN_MASK,
-        KeyEvent.VK_META to InputEvent.META_DOWN_MASK,
-        KeyEvent.VK_ALT_GRAPH to InputEvent.ALT_GRAPH_DOWN_MASK,
-      )
-    }
 
     fun forwardEvent(event: KeyEvent) {
       event.consume()
@@ -330,6 +327,16 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     }
 
     open fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {}
+
+    companion object {
+      private val vkToMask = mapOf(
+        KeyEvent.VK_SHIFT to InputEvent.SHIFT_DOWN_MASK,
+        KeyEvent.VK_CONTROL to InputEvent.CTRL_DOWN_MASK,
+        KeyEvent.VK_ALT to InputEvent.ALT_DOWN_MASK,
+        KeyEvent.VK_META to InputEvent.META_DOWN_MASK,
+        KeyEvent.VK_ALT_GRAPH to InputEvent.ALT_GRAPH_DOWN_MASK,
+      )
+    }
   }
 
  /** Attempts to restore a lost device connection. */
@@ -382,8 +389,11 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
       add(button, c)
     }
 
-    fun showPanel(messageHtml: String, reconnector: Reconnector? = null) {
+    fun showPanel(messageHtml: String, hyperlinkListener: HyperlinkListener?, reconnector: Reconnector? = null) {
       message.text = "<center>$messageHtml</center>"
+      if (hyperlinkListener != null) {
+        message.addHyperlinkListener(hyperlinkListener)
+      }
       button.apply {
         if (reconnector == null) {
           isVisible = false
@@ -403,6 +413,9 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     }
 
     fun hidePanel() {
+      for (listener in message.hyperlinkListeners) {
+        message.removeHyperlinkListener(listener)
+      }
       isVisible = false
       button.action = null
       revalidate()

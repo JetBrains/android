@@ -19,16 +19,18 @@ import com.android.tools.idea.testing.NamedExternalResource
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.update.MergingUpdateQueue
+import org.junit.Before
 import org.junit.runner.Description
 
 /**
  * A rule to use an [ImageCache]
  */
 class ImageCacheRule : NamedExternalResource() {
-  lateinit var imageCache: ImageCache
 
+  lateinit var imageCache: ImageCache
   private lateinit var disposable: Disposable
 
+  @Before
   override fun before(description: Description) {
     disposable = Disposer.newDisposable()
     imageCache = ImageCache.createImageCache(

@@ -18,8 +18,6 @@ package com.android.tools.idea.res;
 import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.res.LocalResourceRepository;
-import com.android.tools.res.MultiResourceRepository;
-import com.android.tools.res.ResourceClassRegistry;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -36,7 +34,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * @see StudioResourceRepositoryManager#getAppResources()
  */
-class AppResourceRepository extends MultiResourceRepository {
+class AppResourceRepository extends MemoryTrackingMultiResourceRepository {
   private final AndroidFacet myFacet;
   private final Object RESOURCE_MAP_LOCK = new Object();
 
@@ -46,8 +44,10 @@ class AppResourceRepository extends MultiResourceRepository {
   @Nullable private Collection<VirtualFile> myResourceDirs;
 
   @NotNull
-  static AppResourceRepository create(@NotNull AndroidFacet facet, @NotNull Collection<AarResourceRepository> libraryRepositories) {
-    AppResourceRepository repository = new AppResourceRepository(facet, computeLocalRepositories(facet), libraryRepositories);
+  static AppResourceRepository create(@NotNull AndroidFacet facet, @NotNull Collection<AarResourceRepository> libraryRepositories,
+                                      @NotNull LocalResourceRepository<VirtualFile> sampleDataResourceRepository) {
+    AppResourceRepository repository =
+        new AppResourceRepository(facet, computeLocalRepositories(facet, sampleDataResourceRepository), libraryRepositories);
     AndroidProjectRootListener.ensureSubscribed(facet.getModule().getProject());
 
     return repository;
@@ -58,7 +58,7 @@ class AppResourceRepository extends MultiResourceRepository {
     synchronized (RESOURCE_MAP_LOCK) {
       if (myResourceDirs == null) {
         ImmutableList.Builder<VirtualFile> result = ImmutableList.builder();
-        for (LocalResourceRepository resourceRepository : getLocalResources()) {
+        for (LocalResourceRepository<VirtualFile> resourceRepository : getLocalResources()) {
           result.addAll(resourceRepository.getResourceDirs());
         }
         myResourceDirs = result.build();
@@ -67,25 +67,27 @@ class AppResourceRepository extends MultiResourceRepository {
     }
   }
 
-  private static List<LocalResourceRepository> computeLocalRepositories(@NotNull AndroidFacet facet) {
-    return ImmutableList.of(StudioResourceRepositoryManager.getProjectResources(facet), SampleDataResourceRepository.getInstance(facet));
+  private static List<LocalResourceRepository<VirtualFile>> computeLocalRepositories(
+      @NotNull AndroidFacet facet, @NotNull LocalResourceRepository<VirtualFile> sampleDataResourceRepository) {
+    return ImmutableList.of(StudioResourceRepositoryManager.getProjectResources(facet), sampleDataResourceRepository);
   }
 
   private AppResourceRepository(@NotNull AndroidFacet facet,
-                                @NotNull List<LocalResourceRepository> localResources,
+                                @NotNull List<LocalResourceRepository<VirtualFile>> localResources,
                                 @NotNull Collection<AarResourceRepository> libraryResources) {
     super(facet.getModule().getName() + " with modules and libraries");
     myFacet = facet;
     setChildren(localResources, libraryResources, ImmutableList.of(PredefinedSampleDataResourceRepository.getInstance()));
   }
 
-  void updateRoots(@NotNull Collection<? extends AarResourceRepository> libraryResources) {
-    List<LocalResourceRepository> localResources = computeLocalRepositories(myFacet);
+  void updateRoots(@NotNull Collection<? extends AarResourceRepository> libraryResources,
+                   @NotNull LocalResourceRepository<VirtualFile> sampleDataResourceRepository) {
+    List<LocalResourceRepository<VirtualFile>> localResources = computeLocalRepositories(myFacet, sampleDataResourceRepository);
     updateRoots(localResources, libraryResources);
   }
 
   @VisibleForTesting
-  void updateRoots(@NotNull List<? extends LocalResourceRepository> localResources,
+  void updateRoots(@NotNull List<? extends LocalResourceRepository<VirtualFile>> localResources,
                    @NotNull Collection<? extends AarResourceRepository> libraryResources) {
     synchronized (RESOURCE_MAP_LOCK) {
       myResourceDirs = null;
@@ -103,7 +105,7 @@ class AppResourceRepository extends MultiResourceRepository {
   @TestOnly
   @NotNull
   static AppResourceRepository createForTest(@NotNull AndroidFacet facet,
-                                             @NotNull List<LocalResourceRepository> modules,
+                                             @NotNull List<LocalResourceRepository<VirtualFile>> modules,
                                              @NotNull Collection<AarResourceRepository> libraries) {
     AppResourceRepository repository = new AppResourceRepository(facet, modules, libraries);
     Disposer.register(facet, repository);

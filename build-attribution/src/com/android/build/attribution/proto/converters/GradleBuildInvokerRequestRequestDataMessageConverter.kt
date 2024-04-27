@@ -16,11 +16,11 @@
 package com.android.build.attribution.proto.converters
 
 import com.android.build.attribution.BuildAnalysisResultsMessage
+import com.android.build.attribution.HistoricalRequestData
 import com.android.build.attribution.proto.PairEnumFinder
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
 import com.google.common.annotations.VisibleForTesting
-import java.io.File
 
 class GradleBuildInvokerRequestRequestDataMessageConverter {
   companion object {
@@ -36,18 +36,17 @@ class GradleBuildInvokerRequestRequestDataMessageConverter {
         .build()
 
     fun construct(requestData: BuildAnalysisResultsMessage.RequestData)
-      : GradleBuildInvoker.Request.RequestData {
+      : HistoricalRequestData {
       val buildMode = constructBuildMode(requestData.buildMode)
       val env = mutableMapOf<String, String>()
       requestData.envList.forEach { env[it.envKey] = it.envValue }
-      return GradleBuildInvoker.Request.RequestData(
+      return HistoricalRequestData(
         mode = buildMode,
-        rootProjectPath = File(requestData.rootProjectPathString),
+        rootProjectPath = requestData.rootProjectPathString,
         gradleTasks = requestData.gradleTasksList,
         jvmArguments = requestData.jvmArgumentsList,
         commandLineArguments = requestData.commandLineArgumentsList,
-        env = env,
-        isPassParentEnvs = requestData.isPassParentEnvs
+        env = env
       )
     }
 

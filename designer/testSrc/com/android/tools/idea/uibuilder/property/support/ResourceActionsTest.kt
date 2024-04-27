@@ -34,13 +34,13 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Color
+import java.awt.Component
+import java.awt.Point
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.awt.Color
-import java.awt.Component
-import java.awt.Point
 
 @RunsInEdt
 class ResourceActionsTest {

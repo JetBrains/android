@@ -31,13 +31,10 @@ import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.api.actions.ViewAction
 import com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getToggleSizeActions
 import com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction
+import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RELATIVE_LAYOUT_ATTRIBUTES
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeAnchorTarget
-import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeDragTarget
-import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeParentTarget
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeResizeTarget
-import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeWidgetTarget
-import com.android.tools.idea.uibuilder.model.getBaseline
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.collect.ImmutableList
@@ -55,12 +52,7 @@ class RelativeLayoutHandler : ViewGroupHandler() {
     layout: SceneComponent,
     components: List<NlComponent>,
     type: DragType
-  ): DragHandler? {
-    if (layout.drawWidth == 0 || layout.drawHeight == 0) {
-      return null
-    }
-    return RelativeDragHandler(editor, this, layout, components, type)
-  }
+  ): DragHandler = CommonDragHandler(editor, this, layout, components, type)
 
   override fun onChildRemoved(layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
     RELATIVE_LAYOUT_ATTRIBUTES.forEach { newChild.removeAndroidAttribute(it) }
@@ -97,7 +89,6 @@ class RelativeLayoutHandler : ViewGroupHandler() {
 
   override fun createTargets(sceneComponent: SceneComponent): List<Target> {
     val listBuilder = ImmutableList.Builder<Target>()
-    RelativeParentTarget.Type.values().forEach { listBuilder.add(RelativeParentTarget(it)) }
     AnchorTarget.Type.values()
       .filterNot { it == AnchorTarget.Type.BASELINE }
       .forEach { listBuilder.add(RelativeAnchorTarget(it, true)) }
@@ -109,19 +100,15 @@ class RelativeLayoutHandler : ViewGroupHandler() {
     childComponent: SceneComponent
   ): List<Target> {
     val listBuilder = ImmutableList.builder<Target>()
-    listBuilder.add(RelativeDragTarget())
 
     RESIZE_TARGETS.forEach { listBuilder.add(RelativeResizeTarget(it)) }
     AnchorTarget.Type.values()
       .filterNot { it == AnchorTarget.Type.BASELINE }
       .forEach { listBuilder.add(RelativeAnchorTarget(it, false)) }
-    RelativeWidgetTarget.Type.values()
-      .filter {
-        it !== RelativeWidgetTarget.Type.BASELINE || childComponent.nlComponent.getBaseline() != -1
-      }
-      .forEach { listBuilder.add(RelativeWidgetTarget(it)) }
     return listBuilder.build()
   }
+
+  override fun shouldAddCommonDragTarget(component: SceneComponent) = true
 
   override fun addToolbarActions(actions: MutableList<ViewAction>) {
     actions.add(getViewOptionsAction())

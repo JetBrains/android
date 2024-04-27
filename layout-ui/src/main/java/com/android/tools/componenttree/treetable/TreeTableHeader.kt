@@ -200,7 +200,9 @@ class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeT
     }
 
     override fun mousePressed(event: MouseEvent) = redispatchMouseEvent(event)
+
     override fun mouseReleased(event: MouseEvent) = redispatchMouseEvent(event)
+
     override fun mouseClicked(event: MouseEvent) = redispatchMouseEvent(event)
 
     private fun redispatchMouseEvent(event: MouseEvent) {

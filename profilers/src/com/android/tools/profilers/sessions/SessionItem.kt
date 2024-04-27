@@ -20,10 +20,12 @@ import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData
 import com.android.tools.profiler.proto.Common.SessionMetaData
+import com.android.tools.profilers.LiveStage
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.StudioMonitorStage
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.annotations.VisibleForTesting
+import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 
 /**
@@ -69,7 +71,18 @@ class SessionItem(
   override val isOngoing
     get() = SessionsManager.isSessionAlive(activeSession)
 
-  override val canExport = false
+  /**
+   * The MEMORY_CAPTURE and CPU_CAPTURE session types are indicative of imported memory and CPU sessions respectively.
+   */
+  override val canExport = sessionMetaData.type == SessionMetaData.SessionType.MEMORY_CAPTURE
+                           || sessionMetaData.type == SessionMetaData.SessionType.CPU_CAPTURE
+
+  override fun export(outputStream: OutputStream) {
+    assert(canExport)
+    assert(childArtifacts.size == 1)
+    val artifact = childArtifacts.first()
+    artifact.export(outputStream)
+  }
 
   /**
    * Update the [Common.Session] object. Note that while the content within the session can change, the new session instance should
@@ -83,10 +96,13 @@ class SessionItem(
   override fun doSelect() {
     // Navigate to the new session
     profilers.sessionsManager.setSession(activeSession)
-    if (sessionMetaData.type == SessionMetaData.SessionType.FULL &&
-        profilers.stageClass != StudioMonitorStage::class.java
-    ) {
-      profilers.stage = StudioMonitorStage(profilers)
+    if (sessionMetaData.type == SessionMetaData.SessionType.FULL) {
+      val targetStageClass =
+        if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled) LiveStage(profilers) else StudioMonitorStage(profilers)
+
+      if (profilers.stageClass != targetStageClass::class.java) {
+        profilers.stage = targetStageClass
+      }
     }
     profilers.ideServices.featureTracker.trackSessionArtifactSelected(this, profilers.sessionsManager.isSessionAlive)
   }
@@ -143,6 +159,8 @@ class SessionItem(
 
     changed(Aspect.MODEL)
   }
+
+  fun containsExactlyOneArtifact() = childArtifacts.size == 1
 
   companion object {
     private const val SESSION_INITIALIZING = "Starting..."

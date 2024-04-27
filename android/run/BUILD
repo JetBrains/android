@@ -73,5 +73,8 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common.tests[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
     ],
 )

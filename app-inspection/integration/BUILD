@@ -1,7 +1,7 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
-load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
 load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
+load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
 iml_module(
@@ -35,7 +35,6 @@ iml_studio_test(
     module = ":app-inspection.integration",
     tags_linux = [
         "block-network",
-        "very_flaky",  # b/263123192
     ],
     tags_mac = [],
     tags_windows = [
@@ -51,10 +50,10 @@ maven_repository(
     artifacts = [
         "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
         "@maven//:com.android.tools.build.gradle_7.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.20-Beta",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],

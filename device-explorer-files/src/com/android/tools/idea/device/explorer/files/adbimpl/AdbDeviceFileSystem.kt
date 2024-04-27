@@ -17,10 +17,12 @@ package com.android.tools.idea.device.explorer.files.adbimpl
 
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.scope
+import com.android.ddmlib.FileListingService
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
+import com.intellij.openapi.util.text.StringUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -49,6 +51,10 @@ class AdbDeviceFileSystem(
     return AdbDeviceDefaultFileEntry(this, adbFileListing.getRoot(), null)
   }
 
+  override suspend fun dataDirectory(): DeviceFileEntry {
+    return AdbDeviceDefaultFileEntry(this, adbFileListing.getDataDirectory(), null)
+  }
+
   suspend fun resolveMountPoint(entry: AdbDeviceFileEntry): AdbDeviceFileEntry =
     withContext(dispatcher) {
       when {
@@ -59,6 +65,26 @@ class AdbDeviceFileSystem(
         else -> createDirectFileEntry(entry)
       }
     }
+
+  override suspend fun getEntry(path: String): DeviceFileEntry {
+    val root = rootDirectory()
+    if (StringUtil.isEmpty(path) || StringUtil.equals(path, FileListingService.FILE_SEPARATOR)) {
+      return root
+    }
+    val pathSegments = path.substring(1).split(FileListingService.FILE_SEPARATOR.toRegex()).toList()
+    return resolvePathSegments(root, pathSegments)
+  }
+
+  private suspend fun resolvePathSegments(
+    rootEntry: DeviceFileEntry,
+    segments: List<String>
+  ): DeviceFileEntry {
+    var currentEntry = rootEntry
+    for (segment in segments) {
+      currentEntry = currentEntry.entries().find { it.name == segment } ?: throw IllegalArgumentException("Path not found")
+    }
+    return currentEntry
+  }
 
   companion object {
     private fun createDirectFileEntry(entry: AdbDeviceFileEntry): AdbDeviceDirectFileEntry {

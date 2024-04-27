@@ -14,5 +14,12 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.nativeSymbolizer.moduleSymbolSourceContributor"
+                    interface="com.android.tools.nativeSymbolizer.ModuleSymbolSourceContributor"/>
+  </extensionPoints>
+  <extensions defaultExtensionNs="com.android.tools.nativeSymbolizer">
+    <moduleSymbolSourceContributor implementation="com.android.tools.nativeSymbolizer.ApkSymbolSourceContributor"/>
+    <moduleSymbolSourceContributor implementation="com.android.tools.nativeSymbolizer.JniSymbolSourceContributor"/>
+  </extensions>
 </idea-plugin>

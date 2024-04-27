@@ -28,7 +28,6 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.interaction.CanvasResizeInteraction;
@@ -37,9 +36,11 @@ import com.android.tools.idea.uibuilder.surface.layer.CanvasResizeLayer;
 import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer;
 import com.android.tools.idea.uibuilder.surface.layer.OverlayLayer;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.google.common.collect.ImmutableList;
+import com.intellij.util.ui.JBDimension;
 import java.awt.Dimension;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
@@ -87,15 +88,10 @@ public class ScreenView extends ScreenViewBase {
         HardwareConfig config =
           new HardwareConfigHelper(device).setOrientation(state.getOrientation()).getConfig();
 
-        if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-          float densityRatio = Density.DEFAULT_DENSITY * 1.0f / config.getDensity().getDpiValue();
-          int dpWidth = Math.round(config.getScreenWidth() * densityRatio);
-          int dpHeight = Math.round(config.getScreenHeight() * densityRatio);
-          outDimension.setSize(dpWidth, dpHeight);
-        }
-        else {
-          outDimension.setSize(config.getScreenWidth(), config.getScreenHeight());
-        }
+        float densityRatio = Density.DEFAULT_DENSITY * 1.0f / config.getDensity().getDpiValue();
+        int dpWidth = Math.round(config.getScreenWidth() * densityRatio);
+        int dpHeight = Math.round(config.getScreenHeight() * densityRatio);
+        outDimension.setSize(dpWidth, dpHeight);
       }
     }
   };
@@ -115,15 +111,12 @@ public class ScreenView extends ScreenViewBase {
     @Override
     public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
       RenderResult result = screenView.getSceneManager().getRenderResult();
-      if (result != null && result.getSystemRootViews().size() == 1) {
-        ViewInfo viewInfo = result.getSystemRootViews().get(0);
+      Dimension contentSize = result != null ? result.getRootViewDimensions() : null;
 
+      if (contentSize != null) {
         try {
-          if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-            outDimension.setSize(Coordinates.pxToDp(screenView, viewInfo.getRight()), Coordinates.pxToDp(screenView, viewInfo.getBottom()));
-          } else {
-            outDimension.setSize(viewInfo.getRight(), viewInfo.getBottom());
-          }
+          outDimension.setSize(Coordinates.pxToDp(screenView, contentSize.width), Coordinates.pxToDp(screenView, contentSize.height));
+
           // Save in case a future render fails. This way we can keep a constant size for failed
           // renders.
           if (cachedDimension == null) {
@@ -133,7 +126,8 @@ public class ScreenView extends ScreenViewBase {
             cachedDimension.setSize(outDimension);
           }
           return;
-        } catch (AssertionError ignored) {
+        }
+        catch (AssertionError ignored) {
         }
       }
 
@@ -156,14 +150,16 @@ public class ScreenView extends ScreenViewBase {
       builder.add(new BorderLayer(screenView, () -> screenView.getSurface().isRotating()));
     }
     NlDesignSurface surface = screenView.getSurface();
-    builder.add(new ScreenViewLayer(screenView, surface, surface::getRotateSurfaceDegree));
+    ColorBlindMode colorBlindMode = ColorBlindMode.NONE;
+    if (surface.getScreenViewProvider() != null) {
+      colorBlindMode = surface.getScreenViewProvider().getColorBlindFilter();
+    }
+    builder.add(new ScreenViewLayer(screenView, colorBlindMode, surface, surface::getRotateSurfaceDegree));
     SceneLayer sceneLayer = new SceneLayer(surface, screenView, false);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);
 
-    if(StudioFlags.NELE_OVERLAY_PROVIDER.get()) {
-      builder.add(new OverlayLayer(screenView, surface::getOverlayConfiguration));
-    }
+    builder.add(new OverlayLayer(screenView, surface::getOverlayConfiguration));
 
     if (screenView.myIsResizeable && screenView.getSceneManager().getModel().getType().isEditable()) {
       builder.add(new CanvasResizeLayer(screenView, () -> { surface.repaint(); return null; }));

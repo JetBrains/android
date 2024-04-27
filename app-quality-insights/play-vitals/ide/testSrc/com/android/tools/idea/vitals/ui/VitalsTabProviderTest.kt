@@ -18,12 +18,11 @@ package com.android.tools.idea.vitals.ui
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.FakeAppInsightsProjectLevelController
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
-import com.android.tools.idea.insights.waitForCondition
 import com.android.tools.idea.testing.disposable
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.google.gct.login.GoogleLogin
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
@@ -31,22 +30,28 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
 import com.studiogrpc.testutils.ForwardingInterceptor
+import java.awt.Component
+import java.awt.event.ContainerAdapter
+import java.awt.event.ContainerEvent
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.Mockito
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class VitalsTabProviderTest {
 
-  private val projectRule = ProjectRule()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
-
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(controllerRule)!!
+  @get:Rule val projectRule = ProjectRule()
 
   @Test
-  fun `model change triggers different UI presentation`() = runBlocking {
+  fun `model change triggers different UI presentation`() = runTest {
     // Setup
     val manager =
       object : AppInsightsConfigurationManager {
@@ -73,22 +78,33 @@ class VitalsTabProviderTest {
     val tabProvider = VitalsTabProvider()
     val tabPanel = AppInsightsTabPanel()
     Disposer.register(projectRule.disposable, tabPanel)
-    tabProvider.populateTab(projectRule.project, tabPanel)
 
-    // Check uninitialized state
-    Truth.assertThat(tabPanel.components.single().toString()).contains("placeholderContent")
+    val callbackFlow =
+      callbackFlow<Component> {
+        tabPanel.addContainerListener(
+          object : ContainerAdapter() {
+            override fun componentAdded(e: ContainerEvent) {
+              trySendBlocking(e.child)
+            }
+          }
+        )
+        tabProvider.populateTab(projectRule.project, tabPanel)
+        awaitClose()
+      }
 
-    // Check authenticated state
-    manager.configuration.value = AppInsightsModel.Authenticated(controllerRule.controller)
-    waitForCondition(5000) {
-      val single = tabPanel.components.firstOrNull()
-      single is VitalsTab
-    }
-
-    // Check unauthenticated state
-    manager.configuration.value = AppInsightsModel.Unauthenticated
-    waitForCondition(5000) {
-      tabPanel.components.firstOrNull().toString().contains("loggedOutErrorStateComponent")
+    callbackFlow.take(3).collectIndexed { index, component ->
+      when (index) {
+        0 -> {
+          assertThat(component.toString()).contains("placeholderContent")
+          manager.configuration.value =
+            AppInsightsModel.Authenticated(FakeAppInsightsProjectLevelController())
+        }
+        1 -> {
+          assertThat(component).isInstanceOf(VitalsTab::class.java)
+          manager.configuration.value = AppInsightsModel.Unauthenticated
+        }
+        2 -> assertThat(component.toString().contains("loggedOutErrorStateComponent"))
+      }
     }
   }
 }

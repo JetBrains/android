@@ -23,6 +23,8 @@ class LastInIdeaTestSuite {
   /**
    * Checks for IDEA project leaks and disposer tree leaks.
    * To disable this check in a specific test target, set the system property idea.leak.check.enabled to false.
+   *
+   * NOTE: By default, this test only runs in Bazel. To enable running it in the IDE, adjust the test run configuration.
    */
   @Test
   fun checkForLeaks() {

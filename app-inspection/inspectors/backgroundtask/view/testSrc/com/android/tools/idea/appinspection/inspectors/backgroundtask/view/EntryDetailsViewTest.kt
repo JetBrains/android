@@ -40,6 +40,8 @@ import com.intellij.ui.components.ActionLink
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.isEmpty
 import icons.StudioIcons
+import javax.swing.JLabel
+import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
@@ -51,8 +53,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JLabel
-import javax.swing.JPanel
 
 class EntryDetailsViewTest {
   private class TestIdeServices : AppInspectionIdeServicesAdapter() {

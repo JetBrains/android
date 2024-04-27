@@ -18,67 +18,72 @@ package com.android.tools.compose.debug.recomposition
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-/**
- * Tests for [ParamState]
- */
+/** Tests for [ParamState] */
 class ParamStateTest {
   @Test
   fun oneFullValue() {
     val states = ParamState.decode(listOf(0b1111101011000110100010000010101))
 
-    assertThat(states.map { it.getDisplayName() }).containsExactly(
-      "Changed",
-      "Unchanged",
-      "Evaluating",
-      "Unchanged",
-      "Changed",
-      "Static",
-      "Unknown",
-      "Unknown",
-      "Unknown",
-      "Unknown",
-    ).inOrder()
+    assertThat(states.map { it.getDisplayName() })
+      .containsExactly(
+        "Changed",
+        "Unchanged",
+        "Evaluating",
+        "Unchanged",
+        "Changed",
+        "Static",
+        "Unknown",
+        "Unknown",
+        "Unknown",
+        "Unknown",
+      )
+      .inOrder()
   }
 
   @Test
   fun multipleValuea() {
-    val states = ParamState.decode(listOf(
-      0b1111101011000110100010000010101,
-      0b1111101011000110100010000010100,
-      0b0010,
-    ))
+    val states =
+      ParamState.decode(
+        listOf(
+          0b1111101011000110100010000010101,
+          0b1111101011000110100010000010100,
+          0b0010,
+        )
+      )
 
-    assertThat(states.map { it.getDisplayName() }).containsExactly(
-      "Changed",
-      "Unchanged",
-      "Evaluating",
-      "Unchanged",
-      "Changed",
-      "Static",
-      "Unknown",
-      "Unknown",
-      "Unknown",
-      "Unknown",
-      "Changed",
-      "Unchanged",
-      "Evaluating",
-      "Unchanged",
-      "Changed",
-      "Static",
-      "Unknown",
-      "Unknown",
-      "Unknown",
-      "Unknown",
-      "Unchanged",
-      "Evaluating",
-      "Evaluating",
-      "Evaluating",
-      "Evaluating",
-      "Evaluating",
-      "Evaluating",
-      "Evaluating",
-      "Evaluating",
-      "Evaluating",
-      ).inOrder()
+    assertThat(states.map { it.getDisplayName() })
+      .containsExactly(
+        "Changed",
+        "Unchanged",
+        "Evaluating",
+        "Unchanged",
+        "Changed",
+        "Static",
+        "Unknown",
+        "Unknown",
+        "Unknown",
+        "Unknown",
+        "Changed",
+        "Unchanged",
+        "Evaluating",
+        "Unchanged",
+        "Changed",
+        "Static",
+        "Unknown",
+        "Unknown",
+        "Unknown",
+        "Unknown",
+        "Unchanged",
+        "Evaluating",
+        "Evaluating",
+        "Evaluating",
+        "Evaluating",
+        "Evaluating",
+        "Evaluating",
+        "Evaluating",
+        "Evaluating",
+        "Evaluating",
+      )
+      .inOrder()
   }
 }

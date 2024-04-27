@@ -100,6 +100,10 @@ open class ProfilersTestBase {
     studio.executeAction("Android.StartSystemTrace")
   }
 
+  protected fun startCallstackSample(studio: AndroidStudio) {
+    studio.executeAction("Android.StartCallstackSample")
+  }
+
   protected fun stopCpuCapture(studio: AndroidStudio) {
     studio.executeAction("Android.StopCpuCapture")
   }

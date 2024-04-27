@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.rendering.RenderTestUtil
@@ -37,6 +37,8 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAn
 import com.android.tools.rendering.RenderTask
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -44,8 +46,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
 
 class VisualLintServiceTest {
 
@@ -103,7 +103,7 @@ class VisualLintServiceTest {
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintService.runVisualLintAnalysis(
       projectRule.fixture.testRootDisposable,
-      VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+      ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
       listOf(nlModel),
       emptyMap(),
       visualLintExecutorService
@@ -127,7 +127,7 @@ class VisualLintServiceTest {
     VisualLintService.getInstance(projectRule.project)
       .runVisualLintAnalysis(
         projectRule.fixture.testRootDisposable,
-        VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+        ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
         listOf(atfModel),
         emptyMap(),
         visualLintExecutorService
@@ -138,7 +138,7 @@ class VisualLintServiceTest {
     assertEquals(1, atfIssues.size)
     atfIssues.forEach {
       assertEquals("Visual Lint Issue", it.category)
-      assertFalse((it as VisualLintRenderIssue).type == VisualLintErrorType.ATF)
+      assertFalse((it as VisualLintRenderIssue).type.isAtfErrorType())
     }
 
     val wearLayout =
@@ -159,7 +159,7 @@ class VisualLintServiceTest {
     VisualLintService.getInstance(projectRule.project)
       .runVisualLintAnalysis(
         projectRule.fixture.testRootDisposable,
-        VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+        ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
         listOf(wearModel),
         emptyMap(),
         visualLintExecutorService
@@ -213,7 +213,7 @@ class VisualLintServiceTest {
         val result = task.render().get()
         visualLintService.runVisualLintAnalysis(
           projectRule.fixture.testRootDisposable,
-          VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+          ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
           emptyList(),
           mapOf(result to phoneModel),
           visualLintExecutorService
@@ -248,7 +248,7 @@ class VisualLintServiceTest {
         val result = task.render().get()
         visualLintService.runVisualLintAnalysis(
           projectRule.fixture.testRootDisposable,
-          VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+          ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
           emptyList(),
           mapOf(result to tabletModel),
           visualLintExecutorService
@@ -281,7 +281,7 @@ class VisualLintServiceTest {
         NlModelHierarchyUpdater.updateHierarchy(result, atfModel)
         visualLintService.runVisualLintAnalysis(
           projectRule.fixture.testRootDisposable,
-          VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+          ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
           emptyList(),
           mapOf(result to atfModel),
           visualLintExecutorService
@@ -290,9 +290,7 @@ class VisualLintServiceTest {
         val issues = visualLintIssueModel.issues
         assertEquals(3, issues.size)
         val clickIssue =
-          issues.filterIsInstance<VisualLintRenderIssue>().filter {
-            it.type == VisualLintErrorType.ATF
-          }
+          issues.filterIsInstance<VisualLintRenderIssue>().filter { it.type.isAtfErrorType() }
         assertEquals(2, clickIssue.size)
       } catch (ex: Exception) {
         throw RuntimeException(ex)

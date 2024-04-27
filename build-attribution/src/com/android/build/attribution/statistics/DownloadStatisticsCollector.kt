@@ -15,13 +15,13 @@
  */
 package com.android.build.attribution.statistics
 
-import com.android.build.attribution.BuildAnalysisResults
+import com.android.build.attribution.HistoricBuildAnalysisResults
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 
 class DownloadStatisticsCollector : SingleStatisticsCollector() {
   private val downloadedSizes = mutableListOf<Long>()
-  override fun accept(t: BuildAnalysisResults) {
-    val result = t.getDownloadsAnalyzerResult()
+  override fun accept(t: HistoricBuildAnalysisResults) {
+    val result = t.downloadsAnalyzerResult
 
     if (result is DownloadsAnalyzer.ActiveResult) {
       downloadedSizes.add(result.repositoryResults.sumOf { it.successRequestsBytesDownloaded })

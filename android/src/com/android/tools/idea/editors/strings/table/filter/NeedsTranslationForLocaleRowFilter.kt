@@ -17,6 +17,8 @@ package com.android.tools.idea.editors.strings.table.filter
 
 import com.android.ide.common.resources.Locale
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
+import com.android.tools.idea.rendering.FlagManager
+import javax.swing.Icon
 
 /** Filter that shows only rows that are missing a translation for the given [locale]. */
 class NeedsTranslationForLocaleRowFilter(private val locale: Locale) :

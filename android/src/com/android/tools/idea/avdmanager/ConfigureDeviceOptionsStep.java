@@ -16,28 +16,26 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.resources.Navigation;
+import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.TooltipLabel;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.Validator.Result;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.avdmanager.skincombobox.SkinComboBox;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.adapters.StringToDoubleAdapterProperty;
 import com.android.tools.idea.observable.adapters.StringToIntAdapterProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.EnumComboBoxModel;
@@ -45,9 +43,8 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.BrowserLink;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.concurrency.EdtExecutorService;
-import java.io.File;
-import java.util.List;
+import com.intellij.util.ui.JBDimension;
+import java.nio.file.Path;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -78,16 +75,19 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   private JTextField myDeviceName;
   private JTextField myScreenResolutionWidth;
   private JTextField myScreenResolutionHeight;
-  private SkinChooser myCustomSkinPath;
+
+  @NotNull
+  private SkinComboBox myCustomSkinPath;
+
   private BrowserLink myHardwareSkinHelpLabel;
   private ComboBox<IdDisplay> myDeviceTypeComboBox;
   private JTextField myDiagonalScreenSize;
   private StorageField myRamField;
-  private JComboBox myNavigationControlsCombo;
+  private JComboBox<Navigation> myNavigationControlsCombo;
   private TooltipLabel myHelpAndErrorLabel;
   private JCheckBox myIsScreenRound;
   private JBScrollPane myScrollPane;
-  private StringToDoubleAdapterProperty myDiagScreenSizeAdapter;
+  private StringToDoubleAdapterProperty myDiagonalScreenSizeAdapter;
   private StringToIntAdapterProperty myScreenResWidthAdapter;
   private StringToIntAdapterProperty myScreenResHeightAdapter;
 
@@ -102,28 +102,6 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, "Configure this hardware profile");
-
-    initSkinComboBox();
-  }
-
-  private void initSkinComboBox() {
-    OptionalProperty<File> optionalSkin = getModel().getDeviceData().customSkinFile();
-    File skin = optionalSkin.getValueOrNull();
-
-    FutureCallback<List<File>> callback = new LoadSkinsFutureCallback(myCustomSkinPath, skin) {
-      @Override
-      public void onSuccess(@NotNull List<File> skins) {
-        super.onSuccess(skins);
-
-        if (skin != null) {
-          optionalSkin.setValue(skin);
-        }
-
-        myCustomSkinPath.setEnabled(true);
-      }
-    };
-
-    Futures.addCallback(myCustomSkinPath.loadSkins(), callback, EdtExecutorService.getInstance());
   }
 
   @Override
@@ -131,7 +109,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<>(AvdWizardUtils.ALL_DEVICE_TAGS));
 
     myDeviceTypeComboBox.setRenderer(SimpleListCellRenderer.create(
-      DEFAULT_DEVICE_TYPE_LABEL, value -> SystemImage.DEFAULT_TAG.equals(value) ? DEFAULT_DEVICE_TYPE_LABEL : value.getDisplay()));
+      DEFAULT_DEVICE_TYPE_LABEL, value -> SystemImageTags.DEFAULT_TAG.equals(value) ? DEFAULT_DEVICE_TYPE_LABEL : value.getDisplay()));
 
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
 
@@ -140,7 +118,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
     myHelpAndErrorLabel.setBorder(BorderFactory.createEmptyBorder(15, 15, 10, 10));
 
-    myDiagScreenSizeAdapter = new StringToDoubleAdapterProperty(new TextProperty(myDiagonalScreenSize), 1, 2);
+    myDiagonalScreenSizeAdapter = new StringToDoubleAdapterProperty(new TextProperty(myDiagonalScreenSize), 1, 2);
     myScreenResWidthAdapter = new StringToIntAdapterProperty(new TextProperty(myScreenResolutionWidth));
     myScreenResHeightAdapter = new StringToIntAdapterProperty(new TextProperty(myScreenResolutionHeight));
 
@@ -150,7 +128,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   @Override
   protected void onEntering() {
     final AvdDeviceData deviceModel = getModel().getDeviceData();
-    myDiagScreenSizeAdapter.set(deviceModel.diagonalScreenSize());
+    myDiagonalScreenSizeAdapter.set(deviceModel.diagonalScreenSize());
     myScreenResWidthAdapter.set(deviceModel.screenResolutionWidth());
     myScreenResHeightAdapter.set(deviceModel.screenResolutionHeight());
   }
@@ -166,7 +144,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     if (isRound) {
       myScreenResHeightAdapter.set(myScreenResWidthAdapter.get());
       myListeners.listen(myScreenResWidthAdapter, width -> myScreenResHeightAdapter.set(width));
-    } else {
+    }
+    else {
       myListeners.release((ObservableValue<?>)myScreenResWidthAdapter);
     }
   }
@@ -175,7 +154,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     final AvdDeviceData deviceModel = getModel().getDeviceData();
     myBindings.bindTwoWay(new TextProperty(myDeviceName), deviceModel.name());
 
-    myBindings.bind(deviceModel.diagonalScreenSize(), myDiagScreenSizeAdapter);
+    myBindings.bind(deviceModel.diagonalScreenSize(), myDiagonalScreenSizeAdapter);
     myBindings.bind(deviceModel.screenResolutionWidth(), myScreenResWidthAdapter);
     myBindings.bind(deviceModel.screenResolutionHeight(), myScreenResHeightAdapter);
 
@@ -194,7 +173,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myBindings.bindTwoWay(new SelectedProperty(myHasGyroscope), deviceModel.hasGyroscope());
     myBindings.bindTwoWay(new SelectedProperty(myHasGps), deviceModel.hasGps());
     myBindings.bindTwoWay(new SelectedProperty(myHasProximitySensor), deviceModel.hasProximitySensor());
-    myBindings.bindTwoWay(new SelectedItemProperty<>(myCustomSkinPath.getComboBox()), deviceModel.customSkinFile());
+    myBindings.bindTwoWay(new SkinComboBoxProperty(myCustomSkinPath), deviceModel.customSkinFile());
 
     SelectedProperty isScreenRound = new SelectedProperty(myIsScreenRound);
     myBindings.bindTwoWay(isScreenRound, deviceModel.isScreenRound());
@@ -207,11 +186,11 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       if (idDisplayOptional.isPresent()) {
         IdDisplay selectedType = idDisplayOptional.get();
 
-        boolean isWear = selectedType.equals(SystemImage.WEAR_TAG);
+        boolean isWear = selectedType.equals(SystemImageTags.WEAR_TAG);
         getModel().getDeviceData().isWear().set(isWear);
-        getModel().getDeviceData().isTv().set(selectedType.equals(SystemImage.ANDROID_TV_TAG)
-                                              || selectedType.equals(SystemImage.GOOGLE_TV_TAG));
-        getModel().getDeviceData().isDesktop().set(selectedType.equals(SystemImage.DESKTOP_TAG));
+        getModel().getDeviceData().isTv().set(selectedType.equals(SystemImageTags.ANDROID_TV_TAG)
+                                              || selectedType.equals(SystemImageTags.GOOGLE_TV_TAG));
+        getModel().getDeviceData().isDesktop().set(selectedType.equals(SystemImageTags.DESKTOP_TAG));
 
         myIsScreenRound.setEnabled(isWear);
         boolean isRound = getModel().getDeviceData().isScreenRound().get();
@@ -224,7 +203,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
                                   "Please write a name for the new device.");
 
     myValidatorPanel.registerTest(
-      myDiagScreenSizeAdapter.inSync().and(deviceModel.diagonalScreenSize().isEqualTo(myDiagScreenSizeAdapter)),
+      myDiagonalScreenSizeAdapter.inSync().and(deviceModel.diagonalScreenSize().isEqualTo(myDiagonalScreenSizeAdapter)),
       "Please enter a non-zero positive floating point value for the screen size.");
 
     myValidatorPanel.registerTest(
@@ -251,12 +230,25 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   }
 
   private void createUIComponents() {
-    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<>(Navigation.class));
+    myNavigationControlsCombo = new ComboBox<>(new EnumComboBoxModel<>(Navigation.class));
     myNavigationControlsCombo.setRenderer(SimpleListCellRenderer.create("", Navigation::getShortDisplayValue));
 
     myHardwareSkinHelpLabel = new BrowserLink("How do I create a custom hardware skin?", AvdWizardUtils.CREATE_SKIN_HELP_LINK);
-    myCustomSkinPath = new SkinChooser(null, false);
+    createDefaultSkinComboBox();
     myDeviceDefinitionPreview = new DeviceDefinitionPreview(getModel().getDeviceData());
+  }
+
+  private void createDefaultSkinComboBox() {
+    myCustomSkinPath = new SkinComboBox(null, Path::getFileName);
+
+    // HACK I'm constraining the sizes to something closer to the old SkinChooser. I prefer to let children be the sizes they want to be at
+    // and tweak the parent containers instead but that was too difficult.
+    var size = new JBDimension(170, 30);
+
+    myCustomSkinPath.setMinimumSize(size);
+    myCustomSkinPath.setPreferredSize(size);
+
+    myCustomSkinPath.load();
   }
 
   @NotNull

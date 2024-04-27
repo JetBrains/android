@@ -36,6 +36,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.SmartPointerManager
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
@@ -52,7 +53,7 @@ import java.awt.datatransfer.UnsupportedFlavorException
 private val DEFAULT_RESOURCE_URL = ResourceUrl.create("namespace", ResourceType.DRAWABLE,
                                                       "my_resource")
 
-@Language("Kotlin")
+@Language("kotlin")
 private const val DEFAULT_KOTLIN_FILE_CONTENT = "package com.example.myapplication\n" +
                                           "\n" +
                                           "import android.os.Bundle\n" +
@@ -241,6 +242,7 @@ internal class ResourcePasteProviderTest {
     """.trimMargin()
 
     val psiFile = psiFile(content)
+    val psiFilePointer = runInEdtAndGet { SmartPointerManager.createPointer(psiFile) }
     editor = createEditor(psiFile)
     val tagIndex = content.indexOf("<Tag2>") + "<Tag2>".length
     runInEdtAndWait { editor.caretModel.moveToOffset(tagIndex) }
@@ -261,9 +263,11 @@ internal class ResourcePasteProviderTest {
     </Tag1>
     """.trimIndent())
 
-    resourcePasteProvider.paste(createDataContext(editor, psiFile, ResourceUrl.parse("@drawable/resource2")!!))
+    run {
+      val file = runInEdtAndGet { psiFilePointer.element!! }
+      resourcePasteProvider.paste(createDataContext(editor, file, ResourceUrl.parse("@drawable/resource2")!!))
 
-    Truth.assertThat(editor.document.text).isEqualTo("""
+      Truth.assertThat(editor.document.text).isEqualTo("""
     <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
        <Tag2>
 
@@ -279,13 +283,16 @@ internal class ResourcePasteProviderTest {
        </Tag2>
     </Tag1>
   """.trimIndent())
+    }
 
     val tagIndex2 = editor.document.text.indexOf("</Tag2>") + "</Tag2>".length
     runInEdtAndWait { editor.caretModel.moveToOffset(tagIndex2) }
 
-    resourcePasteProvider.paste(createDataContext(editor, psiFile, ResourceUrl.parse("@drawable/resource3")!!))
+    run {
+      val file = runInEdtAndGet { psiFilePointer.element!! }
+      resourcePasteProvider.paste(createDataContext(editor, file, ResourceUrl.parse("@drawable/resource3")!!))
 
-    Truth.assertThat(editor.document.text).isEqualTo("""
+      Truth.assertThat(editor.document.text).isEqualTo("""
     <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
        <Tag2>
 
@@ -306,12 +313,15 @@ internal class ResourcePasteProviderTest {
             android:src="@drawable/resource3" />
     </Tag1>
     """.trimIndent())
+    }
 
     runInEdtAndWait { editor.caretModel.moveToOffset(tagIndex2) }
 
-    resourcePasteProvider.paste(createDataContext(editor, psiFile, ResourceUrl.parse("@layout/my_layout")!!))
+    run {
+      val file = runInEdtAndGet { psiFilePointer.element!! }
+      resourcePasteProvider.paste(createDataContext(editor, file, ResourceUrl.parse("@layout/my_layout")!!))
 
-    Truth.assertThat(editor.document.text).isEqualTo("""
+      Truth.assertThat(editor.document.text).isEqualTo("""
     <Tag1 xmlns:android="http://schemas.android.com/apk/res/android">
        <Tag2>
 
@@ -337,6 +347,7 @@ internal class ResourcePasteProviderTest {
             android:src="@drawable/resource3" />
     </Tag1>
     """.trimIndent())
+    }
   }
 
   private fun createEditor(psiFile: PsiFile): Editor {

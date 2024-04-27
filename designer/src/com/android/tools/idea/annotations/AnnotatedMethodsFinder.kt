@@ -40,6 +40,8 @@ import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.concurrency.AppExecutorUtil
+import java.util.concurrent.Callable
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
@@ -54,8 +56,6 @@ import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.getContainingUMethod
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.toUElementOfType
-import java.util.concurrent.Callable
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Finds if [vFile] in [project] has any of the given [annotationFqn] FQCN or the given
@@ -175,8 +175,8 @@ fun findAnnotations(
   ) {
     val kotlinAnnotations: Sequence<PsiElement> =
       ReadAction.compute<Sequence<PsiElement>, Throwable> {
-        KotlinAnnotationsIndex[shortAnnotationName, project, GlobalSearchScope.fileScope(project, vFile)]
-          .asSequence()
+        val scope = GlobalSearchScope.fileScope(project, vFile)
+        KotlinAnnotationsIndex[shortAnnotationName, project, scope].asSequence()
       }
 
     val annotations = kotlinAnnotations.filterIsInstance<KtAnnotationEntry>().toList()
@@ -195,6 +195,7 @@ fun findAnnotations(
  */
 private class PromiseModificationTracker(private val promise: Promise<*>) : ModificationTracker {
   private var modificationCount = 0L
+
   override fun getModificationCount(): Long =
     when {
       promise.isRejected -> ++modificationCount // The promise failed so we ensure it is not cached

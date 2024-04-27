@@ -15,73 +15,113 @@
  */
 package com.android.tools.idea.wear.preview
 
-import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.concurrency.runReadActionWithWritePriority
+import com.android.SdkConstants
+import com.android.ide.common.resources.Locale
+import com.android.tools.idea.annotations.findAnnotatedMethodsValues
+import com.android.tools.idea.annotations.getContainingUMethodAnnotatedWith
+import com.android.tools.idea.annotations.hasAnnotation
+import com.android.tools.idea.annotations.isAnnotatedWith
 import com.android.tools.idea.preview.FilePreviewElementFinder
-import com.android.tools.idea.preview.PreviewDisplaySettings
-import com.intellij.openapi.application.readAction
-import com.intellij.openapi.diagnostic.Logger
+import com.android.tools.idea.preview.findPreviewDefaultValues
+import com.android.tools.idea.preview.qualifiedName
+import com.android.tools.idea.preview.toSmartPsiPointer
+import com.android.tools.preview.PreviewDisplaySettings
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiClassOwner
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
-import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.util.InheritanceUtil
-import kotlinx.coroutines.withContext
+import com.intellij.util.text.nullize
+import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.UMethod
+import org.jetbrains.uast.evaluateString
+import org.jetbrains.uast.toUElementOfType
+
+private const val TILE_PREVIEW_ANNOTATION_NAME = "Preview"
+private const val TILE_PREVIEW_ANNOTATION_FQ_NAME = "androidx.wear.tiles.tooling.preview.$TILE_PREVIEW_ANNOTATION_NAME"
+private const val TILE_PREVIEW_DATA_FQ_NAME = "androidx.wear.tiles.tooling.preview.TilePreviewData"
 
 /** Object that can detect wear tile preview elements in a file. */
 internal object WearTilePreviewElementFinder : FilePreviewElementFinder<WearTilePreviewElement> {
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
-    return readAction { PsiManager.getInstance(project).findFile(vFile)!! }.tileServiceSuccessors().any()
-  }
-
-  override suspend fun findPreviewElements(project: Project, vFile: VirtualFile): Collection<WearTilePreviewElement> {
-    return readAction { PsiManager.getInstance(project).findFile(vFile)!! }
-      .tileServiceSuccessors()
-      .map { readAction { it.toWearTilePreviewElement() } }
-      .toList()
-  }
-}
-
-private const val TILE_SERVICE_CLASS = "androidx.wear.tiles.TileService"
-
-/** Extension method that returns a (possibly empty) sequence of [PsiClass]es that are descendants on [TileService]. */
-internal suspend fun PsiFile.tileServiceSuccessors(): Collection<PsiClass> = withContext(AndroidDispatchers.workerThread) {
-  return@withContext when (this@tileServiceSuccessors) {
-    is PsiClassOwner -> try {
-      val classes = runReadActionWithWritePriority { this@tileServiceSuccessors.classes }
-      // Properly detect inheritance from View in Smart mode
-      runReadActionWithWritePriority {
-        classes.filter { aClass ->
-          aClass.isValid && aClass.extendsTileService()
-        }
+    return hasAnnotation(
+      project = project,
+      vFile = vFile,
+      annotationFqn = TILE_PREVIEW_ANNOTATION_FQ_NAME,
+      shortAnnotationName = TILE_PREVIEW_ANNOTATION_NAME,
+      filter = {
+        val uMethod = it.psiOrParent.toUElementOfType<UAnnotation>()?.getContainingUMethodAnnotatedWith(TILE_PREVIEW_ANNOTATION_FQ_NAME)
+        uMethod.isTilePreview()
       }
+    )
+  }
+
+  override suspend fun findPreviewElements(
+    project: Project,
+    vFile: VirtualFile
+  ): Collection<WearTilePreviewElement> {
+    return findAnnotatedMethodsValues(
+      project = project,
+      vFile = vFile,
+      annotationFqn = TILE_PREVIEW_ANNOTATION_FQ_NAME,
+      shortAnnotationName = TILE_PREVIEW_ANNOTATION_NAME
+    ) { methods ->
+      val tilePreviewNodes = getTilePreviewNodes(methods)
+      val previewElements = tilePreviewNodes.distinct()
+      previewElements.asSequence()
     }
-    catch (t: Exception) {
-      Logger.getInstance(WearTilePreviewElementFinder::class.java).warn(t)
-      emptyList()
+  }
+
+  private fun getTilePreviewNodes(methods: List<UMethod>) =
+    methods.mapNotNull {
+      ProgressManager.checkCanceled()
+      getTilePreviewNode(it)
     }
-    else -> emptyList()
+
+  private fun getTilePreviewNode(uMethod: UMethod) = runReadAction {
+    if (!uMethod.isTilePreview()) return@runReadAction null
+
+    val rootAnnotation =
+      uMethod.findAnnotation(TILE_PREVIEW_ANNOTATION_FQ_NAME) ?: return@runReadAction null
+
+    val defaultValues = rootAnnotation.findPreviewDefaultValues()
+
+    val device = rootAnnotation.findAttributeValue("device")?.evaluateString()?.nullize() ?: defaultValues["device"]
+    val locale = (rootAnnotation.findAttributeValue("locale")?.evaluateString() ?: defaultValues["device"])?.nullize()
+    val fontScale = rootAnnotation.findAttributeValue("fontScale")?.evaluate() as? Float ?: defaultValues["fontScale"]?.toFloatOrNull()
+    val name = rootAnnotation.findAttributeValue("name")?.evaluateString()?.nullize()
+    val group = rootAnnotation.findAttributeValue("group")?.evaluateString()?.nullize()
+
+    val previewName = name?.let { "${uMethod.name} - $name" } ?: uMethod.name
+
+    val displaySettings =
+      PreviewDisplaySettings(
+        name = previewName,
+        group = group,
+        showDecoration = false,
+        showBackground = true,
+        backgroundColor = DEFAULT_WEAR_TILE_BACKGROUND
+      )
+
+    WearTilePreviewElement(
+      displaySettings = displaySettings,
+      previewElementDefinitionPsi = rootAnnotation.toSmartPsiPointer(),
+      previewBodyPsi = uMethod.uastBody.toSmartPsiPointer(),
+      methodFqn = uMethod.qualifiedName,
+      configuration = WearTilePreviewConfiguration.forValues(
+        device = device,
+        locale = locale?.let { Locale.create(it) },
+        fontScale = fontScale
+      )
+    )
   }
 }
 
-/**
- * Extension method that detects if this [PsiClass] is a descendant of [TileService]. Has to be called from a read action.
- */
-@Slow
-internal fun PsiClass.extendsTileService(): Boolean = InheritanceUtil.isInheritor(this, TILE_SERVICE_CLASS)
+private fun UMethod?.isTilePreview(): Boolean {
+  if (this == null) return false
+  if (!this.isAnnotatedWith(TILE_PREVIEW_ANNOTATION_FQ_NAME)) return false
+  if (this.returnType?.equalsToText(TILE_PREVIEW_DATA_FQ_NAME) != true) return false
 
-/** Extension method that returns a [WearTilePreviewElement] from a [PsiClass]. */
-internal fun PsiClass.toWearTilePreviewElement(): WearTilePreviewElement {
-  val pointer = SmartPointerManager.createPointer<PsiElement>(this)
-  return WearTilePreviewElement(
-    PreviewDisplaySettings(this.name ?: "", null, false, false, null),
-    pointer,
-    pointer,
-    this.qualifiedName ?: ""
-  )
+  val hasNoParameters = uastParameters.isEmpty()
+  val hasContextParameter = uastParameters.size == 1 && uastParameters.first().typeReference?.getQualifiedName() == SdkConstants.CLASS_CONTEXT
+  return hasNoParameters || hasContextParameter
 }

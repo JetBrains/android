@@ -34,34 +34,41 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [EditorHyperlinkDetector]
- */
+/** Tests for [EditorHyperlinkDetector] */
 @RunsInEdt
 class EditorHyperlinkDetectorTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
   @get:Rule
-  val rule = RuleChain(
-    projectRule,
-    logcatEditorRule,
-    ApplicationServiceRule(IssueExplainer::class.java, TestIssueExplainer),
-    EdtRule()
-  )
+  val rule =
+    RuleChain(
+      projectRule,
+      logcatEditorRule,
+      ApplicationServiceRule(IssueExplainer::class.java, TestIssueExplainer),
+      EdtRule()
+    )
 
-  private val project get() = projectRule.project
-  private val editor get() = logcatEditorRule.editor
+  private val project
+    get() = projectRule.project
+
+  private val editor
+    get() = logcatEditorRule.editor
 
   /**
-   * Tests that we are using the correct filter as provided by ConsoleViewUtil.computeConsoleFilters(). This is a CompositeFilter that
-   * wraps a set of filters provided by the IDEA.
+   * Tests that we are using the correct filter as provided by
+   * ConsoleViewUtil.computeConsoleFilters(). This is a CompositeFilter that wraps a set of filters
+   * provided by the IDEA.
    */
   @Test
   fun usesCorrectFilters_withoutStudioBot() {
     TestIssueExplainer.available = false
     val expectedFilters =
-      ConsoleViewUtil.computeConsoleFilters(project, /* consoleView= */ null, GlobalSearchScope.allScope(project))
+      ConsoleViewUtil.computeConsoleFilters(
+        project,
+        /* consoleView= */ null,
+        GlobalSearchScope.allScope(project)
+      )
 
     val hyperlinkDetector = EditorHyperlinkDetector(project, editor)
 
@@ -71,20 +78,27 @@ class EditorHyperlinkDetectorTest {
   }
 
   /**
-   * Tests that we are using the correct filter as provided by ConsoleViewUtil.computeConsoleFilters(). This is a CompositeFilter that
-   * wraps a set of filters provided by the IDEA.
+   * Tests that we are using the correct filter as provided by
+   * ConsoleViewUtil.computeConsoleFilters(). This is a CompositeFilter that wraps a set of filters
+   * provided by the IDEA.
    */
   @Test
   fun usesCorrectFilters_withStudioBot() {
     TestIssueExplainer.available = true
     val expectedFilters =
-      ConsoleViewUtil.computeConsoleFilters(project, /* consoleView= */ null, GlobalSearchScope.allScope(project))
+      ConsoleViewUtil.computeConsoleFilters(
+        project,
+        /* consoleView= */ null,
+        GlobalSearchScope.allScope(project)
+      )
 
     val hyperlinkDetector = EditorHyperlinkDetector(project, editor)
 
     val filter = hyperlinkDetector.filter.delegate as CompositeFilter
     assertThat(filter.filters.map { it::class })
-      .containsExactlyElementsIn(expectedFilters.map { it::class } + SimpleFileLinkFilter::class + StudioBotFilter::class)
+      .containsExactlyElementsIn(
+        expectedFilters.map { it::class } + SimpleFileLinkFilter::class + StudioBotFilter::class
+      )
   }
 
   /**
@@ -97,12 +111,16 @@ class EditorHyperlinkDetectorTest {
     editor.document.setText("http://www.google.com")
     val hyperlinkSupport = EditorHyperlinkSupport.get(editor)
 
-    EditorHyperlinkDetector(project, editor).detectHyperlinks(0, editor.document.lineCount - 1, sdk = null)
+    EditorHyperlinkDetector(project, editor)
+      .detectHyperlinks(0, editor.document.lineCount - 1, sdk = null)
 
     hyperlinkSupport.waitForPendingFilters(/* timeoutMs= */ 5000)
-    assertThat(hyperlinkSupport.findAllHyperlinksOnLine(0).map {
-      editor.document.text.substring(it.startOffset, it.endOffset)
-    }).containsExactly("http://www.google.com")
+    assertThat(
+        hyperlinkSupport.findAllHyperlinksOnLine(0).map {
+          editor.document.text.substring(it.startOffset, it.endOffset)
+        }
+      )
+      .containsExactly("http://www.google.com")
   }
 
   @Test
@@ -117,9 +135,12 @@ class EditorHyperlinkDetectorTest {
     editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1, sdk = null)
 
     hyperlinkSupport.waitForPendingFilters(/* timeoutMs= */ 5000)
-    assertThat(hyperlinkSupport.findAllHyperlinksOnLine(0).map {
-      editor.document.text.substring(it.startOffset, it.endOffset)
-    }).containsExactly("Foo", "Bar")
+    assertThat(
+        hyperlinkSupport.findAllHyperlinksOnLine(0).map {
+          editor.document.text.substring(it.startOffset, it.endOffset)
+        }
+      )
+      .containsExactly("Foo", "Bar")
   }
 
   @Test
@@ -148,6 +169,7 @@ class EditorHyperlinkDetectorTest {
 
   private object TestIssueExplainer : IssueExplainer() {
     var available = true
+
     override fun isAvailable(): Boolean = available
   }
 }

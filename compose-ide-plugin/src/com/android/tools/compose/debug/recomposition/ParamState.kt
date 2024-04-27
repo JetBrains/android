@@ -19,32 +19,29 @@ import com.android.tools.compose.ComposeBundle
 
 private const val SLOTS_PER_INT = 10
 
-/**
- * Based on [androidx.compose.compiler.plugins.kotlin.lower.ParamState]
- */
+/** Based on [androidx.compose.compiler.plugins.kotlin.lower.ParamState] */
 internal enum class ParamState(private val nameResource: String, private val bits: Int) {
   /**
    * Indicates that nothing is certain about the current state of the parameter. It could be
-   * different from it was during the last execution, or it could be the same, but it is not
-   * known so the current function looking at it must call equals on it in order to find out.
-   * This is the only state that can cause the function to spend slot table space in order to
-   * look at it.
+   * different from it was during the last execution, or it could be the same, but it is not known
+   * so the current function looking at it must call equals on it in order to find out. This is the
+   * only state that can cause the function to spend slot table space in order to look at it.
    */
   Uncertain("recomposition.state.uncertain", 0b000),
 
   /**
    * This indicates that the value is known to be the same since the last time the function was
    * executed. There is no need to store the value in the slot table in this case because the
-   * calling function will *always* know whether the value was the same or different as it was
-   * in the previous execution.
+   * calling function will *always* know whether the value was the same or different as it was in
+   * the previous execution.
    */
   Same("recomposition.state.same", 0b001),
 
   /**
-   * This indicates that the value is known to be different since the last time the function
-   * was executed. There is no need to store the value in the slot table in this case because
-   * the calling function will *always* know whether the value was the same or different as it
-   * was in the previous execution.
+   * This indicates that the value is known to be different since the last time the function was
+   * executed. There is no need to store the value in the slot table in this case because the
+   * calling function will *always* know whether the value was the same or different as it was in
+   * the previous execution.
    */
   Different("recomposition.state.different", 0b010),
 
@@ -54,9 +51,7 @@ internal enum class ParamState(private val nameResource: String, private val bit
    */
   Static("recomposition.state.static", 0b011),
 
-  /**
-   * If the msb is set, it is unstable. Lower bits are ignored.
-   */
+  /** If the msb is set, it is unstable. Lower bits are ignored. */
   Unstable100("recomposition.state.unstable", 0b100),
   Unstable101("recomposition.state.unstable", 0b101),
   Unstable110("recomposition.state.unstable", 0b110),
@@ -68,9 +63,7 @@ internal enum class ParamState(private val nameResource: String, private val bit
   companion object {
     private val STATES = ParamState.values().sortedBy { it.bits }
 
-    /**
-     * Returns the decoded param states of [values].
-     */
+    /** Returns the decoded param states of [values]. */
     fun decode(values: List<Int>): List<ParamState> {
       val states = mutableListOf<ParamState>()
       values.forEach {

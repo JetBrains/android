@@ -178,7 +178,7 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
 
   private fun copyBenchmarkFilesIfNeeded(benchmark: String, deviceRoot: String) {
     if (benchmark.isBlank() || deviceRoot.isBlank()) {
-      return
+      return;
     }
     val benchmarkOutput = BenchmarkOutput(benchmark)
     for (line in benchmarkOutput.lines) {

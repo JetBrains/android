@@ -26,10 +26,10 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.ThrowableRunnable
-import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito.mock
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import org.jetbrains.android.AndroidTestCase
+import org.mockito.Mockito.mock
 
 class NlComponentBackendXmlTest : AndroidTestCase() {
 
@@ -271,6 +271,37 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
         }
       )
     }
+  }
+
+  fun testReformat() {
+    val editText =
+      // language=xml
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <TextView
+            xmlns:android="${ANDROID_URI}" xmlns:tools="${TOOLS_URI}" android:text="Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+      """
+        .trimIndent()
+    val xmlFile = myFixture.addFileToProject("res/layout/layout.xml", editText) as XmlFile
+    val rootTag = xmlFile.rootTag!!
+    val backend = createBackend(rootTag)
+
+    WriteCommandAction.runWriteCommandAction(project) { backend.reformatAndRearrange() }
+    assertEquals(
+      // language=xml
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Text" />
+      """
+        .trimIndent(),
+      xmlFile.text
+    )
   }
 
   private fun createBackend(tag: XmlTag): NlComponentBackendXml {

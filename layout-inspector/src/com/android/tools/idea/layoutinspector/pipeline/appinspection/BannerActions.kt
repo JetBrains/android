@@ -76,8 +76,7 @@ fun showActivityRestartedInBanner(
           val checkBox =
             tabbedPanel?.firstComponentWithName(
               AndroidRunConfigurationEditor.LAYOUT_INSPECTION_WITHOUT_ACTIVITY_RESTART
-            ) as? JComponent
-              ?: return@invokeLater
+            ) as? JComponent ?: return@invokeLater
           val editor =
             SwingUtilities.getAncestorOfClass(SingleSettingEditor::class.java, tabbedPanel)
               as SingleSettingEditor

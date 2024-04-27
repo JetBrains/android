@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.tools.idea.rendering.errors.ui.MessageTip
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.designer.model.EmptyXmlTag
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
+import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -35,18 +38,21 @@ import com.intellij.profile.codeInspection.ui.readHTML
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.panels.HorizontalLayout
+import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
-import java.awt.Component
 import java.awt.Font
 import java.io.File
 import javax.swing.BoxLayout
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
+import javax.swing.SwingConstants
 import javax.swing.ToolTipManager
+import javax.swing.event.HyperlinkListener
 
 /** The side panel to show the detail of issue and its source code if available */
 class DesignerCommonIssueSidePanel(private val project: Project, parentDisposable: Disposable) :
@@ -109,10 +115,15 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
     }
     val document = ProblemsView.getDocument(project, file) ?: return null
     val newEditor =
-      EditorFactory.getInstance().createEditor(document, project, file, false, EditorKind.PREVIEW)
-    if (newEditor != null) {
-      fileToEditorMap[file] = newEditor
-    }
+      (EditorFactory.getInstance().createViewer(document, project, EditorKind.PREVIEW) as EditorEx)
+        .apply {
+          setCaretEnabled(false)
+          isEmbeddedIntoDialogWrapper = true
+          contentComponent.isOpaque = false
+          setBorder(JBUI.Borders.empty())
+          settings.setGutterIconsShown(false)
+        }
+    fileToEditorMap[file] = newEditor
     return newEditor
   }
 
@@ -143,6 +154,10 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
       }
     add(title, BorderLayout.NORTH)
 
+    issue.messageTips
+      .takeIf { it.isNotEmpty() }
+      ?.let { add(createBottomPanel(it, issue.hyperlinkListener), BorderLayout.SOUTH) }
+
     val contentPanel = JPanel()
     contentPanel.layout = BorderLayout()
     val scrollPane =
@@ -159,62 +174,103 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
     descriptionEditorPane.alignmentX = LEFT_ALIGNMENT
     contentPanel.add(descriptionEditorPane, BorderLayout.NORTH)
 
-    val description =
-      updateImageSize(
-        HtmlBuilder().openHtmlBody().addHtml(issue.description).closeHtmlBody().html,
-        UIUtil.getFontSize(UIUtil.FontSize.NORMAL).toInt()
-      )
+    val description = HtmlBuilder().openHtmlBody().addHtml(issue.description).closeHtmlBody().html
     descriptionEditorPane.readHTML(description)
 
     if (issue is VisualLintRenderIssue) {
-      val affectedFilePanel = JPanel().apply { border = JBUI.Borders.empty(4, 0) }
-      affectedFilePanel.layout = BoxLayout(affectedFilePanel, BoxLayout.Y_AXIS)
-
-      val projectBasePath = project.basePath
-      if (projectBasePath != null) {
-        val relatedFiles =
-          issue.models
-            .filter { model -> issue.shouldHighlight(model) }
-            .map {
-              @Suppress("UnstableApiUsage") BackedVirtualFile.getOriginFileIfBacked(it.virtualFile)
-            }
-            .distinct()
-        if (relatedFiles.isNotEmpty()) {
-          affectedFilePanel.add(
-            JBLabel("Affected Files:").apply {
-              font = font.deriveFont(Font.BOLD)
-              alignmentX = Component.LEFT_ALIGNMENT
-              border = JBUI.Borders.empty(4, 0)
-            }
-          )
-        }
-        for (file in relatedFiles) {
-          val pathToDisplay =
-            FileUtilRt.getRelativePath(projectBasePath, file.path, File.separatorChar, true)
-              ?: continue
-          val link =
-            object :
-              ActionLink(
-                pathToDisplay,
-                { OpenFileDescriptor(project, file).navigateInEditor(project, true) }
-              ) {
-              override fun getToolTipText(): String? {
-                return if (size.width < minimumSize.width) {
-                  pathToDisplay
-                } else {
-                  null
-                }
-              }
-            }
-          ToolTipManager.sharedInstance().registerComponent(link)
-          affectedFilePanel.add(link)
-        }
-      }
-      contentPanel.add(affectedFilePanel, BorderLayout.CENTER)
+      contentPanel.addVisualRenderIssue(issue, project)
     }
   }
-}
 
-private fun updateImageSize(html: String, size: Int): String {
-  return html.replace("(<img .+ width=)[0-9]+( height=)[0-9]+".toRegex(), "$1$size$2$size")
+  private fun createBottomPanel(issues: List<MessageTip>?, hyperlinkListener: HyperlinkListener?) =
+    JBPanel<JBPanel<*>>(VerticalLayout(1)).apply {
+      border = JBUI.Borders.empty(3, 2)
+      issues?.forEach { messageType -> add(createMessageTip(messageType, hyperlinkListener)) }
+    }
+
+  private fun createMessageTip(messageType: MessageTip, hyperlinkListener: HyperlinkListener?) =
+    JBPanel<JBPanel<*>>(HorizontalLayout(1)).apply {
+      add(
+        JBLabel(messageType.icon).apply {
+          verticalAlignment = SwingConstants.TOP
+          border = JBUI.Borders.empty(3)
+        }
+      )
+
+      add(
+        object : JBLabel(messageType.htmlText) {
+          init {
+            isAllowAutoWrapping = true
+            setCopyable(true)
+          }
+
+          override fun createHyperlinkListener(): HyperlinkListener {
+            return hyperlinkListener.takeIf { it != null } ?: super.createHyperlinkListener()
+          }
+        },
+      )
+    }
+
+  private fun VisualLintRenderIssue.getAffectedFiles(): List<VirtualFile> {
+    val modelFiles =
+      models
+        .filter { model -> this.shouldHighlight(model) }
+        .map {
+          @Suppress("UnstableApiUsage") BackedVirtualFile.getOriginFileIfBacked(it.virtualFile)
+        }
+        .distinct()
+    val navigatableFile =
+      (components.firstOrNull { it.tag == EmptyXmlTag.INSTANCE }?.navigatable
+          as? OpenFileDescriptor)
+        ?.file
+    return if (navigatableFile == null || modelFiles.contains(navigatableFile)) {
+      modelFiles
+    } else {
+      modelFiles.toMutableList().apply { add(navigatableFile) }
+    }
+  }
+
+  private fun JPanel.addVisualRenderIssue(
+    issue: VisualLintRenderIssue,
+    project: Project,
+  ) {
+    val affectedFilePanel = JPanel().apply { border = JBUI.Borders.empty(4, 0) }
+    affectedFilePanel.layout = BoxLayout(affectedFilePanel, BoxLayout.Y_AXIS)
+
+    val projectBasePath = project.basePath
+    if (projectBasePath != null) {
+      val relatedFiles = issue.getAffectedFiles()
+      if (relatedFiles.isNotEmpty()) {
+        affectedFilePanel.add(
+          JBLabel("Affected Files:").apply {
+            font = font.deriveFont(Font.BOLD)
+            alignmentX = LEFT_ALIGNMENT
+            border = JBUI.Borders.empty(4, 0)
+          },
+        )
+      }
+      for (file in relatedFiles) {
+        val pathToDisplay =
+          FileUtilRt.getRelativePath(projectBasePath, file.path, File.separatorChar, true)
+            ?: continue
+        val link =
+          object :
+            ActionLink(
+              pathToDisplay,
+              { OpenFileDescriptor(project, file).navigateInEditor(project, true) },
+            ) {
+            override fun getToolTipText(): String? {
+              return if (size.width < minimumSize.width) {
+                pathToDisplay
+              } else {
+                null
+              }
+            }
+          }
+        ToolTipManager.sharedInstance().registerComponent(link)
+        affectedFilePanel.add(link)
+      }
+    }
+    add(affectedFilePanel, BorderLayout.CENTER)
+  }
 }

@@ -71,6 +71,6 @@ abstract class ChildModelConfigurable<T : PsChildModel, out PanelT>(
     this.myHistory = history
   }
 
-  override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback? = panel.navigateTo(place, requestFocus)!!
+  override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = panel.navigateTo(place, requestFocus)!!
   override fun queryPlace(place: Place) = panel.queryPlace(place)
 }

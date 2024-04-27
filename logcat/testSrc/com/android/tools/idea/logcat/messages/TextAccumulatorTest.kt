@@ -28,9 +28,7 @@ private val red = TextAttributes().apply { foregroundColor = Color.red }
 private val blueKey = TextAttributesKey.createTextAttributesKey("blue")
 private val redKey = TextAttributesKey.createTextAttributesKey("red")
 
-/**
- * Tests for [TextAccumulator]
- */
+/** Tests for [TextAccumulator] */
 class TextAccumulatorTest {
   private val textAccumulator = TextAccumulator()
 
@@ -52,7 +50,8 @@ class TextAccumulatorTest {
     textAccumulator.accumulate("red", textAttributes = red)
 
     assertThat(textAccumulator.text).isEqualTo("foo-blue-bar-red")
-    assertThat(textAccumulator.textAttributesRanges).containsExactly(Range(4, 8, blue), Range(13, 16, red))
+    assertThat(textAccumulator.textAttributesRanges)
+      .containsExactly(Range(4, 8, blue), Range(13, 16, red))
     assertThat(textAccumulator.textAttributesKeyRanges).isEmpty()
   }
 
@@ -64,7 +63,8 @@ class TextAccumulatorTest {
     textAccumulator.accumulate("red", textAttributesKey = redKey)
 
     assertThat(textAccumulator.text).isEqualTo("foo-blue-bar-red")
-    assertThat(textAccumulator.textAttributesKeyRanges).containsExactly(Range(4, 8, blueKey), Range(13, 16, redKey))
+    assertThat(textAccumulator.textAttributesKeyRanges)
+      .containsExactly(Range(4, 8, blueKey), Range(13, 16, redKey))
     assertThat(textAccumulator.textAttributesRanges).isEmpty()
   }
 
@@ -82,6 +82,8 @@ class TextAccumulatorTest {
 
   @Test
   fun accumulate_textAttributesAndKey() {
-    assertThrows(AssertionError::class.java) { textAccumulator.accumulate("blue", textAttributes = blue, textAttributesKey = blueKey) }
+    assertThrows(AssertionError::class.java) {
+      textAccumulator.accumulate("blue", textAttributes = blue, textAttributesKey = blueKey)
+    }
   }
 }

@@ -28,18 +28,23 @@ class TestProcessDiscovery : ProcessDiscovery {
   override fun addProcessListener(executor: Executor, listener: ProcessListener) {
     listeners[listener] = executor
   }
+
   override fun removeProcessListener(listener: ProcessListener) {
     listeners.remove(listener)
   }
 
   fun addDevice(device: DeviceDescriptor) = devices.add(device)
+
   fun removeDevice(device: DeviceDescriptor) = devices.remove(device)
+
   fun fireConnected(process: ProcessDescriptor) = fire { listener ->
     listener.onProcessConnected(process)
   }
+
   fun fireDisconnected(process: ProcessDescriptor) = fire { listener ->
     listener.onProcessDisconnected(process)
   }
+
   private fun fire(block: (ProcessListener) -> Unit) {
     listeners.forEach { (listener, executor) -> executor.execute { block(listener) } }
   }

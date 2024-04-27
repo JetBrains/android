@@ -69,7 +69,6 @@ internal class PreviewIssueNotificationActionTest {
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
-      interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
     )
 
   @Test
@@ -318,9 +317,13 @@ internal class PreviewIssueNotificationActionTest {
       object : InformationPopup {
         override val popupComponent: JComponent = object : JComponent() {}
         override var onMouseEnteredCallback: () -> Unit = {}
+
         override fun hidePopup() {}
+
         override fun showPopup(disposableParent: Disposable, event: InputEvent) {}
+
         override fun isVisible(): Boolean = false
+
         override fun dispose() {}
       }
 

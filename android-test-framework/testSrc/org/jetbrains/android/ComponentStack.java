@@ -66,7 +66,7 @@ public class ComponentStack {
     }
   }
 
-  private static final class ComponentItem {
+  private static class ComponentItem {
     private final Class key;
     private final Object instance;
 

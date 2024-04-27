@@ -21,10 +21,10 @@ import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.rendering.StudioHtmlLinkManager;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.rendering.RenderLogger;
+import com.android.tools.idea.rendering.StudioHtmlLinkManager;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.RenderResultStats;
 import com.google.common.collect.ImmutableList;
@@ -46,6 +46,7 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     when(surface.getScale()).thenReturn(0.50);
     Configuration configuration = getConfigurationMock();
     when(surface.getConfigurations()).thenReturn(ImmutableList.of(configuration));
+    when(surface.getConfiguration()).thenReturn(configuration);
 
     return new CommonUsageTrackerImpl(SYNC_EXECUTOR, surface, usageTracker::logNow) {
       @Override
@@ -56,8 +57,7 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     };
   }
 
-  // b/110242994
-  public void ignore_testBasicLogging() {
+  public void testBasicLogging() {
     CommonUsageTracker tracker = getUsageTracker();
 
     tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);

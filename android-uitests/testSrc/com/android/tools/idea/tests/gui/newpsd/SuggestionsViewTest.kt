@@ -37,7 +37,7 @@ class SuggestionsViewTest {
   @JvmField
   val guiTest = PsdGuiTestRule()
 
-  @Ignore("b/77848741")
+  @Ignore("b/303087310")
   @Test
   fun showsAndProcessesMessages() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
@@ -100,7 +100,7 @@ class SuggestionsViewTest {
   }
 
   @Test
-  @Ignore("b/74443500")
+  @Ignore("b/303087310")
   fun filtersMessagesByModule() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
 

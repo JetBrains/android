@@ -43,8 +43,8 @@ import com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF
 import com.android.SdkConstants.NEW_ID_PREFIX
 import com.android.SdkConstants.VALUE_N_DP
 import com.android.SdkConstants.VALUE_TRUE
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.Scene
@@ -112,7 +112,10 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
     }
 
     val filterType = myComponent.scene.filterType
-    return isConnectible(filterType) || filterType == Scene.FilterType.ALL
+    if (isConnectible(filterType) || filterType == Scene.FilterType.ALL) {
+      return true
+    }
+    return false
   }
 
   override fun getDrawMode(): DrawAnchor.Mode {

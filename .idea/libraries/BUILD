@@ -302,3 +302,10 @@ jvm_import(
     jars = ["//tools/base/kotlin-multiplatform-models/proto:kotlin_multiplatform_android_models_proto.jar"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "tomlj",
+    jars = ["//prebuilts/tools/common/m2:tomlj_files"],
+    visibility = ["//visibility:public"],
+)

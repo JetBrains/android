@@ -26,7 +26,7 @@ class FirebaseCrashlyticsModelTest : GradleFileModelTestCase() {
   fun testParseFirebaseCrashlytics() {
     writeToBuildFile(TestFile.PARSE_FIREBASE_CRASHLYTICS)
     val buildModel = gradleBuildModel
-    val firebaseCrashlytics = buildModel.android().buildTypes().first { it.name() == "release" }.firebaseCrashlytics()
+    val firebaseCrashlytics = buildModel.android().buildTypes().first { it.name() == "release" }.firebaseCrashlytics();
     assertEquals("nativeSymbolUploadEnabled", false, firebaseCrashlytics.nativeSymbolUploadEnabled())
   }
 
@@ -48,7 +48,7 @@ class FirebaseCrashlyticsModelTest : GradleFileModelTestCase() {
   fun testRemoveAndApply() {
     writeToBuildFile(TestFile.PARSE_FIREBASE_CRASHLYTICS)
     val buildModel = gradleBuildModel
-    val firebaseCrashlytics = buildModel.android().buildTypes().first { it.name() == "release" }.firebaseCrashlytics()
+    val firebaseCrashlytics = buildModel.android().buildTypes().first { it.name() == "release" }.firebaseCrashlytics();
     assertEquals("nativeSymbolUploadEnabled", false, firebaseCrashlytics.nativeSymbolUploadEnabled())
     firebaseCrashlytics.nativeSymbolUploadEnabled().delete()
 

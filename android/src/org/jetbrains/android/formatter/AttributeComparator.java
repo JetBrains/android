@@ -16,13 +16,14 @@
 package org.jetbrains.android.formatter;
 
 import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * An Android XML attribute comparator.

@@ -15,12 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.absolute;
 
-import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
-import static com.android.SdkConstants.ATTR_LAYOUT_X;
-import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.TEXT_VIEW;
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -28,9 +22,13 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.intellij.openapi.command.WriteCommandAction;
-import java.awt.Dimension;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
+
+import static com.android.SdkConstants.*;
+import static com.google.common.truth.Truth.assertThat;
 
 public class AbsoluteLayoutHandlerTest extends SceneTest {
 

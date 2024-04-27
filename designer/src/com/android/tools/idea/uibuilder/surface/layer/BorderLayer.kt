@@ -67,114 +67,102 @@ constructor(
       return
     }
 
-    BorderPainter.paint(g2d, myScreenView, colorProvider(myScreenView))
+    val borderColor = colorProvider(myScreenView)
+    BorderPainter(
+        JBUI.scale(borderColor.size),
+        borderColor.colorInside,
+        borderColor.colorOutside,
+        useHighQuality = true
+      )
+      .paint(g2d, myScreenView)
   }
 }
 
-private object BorderPainter {
-  fun paint(g2d: Graphics2D, screenView: SceneView, colorConfig: BorderColor) {
-    val borderSize = JBUI.scale(colorConfig.size)
-    val gradLeft =
-      GradientPaint(
-        0f,
-        0f,
-        colorConfig.colorOutside,
-        borderSize.toFloat(),
-        0f,
-        colorConfig.colorInside
-      )
-    val gradTop =
-      GradientPaint(
-        0f,
-        0f,
-        colorConfig.colorOutside,
-        0f,
-        borderSize.toFloat(),
-        colorConfig.colorInside
-      )
-    val gradRight =
-      GradientPaint(
-        0f,
-        0f,
-        colorConfig.colorInside,
-        borderSize.toFloat(),
-        0f,
-        colorConfig.colorOutside
-      )
-    val gradBottom =
-      GradientPaint(
-        0f,
-        0f,
-        colorConfig.colorInside,
-        0f,
-        borderSize.toFloat(),
-        colorConfig.colorOutside
-      )
-    val gradCorner =
-      RadialGradientPaint(
-        borderSize.toFloat(),
-        borderSize.toFloat(),
-        borderSize.toFloat(),
-        floatArrayOf(0f, 1f),
-        arrayOf(colorConfig.colorInside, colorConfig.colorOutside)
-      )
+class BorderPainter(
+  private val borderThickness: Int,
+  colorInside: Color,
+  colorOutside: Color,
+  val useHighQuality: Boolean
+) {
+  private val gradLeft =
+    GradientPaint(0f, 0f, colorOutside, borderThickness.toFloat(), 0f, colorInside)
+  private val gradTop =
+    GradientPaint(0f, 0f, colorOutside, 0f, borderThickness.toFloat(), colorInside)
+  private val gradRight =
+    GradientPaint(0f, 0f, colorInside, borderThickness.toFloat(), 0f, colorOutside)
+  private val gradBottom =
+    GradientPaint(0f, 0f, colorInside, 0f, borderThickness.toFloat(), colorOutside)
+  private val gradCorner =
+    RadialGradientPaint(
+      borderThickness.toFloat(),
+      borderThickness.toFloat(),
+      borderThickness.toFloat(),
+      floatArrayOf(0f, 1f),
+      arrayOf(colorInside, colorOutside)
+    )
+
+  fun paint(g2d: Graphics2D, screenView: SceneView) {
     val size = screenView.scaledContentSize
-    val x = screenView.x
-    val y = screenView.y
+    paint(g2d, screenView.x, screenView.y, size.width, size.height)
+  }
+
+  fun paint(g2d: Graphics2D, x: Int, y: Int, width: Int, height: Int) {
     val hints = g2d.renderingHints
     val tx = g2d.transform
     val paint = g2d.paint
 
     // Left
-    g2d.translate(x - borderSize, y)
-    g2d.scale(1.0, size.height / borderSize.toDouble())
+    g2d.translate(x - borderThickness, y)
+    g2d.scale(1.0, height / borderThickness.toDouble())
     g2d.paint = gradLeft
-    g2d.fillRect(0, 0, borderSize, borderSize)
+    g2d.fillRect(0, 0, borderThickness, borderThickness)
 
     // Right
-    g2d.translate(size.width + borderSize, 0)
+    g2d.translate(width + borderThickness, 0)
     g2d.paint = gradRight
-    g2d.fillRect(0, 0, borderSize, borderSize)
+    g2d.fillRect(0, 0, borderThickness, borderThickness)
 
     // Reset transform scale and translate to upper left corner
-    g2d.translate(-size.width, 0)
-    g2d.scale(1.0, borderSize / size.height.toDouble())
+    g2d.translate(-width, 0)
+    g2d.scale(1.0, borderThickness / height.toDouble())
 
     // Top
-    g2d.translate(0, -borderSize)
-    g2d.scale(size.width / borderSize.toDouble(), 1.0)
+    g2d.translate(0, -borderThickness)
+    g2d.scale(width / borderThickness.toDouble(), 1.0)
     g2d.paint = gradTop
-    g2d.fillRect(0, 0, borderSize, borderSize)
+    g2d.fillRect(0, 0, borderThickness, borderThickness)
 
     // Bottom
-    g2d.translate(0, size.height + borderSize)
+    g2d.translate(0, height + borderThickness)
     g2d.paint = gradBottom
-    g2d.fillRect(0, 0, borderSize, borderSize)
+    g2d.fillRect(0, 0, borderThickness, borderThickness)
 
     // Reset the transform
     g2d.transform = tx
 
-    // Smoothen the corner shadows
-    g2d.setRenderingHint(
-      RenderingHints.KEY_INTERPOLATION,
-      RenderingHints.VALUE_INTERPOLATION_BILINEAR
-    )
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+    if (useHighQuality) {
+      // Smoothen the corner shadows
+      g2d.setRenderingHint(
+        RenderingHints.KEY_INTERPOLATION,
+        RenderingHints.VALUE_INTERPOLATION_BILINEAR
+      )
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+    }
 
     // Paint the corner shadows
     g2d.paint = gradCorner
     // Top Left
-    g2d.translate(x - borderSize, y - borderSize)
-    g2d.fillArc(0, 0, borderSize * 2, borderSize * 2, 90, 90)
+    g2d.translate(x - borderThickness, y - borderThickness)
+    g2d.fillArc(0, 0, borderThickness * 2, borderThickness * 2, 90, 90)
     // Top Right
-    g2d.translate(size.width, 0)
-    g2d.fillArc(0, 0, borderSize * 2, borderSize * 2, 0, 90)
+    g2d.translate(width, 0)
+    g2d.fillArc(0, 0, borderThickness * 2, borderThickness * 2, 0, 90)
     // Bottom Right
-    g2d.translate(0, size.height)
-    g2d.fillArc(0, 0, borderSize * 2, borderSize * 2, 270, 90)
+    g2d.translate(0, height)
+    g2d.fillArc(0, 0, borderThickness * 2, borderThickness * 2, 270, 90)
     // Bottom Left
-    g2d.translate(-size.width, 0)
-    g2d.fillArc(0, 0, borderSize * 2, borderSize * 2, 180, 90)
+    g2d.translate(-width, 0)
+    g2d.fillArc(0, 0, borderThickness * 2, borderThickness * 2, 180, 90)
     g2d.transform = tx
     g2d.setRenderingHints(hints)
     g2d.paint = paint

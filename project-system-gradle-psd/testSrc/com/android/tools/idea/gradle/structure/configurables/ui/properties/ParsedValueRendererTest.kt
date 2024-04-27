@@ -305,7 +305,7 @@ private fun testRender(action: TextRenderer.() -> Unit): String =
     var color: String = ""
 
     override fun append(text: String, attributes: SimpleTextAttributes) {
-      if (text.isEmpty()) return
+      if (text.isEmpty()) return;
       if (attributes.style and SimpleTextAttributes.STYLE_BOLD == 0 && bold) {
         result += "</b>"; bold = false
       }

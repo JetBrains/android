@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.AppConnection
@@ -27,18 +28,18 @@ import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
-import com.android.tools.idea.insights.events.actions.AppInsightsActionQueueImpl
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.google.common.truth.Truth.assertThat
 import com.google.gct.login.GoogleLogin
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.runInEdtAndWait
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.event.HyperlinkListener
 import kotlinx.coroutines.CoroutineScope
@@ -56,12 +57,26 @@ import org.mockito.Mockito.`when`
 private suspend fun <T> ReceiveChannel<T>.receiveWithTimeout(): T = withTimeout(5000) { receive() }
 
 class AppInsightsProjectLevelControllerRule(
-  private val projectRule: ProjectRule,
+  private val projectProvider: () -> Project,
+  private val key: InsightsProviderKey,
   private val onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> }
 ) : NamedExternalResource() {
+  constructor(
+    projectRule: ProjectRule,
+    key: InsightsProviderKey = TEST_KEY,
+    onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> }
+  ) : this({ projectRule.project }, key, onErrorAction)
+
+  constructor(
+    androidProjectRule: AndroidProjectRule,
+    key: InsightsProviderKey = TEST_KEY,
+    onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> }
+  ) : this({ androidProjectRule.project }, key, onErrorAction)
+
   private val disposableRule = DisposableRule()
   val disposable: Disposable
     get() = disposableRule.disposable
+
   private lateinit var scope: CoroutineScope
   lateinit var clock: FakeClock
   lateinit var client: TestAppInsightsClient
@@ -72,6 +87,7 @@ class AppInsightsProjectLevelControllerRule(
   private lateinit var cache: AppInsightsCache
 
   override fun before(description: Description) {
+    StudioFlags.CRASHLYTICS_J_UI.override(true)
     val offlineStatusManager = OfflineStatusManagerImpl()
     scope = AndroidCoroutineScope(disposable, AndroidDispatchers.uiThread)
     clock = FakeClock(NOW)
@@ -89,7 +105,7 @@ class AppInsightsProjectLevelControllerRule(
       )
     controller =
       AppInsightsProjectLevelControllerImpl(
-        InsightsProviderKey("Fake provider"),
+        key,
         scope,
         AndroidDispatchers.workerThread,
         client,
@@ -98,8 +114,7 @@ class AppInsightsProjectLevelControllerRule(
         flowStart = SharingStarted.Lazily,
         tracker = tracker,
         clock = clock,
-        project = projectRule.project,
-        queue = AppInsightsActionQueueImpl(ConcurrentLinkedQueue()),
+        project = projectProvider(),
         onErrorAction = onErrorAction,
         defaultFilters = TEST_FILTERS,
         cache = cache
@@ -111,6 +126,7 @@ class AppInsightsProjectLevelControllerRule(
   override fun after(description: Description) {
     runInEdtAndWait { disposableRule.after() }
     internalState.close()
+    StudioFlags.CRASHLYTICS_J_UI.clearOverride()
   }
 
   suspend fun consumeFetchState(
@@ -124,6 +140,8 @@ class AppInsightsProjectLevelControllerRule(
           DEFAULT_FETCHED_PERMISSIONS
         )
       ),
+    issueVariantsState: LoadingState.Done<List<IssueVariant>> = LoadingState.Ready(emptyList()),
+    eventsState: LoadingState.Done<EventPage> = LoadingState.Ready(EventPage.EMPTY),
     detailsState: LoadingState.Done<DetailedIssueStats?> = LoadingState.Ready(null),
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
     isTransitionToOnlineMode: Boolean = false
@@ -136,9 +154,17 @@ class AppInsightsProjectLevelControllerRule(
     if (state.value.issues.isNotEmpty()) {
       if (resultState.mode == ConnectionMode.ONLINE) {
         client.completeDetailsCallWith(detailsState)
+        if (key != VITALS_KEY) {
+          client.completeIssueVariantsCallWith(issueVariantsState)
+          client.completeListEvents(eventsState)
+        }
       }
-      consumeNext()
-      client.completeListNotesCallWith(notesState)
+      if (key != VITALS_KEY) {
+        consumeNext()
+        consumeNext()
+        consumeNext()
+        client.completeListNotesCallWith(notesState)
+      }
       resultState = consumeNext()
     }
     return resultState
@@ -155,6 +181,8 @@ class AppInsightsProjectLevelControllerRule(
           DEFAULT_FETCHED_PERMISSIONS
         )
       ),
+    issueVariantsState: LoadingState.Done<List<IssueVariant>> = LoadingState.Ready(emptyList()),
+    eventsState: LoadingState.Done<EventPage> = LoadingState.Ready(EventPage.EMPTY),
     detailsState: LoadingState.Done<DetailedIssueStats?> = LoadingState.Ready(null),
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
     connectionsState: List<Connection> = listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)
@@ -164,34 +192,48 @@ class AppInsightsProjectLevelControllerRule(
     assertThat(loadingState.connections)
       .isEqualTo(Selection(connectionsState.firstOrNull(), connectionsState))
     assertThat(loadingState.issues).isInstanceOf(LoadingState.Loading::class.java)
+    assertThat(loadingState.currentIssueVariants).isEqualTo(LoadingState.Ready(null))
     assertThat(loadingState.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
     assertThat(loadingState.currentNotes).isEqualTo(LoadingState.Ready(null))
-    return consumeFetchState(state, detailsState, notesState)
+    return consumeFetchState(state, issueVariantsState, eventsState, detailsState, notesState)
   }
 
   suspend fun consumeNext() = internalState.receiveWithTimeout()
+
   private suspend fun consumeLoading(): AppInsightsState {
     return internalState.receiveWithTimeout().also {
       assertThat(it.issues).isInstanceOf(LoadingState.Loading::class.java)
     }
   }
+
   suspend fun refreshAndConsumeLoadingState(): AppInsightsState {
     controller.refresh()
     return consumeLoading()
   }
+
   fun revertToSnapshot(state: AppInsightsState) = controller.revertToSnapshot(state)
+
   fun selectIssue(value: AppInsightsIssue?, source: IssueSelectionSource) =
     controller.selectIssue(value, source)
 
   fun selectVersions(values: Set<Version>) = controller.selectVersions(values)
+
   fun selectTimeInterval(value: TimeIntervalFilter) = controller.selectTimeInterval(value)
+
   fun selectSignal(value: SignalType) = controller.selectSignal(value)
+
   fun selectOsVersion(value: Set<OperatingSystemInfo>) = controller.selectOperatingSystems(value)
+
   fun selectDevices(values: Set<Device>) = controller.selectDevices(values)
+
   fun selectFirebaseConnection(value: Connection) = controller.selectConnection(value)
+
   fun toggleFatality(value: FailureType) = controller.toggleFailureType(value)
+
   fun updateConnections(connections: List<Connection>) = this.connections.tryEmit(connections)
+
   fun enterOfflineMode() = controller.enterOfflineMode()
+
   fun selectVisibilityType(value: VisibilityType) = controller.selectVisibilityType(value)
 }
 
@@ -199,6 +241,7 @@ class AppInsightsProjectLevelControllerRule(
 class CallInProgress<T> {
   private val channel = Channel<T>()
   private val inProgress = AtomicBoolean()
+
   suspend fun initiateCall(): T {
     if (!inProgress.compareAndSet(false, true)) {
       throw IllegalStateException("A call is already in progress")
@@ -218,11 +261,14 @@ class CallInProgress<T> {
 class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsClient {
   private val listConnections = CallInProgress<LoadingState.Done<List<AppConnection>>>()
   private val topIssuesCall = CallInProgress<LoadingState.Done<IssueResponse>>()
+  private val issueVariantsCall = CallInProgress<LoadingState.Done<List<IssueVariant>>>()
   private val detailsCall = CallInProgress<LoadingState.Done<DetailedIssueStats?>>()
   private val setIssueStateCall = CallInProgress<LoadingState.Done<Unit>>()
   private val listNotesCall = CallInProgress<LoadingState.Done<List<Note>>>()
   private val createNoteCall = CallInProgress<LoadingState.Done<Note>>()
   private val deleteNoteCall = CallInProgress<LoadingState.Done<Unit>>()
+  private val listEventsCall = CallInProgress<LoadingState.Done<EventPage>>()
+
   override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> =
     listConnections.initiateCall()
 
@@ -245,10 +291,28 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
     topIssuesCall.completeWith(value)
   }
 
+  override suspend fun getIssueVariants(request: IssueRequest, issueId: IssueId) =
+    issueVariantsCall.initiateCall()
+
+  suspend fun completeIssueVariantsCallWith(value: LoadingState.Done<List<IssueVariant>>) {
+    issueVariantsCall.completeWith(value)
+  }
+
   override suspend fun getIssueDetails(
     issueId: IssueId,
-    request: IssueRequest
+    request: IssueRequest,
+    variantId: String?
   ): LoadingState.Done<DetailedIssueStats?> = detailsCall.initiateCall()
+
+  override suspend fun listEvents(
+    issueId: IssueId,
+    variantId: String?,
+    request: IssueRequest,
+    token: String?
+  ): LoadingState.Done<EventPage> = listEventsCall.initiateCall()
+
+  suspend fun completeListEvents(value: LoadingState.Done<EventPage>) =
+    listEventsCall.completeWith(value)
 
   suspend fun completeDetailsCallWith(value: LoadingState.Done<DetailedIssueStats?>) {
     detailsCall.completeWith(value)

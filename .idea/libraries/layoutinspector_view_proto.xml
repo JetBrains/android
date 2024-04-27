@@ -1,11 +1,9 @@
 <component name="libraryTable">
-  <library name="layoutinspector-view-proto" type="repository">
-    <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:layoutinspector-view-proto:231.0.26.0" />
+  <library name="layoutinspector-view-proto">
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layoutinspector-view-proto/231.0.26.0/layoutinspector-view-proto-231.0.26.0.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layout_inspector_compose_java_proto/231.0.26.0/layout_inspector_compose_java_proto-231.0.26.0.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layout_inspector_snapshot_java_proto/231.0.26.0/layout_inspector_snapshot_java_proto-231.0.26.0.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layout_inspector_view_java_proto/231.0.26.0/layout_inspector_view_java_proto-231.0.26.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/prebuilts/tools/common/app-inspection/androidx/compose/ui/layout_inspector_compose_java_proto.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/dynamic-layout-inspector/agent/appinspection/proto/layout_inspector_view_java_proto.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/adt/idea/layout-inspector/src/proto/layout_inspector_snapshot_java_proto.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

@@ -1,0 +1,3 @@
+[dependencies]
+compile = [{ notation = "com.android.support:appcompat-v7:22.1.1" }]
+test = [{ notation = "org.gradle.test.classifiers:service:1.0:jdk15@jar" }]

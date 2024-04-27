@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.scene.decorator
 
 import com.android.SdkConstants
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
@@ -110,6 +110,6 @@ class LinearLayoutDecorator : SceneDecorator() {
   }
 
   companion object {
-    const val GRADIENT_SIZE: Float = 12f
+    val GRADIENT_SIZE: Float = 12f
   }
 }

@@ -19,8 +19,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
     <projectService serviceImplementation="com.android.tools.idea.editors.layeredimage.LayersManager" />
-    <externalAnnotator language="XML" implementationClass="com.android.tools.idea.uibuilder.lint.AtfIssueExternalAnnotator"/>
-    <externalAnnotator language="XML" implementationClass="com.android.tools.idea.uibuilder.lint.VisualLintIssueExternalAnnotator"/>
     <troubleInfoCollector implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsTroubleInfoCollector" />
   </extensions>
 
@@ -79,7 +77,7 @@
     <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
                              instance="com.android.tools.idea.uibuilder.options.NlOptionsConfigurable"
                              bundle="messages.AndroidDesignerActionsBundle"
-                             key="android.uibuilder.nloptionsconfigurable.displayName"/>/>
+                             key="android.uibuilder.nloptionsconfigurable.displayName"/>
     <search.optionContributor
         implementation="com.android.tools.idea.uibuilder.options.NlOptionConfigurableSearchableOptionContributor"/>
     <moduleService serviceImplementation="com.android.tools.idea.uibuilder.palette.NlPaletteModel" />
@@ -210,6 +208,9 @@
     <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction">
         <add-to-group group-id="Internal.Android" anchor="after" relative-to-action="Android.TerminateAdbAction"/>
     </action>
+    <action internal="true" id="Android.ShowSceneViewToolbarAction" class="com.android.tools.idea.common.surface.ShowSceneViewToolbarAction">
+      <add-to-group group-id="Internal.Android" anchor="after" relative-to-action="Android.GenerateLayoutTestSkeletonAction"/>
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">
@@ -254,6 +255,10 @@
     <globalInspection projectType="Android" hasStaticDescription="true" displayName="Wear margins" shortName="WearMargin" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.rendering">
+    <renderErrorContributor implementation="com.android.tools.idea.rendering.RenderErrorContributorImpl$Provider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.troubleshooting">

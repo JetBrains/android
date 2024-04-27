@@ -29,6 +29,7 @@ import com.android.tools.deployer.model.component.WearComponent.CommandResultRec
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
@@ -50,15 +51,20 @@ class AndroidTileConfigurationExecutor(
   appRunSettings: AppRunSettings,
   applicationIdProvider: ApplicationIdProvider,
   apkProvider: ApkProvider,
+  applicationContext: ApplicationProjectContext,
   deployer: ApplicationDeployer
-) : AndroidWearConfigurationExecutor(environment, deviceFutures,
-                                     appRunSettings,
-                                     applicationIdProvider,
-                                     apkProvider,
-                                     deployer) {
+) : AndroidWearConfigurationExecutor(
+  environment,
+  deviceFutures,
+  appRunSettings,
+  applicationIdProvider,
+  apkProvider,
+  applicationContext,
+  deployer
+) {
   private val tileLaunchOptions = appRunSettings.componentLaunchOptions as TileLaunchOptions
-  override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit {
-    val tileName = AppComponent.getFQEscapedName(appId, tileLaunchOptions.componentName!!)
+  override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean): (IDevice) -> Unit {
+    val tileName = AppComponent.getFQEscapedName(applicationId, tileLaunchOptions.componentName!!)
     return getStopTileCallback(tileName, console, isDebug)
   }
 
@@ -77,20 +83,20 @@ class AndroidTileConfigurationExecutor(
 
     // TODO(b/226550406): Only add this sleep for older versions where the race condition exists.
     Thread.sleep(Duration.ofSeconds(2).toMillis())
-    val tileIndex = setWatchTile(app, mode, indicator, console)
+    val tileIndex = setWatchTile(app, mode, indicator, console, device)
     val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
     val showTileReceiver = CommandResultReceiver()
     device.executeShellCommand(showTileCommand, console, showTileReceiver, indicator = indicator)
     verifyResponse(showTileReceiver, console)
   }
 
-  private fun setWatchTile(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator?, console: ConsoleView): Int? {
+  private fun setWatchTile(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator?, console: ConsoleView, device: IDevice): Int? {
     val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
     val consoleReceiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, console)
     val indexReceiver = AddTileCommandResultReceiver { indicator?.isCanceled == true }
     val receiver = MultiReceiver(outputReceiver, consoleReceiver, indexReceiver)
     try {
-      app.activateComponent(tileLaunchOptions.componentType, tileLaunchOptions.componentName!!, mode, receiver)
+      getActivator(app).activate(tileLaunchOptions.componentType, tileLaunchOptions.componentName!!, mode, receiver, device)
     }
     catch (ex: DeployerException) {
       throw ExecutionException("Error while setting the tile, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)

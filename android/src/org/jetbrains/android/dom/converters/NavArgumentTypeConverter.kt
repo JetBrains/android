@@ -18,4 +18,5 @@ package org.jetbrains.android.dom.converters
 import com.android.SdkConstants.CLASS_PARCELABLE
 import java.io.Serializable
 
-class NavArgumentTypeConverter : PackageClassConverter(CLASS_PARCELABLE, Serializable::class.java.name)
+class NavArgumentTypeConverter :
+  PackageClassConverter(CLASS_PARCELABLE, Serializable::class.java.name)

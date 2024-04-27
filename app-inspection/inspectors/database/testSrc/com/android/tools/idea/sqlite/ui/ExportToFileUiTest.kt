@@ -18,7 +18,6 @@ package com.android.tools.idea.sqlite.ui
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.sqlite.mocks.OpenActionManager
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportDatabaseDialogParams
@@ -34,6 +33,7 @@ import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorViewImpl
 import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
+import com.android.tools.idea.testing.ui.FakeActionPopupMenu
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
 import com.intellij.mock.MockVirtualFile
@@ -47,6 +47,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.treeStructure.Tree
+import org.mockito.AdditionalAnswers.answer
+import org.mockito.AdditionalAnswers.delegatesTo
+import org.mockito.Mockito
+import org.mockito.Mockito.any
+import org.mockito.Mockito.anyString
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
@@ -57,7 +62,6 @@ import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseEvent.BUTTON3
 import java.awt.event.MouseEvent.MOUSE_PRESSED
 import javax.swing.AbstractButton
-import javax.swing.JPopupMenu
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 
@@ -159,18 +163,19 @@ class ExportToFileUiTest : LightPlatformTestCase() {
     expectedParams: ExportDialogParams
   ) {
     // Set up an ActionManager capturing pop-up menus
-    val currentActionManager =
-      ApplicationManager.getApplication().getService(ActionManager::class.java) as ActionManagerEx
     val testActionManager =
-      object : OpenActionManager(currentActionManager) {
-        val popUpMenuActionGroupList = mutableListOf<ActionGroup>()
-        override fun createActionPopupMenu(place: String, group: ActionGroup): ActionPopupMenu {
-          popUpMenuActionGroupList.add(group)
-          val mockPopUpMenu = mock(ActionPopupMenu::class.java)
-          whenever(mockPopUpMenu.component).thenReturn(mock(JPopupMenu::class.java))
-          return mockPopUpMenu
-        }
-      }
+      mock(ActionManagerEx::class.java, delegatesTo<ActionManager>(ActionManager.getInstance()))
+    val popUpMenuActionGroupList = mutableListOf<ActionGroup>()
+    fun createActionPopupMenu(
+      @Suppress("UNUSED_PARAMETER") place: String,
+      group: ActionGroup
+    ): ActionPopupMenu {
+      popUpMenuActionGroupList.add(group)
+      return FakeActionPopupMenu(group)
+    }
+    Mockito.doAnswer(answer(::createActionPopupMenu))
+      .whenever(testActionManager)
+      .createActionPopupMenu(anyString(), any())
     ApplicationManager.getApplication()
       .replaceService(ActionManager::class.java, testActionManager, testRootDisposable)
 
@@ -194,7 +199,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         .map { tree.getPathForRow(it) }
         .single { treeNodePredicate((it.lastPathComponent as DefaultMutableTreeNode).userObject) }
     val popupMenuProvider: () -> List<DefaultActionGroup> = {
-      testActionManager.popUpMenuActionGroupList.map { it as DefaultActionGroup }
+      popUpMenuActionGroupList.map { it as DefaultActionGroup }
     }
     uiInteractions(nodePath, tree, exportButton, popupMenuProvider)
 

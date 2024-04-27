@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.surface
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
@@ -203,8 +203,7 @@ class NavDesignSurfaceZoomControlsTest {
 
     surface.activate()
 
-    val model = NlModel.builder(facet, navGraph.virtualFile, configuration)
-      .withParentDisposable(androidProjectRule.testRootDisposable)
+    val model = NlModel.builder(androidProjectRule.testRootDisposable, facet, navGraph.virtualFile, configuration)
       .withComponentRegistrar(NavComponentRegistrar)
       .build()
 

@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
@@ -37,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class JniLibsDslElement extends GradleDslBlockElement {
   public static PropertiesElementDescription<JniLibsDslElement> JNI_LIBS =
-    new PropertiesElementDescription<>("jniLibs", JniLibsDslElement.class, JniLibsDslElement::new);
+    new PropertiesElementDescription<>("jniLibs", JniLibsDslElement.class, JniLibsDslElement::new, JniLibsDslElementSchema::new);
 
   public JniLibsDslElement(GradleDslElement parent, GradleNameElement name) {
     super(parent, name);
@@ -58,8 +59,29 @@ public class JniLibsDslElement extends GradleDslBlockElement {
     {"useLegacyPackaging", exactly(1), USE_LEGACY_PACKAGING, SET}
   }).collect(toModelMap());
 
+  public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"excludes", property, EXCLUDES, VAL},
+    {"pickFirsts", property, PICK_FIRSTS, VAL},
+    {"keepDebugSymbols", property, KEEP_DEBUG_SYMBOLS, VAL},
+    {"useLegacyPackaging", property, USE_LEGACY_PACKAGING, VAR},
+  }).collect(toModelMap());
+
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+  }
+
+  public static final class JniLibsDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @NotNull
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.JniLibsPackaging";
+    }
   }
 }

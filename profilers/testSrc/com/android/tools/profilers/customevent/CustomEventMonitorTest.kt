@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit
 
 class CustomEventMonitorTest {
 
-  private val USER_EVENTS: ImmutableList<Common.Event> = ImmutableList.of(
+  private val USER_EVENTS = ImmutableList.of<Common.Event>(
     // A light number of events at 1000ms.
     Common.Event.newBuilder()
       .setGroupId(1)

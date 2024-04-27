@@ -84,7 +84,7 @@ public class AddModuleDependencyDialog extends AbstractAddDependenciesDialog {
   protected ValidationInfo doValidate() {
     List<PsModule> modules = myModuleDependenciesForm.getSelectedModules();
     if (modules.isEmpty()) {
-      return new ValidationInfo("Select at least one module", myModuleDependenciesForm.getPreferredFocusedComponent());
+      return new ValidationInfo("Select at least one module", myModuleDependenciesForm.getModulesLabel());
     }
     return getScopesPanel().validateInput();
   }

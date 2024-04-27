@@ -16,18 +16,19 @@
 package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.tools.idea.common.api.DragType;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import java.awt.Rectangle;
-import java.util.List;
+import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+import java.util.List;
 
 final class PreferenceCategoryDragHandler extends PreferenceGroupDragHandler {
   PreferenceCategoryDragHandler(@NotNull ViewEditor editor,

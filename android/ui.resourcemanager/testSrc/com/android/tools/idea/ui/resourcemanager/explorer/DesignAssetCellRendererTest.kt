@@ -24,7 +24,6 @@ import com.android.tools.idea.ui.resourcemanager.rendering.StubAssetPreviewManag
 import com.intellij.mock.MockVirtualFile
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -41,7 +40,6 @@ class DesignAssetCellRendererTest {
 
   @get:Rule
   var androidProjectRule = AndroidProjectRule.inMemory()
-  @Ignore("b/117130787")
   @Test
   fun getListCellRendererComponent() {
     val imageIcon = ImageIcon(BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB).apply {

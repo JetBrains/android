@@ -26,9 +26,10 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
-import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeDependencies
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
@@ -63,6 +64,7 @@ import com.android.tools.idea.projectsystem.isAndroidTestFile
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.android.tools.idea.projectsystem.sourceProviders
+import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -71,10 +73,13 @@ import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.stats.recordTestLibraries
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.module.ModuleDependencies
 import com.google.wireless.android.sdk.stats.TestLibraries
-import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
@@ -82,6 +87,8 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.nio.file.Path
 import java.util.Collections
@@ -111,15 +118,12 @@ private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
     .toMap() as Map<K, V>
 }
 
-private val LOG = logger<GradleModuleSystem>()
-
 class GradleModuleSystem(
   override val module: Module,
   private val projectBuildModelHandler: ProjectBuildModelHandler,
   private val moduleHierarchyProvider: ModuleHierarchyProvider,
 ) : AndroidModuleSystem,
     SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
-
 
   override val type: AndroidModuleSystem.Type
     get() = when (GradleAndroidModel.get(module)?.androidProject?.projectType) {
@@ -149,8 +153,9 @@ class GradleModuleSystem(
 
   override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
     return getCompileDependenciesFor(module, scope)
-      ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
-      ?.mapNotNull { it.target.component }
+      ?.libraries
+      ?.filterIsInstance<IdeArtifactLibrary>()
+      ?.mapNotNull { it.component }
       ?.find { it.matches(coordinate) }
       ?.let { GradleCoordinate(it.group, it.name, it.version.toString()) }
   }
@@ -162,12 +167,18 @@ class GradleModuleSystem(
 
   private fun GradleCoordinate.toDependency(): Dependency = Dependency.parse(toString());
 
-  override fun getDependencyPath(coordinate: GradleCoordinate): Path? {
+  private fun IdeArtifactLibrary.componentToArtifact(): Pair<Component, File?>? =
+    when (this) {
+      is IdeAndroidLibrary -> component?.let { it to artifact }
+      is IdeJavaLibrary -> component?.let { it to artifact }
+      else -> null
+    }
+
+  fun getDependencyPath(coordinate: GradleCoordinate): Path? {
     return getCompileDependenciesFor(module, DependencyScopeType.MAIN)
-      ?.let { dependencies ->
-        dependencies.androidLibraries.asSequence().mapNotNull { it.target.component?.let { c -> c to it.target.artifact } } +
-          dependencies.javaLibraries.asSequence().mapNotNull { it.target.component?.let { c -> c to it.target.artifact } }
-      }
+      ?.libraries
+      ?.filterIsInstance<IdeArtifactLibrary>()
+      ?.mapNotNull { it.componentToArtifact() }
       ?.find { it.first.matches(coordinate) }
       ?.second?.toPath()
   }
@@ -207,6 +218,7 @@ class GradleModuleSystem(
 
   fun getDirectDependencies(module: Module): Sequence<Dependency> {
     // TODO: b/129297171
+    @Suppress("ConstantConditionIf")
     return if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
       projectBuildModelHandler.read {
         // TODO: Replace the below artifacts with the direct dependencies from the GradleAndroidModel see b/128449813
@@ -217,8 +229,10 @@ class GradleModuleSystem(
       }
     } else {
       getCompileDependenciesFor(module, DependencyScopeType.MAIN)
-        ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
-        ?.mapNotNull { it.target.component?.dependency() } ?: emptySequence()
+        ?.libraries
+        ?.asSequence()
+        ?.filterIsInstance<IdeArtifactLibrary>()
+        ?.mapNotNull { it.component?.dependency() } ?: emptySequence()
     }
   }
 
@@ -240,9 +254,9 @@ class GradleModuleSystem(
   override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
     // TODO: b/129297171 When this bug is resolved we may not need getResolvedLibraryDependencies(Module)
     return getRuntimeDependenciesFor(module, scope)
-      .flatMap { it.androidLibraries }
+      .flatMap { it.libraries }
       .distinct()
-      .map(IdeAndroidLibraryDependency::target)
+      .filterIsInstance<IdeAndroidLibrary>()
       .map(::convertLibraryToExternalLibrary)
       .toList()
   }
@@ -284,7 +298,7 @@ class GradleModuleSystem(
             if (baseFeature != null) {
               impl(baseFeature, DependencyScopeType.MAIN)
             } else {
-              LOG.error("Cannot find base feature module for: $module")
+              thisLogger().error("Cannot find base feature module for: $module")
               emptySequence()
             }
           }
@@ -454,7 +468,6 @@ class GradleModuleSystem(
       ScopeType.UNIT_TEST -> unitTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.ANDROID_TEST -> androidTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.TEST_FIXTURES -> fixturesModule?.getModuleWithDependenciesAndLibrariesScope(false)
-      ScopeType.SHARED_TEST -> GlobalSearchScope.EMPTY_SCOPE
     } ?: GlobalSearchScope.EMPTY_SCOPE
   }
 
@@ -466,7 +479,6 @@ class GradleModuleSystem(
 
   private data class AgpBuildGlobalFlags(
     val useAndroidX: Boolean,
-    val enableVcsInfo: Boolean
   )
 
   /**
@@ -506,7 +518,6 @@ class GradleModuleSystem(
         ?: return CachedValueProvider.Result(null, tracker)
       val agpBuildGlobalFlags = AgpBuildGlobalFlags(
         useAndroidX = gradleAndroidModel.androidProject.agpFlags.useAndroidX,
-        enableVcsInfo = gradleAndroidModel.androidProject.agpFlags.enableVcsInfo
       )
       return CachedValueProvider.Result(agpBuildGlobalFlags, tracker)
     }
@@ -568,8 +579,6 @@ class GradleModuleSystem(
    */
   override val useAndroidX: Boolean get() = agpBuildGlobalFlags.useAndroidX
 
-  override val enableVcsInfo: Boolean get() = agpBuildGlobalFlags.enableVcsInfo
-
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.submodules
 
@@ -584,10 +593,37 @@ class GradleModuleSystem(
   override val desugarLibraryConfigFiles: List<Path>
     get() = GradleAndroidModel.get(module)?.androidProject?.desugarLibraryConfigFiles?.map { it.toPath() } ?: emptyList()
 
+  override val moduleDependencies: ModuleDependencies get() = StudioModuleDependencies(module)
+
+  /**
+   * Returns a name that should be used when displaying a [Module] to the user. This method should be used unless there is a very
+   * good reason why it does not work for you. This method performs as follows:
+   *   1 - If the [Module] is not registered as a Gradle module then the module's name is returned.
+   *   2 - If the [Module] directly corresponds to a Gradle source set, then the name of the source set is returned.
+   *   3 - If the [Module] represents the root Gradle project then the project's name is returned.
+   *   4 - If the [Module] represents any other module then the root project, the last part of the Gradle path is used.
+   *   5 - If any of 2 to 4 fail, for any reason then we always fall back to just using the [Module]'s name.
+   */
+  override fun getDisplayNameForModule(): String {
+    fun getNameFromGradlePath(module: Module) : String? {
+      if (!ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) return null
+      // If we have a module per source-set we need ensure that the names we display are the name of the source-set rather than the module
+      // name.
+      if (GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY == ExternalSystemApiUtil.getExternalModuleType(module)) {
+        return GradleProjectResolverUtil.getSourceSetName(module)
+      }
+      val shortName: String? = ExternalSystemApiUtil.getExternalProjectId(module)
+      val isRootModule = StringUtil.equals(ExternalSystemApiUtil.getExternalProjectPath(module),
+                                           ExternalSystemApiUtil.getExternalRootProjectPath(
+                                             module))
+      return if (isRootModule || shortName == null) shortName else StringUtil.getShortName(shortName, ':')
+    }
+    return getNameFromGradlePath(module) ?: super.getDisplayNameForModule()
+  }
+
   companion object {
     private val AGP_GLOBAL_FLAGS_DEFAULTS = AgpBuildGlobalFlags(
-      useAndroidX = true,
-      enableVcsInfo = false
+      useAndroidX = true
     )
     private val DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION = AgpVersion.parse("8.1.0-alpha05")
   }
@@ -601,11 +637,12 @@ private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): 
 
   val aarManifests =
     (listOf(this) + dependencies)
-      .flatMap {
-        GradleAndroidModel.get(it)
-          ?.selectedMainCompileDependencies
-          ?.androidLibraries
-          ?.mapNotNull { it.target.manifestFile() }
+      .flatMap { androidFacet ->
+        GradleAndroidModel.get(androidFacet)
+          ?.mainArtifact?.compileClasspath
+          ?.libraries
+          ?.filterIsInstance<IdeAndroidLibrary>()
+          ?.mapNotNull { it.manifestFile() }
           .orEmpty()
       }
       .toSet()

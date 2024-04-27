@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.actions;
 
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
  * Wraps an action and makes it invisible when an Android-model-based project is open in Android Studio.

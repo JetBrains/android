@@ -30,6 +30,7 @@ class RecentProcess(val deviceSerialNumber: String, val packageName: String) {
     private val RECENT_PROCESS_KEY = Key.create<RecentProcess>("AppInspection.Recent.Process")
 
     fun get(project: Project): RecentProcess? = project.getUserData(RECENT_PROCESS_KEY)
+
     fun set(project: Project, process: RecentProcess?) =
       project.putUserData(RECENT_PROCESS_KEY, process)
 

@@ -95,10 +95,10 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     public GradleDslVersionLiteral(
       @NotNull GradleDslElement parent,
       @NotNull GradleNameElement name,
-      @NotNull Object value
+      @NotNull Class<?> valueClass
     ) {
       super(parent, name);
-      ref = value instanceof ReferenceTo;
+      ref = ReferenceTo.class.isAssignableFrom(valueClass);
       initialRef = ref;
     }
 
@@ -145,6 +145,7 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     public @Nullable PsiElement create() {
       GradleNameElement name = getNameElement();
       if (ref && getPsiElement() == null) {
+        // TODO need to fix this as in fact dot notation means a map with property - b/300075092
         setNameElement(GradleNameElement.create("version.ref"));
       }
       PsiElement psiElement = super.create();
@@ -231,7 +232,7 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     GradleDslExpressionMap libraries = getPropertyElement("libraries", GradleDslExpressionMap.class);
     GradleDslExpressionMap bundles = getPropertyElement("bundles", GradleDslExpressionMap.class);
 
-    if (bundles == null) return;
+    if (bundles == null || libraries == null) return;
 
     Consumer<GradlePropertiesDslElement> libraryRefReplacer = (bundle) -> {
       List<GradleDslElement> elements = bundle.getCurrentElements();

@@ -361,7 +361,6 @@ MODULE                        : MultiFlavor.app
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-        EnableVcsInfo                 : false
     - basicVariant:               : firstAbcSecondAbcDebug
         applicationId                 : com.example.multiflavor.firstAbc.secondAbc.debug
         testApplicationId             : com.example.multiflavor.firstAbc.secondAbc.debug.test
@@ -680,20 +679,20 @@ MODULE                        : MultiFlavor.app
             VariantName                   : firstAbcSecondAbcDebug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleFirstAbcSecondAbcDebug
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/firstAbcSecondAbcDebug/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/firstAbcSecondAbcDebug/createFirstAbcSecondAbcDebugApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleFirstAbcSecondAbcDebug
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/firstAbcSecondAbcDebug/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/firstAbcSecondAbcDebug/createFirstAbcSecondAbcDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForFirstAbcSecondAbcDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/firstAbcSecondAbcDebug/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/firstAbcSecondAbcDebug/createFirstAbcSecondAbcDebugApksFromBundleListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : firstAbcSecondAbcRelease
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleFirstAbcSecondAbcRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/firstAbcSecondAbcRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/firstAbcSecondAbcRelease/createFirstAbcSecondAbcReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleFirstAbcSecondAbcRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/firstAbcSecondAbcRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/firstAbcSecondAbcRelease/createFirstAbcSecondAbcReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForFirstAbcSecondAbcRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/firstAbcSecondAbcRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/firstAbcSecondAbcRelease/createFirstAbcSecondAbcReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
     IdeVariants
         IdeVariant
             Name                          : firstAbcSecondAbcDebug
@@ -729,8 +728,8 @@ MODULE                        : MultiFlavor.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateFirstAbcSecondAbcDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebug/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebug/classes [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/processFirstAbcSecondAbcDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebug/compileFirstAbcSecondAbcDebugJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : firstAbcSecondAbcDebug
                     Manifest                      : <ROOT>/app/src/firstAbcSecondAbcDebug/AndroidManifest.xml [-]
@@ -765,17 +764,13 @@ MODULE                        : MultiFlavor.app
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleFirstAbcSecondAbcDebug
-                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/firstAbcSecondAbcDebug/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/firstAbcSecondAbcDebug/createFirstAbcSecondAbcDebugApkListingFileRedirect/redirect.txt [-]
                     BundleTaskName                : bundleFirstAbcSecondAbcDebug
-                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/firstAbcSecondAbcDebug/redirect.txt [-]
+                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/firstAbcSecondAbcDebug/createFirstAbcSecondAbcDebugBundleListingFileRedirect/redirect.txt [-]
                     ApkFromBundleTaskName         : extractApksForFirstAbcSecondAbcDebug
-                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/firstAbcSecondAbcDebug/redirect.txt [-]
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/firstAbcSecondAbcDebug/createFirstAbcSecondAbcDebugApksFromBundleListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/firstAbcSecondAbc/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createFirstAbcSecondAbcDebugVariantModel
-                    File                          : <ROOT>/app/build/intermediates/variant_model/firstAbcSecondAbcDebug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileFirstAbcSecondAbcDebugAndroidTestSources
@@ -783,8 +778,8 @@ MODULE                        : MultiFlavor.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateFirstAbcSecondAbcDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebugAndroidTest/processFirstAbcSecondAbcDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugAndroidTest/compileFirstAbcSecondAbcDebugAndroidTestJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : androidTestFirstAbcSecondAbcDebug
                     Manifest                      : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/AndroidManifest.xml [-]
@@ -819,7 +814,7 @@ MODULE                        : MultiFlavor.app
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleFirstAbcSecondAbcDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/firstAbcSecondAbcDebugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/firstAbcSecondAbcDebugAndroidTest/createFirstAbcSecondAbcDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/firstAbcSecondAbc/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -833,8 +828,8 @@ MODULE                        : MultiFlavor.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/firstAbcSecondAbcDebugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/R.jar [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/firstAbcSecondAbcDebug/processFirstAbcSecondAbcDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/compileFirstAbcSecondAbcDebugUnitTestJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : testFirstAbcSecondAbcDebug
                     Manifest                      : <ROOT>/app/src/testFirstAbcSecondAbcDebug/AndroidManifest.xml [-]

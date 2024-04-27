@@ -205,7 +205,7 @@ class ButtonPresentation {
         clickIcon = icon
         hint = "gone"
       }
-      else -> { }
+      null -> {}
     }
   }
 }

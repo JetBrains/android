@@ -26,7 +26,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.android.ide.common.resources.RecordingLogger;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.utils.SdkUtils;
 import com.google.common.io.Files;
 import com.intellij.mock.MockApplication;

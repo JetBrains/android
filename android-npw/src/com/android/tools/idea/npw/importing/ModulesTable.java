@@ -20,6 +20,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
@@ -37,8 +39,6 @@ import java.text.Collator;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.BorderFactory;
@@ -52,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class ModulesTable extends JBPanel implements Scrollable {
   public static final String PROPERTY_SELECTED_MODULES = "selectedModules";
-  private final Map<VirtualFile, ModuleImportSettingsPane> panes = new HashMap<>();
+  private final Map<VirtualFile, ModuleImportSettingsPane> panes = Maps.newHashMap();
   private ModuleImportSettings myPrimaryModuleSettings;
   private JComponent myDependenciesLabel;
   private ModuleListModel myListModel;
@@ -120,7 +120,7 @@ public final class ModulesTable extends JBPanel implements Scrollable {
       }
 
       boolean isFirst = true;
-      Collection<ModuleImportSettingsPane> editors = new LinkedList<>();
+      Collection<ModuleImportSettingsPane> editors = Lists.newLinkedList();
 
       Set<ModuleToImport> allModules = Sets.newTreeSet(new ModuleComparator(myListModel.getCurrentPath()));
       Iterables
@@ -215,7 +215,7 @@ public final class ModulesTable extends JBPanel implements Scrollable {
       return Collections.emptyMap();
     }
 
-    Map<String, VirtualFile> selectedModules = new HashMap<>();
+    Map<String, VirtualFile> selectedModules = Maps.newHashMap();
     for (ModuleToImport module : modules) {
       selectedModules.put(myListModel.getModuleName(module), module.location);
     }

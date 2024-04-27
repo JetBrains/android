@@ -47,13 +47,13 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
-import org.intellij.lang.annotations.Language
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.util.Arrays
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.function.Predicate
+import org.intellij.lang.annotations.Language
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
 private const val DEFAULT_FILENAME = "layout.xml"
 

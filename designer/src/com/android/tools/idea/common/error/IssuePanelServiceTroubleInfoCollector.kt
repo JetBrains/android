@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.common.error
 
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.troubleshooting.TroubleInfoCollector
@@ -26,12 +29,21 @@ internal class IssuePanelServiceTroubleInfoCollector : TroubleInfoCollector {
     val issuePanelService = IssuePanelService.getInstance(project)
     val allIssues = issuePanelService.getSharedPanelIssues() ?: emptyList()
     val output = StringBuilder("IssuePanelService: nIssues=${allIssues.size}")
-    val selectedIssues =
-      UIUtil.invokeAndWaitIfNeeded(Computable { issuePanelService.getSelectedIssues().toSet() })
+    val issuePanel = ProblemsView.getToolWindow(project)?.contentManager?.selectedContent
+    val selectedIssue =
+      UIUtil.invokeAndWaitIfNeeded(
+        Computable {
+          val selectedNode =
+            DataManager.getInstance()
+              .getDataContext(issuePanel?.component)
+              .getData(PlatformCoreDataKeys.SELECTED_ITEM)
+          (selectedNode as? IssueNode)?.issue
+        }
+      )
     allIssues.forEach {
       output.appendLine(
         """
-      Issue: selected=${selectedIssues.contains(it)} sev=${it.severity}
+      Issue: selected=${it == selectedIssue} sev=${it.severity}
       - ${it.summary}
       ${it.description.prependIndent("  |")}
     """

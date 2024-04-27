@@ -1,8 +1,14 @@
 <component name="libraryTable">
   <library name="layoutlib" type="repository">
-    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-layoutlib-jdk11:231.0.26.0" />
+    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layoutlib:232.1.23.0">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layoutlib/232.1.23.0/layoutlib-232.1.23.0.jar">
+          <sha256sum>02af92d2085bdd8c428130961ffb9268c341b48d213373f5f58e9250c12976fe</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-layoutlib-jdk11/231.0.26.0/jb-layoutlib-jdk11-231.0.26.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layoutlib/232.1.23.0/layoutlib-232.1.23.0.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

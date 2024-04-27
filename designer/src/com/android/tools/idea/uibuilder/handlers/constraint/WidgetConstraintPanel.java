@@ -31,7 +31,6 @@ import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
@@ -280,12 +279,12 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
 
   static class WidgetSliderUI extends BasicSliderUI {
     private final JBDimension THUMB_SIZE = JBUI.size(18);
-    private final int TRACK_THICKNESS = JBUIScale.scale(5);
-    private final int ARC_SIZE = JBUIScale.scale(2);
-    private final int SLIDER_LENGTH = JBUIScale.scale(120);
+    private final int TRACK_THICKNESS = JBUI.scale(5);
+    private final int ARC_SIZE = JBUI.scale(2);
+    private final int SLIDER_LENGTH = JBUI.scale(120);
     private final Dimension V_SIZE = new Dimension(THUMB_SIZE.width, SLIDER_LENGTH);
     private final Dimension H_SIZE = new Dimension(SLIDER_LENGTH, THUMB_SIZE.height);
-    @NotNull private Font SMALL_FONT = new Font("Helvetica", Font.PLAIN, JBUIScale.scaleFontSize(10));
+    @NotNull private Font SMALL_FONT = new Font("Helvetica", Font.PLAIN, JBUI.scaleFontSize(10));
     private ColorSet mColorSet;
 
     WidgetSliderUI(JSlider s, ColorSet colorSet) {

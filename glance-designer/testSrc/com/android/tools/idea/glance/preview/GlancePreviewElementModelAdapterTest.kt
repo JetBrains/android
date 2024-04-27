@@ -16,12 +16,10 @@
 package com.android.tools.idea.glance.preview
 
 import com.android.tools.idea.common.model.DataContextHolder
-import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
-import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.LightVirtualFile
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -29,35 +27,40 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-private class TestPreviewElement(
-  override val methodFqcn: String,
-  override val displaySettings: PreviewDisplaySettings = simplestDisplaySettings(),
-  override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>? = null,
-  override val previewBodyPsi: SmartPsiElementPointer<PsiElement>? = null,
-) : MethodPreviewElement
-
 internal class TestModel(override var dataContext: DataContext) : DataContextHolder {
   override fun dispose() {}
 }
 
-private fun simplestDisplaySettings() = PreviewDisplaySettings("", null, false, false, null)
+private fun simplestDisplaySettings(name: String = "") =
+  PreviewDisplaySettings(name, null, false, false, null)
 
-private class TestAdapter : GlancePreviewElementModelAdapter<TestPreviewElement, TestModel>() {
-  override fun toXml(previewElement: TestPreviewElement) = ""
+private class TestAdapter : GlancePreviewElementModelAdapter<TestModel>() {
+  override fun toXml(previewElement: GlancePreviewElement) = ""
 
   override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) =
     LightVirtualFile()
 }
+
+private fun glancePreviewElement(
+  methodFqn: String,
+  displaySettings: PreviewDisplaySettings = simplestDisplaySettings()
+) =
+  GlancePreviewElement(
+    displaySettings = displaySettings,
+    previewElementDefinitionPsi = null,
+    previewBodyPsi = null,
+    methodFqn = methodFqn
+  )
 
 class GlancePreviewElementModelAdapterTest {
   private val rootDisposable = Disposer.newDisposable()
 
   @Test
   fun testCalcAffinityPriority() {
-    val pe1 = TestPreviewElement("foo")
-    val pe2 = TestPreviewElement("foo")
-    val pe3 = TestPreviewElement("foo", PreviewDisplaySettings("foo", null, false, false, null))
-    val pe4 = TestPreviewElement("bar")
+    val pe1 = glancePreviewElement(methodFqn = "foo")
+    val pe2 = glancePreviewElement(methodFqn = "foo")
+    val pe3 = glancePreviewElement(methodFqn = "foo", simplestDisplaySettings(name = "foo"))
+    val pe4 = glancePreviewElement(methodFqn = "bar")
 
     val adapter = TestAdapter()
 
@@ -71,7 +74,7 @@ class GlancePreviewElementModelAdapterTest {
   fun testModelAndPreviewElementConnection() {
     val adapter = TestAdapter()
 
-    val element = TestPreviewElement("foo")
+    val element = glancePreviewElement(methodFqn = "foo")
 
     val model = TestModel(adapter.createDataContext(element))
     Disposer.register(rootDisposable, model)

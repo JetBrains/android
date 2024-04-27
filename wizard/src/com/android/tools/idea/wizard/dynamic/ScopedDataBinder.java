@@ -25,6 +25,7 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.text.StringUtil;
@@ -39,7 +40,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -124,17 +124,17 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
   private final Map<Document, JComponent> myDocumentsToComponent = Maps.newIdentityHashMap();
 
   // Map of keys to custom value derivations
-  private final Map<Key, ValueDeriver> myValueDerivers = new HashMap<>();
+  private final Map<Key, ValueDeriver> myValueDerivers = Maps.newHashMap();
 
   // Table mapping components and keys to bindings
   private final Table<JComponent, Key<?>, ComponentBinding<?, ?>> myComponentBindings = HashBasedTable.create();
 
   // Record of keys that have already been changed or updated during a round to prevent
   // recursive derivations.
-  private final Set<Key> myGuardedKeys = new HashSet<>();
+  private final Set<Key> myGuardedKeys = Sets.newHashSet();
 
   // Record of keys that the user has manually edited
-  private final Set<Key> myUserEditedKeys = new HashSet<>();
+  private final Set<Key> myUserEditedKeys = Sets.newHashSet();
 
   // Flags to guard against cyclical updates
   private boolean myAlreadySavingState;
@@ -354,7 +354,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     }
 
     /**
-     * @return a set of keys. The deriveValue function will only be called if the changed key is one of
+     * @return a list of keys. The deriveValue function will only be called if the changed key is one of
      * the trigger keys. Return null to trigger on every update.
      */
     @Nullable

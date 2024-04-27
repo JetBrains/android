@@ -31,6 +31,8 @@ add_library(
         agent.cc
         base128_input_stream.cc
         base128_output_stream.cc
+        codec_output_buffer.cc
+        concurrent_list.cc
         control_messages.cc
         controller.cc
         display_streamer.cc
@@ -45,6 +47,7 @@ add_library(
         string_printf.cc
         string_util.cc
         surface.cc
+        ui_settings.cc
         video_packet_header.cc
 )
 

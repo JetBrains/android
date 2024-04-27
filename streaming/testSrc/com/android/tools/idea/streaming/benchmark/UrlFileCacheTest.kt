@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.benchmark
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.io.HttpRequests.HttpStatusException
+import com.intellij.util.io.isFile
 import com.sun.net.httpserver.Headers
 import com.sun.net.httpserver.HttpServer
 import org.junit.After

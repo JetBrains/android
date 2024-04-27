@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
@@ -24,12 +26,20 @@ import icons.StudioIcons
 
 /** Action used to toggle Deep Inspect on and off. */
 class ToggleDeepInspectAction(
-  private val isSelected: () -> Boolean,
-  private val setSelected: (Boolean) -> Unit,
-  private val connectedClientProvider: () -> InspectorClient
-) : ToggleAction({ "" }, StudioIcons.Compose.Toolbar.INSPECT_PREVIEW), TooltipDescriptionProvider {
+  @UiThread private val isSelected: () -> Boolean,
+  @UiThread private val setSelected: (Boolean) -> Unit,
+  @UiThread private val connectedClientProvider: () -> InspectorClient
+) :
+  ToggleAction(
+    { LayoutInspectorBundle.message("toggle.deep.inspect") },
+    StudioIcons.Compose.Toolbar.INSPECT_PREVIEW
+  ),
+  TooltipDescriptionProvider {
   override fun isSelected(e: AnActionEvent) = isSelected()
+
   override fun setSelected(e: AnActionEvent, state: Boolean) = setSelected(state)
+
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   override fun update(event: AnActionEvent) {
     super.update(event)

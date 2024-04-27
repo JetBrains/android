@@ -1,6 +1,7 @@
 package org.jetbrains.android.dom;
 
 import com.intellij.util.xml.ResolvingConverter;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

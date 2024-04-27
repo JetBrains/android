@@ -14,9 +14,11 @@ appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "a
 material = { module = "com.google.android.material:material", version.ref = "material"}
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout"}
 junittest = { module = "junit:junit", version.ref = "junit"}
-navfragment = { module = "androidx.navigation:navigation-fragment", version = "2.5.3"}
+navfragment = { module = "androidx.navigation:navigation-fragment", version = "2.6.0"}
 navui = { module = "androidx.navigation:navigation-ui", version = "2.5.2"}
 espresso = {module = "androidx.test.espresso:espresso-core", version = "3.4.0"}
+monitor = { group = "androidx.test", name = "monitor", version = "1.6.1" }
+ext-junit = { group = "androidx.test.ext", name = "junit", version = "1.1.5" }
 
 [plugins]
 app = { id = "com.android.application", version.ref = "agp" }

@@ -16,6 +16,7 @@
 @file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
 package com.android.tools.idea.diagnostics.hprof.util
 
+import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.lang.JavaVersion

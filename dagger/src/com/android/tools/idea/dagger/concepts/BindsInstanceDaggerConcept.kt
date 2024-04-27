@@ -19,9 +19,12 @@ import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
+import com.android.tools.idea.dagger.index.psiwrappers.DaggerAnnotation
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexClassWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
-import com.android.tools.idea.kotlin.hasAnnotation
+import com.android.tools.idea.dagger.index.psiwrappers.hasAnnotation
+import com.android.tools.idea.dagger.index.readClassId
+import com.android.tools.idea.dagger.index.writeClassId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -33,6 +36,7 @@ import com.intellij.psi.util.parentOfType
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
@@ -77,9 +81,9 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
     val containingClass = wrapper.getContainingClass() ?: return
 
     when {
-      containingClass.getIsAnnotatedWith(DaggerAnnotations.COMPONENT_BUILDER) ->
+      containingClass.getIsAnnotatedWith(DaggerAnnotation.COMPONENT_BUILDER) ->
         addIndexEntriesForBuilder(wrapper, containingClass, indexEntries)
-      containingClass.getIsAnnotatedWith(DaggerAnnotations.COMPONENT_FACTORY) ->
+      containingClass.getIsAnnotatedWith(DaggerAnnotation.COMPONENT_FACTORY) ->
         addIndexEntriesForFactory(wrapper, containingClass, indexEntries)
     }
   }
@@ -89,13 +93,13 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
     containingClass: DaggerIndexClassWrapper,
     indexEntries: IndexEntries
   ) {
-    if (!wrapper.getIsAnnotatedWith(DaggerAnnotations.BINDS_INSTANCE)) return
+    if (!wrapper.getIsAnnotatedWith(DaggerAnnotation.BINDS_INSTANCE)) return
 
     val singleParameter = wrapper.getParameters().singleOrNull() ?: return
 
     indexEntries.addIndexValue(
-      singleParameter.getType().getSimpleName() ?: "",
-      BindsInstanceBuilderMethodIndexValue(containingClass.getFqName(), wrapper.getSimpleName())
+      singleParameter.getType()?.getSimpleName() ?: "",
+      BindsInstanceBuilderMethodIndexValue(containingClass.getClassId(), wrapper.getSimpleName())
     )
   }
 
@@ -105,14 +109,16 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
     indexEntries: IndexEntries
   ) {
     val bindsInstanceParameters =
-      wrapper.getParameters().filter { it.getIsAnnotatedWith(DaggerAnnotations.BINDS_INSTANCE) }
+      wrapper.getParameters().filter { it.getIsAnnotatedWith(DaggerAnnotation.BINDS_INSTANCE) }
     for (parameter in bindsInstanceParameters) {
+      val parameterTypeSimpleName = parameter.getType()?.getSimpleName() ?: continue
+      val parameterSimpleName = parameter.getSimpleName() ?: continue
       indexEntries.addIndexValue(
-        parameter.getType().getSimpleName() ?: "",
+        parameterTypeSimpleName,
         BindsInstanceFactoryMethodParameterIndexValue(
-          containingClass.getFqName(),
+          containingClass.getClassId(),
           wrapper.getSimpleName(),
-          parameter.getSimpleName()
+          parameterSimpleName
         )
       )
     }
@@ -121,14 +127,14 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
 
 @VisibleForTesting
 internal data class BindsInstanceBuilderMethodIndexValue(
-  val classFqName: String,
+  val classId: ClassId,
   val methodSimpleName: String
 ) : IndexValue() {
 
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
-    output.writeString(classFqName)
+    output.writeClassId(classId)
     output.writeString(methodSimpleName)
   }
 
@@ -136,14 +142,14 @@ internal data class BindsInstanceBuilderMethodIndexValue(
     override val supportedType = DataType.BINDS_INSTANCE_BUILDER_METHOD
 
     override fun read(input: DataInput) =
-      BindsInstanceBuilderMethodIndexValue(input.readString(), input.readString())
+      BindsInstanceBuilderMethodIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
     private fun identify(psiElement: KtFunction): DaggerElement? {
       return if (
-        psiElement.hasAnnotation(DaggerAnnotations.BINDS_INSTANCE) &&
-          psiElement.containingClassOrObject?.hasAnnotation(DaggerAnnotations.COMPONENT_BUILDER) ==
+        psiElement.hasAnnotation(DaggerAnnotation.BINDS_INSTANCE) &&
+          psiElement.containingClassOrObject?.hasAnnotation(DaggerAnnotation.COMPONENT_BUILDER) ==
             true &&
           psiElement.valueParameters.size == 1
       ) {
@@ -156,8 +162,8 @@ internal data class BindsInstanceBuilderMethodIndexValue(
 
     private fun identify(psiElement: PsiMethod): DaggerElement? {
       return if (
-        psiElement.hasAnnotation(DaggerAnnotations.BINDS_INSTANCE) &&
-          psiElement.containingClass?.hasAnnotation(DaggerAnnotations.COMPONENT_BUILDER) == true &&
+        psiElement.hasAnnotation(DaggerAnnotation.BINDS_INSTANCE) &&
+          psiElement.containingClass?.hasAnnotation(DaggerAnnotation.COMPONENT_BUILDER) == true &&
           psiElement.parameterList.parameters.size == 1
       ) {
         // We store the method in the index, but the single parameter is really the provider here.
@@ -176,7 +182,8 @@ internal data class BindsInstanceBuilderMethodIndexValue(
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
     val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
+      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
+        ?: return emptyList()
     return psiClass.methods.filter { it.name == methodSimpleName }
   }
 
@@ -185,7 +192,7 @@ internal data class BindsInstanceBuilderMethodIndexValue(
 
 @VisibleForTesting
 internal data class BindsInstanceFactoryMethodParameterIndexValue(
-  val classFqName: String,
+  val classId: ClassId,
   val methodSimpleName: String,
   val parameterSimpleName: String
 ) : IndexValue() {
@@ -193,7 +200,7 @@ internal data class BindsInstanceFactoryMethodParameterIndexValue(
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
-    output.writeString(classFqName)
+    output.writeClassId(classId)
     output.writeString(methodSimpleName)
     output.writeString(parameterSimpleName)
   }
@@ -203,7 +210,7 @@ internal data class BindsInstanceFactoryMethodParameterIndexValue(
 
     override fun read(input: DataInput) =
       BindsInstanceFactoryMethodParameterIndexValue(
-        input.readString(),
+        input.readClassId(),
         input.readString(),
         input.readString()
       )
@@ -211,10 +218,10 @@ internal data class BindsInstanceFactoryMethodParameterIndexValue(
 
   companion object {
     private fun identify(psiElement: KtParameter): DaggerElement? {
-      if (!psiElement.hasAnnotation(DaggerAnnotations.BINDS_INSTANCE)) return null
+      if (!psiElement.hasAnnotation(DaggerAnnotation.BINDS_INSTANCE)) return null
 
       val containingClass = psiElement.parentOfType<KtClassOrObject>()
-      return if (containingClass?.hasAnnotation(DaggerAnnotations.COMPONENT_FACTORY) == true) {
+      return if (containingClass?.hasAnnotation(DaggerAnnotation.COMPONENT_FACTORY) == true) {
         return ProviderDaggerElement(psiElement)
       } else {
         null
@@ -222,10 +229,10 @@ internal data class BindsInstanceFactoryMethodParameterIndexValue(
     }
 
     private fun identify(psiElement: PsiParameter): DaggerElement? {
-      if (!psiElement.hasAnnotation(DaggerAnnotations.BINDS_INSTANCE)) return null
+      if (!psiElement.hasAnnotation(DaggerAnnotation.BINDS_INSTANCE)) return null
 
       val containingClass = psiElement.parentOfType<PsiClass>()
-      return if (containingClass?.hasAnnotation(DaggerAnnotations.COMPONENT_FACTORY) == true) {
+      return if (containingClass?.hasAnnotation(DaggerAnnotation.COMPONENT_FACTORY) == true) {
         return ProviderDaggerElement(psiElement)
       } else {
         null
@@ -241,7 +248,8 @@ internal data class BindsInstanceFactoryMethodParameterIndexValue(
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
     val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
+      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
+        ?: return emptyList()
     return psiClass.methods
       .filter { it.name == methodSimpleName }
       .flatMap { it.parameterList.parameters.filter { p -> p.name == parameterSimpleName } }

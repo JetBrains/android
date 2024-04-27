@@ -23,11 +23,13 @@ import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup;
 import com.android.tools.profilers.ExportDialog;
 import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ImportDialog;
 import com.android.tools.profilers.UiMessageHandler;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -125,12 +127,22 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @Override
   public void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel model, int deviceLevel,
-                                                   @NotNull Consumer<ProfilingConfiguration> dialogCallback) {
+                                                   @NotNull Consumer<ProfilingConfiguration> dialogCallback,
+                                                   @NotNull IdeProfilerServices ideProfilerServices) {
     CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject,
                                                                                    deviceLevel,
                                                                                    model,
                                                                                    dialogCallback,
-                                                                                   myFeatureTracker);
+                                                                                   myFeatureTracker, ideProfilerServices);
     dialog.show();
+  }
+
+  @Override
+  public void openTaskConfigurationsDialog(@NotNull CpuProfilerConfigModel model, @NotNull IdeProfilerServices ideProfilerServices) {
+    // The CpuProfilingConfigModel requires a default profiling configuration to be set.
+    model.setProfilingConfiguration(new UnspecifiedConfiguration(""));
+    // The supplied deviceLevel can be 0 as in the Task-Based UX, all tasks configuration are available with or without device selection.
+    // The dialog callback also can be empty as no configuration can be added or removed in the Task-Based UX.
+    openCpuProfilingConfigurationsDialog(model, 0, x -> {}, ideProfilerServices);
   }
 }

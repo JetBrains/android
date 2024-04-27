@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
  * Notifies users that some required dependencies have lower version than required.
  */
 class DependenciesTooLowNotificationProvider implements EditorNotificationProvider {
+
   private static final Key<String> HIDDEN_KEY = Key.create("ml.deps.too.low.notification.panel.hidden");
 
   @Nullable

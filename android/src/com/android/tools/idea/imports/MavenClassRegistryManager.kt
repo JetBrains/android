@@ -39,9 +39,10 @@ private val REFRESH_INTERVAL: Duration = Duration.ofDays(1)
  * class registry. [getMavenClassRegistry] returns the the best effort of Maven class registry when asked.
  */
 class MavenClassRegistryManager : Disposable {
-  private val gMavenIndexRepository = GMavenIndexRepository(BASE_URL, getCacheDir(), REFRESH_INTERVAL)
+  private val gMavenIndexRepository: GMavenIndexRepository
 
   init {
+    gMavenIndexRepository = GMavenIndexRepository(BASE_URL, getCacheDir(), REFRESH_INTERVAL)
     Disposer.register(this, gMavenIndexRepository)
   }
 
@@ -64,14 +65,13 @@ class MavenClassRegistryManager : Disposable {
   }
 }
 
-internal class AutoRefresherForMavenClassRegistry : ProjectActivity {
+class AutoRefresherForMavenClassRegistry : ProjectActivity {
   init {
     val app = ApplicationManager.getApplication()
     if (app.isUnitTestMode || app.isHeadlessEnvironment) {
       throw ExtensionNotApplicableException.create()
     }
   }
-
   override suspend fun execute(project: Project) {
     if (!IdeInfo.getInstance().isAndroidStudio
         && !IdeSdks.getInstance().hasConfiguredAndroidSdk()) {

@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
+import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import icons.StudioIcons
 import javax.swing.Icon
 
-class ForceStopMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : NonToggleMenuItem(listener) {
+class ForceStopMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
-    val processStr = if (listener.numOfSelectedNodes > 1) "processes" else "process"
+    val processStr = if (numOfNodes > 1) "processes" else "process"
     return if (context == MenuContext.Toolbar) {
       "<html><b>Force stop $processStr</b><br>Executes command: <code>am force-stop</code></html>"
     } else {
@@ -42,12 +43,14 @@ class ForceStopMenuItem(listener: DeviceMonitorActionsListener, private val cont
 
   override val isVisible: Boolean
     get() {
-      return if (context == MenuContext.Popup) listener.numOfSelectedNodes > 0 else true
+      return if (context == MenuContext.Popup) {
+        listener.selectedProcessInfo.any { !it.isPidOnly }
+      } else true
     }
 
   override val isEnabled: Boolean
     get() {
-      return listener.numOfSelectedNodes > 0
+      return listener.selectedProcessInfo.any { !it.isPidOnly }
     }
 
   override fun run() {

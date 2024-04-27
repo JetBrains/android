@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.testing.TestProjectPaths.PLUGIN_IN_APP;
-
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.BuildEnvironment;
+
 import com.android.tools.idea.testing.TestModuleUtil;
 import java.io.File;
+
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.testing.TestProjectPaths.PLUGIN_IN_APP;
 
 /**
  * Tests for {@link AndroidPluginInfo}.

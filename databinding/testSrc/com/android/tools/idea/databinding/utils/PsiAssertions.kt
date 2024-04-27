@@ -22,24 +22,32 @@ import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
 
-internal fun PsiType.assertExpected(project: Project, typeName: String, isNullable: Boolean = false) {
+internal fun PsiType.assertExpected(
+  project: Project,
+  typeName: String,
+  isNullable: Boolean = false
+) {
   assertThat(presentableText).isEqualTo(typeName)
   if (this !is PsiPrimitiveType) {
     val nullabilityManager = NullableNotNullManager.getInstance(project)
-    val managerAnnotations = if(isNullable) nullabilityManager.nullables else nullabilityManager.notNulls
-    assertThat(annotations.map { it.text }).containsAnyIn(managerAnnotations.map { "@$it"})
+    val managerAnnotations =
+      if (isNullable) nullabilityManager.nullables else nullabilityManager.notNulls
+    assertThat(annotations.map { it.text }).containsAnyIn(managerAnnotations.map { "@$it" })
   }
 }
 
-internal fun PsiParameter.assertExpected(typeName: String, name: String, isNullable: Boolean = false) {
+internal fun PsiParameter.assertExpected(
+  typeName: String,
+  name: String,
+  isNullable: Boolean = false
+) {
   assertThat(this.name).isEqualTo(name)
   assertThat(type.presentableText).isEqualTo(typeName)
   if (type !is PsiPrimitiveType) {
     val nullabilityManager = NullableNotNullManager.getInstance(project)
     if (isNullable) {
       assertThat(nullabilityManager.isNullable(this, false)).isTrue()
-    }
-    else {
+    } else {
       assertThat(nullabilityManager.isNotNull(this, false)).isTrue()
     }
   }

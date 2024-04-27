@@ -86,5 +86,19 @@ class ProtobufUtilsKtTest {
         """
           .trimIndent()
       )
+
+    assertThat(proto.truncate(TimeGranularity.FULL_RANGE).toString().trim())
+      .isEqualTo(
+        """
+            year: 2023
+            month: 4
+            day: 12
+            hours: 8
+            time_zone {
+              id: "America/Los_Angeles"
+            }
+        """
+          .trimIndent()
+      )
   }
 }

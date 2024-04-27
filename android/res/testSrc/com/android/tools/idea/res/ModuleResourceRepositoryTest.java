@@ -22,11 +22,12 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.Lint;
-import com.android.tools.res.LocalResourceRepository;
+import com.android.tools.res.CacheableResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -454,18 +455,18 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertEquals(dir, source.getParent().getParent());
   }
 
-  private static void assertStringIs(LocalResourceRepository repository, String key, String expected) {
+  private static void assertStringIs(ResourceRepository repository, String key, String expected) {
     ResourceItem item = getSingleItem(repository, ResourceType.STRING, key);
     assertThat(item.getResourceValue().getValue()).isEqualTo(expected);
   }
 
-  private static void assertStringIs(@NotNull LocalResourceRepository repository, @NotNull String key, @NotNull String expected,
+  private static void assertStringIs(@NotNull ResourceRepository repository, @NotNull String key, @NotNull String expected,
                                      @NotNull Predicate<ResourceItem> filter) {
     ResourceItem item = getSingleItem(repository, ResourceType.STRING, key, filter);
     assertThat(item.getResourceValue().getValue()).isEqualTo(expected);
   }
 
-  static void assertHasExactResourceTypes(@NotNull LocalResourceRepository resources, @NotNull Set<ResourceType> types) {
+  static void assertHasExactResourceTypes(@NotNull ResourceRepository resources, @NotNull Set<ResourceType> types) {
     for (ResourceType type : ResourceType.values()) {
       if (types.contains(type)) {
         assertTrue(type.getName(), resources.hasResources(RES_AUTO, type));
@@ -478,7 +479,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
   public void testAllowEmpty() {
     assertTrue(Lint.assertionsEnabled()); // This test should be run with assertions enabled!
-    LocalResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.emptyList(), RES_AUTO, null);
+    CacheableResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.emptyList(), RES_AUTO, null);
     repository.getModificationCount();
     assertEmpty(repository.getResources(RES_AUTO, ResourceType.ID).keySet());
   }

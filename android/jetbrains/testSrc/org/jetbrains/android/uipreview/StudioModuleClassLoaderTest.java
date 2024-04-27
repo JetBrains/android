@@ -21,8 +21,8 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndr
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.updateTestProjectFromAndroidModel;
+import static com.android.tools.idea.testing.JavacUtil.getJavac;
 import static com.google.common.truth.Truth.assertThat;
-import static org.jetbrains.android.uipreview.JavacUtil.getJavac;
 
 import com.android.ide.common.gradle.Component;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -34,17 +34,17 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil;
+import com.android.tools.idea.rendering.StudioModuleRenderContext;
+import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidLibraryDependency;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.JavaModuleModelBuilder;
 import com.android.tools.idea.testing.ModuleModelBuilder;
-import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics;
-import com.android.tools.res.ResourceClassRegistry;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.android.tools.res.ids.TestResourceIdManager;
 import com.google.common.collect.ImmutableList;
@@ -119,7 +119,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     ApplicationManager.getApplication().runReadAction(() -> {
       try (ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference = StudioModuleClassLoaderManager.get()
-        .getShared(null, ModuleRenderContext.forModule(module))) {
+        .getShared(null, StudioModuleRenderContext.forModule(module))) {
         try {
           Class<?> rClass = loaderReference.getClassLoader().loadClass("test.R");
           String value = (String)rClass.getDeclaredField("ID").get(null);
@@ -165,7 +165,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     ApplicationManager.getApplication().runReadAction(() -> {
       try (ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference = StudioModuleClassLoaderManager.get()
-        .getShared(null, ModuleRenderContext.forModule(module))) {
+        .getShared(null, StudioModuleRenderContext.forModule(module))) {
         try {
           Class<?> rClass = loaderReference.getClassLoader().loadClass("test.R");
           rClass.getDeclaredField("ID");
@@ -204,17 +204,17 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     buildFile(getProject(), aClassSrc.toString());
 
     ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference =
-      StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule));
+      StudioModuleClassLoaderManager.get().getShared(null, StudioModuleRenderContext.forModule(myModule));
     StudioModuleClassLoader loader = loaderReference.getClassLoader();
 
     // Add the compiled class to the overlay directory
     Files.copy(packageDir.resolve("AClass.class"), overlayDir1.resolve("com/google/example/AClass.class"));
     loader.loadClass("com.google.example.AClass");
 
-    assertTrue(loader.isUserCodeUpToDateNonCached());
+    assertTrue(loader.isUserCodeUpToDate());
     // New overlay will make the code out-of-date
     ModuleClassLoaderOverlays.getInstance(myModule).pushOverlayPath(overlayDir2);
-    assertFalse(loader.isUserCodeUpToDateNonCached());
+    assertFalse(loader.isUserCodeUpToDate());
     StudioModuleClassLoaderManager.get().release(loaderReference);
   }
 
@@ -248,7 +248,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     assertThat(Manifest.getMainManifest(myFacet)).isNotNull();
 
     ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference =
-      StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule));
+      StudioModuleClassLoaderManager.get().getShared(null, StudioModuleRenderContext.forModule(myModule));
     ModuleClassLoader loader = loaderReference.getClassLoader();
     try {
       assertNotNull(loader.loadClass("p1.p2.R"));
@@ -296,7 +296,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
         createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY)));
 
     try (ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderRef = StudioModuleClassLoaderManager.get()
-      .getShared(null, ModuleRenderContext.forModule(myModule))) {
+      .getShared(null, StudioModuleRenderContext.forModule(myModule))) {
       ModuleClassLoader loader = loaderRef.getClassLoader();
       try {
         loader.loadClass("kotlinx.coroutines.android.AndroidDispatcherFactory");
@@ -340,7 +340,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     Module appModule = gradleModule(getProject(), ":app");
     ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderRef = StudioModuleClassLoaderManager.get()
-      .getPrivate(null, ModuleRenderContext.forModule(Objects.requireNonNull(appModule)));
+      .getPrivate(null, StudioModuleRenderContext.forModule(Objects.requireNonNull(appModule)));
     StudioModuleClassLoader loader = loaderRef.getClassLoader();
     // In addition to the initial check this also triggers creation of myJarClassLoader in ModuleClassLoader
     assertTrue(loader.areDependenciesUpToDate());
@@ -369,7 +369,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
   public void testModuleClassLoaderCopy() {
     ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderRef = StudioModuleClassLoaderManager.get()
-      .getPrivate(null, ModuleRenderContext.forModule(Objects.requireNonNull(myFixture.getModule())));
+      .getPrivate(null, StudioModuleRenderContext.forModule(Objects.requireNonNull(myFixture.getModule())));
     StudioModuleClassLoader loader = loaderRef.getClassLoader();
 
     StudioModuleClassLoader copy = loader.copy(NopModuleClassLoadedDiagnostics.INSTANCE);

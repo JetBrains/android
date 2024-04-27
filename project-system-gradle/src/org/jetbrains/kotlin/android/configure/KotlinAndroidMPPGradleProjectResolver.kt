@@ -5,7 +5,10 @@
 
 package org.jetbrains.kotlin.android.configure
 
-import com.android.builder.model.AndroidProject
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
@@ -23,6 +26,7 @@ import com.android.utils.appendCapitalized
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
+import com.intellij.openapi.externalSystem.model.project.LibraryDependencyData
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
@@ -42,6 +46,7 @@ import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
 @Order(ExternalSystemConstants.UNORDERED - 1)
@@ -69,8 +74,7 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
     return super.createModule(gradleModule, projectDataNode)!!.also { ideModule ->
       val sourceSetByName = ideModule.sourceSetsByName()
       for ((sourceSetDesc, compilation) in mppModel.androidCompilationsForVariant(selectedVariantName)) {
-        val kotlinSourceSetInfo = KotlinMppGradleProjectResolver.createSourceSetInfo(
-          mppModel, compilation, gradleModule, resolverCtx) ?: continue
+        val kotlinSourceSetInfo = KotlinMppGradleProjectResolver.createSourceSetInfo(mppModel, compilation, gradleModule, resolverCtx) ?: continue
         val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
 
         androidGradleSourceSetDataNode.createChild(KotlinSourceSetData.KEY, KotlinSourceSetData(kotlinSourceSetInfo))
@@ -80,6 +84,9 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
 
   override fun populateModuleDependencies(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>, ideProject: DataNode<ProjectData>) {
     super.populateModuleDependencies(gradleModule, ideModule, ideProject)
+
+    // Workaround added for KT-64114
+    addMissingGradlePrefixForLibraryDependencies(ideModule)
 
     val mppModel = resolverCtx.getMppModel(gradleModule) ?: return
     val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java) ?: return
@@ -97,6 +104,18 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
           ProjectKeys.MODULE_DEPENDENCY,
           ModuleDependencyData(androidGradleSourceSetDataNode.data, dependsOnGradleSourceSet.data)
         )
+      }
+    }
+  }
+
+  private fun addMissingGradlePrefixForLibraryDependencies(ideModule: DataNode<ModuleData>) {
+    ideModule.sourceSetsByName().values.forEach { sourceSetNode ->
+      sourceSetNode.children.forEach { childrenNode ->
+        (childrenNode.data as? LibraryDependencyData?)?.let { libraryDependency ->
+          if (!libraryDependency.internalName.startsWith(GradleConstants.GRADLE_NAME)) {
+            libraryDependency.internalName = "${GradleConstants.GRADLE_NAME}: ${libraryDependency.internalName}"
+          }
+        }
       }
     }
   }
@@ -198,10 +217,10 @@ private fun IdeVariantCoreImpl.artifact(artifact: IdeModuleWellKnownSourceSet): 
 
 private val IdeModuleWellKnownSourceSet.artifactName: String
   get() = when (this) {
-    MAIN -> AndroidProject.ARTIFACT_MAIN
-    ANDROID_TEST -> AndroidProject.ARTIFACT_ANDROID_TEST
-    UNIT_TEST -> AndroidProject.ARTIFACT_UNIT_TEST
-    TEST_FIXTURES -> AndroidProject.ARTIFACT_TEST_FIXTURES
+    MAIN -> ARTIFACT_NAME_MAIN
+    ANDROID_TEST -> ARTIFACT_NAME_ANDROID_TEST
+    UNIT_TEST -> ARTIFACT_NAME_UNIT_TEST
+    TEST_FIXTURES -> ARTIFACT_NAME_TEST_FIXTURES
   }
 
 private fun IdeSourceProviderContainer.sourceProvider(artifact: IdeModuleWellKnownSourceSet): IdeSourceProvider? {

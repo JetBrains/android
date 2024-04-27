@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis.diffing
 
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLabels
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAnnotation
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrField
-import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLabels
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLocalVariable
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrParameter
@@ -54,17 +54,18 @@ private fun diffClasses(old: IrClass, new: IrClass): ClassDiff? {
     old.enclosingMethod != new.enclosingMethod -> visits.add { visitEnclosingMethod(old.enclosingMethod, new.enclosingMethod) }
   }
 
+  // Associate fields based on their name; a field with a modified name is treated as a new field. Visit fields before methods so that
+  // changes to fields that cause changes to methods will be reported first.
+  val fields = diffLists(old.fields, new.fields, ::diffFields) { it.name }
+  if (fields.added.isNotEmpty() || fields.removed.isNotEmpty() || fields.modified.isNotEmpty()) {
+    visits.add { visitFields(fields.added, fields.removed, fields.modified) }
+  }
+
   // Associate methods based on their name + descriptor (parameter types + return type); a method with a modified name/descriptor is treated
   // as a new method.
   val methods = diffLists(old.methods, new.methods, ::diffMethods) { it.name + it.desc }
   if (methods.added.isNotEmpty() || methods.removed.isNotEmpty() || methods.modified.isNotEmpty()) {
     visits.add { visitMethods(methods.added, methods.removed, methods.modified) }
-  }
-
-  // Associate fields based on their name; a field with a modified name is treated as a new field.
-  val fields = diffLists(old.fields, new.fields, ::diffFields) { it.name }
-  if (fields.added.isNotEmpty() || fields.removed.isNotEmpty() || fields.modified.isNotEmpty()) {
-    visits.add { visitFields(fields.added, fields.removed, fields.modified) }
   }
 
   // Associate annotations based on their type; changing an annotation type is treated as adding a new annotation.

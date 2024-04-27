@@ -27,6 +27,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import java.util.ArrayList
 import org.jetbrains.android.facet.AndroidFacet
 
 /** We predefined some pixel devices for now. */
@@ -98,8 +99,7 @@ object PixelDeviceModelsProvider : VisualizationModelsProvider {
       val betterFile =
         ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
       val model =
-        NlModel.builder(facet, betterFile, config)
-          .withParentDisposable(parentDisposable)
+        NlModel.builder(parentDisposable, facet, betterFile, config)
           .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()

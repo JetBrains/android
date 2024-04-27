@@ -15,13 +15,14 @@
  */
 package org.jetbrains.android.compiler;
 
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.List;
@@ -109,7 +110,7 @@ public class AndroidCompileUtil {
       return getOutputPackage(facet.getModule());
     }
     @SystemIndependent String moduleDirPath = AndroidRootUtil.getModuleDirPath(facet.getModule());
-    return moduleDirPath != null ? FileUtilRt.toSystemDependentName(moduleDirPath + path) : null;
+    return moduleDirPath != null ? toSystemDependentName(moduleDirPath + path) : null;
   }
 
   @Nullable

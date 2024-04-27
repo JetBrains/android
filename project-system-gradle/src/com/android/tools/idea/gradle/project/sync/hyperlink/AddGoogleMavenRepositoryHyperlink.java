@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles;
 import static com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProcessor.Repository.GOOGLE;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;

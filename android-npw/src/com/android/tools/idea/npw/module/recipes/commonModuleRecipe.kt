@@ -54,7 +54,7 @@ fun RecipeExecutor.generateCommonModule(
   bytecodeLevel: BytecodeLevel = BytecodeLevel.default,
   noKtx: Boolean = false,
   useVersionCatalog: Boolean
-  ) {
+) {
   val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
   val language = projectData.language
@@ -63,7 +63,7 @@ fun RecipeExecutor.generateCommonModule(
   val apis = data.apis
   val minApi = apis.minApi
 
-  createDefaultDirectories(moduleOut, srcOut)
+  createDirectory(srcOut)
   addIncludeToSettings(data.name)
 
   val buildFile = if (useKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
@@ -111,7 +111,7 @@ fun RecipeExecutor.generateCommonModule(
   proguardRecipe(moduleOut, data.isLibrary)
 
   if (!isLibraryProject) {
-    when(iconsGenerationStyle) {
+    when (iconsGenerationStyle) {
       IconsGenerationStyle.ALL -> copyIcons(resOut, minApi.api)
       IconsGenerationStyle.MIPMAP_ONLY -> copyMipmapFolder(resOut)
       IconsGenerationStyle.MIPMAP_SQUARE_ONLY -> copyMipmapFile(resOut, "ic_launcher.webp")

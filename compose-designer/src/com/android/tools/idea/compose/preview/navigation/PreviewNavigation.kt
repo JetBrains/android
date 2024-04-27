@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.navigation
 
+import com.android.sdklib.AndroidCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.ComposeViewInfo
@@ -53,8 +53,7 @@ private fun SourceLocation.toNavigatable(module: Module): Navigatable? {
   val psiFile =
     runReadAction {
       PsiManager.getInstance(project).findFile(sourceLocationWithVirtualFile.virtualFile)
-    }
-      ?: return null
+    } ?: return null
   // PsiFile.getLineStartOffset is 0 based, while the source information is 1 based so subtract 1
   val offset =
     runReadAction { psiFile.getLineStartOffset(sourceLocationWithVirtualFile.lineNumber - 1) } ?: 0
@@ -111,9 +110,7 @@ fun findNavigatableComponentHit(
 
   if (LOG.isDebugEnabled) {
     LOG.debug("${hits.size} hits found in")
-    hits
-      .filter { it.toNavigatable(module) != null }
-      .forEach { LOG.debug("  Navigatable hit: ${it}") }
+    hits.filter { it.toNavigatable(module) != null }.forEach { LOG.debug("  Navigatable hit: $it") }
   }
 
   return hits.mapNotNull { runReadAction { it.toNavigatable(module) } }.firstOrNull()

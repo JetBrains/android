@@ -67,7 +67,6 @@ MODULE                        : TestCompositeLib1.app
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -110,11 +109,10 @@ MODULE                        : TestCompositeLib1.app
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debug/classes [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
@@ -159,7 +157,6 @@ MODULE                        : TestCompositeLib1.app
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -203,11 +200,10 @@ MODULE                        : TestCompositeLib1.app
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/classes [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite1.test
         - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/app/build/generated/res/resValues/androidTest/debug [-]
@@ -255,7 +251,6 @@ MODULE                        : TestCompositeLib1.app
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
@@ -265,8 +260,8 @@ MODULE                        : TestCompositeLib1.app
                 artifacts::app                : null => :app@main
                 artifacts::lib                : null => :lib@main
                 artifacts::lib                : null => :lib@main
-        - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-        - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/classes [-]
+        - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API <SDK_VERSION>
@@ -312,7 +307,7 @@ MODULE                        : TestCompositeLib1.app
                 ProjectPath                   : :app
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                LintJar                       : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -662,10 +657,6 @@ MODULE                        : TestCompositeLib1.app
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
@@ -745,7 +736,6 @@ MODULE                        : TestCompositeLib1.lib
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -784,11 +774,10 @@ MODULE                        : TestCompositeLib1.lib
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debug/classes [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
@@ -829,7 +818,6 @@ MODULE                        : TestCompositeLib1.lib
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -869,11 +857,10 @@ MODULE                        : TestCompositeLib1.lib
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite1.test
         - GeneratedResourceFolders    : <ROOT>/TestCompositeLib1/lib/build/generated/res/resValues/androidTest/debug [-]
@@ -917,7 +904,6 @@ MODULE                        : TestCompositeLib1.lib
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
@@ -957,11 +943,10 @@ MODULE                        : TestCompositeLib1.lib
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-        - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-        - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/classes [-]
+        - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API <SDK_VERSION>
@@ -1004,7 +989,7 @@ MODULE                        : TestCompositeLib1.lib
                 ProjectPath                   : :
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                LintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -1338,10 +1323,6 @@ MODULE                        : TestCompositeLib1.lib
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
@@ -1424,7 +1405,6 @@ MODULE                        : TestCompositeLib3.app
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -1465,11 +1445,10 @@ MODULE                        : TestCompositeLib3.app
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debug/classes [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
@@ -1512,7 +1491,6 @@ MODULE                        : TestCompositeLib3.app
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -1554,11 +1532,10 @@ MODULE                        : TestCompositeLib3.app
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/classes [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite3.test
         - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/app/build/generated/res/resValues/androidTest/debug [-]
@@ -1604,7 +1581,6 @@ MODULE                        : TestCompositeLib3.app
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
@@ -1612,8 +1588,8 @@ MODULE                        : TestCompositeLib3.app
                 artifacts::                   : null => :@main
                 artifacts::app                : null => :app@main
                 artifacts::lib                : null => :lib@main
-        - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-        - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/classes [-]
+        - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API <SDK_VERSION>
@@ -1659,7 +1635,7 @@ MODULE                        : TestCompositeLib3.app
                 ProjectPath                   : :app
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                LintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -2009,10 +1985,6 @@ MODULE                        : TestCompositeLib3.app
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
@@ -2120,8 +2092,8 @@ MODULE                        : TestCompositeLib3.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-            - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/javac/debug/classes [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
@@ -2190,8 +2162,8 @@ MODULE                        : TestCompositeLib3.lib
                     com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-            - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-            - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : com.test.composite3.test
         - GeneratedResourceFolders    : <ROOT>/TestCompositeLib3/lib/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -2263,8 +2235,8 @@ MODULE                        : TestCompositeLib3.lib
                 com.android.support:swiperefreshlayout  : null => com.android.support:swiperefreshlayout:28.0.0@aar
                 com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
-        - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-        - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/javac/debugAndroidTest/classes [-]
+        - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/TestCompositeLib3/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API <SDK_VERSION>
         SourceProviders
@@ -2306,7 +2278,7 @@ MODULE                        : TestCompositeLib3.lib
                 ProjectPath                   : :
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                LintJar                       : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -2720,7 +2692,6 @@ MODULE                        : project.app
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -2763,11 +2734,10 @@ MODULE                        : project.app
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debug/classes [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
@@ -2812,7 +2782,6 @@ MODULE                        : project.app
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -2856,11 +2825,10 @@ MODULE                        : project.app
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.compositeapp.test
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
@@ -2908,7 +2876,6 @@ MODULE                        : project.app
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
@@ -2918,8 +2885,8 @@ MODULE                        : project.app
                 artifacts::app                : null => :app@main
                 artifacts::lib                : null => :lib@main
                 artifacts::lib                : null => :lib@main
-        - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-        - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
+        - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API <SDK_VERSION>
@@ -2965,7 +2932,7 @@ MODULE                        : project.app
                 ProjectPath                   : :app
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -3315,10 +3282,6 @@ MODULE                        : project.app
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
@@ -3395,7 +3358,6 @@ MODULE                        : project.lib
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -3431,11 +3393,10 @@ MODULE                        : project.lib
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
+            - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
@@ -3473,7 +3434,6 @@ MODULE                        : project.lib
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -3510,11 +3470,10 @@ MODULE                        : project.lib
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-            - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.test.composite0.test
         - GeneratedResourceFolders    : <ROOT>/lib/build/generated/res/resValues/androidTest/debug [-]
@@ -3555,7 +3514,6 @@ MODULE                        : project.lib
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
@@ -3592,11 +3550,10 @@ MODULE                        : project.lib
                 com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-        - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-        - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
+        - ClassOutputs                : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API <SDK_VERSION>
@@ -3636,7 +3593,7 @@ MODULE                        : project.lib
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:lib)
                 Identifier                    : :lib@main
-                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                LintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :lib
             LintModelLibrary              : JavaLibrary(android.arch.core:common:1.1.1)
                 - JarFiles                    : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
@@ -3970,10 +3927,6 @@ MODULE                        : project.lib
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>

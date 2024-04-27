@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getManager;
 
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;

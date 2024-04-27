@@ -68,7 +68,7 @@ class CustomEventProfilerStageTest {
     profilers.stage = stage
     stage.enter()
 
-    assertThat(stage.trackGroupModels).isNotEmpty()
+    assertThat(stage.trackGroupModels).isNotEmpty();
     assertThat(stage.trackGroupModels[0].size).isEqualTo(2)
     assertThat(stage.trackGroupModels[0][0].rendererType).isEqualTo(ProfilerTrackRendererType.USER_INTERACTION)
     assertThat(stage.trackGroupModels[0][1].rendererType).isEqualTo(ProfilerTrackRendererType.APP_LIFECYCLE)
@@ -145,7 +145,7 @@ class CustomEventProfilerStageTest {
       .setIsEnded(true)
       .build())
 
-    stage.updateEventNames()
+    stage.updateEventNames();
     assertThat(trackGroupUserCounter.size()).isEqualTo(1)
     val track1 = trackGroupUserCounter[0].dataModel as CustomEventTrackModel
     val lineChart1 = track1.lineChartModel as UserCounterModel

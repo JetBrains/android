@@ -32,4 +32,5 @@ public interface DeviceExplorerViewListener {
   void synchronizeNodesInvoked();
   void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode);
   void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode, List<Path> files);
+  void togglePackageFilterInvoked(boolean isActive);
 }

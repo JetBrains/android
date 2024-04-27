@@ -21,7 +21,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Trace
 import java.util.concurrent.TimeUnit
 
-class StopTrace(timer: FakeTimer) : CommandHandler(timer) {
+class StopTrace(timer: FakeTimer, isTaskBasedUxEnabled: Boolean) : CommandHandler(timer, isTaskBasedUxEnabled) {
   var stopStatus: Trace.TraceStopStatus = Trace.TraceStopStatus.getDefaultInstance()
   var traceDurationNs: Long = TimeUnit.SECONDS.toNanos(1)
   var lastTraceInfo: Trace.TraceInfo = Trace.TraceInfo.getDefaultInstance()
@@ -60,7 +60,7 @@ class StopTrace(timer: FakeTimer) : CommandHandler(timer) {
       events.add(Common.Event.newBuilder().apply {
         groupId = traceId
         pid = command.pid
-        kind = Common.Event.Kind.CPU_TRACE
+        kind = if (command.stopTrace.profilerType == Trace.ProfilerType.CPU) Common.Event.Kind.CPU_TRACE else Common.Event.Kind.MEMORY_TRACE
         timestamp = endTimestamp
         isEnded = true
         traceData = Trace.TraceData.newBuilder().apply {
@@ -69,6 +69,8 @@ class StopTrace(timer: FakeTimer) : CommandHandler(timer) {
           }.build()
         }.build()
       }.build())
+
+      addSessionEndedEvent(command, events)
     }
   }
 }

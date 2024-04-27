@@ -2,21 +2,17 @@
 package org.jetbrains.android.dom.converters;
 
 import com.intellij.psi.PsiElement;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.ResolvingConverter;
 import com.intellij.util.xml.converters.DelimitedListConverter;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.text.MessageFormat;
+import java.util.*;
 
 public class FlagConverter extends DelimitedListConverter<String> {
   private final Set<String> myValues = new HashSet<>();
@@ -57,7 +53,7 @@ public class FlagConverter extends DelimitedListConverter<String> {
   protected Object[] getReferenceVariants(final ConvertContext context, final GenericDomValue<? extends List<String>> value) {
     List<String> variants = new ArrayList<>(myValues);
     filterVariants(variants, value);
-    return ArrayUtilRt.toStringArray(variants);
+    return ArrayUtil.toStringArray(variants);
   }
 
   @Override

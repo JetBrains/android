@@ -7,27 +7,27 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.ide" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
-    <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.backgroundtask.view" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.backgroundtask.model" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
-    <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
-    <orderEntry type="module" module-name="intellij.android.native-symbolizer" />
-    <orderEntry type="module" module-name="intellij.android.inspectors-common.api-ide" />
-    <orderEntry type="module" module-name="intellij.android.codenavigation" />
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
-    <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
-    <orderEntry type="module" module-name="intellij.platform.util.ui" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.ide" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.backgroundtask.model" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.backgroundtask.view" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.codenavigation" />
+    <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api-ide" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
+    <orderEntry type="module" module-name="intellij.android.native-symbolizer" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />
-    <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="module" module-name="intellij.platform.util.ui" />
   </component>
 </module>

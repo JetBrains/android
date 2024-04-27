@@ -25,12 +25,12 @@ import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.Density;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.dom.attrs.AttributeDefinition;
 import com.google.common.collect.ImmutableMap;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import org.jetbrains.android.AndroidTestCase;
+import com.android.tools.dom.attrs.AttributeDefinition;
 
 public class LayoutParamsManagerTest extends AndroidTestCase {
 

@@ -18,9 +18,9 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.repository.io.FileUtilKt;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Targets;
@@ -91,19 +91,19 @@ final class VirtualDeviceBuilder {
   }
 
   private static @NotNull DeviceType getType(@NotNull IdDisplay tag) {
-    if (tag.equals(SystemImage.WEAR_TAG)) {
+    if (tag.equals(SystemImageTags.WEAR_TAG)) {
       return DeviceType.WEAR_OS;
     }
-    else if (tag.equals(SystemImage.ANDROID_TV_TAG)) {
+    else if (tag.equals(SystemImageTags.ANDROID_TV_TAG)) {
       return DeviceType.TV;
     }
-    else if (tag.equals(SystemImage.GOOGLE_TV_TAG)) {
+    else if (tag.equals(SystemImageTags.GOOGLE_TV_TAG)) {
       return DeviceType.TV;
     }
-    else if (tag.equals(SystemImage.AUTOMOTIVE_TAG)) {
+    else if (tag.equals(SystemImageTags.AUTOMOTIVE_TAG)) {
       return DeviceType.AUTOMOTIVE;
     }
-    else if (tag.equals(SystemImage.AUTOMOTIVE_PLAY_STORE_TAG)) {
+    else if (tag.equals(SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG)) {
       return DeviceType.AUTOMOTIVE;
     }
     else {

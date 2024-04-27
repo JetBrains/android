@@ -171,7 +171,6 @@ class IdEnumSupport(val property: NlPropertyItem) : EnumSupport {
       ?.subTags
       ?.filter { it.localName == MotionSceneAttrs.Tags.CONSTRAINTSET && it != tag }
       ?.mapNotNull { stripIdPrefix(it.getAttributeValue(ATTR_ID, ANDROID_URI)).nullize() }
-      ?.map { EnumValue.item(ID_PREFIX + it) }
-      ?: emptyList()
+      ?.map { EnumValue.item(ID_PREFIX + it) } ?: emptyList()
   }
 }

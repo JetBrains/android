@@ -23,20 +23,22 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
-    <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
-    <orderEntry type="module" module-name="android.sdktools.builder-model" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
-    <orderEntry type="module" module-name="intellij.android.memory-usage" />
+    <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
-    <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.core" />
-    <orderEntry type="module" module-name="intellij.platform.util.rt" />
-    <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
+    <orderEntry type="module" module-name="android.sdktools.builder-model" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common.gradle.rt" />
+    <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
+    <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
+    <orderEntry type="module" module-name="intellij.android.memory-usage" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension" />
+    <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="kotlin.gradle.gradle-tooling.impl" />
   </component>
 </module>

@@ -20,12 +20,6 @@
     <applicationConfigurable groupId="build.android" id="instant.run"
                              provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"
                              bundle="messages.AndroidBundle"
-                             key="configurable.DeploymentConfigurable.display.name"/>
-
-    <projectConfigurable groupId="build.android"
-                         instance="com.android.tools.idea.structure.dialog.AndroidProjectStructureConfigurableForIdea"
-                         order="last"
-                         bundle="messages.AndroidBundle"
-                         key="configurable.AndroidProjectStructureConfigurableForIdea.display.name"/>
+                             key="configurable.DeploymentConfigurable.displayName"/>
   </extensions>
 </idea-plugin>

@@ -16,19 +16,20 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.sync.idea.issues.createNewGradleJvmProjectJdk
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult.SUCCESS
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.JdkUtils.createNewGradleJvmProjectJdk
 import com.android.tools.idea.testing.openPreparedProject
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.projectRoots.ProjectJdkTable
-import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl
 import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
 import org.junit.Rule
@@ -42,17 +43,16 @@ class JdkRecreationIntegrationTest {
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!
 
-  @Suppress("UnstableApiUsage")
   @Test
   fun `Corrupted Jdk is recreated after sync`() {
     // Set flag
     StudioFlags.GRADLE_SYNC_RECREATE_JDK.override(true)
 
+    var projectJdk: ProjectJdkImpl? = null
+    var corruptedJdk: ProjectJdkImpl? = null
     try {
-
       // Create a project with modified JDK
       val project1File = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION, "project_1").root
-      var projectJdk: Sdk? = null
       projectRule.openPreparedProject("project_1") { project ->
         assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SUCCESS)
         val basePath = project.basePath
@@ -64,19 +64,17 @@ class JdkRecreationIntegrationTest {
 
       // Corrupt JDK by removing a class root
       assertThat(projectJdk).isNotNull()
-      val corruptedJdk = projectJdk!!.clone()
-      val roots = corruptedJdk.rootProvider.getFiles(OrderRootType.CLASSES)
+      corruptedJdk = projectJdk!!.clone()
+      val roots = corruptedJdk.getRoots(OrderRootType.CLASSES)
       assertThat(roots).isNotEmpty()
       val originalSize = roots.size
-      val sdkModificator = corruptedJdk.sdkModificator
+      corruptedJdk.removeRoot(roots[0], OrderRootType.CLASSES)
       WriteAction.runAndWait<RuntimeException> {
-        sdkModificator.removeRoot(roots[0], OrderRootType.CLASSES)
-        sdkModificator.commitChanges()
         ProjectJdkTable.getInstance().updateJdk(projectJdk!!, corruptedJdk)
       }
 
       // Verify corrupted JDK has a class root less
-      assertThat(projectJdk!!.rootProvider.getFiles(OrderRootType.CLASSES)).hasLength(originalSize - 1)
+      assertThat(projectJdk!!.getRoots(OrderRootType.CLASSES)).hasLength(originalSize - 1)
 
       // Copy project1
       val copiedProjectPath = File(FileUtilRt.toSystemDependentName(projectRule.getBaseTestPath() + "/project_2"))
@@ -87,10 +85,13 @@ class JdkRecreationIntegrationTest {
         assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SUCCESS)
 
         val project2Jdk = createNewGradleJvmProjectJdk(project, projectRule.testRootDisposable)
-        assertThat(project2Jdk.rootProvider.getFiles(OrderRootType.CLASSES)).hasLength(originalSize)
+        assertThat(project2Jdk.getRoots(OrderRootType.CLASSES)).hasLength(originalSize)
+        Disposer.dispose(project2Jdk)
       }
     }
     finally {
+      projectJdk?.let { Disposer.dispose(it) }
+      corruptedJdk?.let { Disposer.dispose(it) }
       StudioFlags.GRADLE_SYNC_RECREATE_JDK.clearOverride()
     }
   }

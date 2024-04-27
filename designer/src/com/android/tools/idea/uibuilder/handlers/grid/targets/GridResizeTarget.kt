@@ -18,14 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.grid.targets
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteResizeTarget
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.BOTTOM
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.LEFT
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.LEFT_BOTTOM
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.LEFT_TOP
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.RIGHT
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.RIGHT_BOTTOM
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.RIGHT_TOP
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.TOP
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.*
 
 /** Target to handle the resizing of GridLayout's children */
 class GridResizeTarget(type: ResizeBaseTarget.Type) : AbsoluteResizeTarget(type) {

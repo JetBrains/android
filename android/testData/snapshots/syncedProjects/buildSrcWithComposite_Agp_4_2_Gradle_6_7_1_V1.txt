@@ -165,7 +165,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -485,7 +485,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -710,7 +710,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -1138,50 +1138,50 @@ PROJECT                       : BuildSrcWithComposite
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/buildSrc/src/main/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/caches/6.7.1/generated-gradle-jars/gradle-api-6.7.1.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/gradle-installation-beacon-6.7.1.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/groovy-all-1.3-2.5.12.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib1.main
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
             Scope                         : Runtime
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/caches/6.7.1/generated-gradle-jars/gradle-api-6.7.1.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/groovy-all-1.3-2.5.12.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/gradle-installation-beacon-6.7.1.jar!/
         Classes
             -                             : file://<PROJECT>/buildSrc/build/classes/java/main
         BUILD_TASKS
@@ -1210,51 +1210,51 @@ PROJECT                       : BuildSrcWithComposite
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/buildSrc/src/test/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/caches/6.7.1/generated-gradle-jars/gradle-api-6.7.1.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/gradle-installation-beacon-6.7.1.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/groovy-all-1.3-2.5.12.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib1.main
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.lib2.main
             Scope                         : Runtime
         ORDER_ENTRY                   : BuildSrcWithComposite.buildSrc.main
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/caches/6.7.1/generated-gradle-jars/gradle-api-6.7.1.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/groovy-all-1.3-2.5.12.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle:  [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle:
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-6.7.1-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-6.7.1/lib/gradle-installation-beacon-6.7.1.jar!/
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
             TEST_COMPILE_MODE             : Android tests
@@ -1424,7 +1424,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -1654,7 +1654,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -1848,7 +1848,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -2134,7 +2134,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -2300,7 +2300,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -2458,7 +2458,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -2572,9 +2572,21 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
+                COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
+                COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
+                COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
+                COMPILE_JAVA                  : :compileJava
     MODULE                        : java-included.main
         ExternalModuleGroup           : com.test.java.included
         ExternalModuleType            : sourceSet
@@ -2599,9 +2611,21 @@ PROJECT                       : BuildSrcWithComposite
             -                             : file://<PROJECT>/java-included/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
+                COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
+                COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
+                COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
+                COMPILE_JAVA                  : :compileJava
     MODULE                        : java-included.test
         ExternalModuleGroup           : com.test.java.included
         ExternalModuleType            : sourceSet
@@ -2626,9 +2650,21 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : java-included.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
+                COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
+                COMPILE_JAVA                  : :compileJava
             TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :assemble, :testClasses
+                REBUILD                       : :assemble, :clean, :testClasses
+                COMPILE_JAVA                  : :compileJava, :testClasses
             TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :assemble
+                REBUILD                       : :assemble, :clean
+                COMPILE_JAVA                  : :compileJava
     RUN_CONFIGURATION             : android-included.app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : android-included.app.main
@@ -2970,33 +3006,33 @@ PROJECT                       : BuildSrcWithComposite
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>/android-included::app:createMockableJar, <PROJECT>/android-included::app:generateDebugAndroidTestSources, <PROJECT>/android-included::app:generateDebugSources, <PROJECT>/android-included::lib:createMockableJar, <PROJECT>/android-included::lib:generateDebugAndroidTestSources, <PROJECT>/android-included::lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:assembleDebugAndroidTest, <PROJECT>/android-included::app:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:assembleDebugAndroidTest, <PROJECT>/android-included::app:assembleDebugUnitTest, <PROJECT>/android-included::app:clean, <PROJECT>/android-included::lib:assembleDebug, <PROJECT>/android-included::lib:assembleDebugAndroidTest, <PROJECT>/android-included::lib:assembleDebugUnitTest, <PROJECT>/android-included::lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean
-            COMPILE_JAVA                  : <PROJECT>/android-included::app:compileDebugAndroidTestSources, <PROJECT>/android-included::app:compileDebugSources, <PROJECT>/android-included::app:compileDebugUnitTestSources, <PROJECT>/android-included::lib:compileDebugAndroidTestSources, <PROJECT>/android-included::lib:compileDebugSources, <PROJECT>/android-included::lib:compileDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources
+            ASSEMBLE                      : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:assembleDebugAndroidTest, <PROJECT>/android-included::app:assembleDebugUnitTest, <PROJECT>/android-included::lib:assembleDebug, <PROJECT>/android-included::lib:assembleDebugAndroidTest, <PROJECT>/android-included::lib:assembleDebugUnitTest, <PROJECT>/java-included::assemble, <PROJECT>/java-included::testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:assembleDebugAndroidTest, <PROJECT>/android-included::app:assembleDebugUnitTest, <PROJECT>/android-included::app:clean, <PROJECT>/android-included::lib:assembleDebug, <PROJECT>/android-included::lib:assembleDebugAndroidTest, <PROJECT>/android-included::lib:assembleDebugUnitTest, <PROJECT>/android-included::lib:clean, <PROJECT>/java-included::assemble, <PROJECT>/java-included::clean, <PROJECT>/java-included::testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean
+            COMPILE_JAVA                  : <PROJECT>/android-included::app:compileDebugAndroidTestSources, <PROJECT>/android-included::app:compileDebugSources, <PROJECT>/android-included::app:compileDebugUnitTestSources, <PROJECT>/android-included::lib:compileDebugAndroidTestSources, <PROJECT>/android-included::lib:compileDebugSources, <PROJECT>/android-included::lib:compileDebugUnitTestSources, <PROJECT>/java-included::compileJava, <PROJECT>/java-included::testClasses, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>/android-included::app:createMockableJar, <PROJECT>/android-included::app:generateDebugAndroidTestSources, <PROJECT>/android-included::app:generateDebugSources, <PROJECT>/android-included::lib:createMockableJar, <PROJECT>/android-included::lib:generateDebugAndroidTestSources, <PROJECT>/android-included::lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : <PROJECT>/android-included::app:bundleDebug, <PROJECT>::app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>/android-included::app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>/android-included::app:generateDebugAndroidTestSources, <PROJECT>/android-included::app:generateDebugSources, <PROJECT>/android-included::lib:generateDebugAndroidTestSources, <PROJECT>/android-included::lib:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:assembleDebugAndroidTest, <PROJECT>/android-included::app:clean, <PROJECT>/android-included::lib:assembleDebug, <PROJECT>/android-included::lib:assembleDebugAndroidTest, <PROJECT>/android-included::lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean
-            COMPILE_JAVA                  : <PROJECT>/android-included::app:compileDebugAndroidTestSources, <PROJECT>/android-included::app:compileDebugSources, <PROJECT>/android-included::lib:compileDebugAndroidTestSources, <PROJECT>/android-included::lib:compileDebugSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources
+            ASSEMBLE                      : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:assembleDebugAndroidTest, <PROJECT>/android-included::lib:assembleDebug, <PROJECT>/android-included::lib:assembleDebugAndroidTest, <PROJECT>/java-included::assemble, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest
+            REBUILD                       : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:assembleDebugAndroidTest, <PROJECT>/android-included::app:clean, <PROJECT>/android-included::lib:assembleDebug, <PROJECT>/android-included::lib:assembleDebugAndroidTest, <PROJECT>/android-included::lib:clean, <PROJECT>/java-included::assemble, <PROJECT>/java-included::clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean
+            COMPILE_JAVA                  : <PROJECT>/android-included::app:compileDebugAndroidTestSources, <PROJECT>/android-included::app:compileDebugSources, <PROJECT>/android-included::lib:compileDebugAndroidTestSources, <PROJECT>/android-included::lib:compileDebugSources, <PROJECT>/java-included::compileJava, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources
             SOURCE_GEN                    : <PROJECT>/android-included::app:generateDebugAndroidTestSources, <PROJECT>/android-included::app:generateDebugSources, <PROJECT>/android-included::lib:generateDebugAndroidTestSources, <PROJECT>/android-included::lib:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : <PROJECT>/android-included::app:bundleDebug, <PROJECT>::app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>/android-included::app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>/android-included::app:createMockableJar, <PROJECT>/android-included::app:generateDebugSources, <PROJECT>/android-included::lib:createMockableJar, <PROJECT>/android-included::lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:assembleDebugUnitTest, <PROJECT>/android-included::app:clean, <PROJECT>/android-included::lib:assembleDebug, <PROJECT>/android-included::lib:assembleDebugUnitTest, <PROJECT>/android-included::lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean
-            COMPILE_JAVA                  : <PROJECT>/android-included::app:compileDebugUnitTestSources, <PROJECT>/android-included::lib:compileDebugUnitTestSources, <PROJECT>::app:compileDebugUnitTestSources
+            ASSEMBLE                      : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:assembleDebugUnitTest, <PROJECT>/android-included::lib:assembleDebug, <PROJECT>/android-included::lib:assembleDebugUnitTest, <PROJECT>/java-included::assemble, <PROJECT>/java-included::testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:assembleDebugUnitTest, <PROJECT>/android-included::app:clean, <PROJECT>/android-included::lib:assembleDebug, <PROJECT>/android-included::lib:assembleDebugUnitTest, <PROJECT>/android-included::lib:clean, <PROJECT>/java-included::assemble, <PROJECT>/java-included::clean, <PROJECT>/java-included::testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean
+            COMPILE_JAVA                  : <PROJECT>/android-included::app:compileDebugUnitTestSources, <PROJECT>/android-included::lib:compileDebugUnitTestSources, <PROJECT>/java-included::compileJava, <PROJECT>/java-included::testClasses, <PROJECT>::app:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>/android-included::app:createMockableJar, <PROJECT>/android-included::app:generateDebugSources, <PROJECT>/android-included::lib:createMockableJar, <PROJECT>/android-included::lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources
             BUNDLE                        : <PROJECT>/android-included::app:bundleDebug, <PROJECT>::app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>/android-included::app:extractApksForDebug, <PROJECT>::app:extractApksForDebug
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>/android-included::app:generateDebugSources, <PROJECT>/android-included::lib:generateDebugSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>/android-included::app:assembleDebug, <PROJECT>::app:assembleDebug
-            REBUILD                       : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:clean, <PROJECT>/android-included::lib:assembleDebug, <PROJECT>/android-included::lib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:clean
-            COMPILE_JAVA                  : <PROJECT>/android-included::app:compileDebugSources, <PROJECT>/android-included::lib:compileDebugSources, <PROJECT>::app:compileDebugSources
+            ASSEMBLE                      : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::lib:assembleDebug, <PROJECT>/java-included::assemble, <PROJECT>::app:assembleDebug
+            REBUILD                       : <PROJECT>/android-included::app:assembleDebug, <PROJECT>/android-included::app:clean, <PROJECT>/android-included::lib:assembleDebug, <PROJECT>/android-included::lib:clean, <PROJECT>/java-included::assemble, <PROJECT>/java-included::clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:clean
+            COMPILE_JAVA                  : <PROJECT>/android-included::app:compileDebugSources, <PROJECT>/android-included::lib:compileDebugSources, <PROJECT>/java-included::compileJava, <PROJECT>::app:compileDebugSources
             SOURCE_GEN                    : <PROJECT>/android-included::app:generateDebugSources, <PROJECT>/android-included::lib:generateDebugSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : <PROJECT>/android-included::app:bundleDebug, <PROJECT>::app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>/android-included::app:extractApksForDebug, <PROJECT>::app:extractApksForDebug

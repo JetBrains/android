@@ -23,6 +23,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.memory.ClassGrouping;
+import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
@@ -49,6 +50,7 @@ public interface CaptureObject extends MemoryObject {
   String APP_HEAP_NAME = "app";
   String JNI_HEAP_NAME = "JNI";
   String NATIVE_HEAP_NAME = "Native";
+  String ALL_HEAP_NAME = AllHeapSet.NAME;
 
   int DEFAULT_HEAP_ID = 0;
   // ID for JNI pseudo-heap, it should not overlap with real Android heaps

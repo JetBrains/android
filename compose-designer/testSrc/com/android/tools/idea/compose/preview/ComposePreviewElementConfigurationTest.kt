@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.Density
 import com.android.resources.ScreenOrientation
+import com.android.resources.ScreenRatio
 import com.android.resources.ScreenRound
 import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
@@ -26,12 +27,14 @@ import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.avdmanager.AvdScreenData
+import com.android.tools.configurations.Wallpaper
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.configurations.Wallpaper
-import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.preview.PreviewConfiguration
+import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.android.tools.preview.applyConfigurationForTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -62,7 +65,7 @@ private fun buildState(
             val heightDp = screenHeightPx.toDouble() * 160 / density.dpiValue
             diagonalLength = sqrt(widthDp * widthDp + heightDp * heightDp) / 160
             size = ScreenSize.getScreenSize(diagonalLength)
-            ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
+            ratio = ScreenRatio.create(xDimension, yDimension)
             this.screenRound = screenRound ?: ScreenRound.NOTROUND
             chin = 0
           }
@@ -103,6 +106,13 @@ private val roundWearOsDevice =
           isDefaultState = true
         }
       )
+  )
+private val deviceWithCustomDensity =
+  buildDevice(
+    name = "Device with custom density",
+    id = "device_with_custom_density",
+    states =
+      listOf(buildState("default", 1000, 2000, Density.create(440)).apply { isDefaultState = true })
   )
 
 private val deviceProvider: (Configuration) -> Collection<Device> = {
@@ -187,6 +197,25 @@ class ComposePreviewElementConfigurationTest {
         val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
         assertEquals(1000, screenSize.width)
         assertEquals(2000, screenSize.height)
+      }
+
+    SingleComposePreviewElementInstance(
+        "WithSizeAndCustomDensity",
+        PreviewDisplaySettings("Name", null, false, false, null),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null)
+      )
+      .let { previewElement ->
+        previewElement.applyConfigurationForTest(
+          configuration,
+          highestApiTarget = { null },
+          devicesProvider = deviceProvider,
+          defaultDeviceProvider = { deviceWithCustomDensity }
+        )
+        val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
+        assertEquals(338, screenSize.width)
+        assertEquals(643, screenSize.height)
       }
   }
 

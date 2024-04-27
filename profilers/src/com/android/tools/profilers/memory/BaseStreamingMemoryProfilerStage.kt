@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory
 
-import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.AspectModel
 import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.DurationData
@@ -26,7 +25,6 @@ import com.android.tools.adtui.model.RangeSelectionListener
 import com.android.tools.adtui.model.RangeSelectionModel
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
-import com.android.tools.adtui.model.axis.ClampedAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
@@ -38,12 +36,12 @@ import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.UnifiedEventDataSeries
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.event.EventMonitor
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.Companion.getModeFromFrequency
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.adapters.CaptureObject
+import com.android.tools.profilers.memory.adapters.MemoryDataProvider
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.diagnostic.Logger
@@ -64,19 +62,20 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   var isTrackingAllocations = false
     protected set
   val aspect = AspectModel<MemoryProfilerAspect>()
-  val gcStatsModel = makeModel(makeGcSeries())
 
-  val allocationSamplingRateDataSeries = AllocationSamplingRateDataSeries(profilers.client, sessionData)
-  val allocationSamplingRateDurations = makeModel(allocationSamplingRateDataSeries)
+  val memoryDataProvider = MemoryDataProvider(profilers, timeline)
+  private val allocationSamplingRateDataSeries = memoryDataProvider.allocationSamplingRateDataSeries
 
-  val detailedMemoryUsage = DetailedMemoryUsage(profilers, this)
-  val memoryAxis = ClampedAxisComponentModel.Builder(detailedMemoryUsage.memoryRange, MEMORY_AXIS_FORMATTER).build()
-  val objectsAxis = ClampedAxisComponentModel.Builder(detailedMemoryUsage.objectsRange, OBJECT_COUNT_AXIS_FORMATTER).build()
-  val legends = MemoryStageLegends(this, timeline.dataRange, false)
-  val tooltipLegends = MemoryStageLegends(this, timeline.tooltipRange, true)
+  val gcStatsModel = memoryDataProvider.gcStatsModel
+  val allocationSamplingRateDurations = memoryDataProvider.allocationSamplingRateDurations
+  val detailedMemoryUsage = memoryDataProvider.detailedMemoryUsage
+  val memoryAxis = memoryDataProvider.memoryAxis
+  val objectsAxis = memoryDataProvider.objectsAxis
+  val legends = memoryDataProvider.legends
+  val tooltipLegends = memoryDataProvider.tooltipLegends
   val eventMonitor = EventMonitor(profilers)
 
-  private val allocationSamplingRateUpdatable = object: Updatable {
+  private val allocationSamplingRateUpdatable = object : Updatable {
     override fun update(elapsedNs: Long) {
       if (isLiveAllocationTrackingReady) {
         getLiveAllocationSamplingModeFromData()?.let { liveAllocationSamplingMode = it }
@@ -84,7 +83,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     }
   }
 
-  private val captureElapsedTimeUpdatable = object: Updatable {
+  private val captureElapsedTimeUpdatable = object : Updatable {
     override fun update(elapsedNs: Long) {
       if (isTrackingAllocations) {
         captureSelection.aspect.changed(CaptureSelectionAspect.CURRENT_CAPTURE_ELAPSED_TIME)
@@ -108,8 +107,8 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     @VisibleForTesting
     set(mode) {
       if (mode != field) {
-        field = mode
-        aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE)
+        field = mode;
+        aspect.changed(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE);
       }
     }
 
@@ -123,7 +122,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
 
   val isLiveAllocationTrackingReady get() = MemoryProfiler.isUsingLiveAllocation(studioProfilers, sessionData)
   val isLiveAllocationTrackingSupported
-    get() = with(getDeviceForSelectedSession()) { this != null && featureLevel >= AndroidVersion.VersionCodes.O }
+    get() = memoryDataProvider.isLiveAllocationTrackingSupported
 
   init {
     gcStatsModel.apply {
@@ -185,13 +184,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   }
 
   fun forceGarbageCollection() {
-    studioProfilers.client.transportClient.execute(
-      Transport.ExecuteRequest.newBuilder()
-        .setCommand(Commands.Command.newBuilder()
-                      .setStreamId(sessionData.streamId)
-                      .setPid(sessionData.pid)
-                      .setType(Commands.Command.CommandType.GC))
-        .build())
+    memoryDataProvider.forceGarbageCollection()
   }
 
   /**
@@ -274,19 +267,8 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   protected inline fun <T : DurationData> applyDataSeriesConstructor(f: DataSeriesConstructor<T>) =
     f(studioProfilers.client, sessionData, studioProfilers.ideServices.featureTracker, this)
 
-  protected fun getDeviceForSelectedSession() = studioProfilers.getStream(studioProfilers.session.streamId).let { stream ->
-    if (stream.type === Common.Stream.Type.DEVICE) stream.device
-    else null
-  }
+  protected fun getDeviceForSelectedSession() = memoryDataProvider.getDeviceForSelectedSession()
 
-  private fun makeGcSeries() =
-    UnifiedEventDataSeries(studioProfilers.client.transportClient,
-                           sessionData.streamId,
-                           sessionData.pid,
-                           Common.Event.Kind.MEMORY_GC,
-                           UnifiedEventDataSeries.DEFAULT_GROUP_ID) { events ->
-      events.map { SeriesData(it.timestamp.nanosToMicros(), GcDurationData(it.memoryGc.duration.nanosToMicros())) }
-    }
 
   // This method is factored out just for testing the allocation sampling mode after the stage has exited,
   // because `exit()` unregisters all updatables, leaving the field `liveAllocationSamplingMode` stale.

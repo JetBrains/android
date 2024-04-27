@@ -28,20 +28,18 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.dom.attrs.AttributeDefinitions;
-import com.android.tools.dom.attrs.AttributeDefinitionsImpl;
-import com.android.tools.dom.attrs.FilteredAttributeDefinitions;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.res.FrameworkResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.reference.SoftReference;
+import java.lang.ref.SoftReference;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -56,6 +54,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.function.Supplier;
+import com.android.tools.dom.attrs.AttributeDefinitions;
+import com.android.tools.dom.attrs.AttributeDefinitionsImpl;
+import com.android.tools.dom.attrs.FilteredAttributeDefinitions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -130,7 +131,7 @@ public class AndroidTargetData {
         LOG.warn("Rendering will not use the EmbeddedRenderTarget");
       }
       myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues(), hasLayoutlibCrash);
-      Disposer.register(parentDisposable, myLayoutLibrary);
+      Disposer.register(parentDisposable, () -> myLayoutLibrary.dispose());
     }
 
     return myLayoutLibrary;
@@ -307,7 +308,7 @@ public class AndroidTargetData {
   private static final Map<AndroidSdkData, Map<String, SoftReference<AndroidTargetData>>> myTargetDataCache = new WeakHashMap<>();
 
   public static AndroidTargetData get(@NotNull AndroidSdkData sdk, @NotNull IAndroidTarget target) {
-    Map<String, SoftReference<AndroidTargetData>> targetDataByTarget = myTargetDataCache.computeIfAbsent(sdk, s -> new HashMap<>());
+    Map<String, SoftReference<AndroidTargetData>> targetDataByTarget = myTargetDataCache.computeIfAbsent(sdk, s -> Maps.newHashMap());
     String key = target.hashString();
     final SoftReference<AndroidTargetData> targetDataRef = targetDataByTarget.get(key);
     AndroidTargetData targetData = targetDataRef != null ? targetDataRef.get() : null;

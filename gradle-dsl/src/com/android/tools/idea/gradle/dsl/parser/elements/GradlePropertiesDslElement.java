@@ -15,55 +15,43 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
-import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.APPLIED;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.DEFAULT;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.EXISTING;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.HIDDEN;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.MOVED;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.TO_BE_ADDED;
-import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.TO_BE_REMOVED;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.RESET;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
-
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ElementSort;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
-import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
-import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Predicates;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
+import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.RESET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 /**
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
@@ -74,13 +62,13 @@ import org.jetbrains.annotations.Unmodifiable;
 public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   private static final Logger LOG = Logger.getInstance(GradlePropertiesDslElement.class);
 
-  private static final @NotNull Predicate<ElementList.ElementItem> VARIABLE_FILTER =
+  @NotNull private final static Predicate<ElementList.ElementItem> VARIABLE_FILTER =
     e -> e.myElement.getElementType() == PropertyType.VARIABLE;
   // This filter currently gives us everything that is not a variable.
-  private static final @NotNull Predicate<ElementList.ElementItem> PROPERTY_FILTER = VARIABLE_FILTER.negate();
-  private static final @NotNull Predicate<ElementList.ElementItem> ANY_FILTER = Predicates.alwaysTrue();
+  @NotNull private final static Predicate<ElementList.ElementItem> PROPERTY_FILTER = VARIABLE_FILTER.negate();
+  @NotNull private final static Predicate<ElementList.ElementItem> ANY_FILTER = Predicates.alwaysTrue();
 
-  public final @NotNull ElementList myProperties = new ElementList();
+  @NotNull public final ElementList myProperties = new ElementList();
 
   protected GradlePropertiesDslElement(@Nullable GradleDslElement parent,
                                        @Nullable PsiElement psiElement,
@@ -281,8 +269,9 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     addPropertyInternal(literalList, EXISTING);
   }
 
-  private static @Nullable PsiElement mungeElementsForAddToParsedExpressionList(@NotNull GradleDslElement dslElement,
-                                                                                @NotNull List<GradleDslElement> newDslElements) {
+  @Nullable
+  private static PsiElement mungeElementsForAddToParsedExpressionList(@NotNull GradleDslElement dslElement,
+                                                                      @NotNull List<GradleDslElement> newDslElements) {
     PsiElement psiElement = dslElement.getPsiElement();
     if (psiElement == null) {
       return null;
@@ -390,16 +379,19 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     }
   }
 
-  private static final @NotNull Map<String, PropertiesElementDescription> NO_CHILD_PROPERTIES_ELEMENTS = Map.of();
+  @NotNull
+  private static final ImmutableMap<String,PropertiesElementDescription> NO_CHILD_PROPERTIES_ELEMENTS = ImmutableMap.of();
 
   public static final class EmptyGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
     @Override
-    public @NotNull Map<String, PropertiesElementDescription> getBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
       return NO_CHILD_PROPERTIES_ELEMENTS;
     }
 
+    @NotNull
     @Override
-    public @NotNull ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+    public ExternalToModelMap getPropertiesInfo(Kind kind) {
       return ExternalToModelMap.empty;
     }
   }
@@ -414,7 +406,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    *
    * @return a map of external names to descriptions of the corresponding properties element.
    */
-  protected @NotNull @Unmodifiable Map<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  @NotNull
+  protected Map<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
     return NO_CHILD_PROPERTIES_ELEMENTS;
   }
 
@@ -423,11 +416,13 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    * @return the properties element description corresponding to the given name in the context of this block, or null if no such properties
    * element exists in the Dsl.
    */
-  public @Nullable PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+  @Nullable
+  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
     return getChildPropertiesElementsDescriptionMap().get(name);
   }
 
-  public @NotNull Set<String> getProperties() {
+  @NotNull
+  public Set<String> getProperties() {
     return getPropertyElements().keySet();
   }
 
@@ -435,11 +430,13 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    * Note: This function does NOT guarantee that only elements belonging to properties are returned, since this class is also used
    * for maps it is also possible for the resulting elements to be of {@link PropertyType#DERIVED}.
    */
-  public @NotNull Map<String, GradleDslElement> getPropertyElements() {
+  @NotNull
+  public Map<String, GradleDslElement> getPropertyElements() {
     return getElementsWhere(PROPERTY_FILTER);
   }
 
-  public @NotNull <T extends GradleDslElement> List<T> getPropertyElements(@NotNull String name, @NotNull Class<T> clazz) {
+  @NotNull
+  public <T extends GradleDslElement> List<T> getPropertyElements(@NotNull String name, @NotNull Class<T> clazz) {
     return myProperties.getElementsWhere(PROPERTY_FILTER).stream()
                        .filter(e -> clazz.isAssignableFrom(e.getClass()) && e.getName().equals(name))
                        .map(e -> clazz.cast(e)).collect(Collectors.toList());
@@ -448,23 +445,28 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   /**
    * @return all elements that visible now (effective elements)
    */
-  public @NotNull List<GradleDslElement> getAllPropertyElements() {
+  @NotNull
+  public List<GradleDslElement> getAllPropertyElements() {
     return myProperties.getElementsWhere(PROPERTY_FILTER);
   }
 
-  public @NotNull Map<String, GradleDslElement> getVariableElements() {
+  @NotNull
+  public Map<String, GradleDslElement> getVariableElements() {
     return getElementsWhere(VARIABLE_FILTER);
   }
 
-  public @NotNull Map<String, GradleDslElement> getElements() {
+  @NotNull
+  public Map<String, GradleDslElement> getElements() {
     return getElementsWhere(ANY_FILTER);
   }
 
-  public @NotNull List<GradleDslElement> getAllElements() {
+  @NotNull
+  public List<GradleDslElement> getAllElements() {
     return myProperties.getElementsWhere(ANY_FILTER);
   }
 
-  private @NotNull Map<String, GradleDslElement> getElementsWhere(@NotNull Predicate<ElementList.ElementItem> predicate) {
+  @NotNull
+  private Map<String, GradleDslElement> getElementsWhere(@NotNull Predicate<ElementList.ElementItem> predicate) {
     Map<String, GradleDslElement> results = new LinkedHashMap<>();
     List<GradleDslElement> elements = myProperties.getElementsWhere(predicate);
     for (GradleDslElement element : elements) {
@@ -500,7 +502,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return myProperties.getElementBeforeChildWhere(predicate, element, includeSelf);
   }
 
-  public @Nullable GradleDslElement getVariableElement(@NotNull String property) {
+  @Nullable
+  public GradleDslElement getVariableElement(@NotNull String property) {
     return getElementWhere(property, VARIABLE_FILTER);
   }
 
@@ -508,19 +511,23 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    * Returns the {@link GradleDslElement} corresponding to the given {@code property}, or {@code null} if the given {@code property}
    * does not exist in this element.
    */
-  public @Nullable GradleDslElement getPropertyElement(@NotNull String property) {
+  @Nullable
+  public GradleDslElement getPropertyElement(@NotNull String property) {
     return getElementWhere(property, PROPERTY_FILTER);
   }
 
-  public @Nullable GradleDslElement getPropertyElement(@NotNull ModelPropertyDescription property) {
+  @Nullable
+  public GradleDslElement getPropertyElement(@NotNull ModelPropertyDescription property) {
     return getElementWhere(property, PROPERTY_FILTER);
   }
 
-  public @Nullable GradleDslElement getElement(@NotNull String property) {
+  @Nullable
+  public GradleDslElement getElement(@NotNull String property) {
     return getElementWhere(property, ANY_FILTER);
   }
 
-  public @Nullable GradleDslElement getPropertyElementBefore(@Nullable GradleDslElement element, @NotNull String property, boolean includeSelf) {
+  @Nullable
+  public GradleDslElement getPropertyElementBefore(@Nullable GradleDslElement element, @NotNull String property, boolean includeSelf) {
     if (element == null) {
       return getElementWhere(property, PROPERTY_FILTER);
     }
@@ -543,27 +550,32 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    * Returns the dsl element of the given {@code property} of the type {@code clazz}, or {@code null} if the given {@code property}
    * does not exist in this element.
    */
-  public @Nullable <T extends GradleDslElement> T getPropertyElement(@NotNull String property, @NotNull Class<T> clazz) {
+  @Nullable
+  public <T extends GradleDslElement> T getPropertyElement(@NotNull String property, @NotNull Class<T> clazz) {
     GradleDslElement propertyElement = getPropertyElement(property);
     return clazz.isInstance(propertyElement) ? clazz.cast(propertyElement) : null;
   }
 
-  public @Nullable <T extends GradleDslElement> T getPropertyElement(@NotNull ModelPropertyDescription property, @NotNull Class<T> clazz) {
+  @Nullable
+  public <T extends GradleDslElement> T getPropertyElement(@NotNull ModelPropertyDescription property, @NotNull Class<T> clazz) {
     GradleDslElement propertyElement = getPropertyElement(property);
     return clazz.isInstance(propertyElement) ? clazz.cast(propertyElement) : null;
   }
 
 
-  public @Nullable <T extends GradlePropertiesDslElement> T getPropertyElement(@NotNull PropertiesElementDescription<T> description) {
+  @Nullable
+  public <T extends GradlePropertiesDslElement> T getPropertyElement(@NotNull PropertiesElementDescription<T> description) {
     assert description.name != null;
     return getPropertyElement(description.name, description.clazz);
   }
 
-  public @NotNull <T extends GradlePropertiesDslElement> T ensurePropertyElement(@NotNull PropertiesElementDescription<T> description) {
+  @NotNull
+  public <T extends GradlePropertiesDslElement> T ensurePropertyElement(@NotNull PropertiesElementDescription<T> description) {
     return ensurePropertyElementAt(description, null);
   }
 
-  public @NotNull <T extends GradlePropertiesDslElement, U> T ensurePropertyElementBefore(
+  @NotNull
+  public <T extends GradlePropertiesDslElement, U> T ensurePropertyElementBefore(
     @NotNull PropertiesElementDescription<T> description,
     Class<U> before
   ) {
@@ -578,7 +590,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return ensurePropertyElementAt(description, at);
   }
 
-  public @NotNull <T extends GradlePropertiesDslElement> T ensureNamedPropertyElement(
+  @NotNull
+  public <T extends GradlePropertiesDslElement> T ensureNamedPropertyElement(
     PropertiesElementDescription<T> description,
     GradleNameElement name
   ) {
@@ -591,7 +604,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return newElement;
   }
 
-  public @NotNull <T extends GradlePropertiesDslElement> T ensurePropertyElementAt(PropertiesElementDescription<T> description, Integer at) {
+  @NotNull
+  public <T extends GradlePropertiesDslElement> T ensurePropertyElementAt(PropertiesElementDescription<T> description, Integer at) {
     T propertyElement = getPropertyElement(description);
     if (propertyElement != null) return propertyElement;
     T newElement;
@@ -606,28 +620,33 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return newElement;
   }
 
-  public @Nullable <T extends GradleDslElement> T getPropertyElement(@NotNull List<String> properties, @NotNull Class<T> clazz) {
+  @Nullable
+  public <T extends GradleDslElement> T getPropertyElement(@NotNull List<String> properties, @NotNull Class<T> clazz) {
     GradleDslElement propertyElement = myProperties.getElementWhere(e -> properties.contains(e.myElement.getName()));
     return clazz.isInstance(propertyElement) ? clazz.cast(propertyElement) : null;
   }
 
-  public @NotNull <T extends GradleDslElement> List<T> getPropertyElements(@NotNull Class<T> clazz) {
+  @NotNull
+  public <T extends GradleDslElement> List<T> getPropertyElements(@NotNull Class<T> clazz) {
     return myProperties.getElementsWhere(PROPERTY_FILTER).stream().filter(e -> clazz.isAssignableFrom(e.getClass())).map(e -> clazz.cast(e))
                        .collect(Collectors.toList());
   }
 
-  public @NotNull List<GradleDslElement> getPropertyElementsByName(@NotNull String propertyName) {
+  @NotNull
+  public List<GradleDslElement> getPropertyElementsByName(@NotNull String propertyName) {
     return myProperties.getElementsWhere(e -> e.myElement.getName().equals(propertyName) && PROPERTY_FILTER.test(e));
   }
 
   /**
    * @return All elements that loaded from file
    */
-  public @NotNull List<GradleDslElement> getOriginalElements() {
+  @NotNull
+  public List<GradleDslElement> getOriginalElements() {
     return myProperties.myElements.stream().filter(e -> e.myExistsOnFile).map(e -> e.myElement).collect(Collectors.toList());
   }
 
-  public @Nullable GradleDslElement getOriginalElementForNameAndType(@NotNull String name, @NotNull PropertyType type) {
+  @Nullable
+  public GradleDslElement getOriginalElementForNameAndType(@NotNull String name, @NotNull PropertyType type) {
     return myProperties.myElements.stream().filter(
       e -> e.myElement.getName().equals(name) && e.myExistsOnFile && e.myElement.getElementType() == type).map(e -> e.myElement)
                                   .reduce((a, b) -> b).orElse(null);
@@ -636,7 +655,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   /**
    * @return all the elements which represent the current state of the Dsl object, including modifications.
    */
-  public @NotNull List<GradleDslElement> getCurrentElements() {
+  @NotNull
+  public List<GradleDslElement> getCurrentElements() {
     Predicate<ElementList.ElementItem> currentElementFilter = e ->
       e.myElementState == TO_BE_ADDED ||
       e.myElementState == EXISTING ||
@@ -693,7 +713,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     myProperties.substituteElement(oldElement, newElement);
   }
 
-  public @Nullable <T> T getLiteral(@NotNull String property, @NotNull Class<T> clazz) {
+  @Nullable
+  public <T> T getLiteral(@NotNull String property, @NotNull Class<T> clazz) {
     GradleDslSimpleExpression expression = getPropertyElement(property, GradleDslSimpleExpression.class);
     if (expression == null) {
       return null;
@@ -702,11 +723,13 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return expression.getValue(clazz);
   }
 
-  public @NotNull GradleDslLiteral setNewLiteral(@NotNull String property, @NotNull Object value) {
+  @NotNull
+  public GradleDslLiteral setNewLiteral(@NotNull String property, @NotNull Object value) {
     return setNewLiteralImpl(property, value);
   }
 
-  private @NotNull GradleDslLiteral setNewLiteralImpl(@NotNull String property, @NotNull Object value) {
+  @NotNull
+  private GradleDslLiteral setNewLiteralImpl(@NotNull String property, @NotNull Object value) {
     GradleDslLiteral literalElement = getPropertyElement(property, GradleDslLiteral.class);
     if (literalElement == null) {
       literalElement = new GradleDslLiteral(this, GradleNameElement.create(property));
@@ -761,7 +784,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   @Override
-  public @Nullable GradleDslElement requestAnchor(@NotNull GradleDslElement element) {
+  @Nullable
+  public GradleDslElement requestAnchor(@NotNull GradleDslElement element) {
     // We need to find the element before `element` in my properties. The last one that has a psiElement, has the same name scheme as
     // the given element (to ensure that they should be placed in the same block) and must have a state of EXISTING, TO_BE_ADDED or MOVED.
     GradleDslElement lastElement = null;
@@ -796,12 +820,14 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   @Override
-  public @NotNull Collection<GradleDslElement> getChildren() {
+  @NotNull
+  public Collection<GradleDslElement> getChildren() {
     return getAllElements();
   }
 
   @Override
-  public @NotNull List<GradleDslElement> getContainedElements(boolean includeProperties) {
+  @NotNull
+  public List<GradleDslElement> getContainedElements(boolean includeProperties) {
     List<GradleDslElement> result = new ArrayList<>();
     if (includeProperties) {
       result.addAll(getElementsWhere(e -> (e.myElementState != APPLIED && !e.isDefaultElement())).values());
@@ -920,7 +946,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   @Override
-  public @NotNull List<GradleReferenceInjection> getDependencies() {
+  @NotNull
+  public List<GradleReferenceInjection> getDependencies() {
     return myProperties.getElementsWhere(e -> e.myElementState != APPLIED).stream().map(GradleDslElement::getDependencies)
                        .flatMap(Collection::stream).collect(
         Collectors.toList());
@@ -956,8 +983,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
      * Wrapper to add state to each element.
      */
     public static class ElementItem {
-      private @NotNull GradleDslElement myElement;
-      private @NotNull ElementState myElementState;
+      @NotNull private GradleDslElement myElement;
+      @NotNull private ElementState myElementState;
       // Whether or not this element item exists in THIS DSL file. While element state == EXISTING implies this is true,
       // the reverse doesn't apply.
       private boolean myExistsOnFile;
@@ -976,7 +1003,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       }
     }
 
-    private final @NotNull List<ElementItem> myElements;
+    @NotNull private final List<ElementItem> myElements;
 
     public ElementList() {
       myElements = new ArrayList<>();
@@ -986,12 +1013,14 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       myElements.forEach(func);
     }
 
-    private @NotNull List<GradleDslElement> getElementsWhere(@NotNull Predicate<ElementItem> predicate) {
+    @NotNull
+    private List<GradleDslElement> getElementsWhere(@NotNull Predicate<ElementItem> predicate) {
       return myElements.stream().filter(e -> e.myElementState.isSemanticallyRelevant())
                        .filter(predicate).map(e -> e.myElement).collect(Collectors.toList());
     }
 
-    public @Nullable GradleDslElement getElementWhere(@NotNull Predicate<ElementItem> predicate) {
+    @Nullable
+    public GradleDslElement getElementWhere(@NotNull Predicate<ElementItem> predicate) {
       // We reduce to get the last element stored, this will be the one we want as it was added last and therefore must appear
       // later on in the file.
       GradleDslElement last = myElements.stream()
@@ -1008,7 +1037,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
      * Return the last element satisfying {@code predicate} that is BEFORE {@code child}. If {@code child} is not a child of
      * this {@link GradlePropertiesDslElement} then every element is checked and the last one (if any) returned.
      */
-    public @Nullable GradleDslElement getElementBeforeChildWhere(@NotNull Predicate<ElementItem> predicate,
+    @Nullable
+    public GradleDslElement getElementBeforeChildWhere(@NotNull Predicate<ElementItem> predicate,
                                                        @NotNull GradleDslElement child,
                                                        boolean includeSelf) {
       // TODO(b/181308123): this is used primarily (maybe exclusively?) for resolution: when the rvalue of a property refers to
@@ -1082,7 +1112,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       return myElements.size();
     }
 
-    private @Nullable ElementState remove(@NotNull GradleDslElement element) {
+    @Nullable
+    private ElementState remove(@NotNull GradleDslElement element) {
       ElementItem item = myElements.stream().filter(e -> element == e.myElement).findFirst().orElse(null);
       if (item == null) {
         return null;
@@ -1102,7 +1133,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       return oldState;
     }
 
-    private @Nullable ElementState replaceElement(@Nullable GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+    @Nullable
+    private ElementState replaceElement(@Nullable GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
       for (int i = 0; i < myElements.size(); i++) {
         ElementItem item = myElements.get(i);
         if (oldElement == item.myElement) {
@@ -1119,7 +1151,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       return null;
     }
 
-    private @Nullable ElementState substituteElement(@Nullable GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+    @Nullable
+    private ElementState substituteElement(@Nullable GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
       for (int i = 0; i < myElements.size(); i++) {
         ElementItem item = myElements.get(i);
         if (oldElement == item.myElement) {
@@ -1137,7 +1170,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       return null;
     }
 
-    private @NotNull List<GradleDslElement> removeAll(@NotNull Predicate<ElementItem> filter) {
+    @NotNull
+    private List<GradleDslElement> removeAll(@NotNull Predicate<ElementItem> filter) {
       List<ElementItem> toBeRemoved = myElements.stream().filter(filter).collect(Collectors.toList());
       toBeRemoved.forEach(e -> e.myElementState = TO_BE_REMOVED);
       return ContainerUtil.map(toBeRemoved, e -> e.myElement);

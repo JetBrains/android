@@ -22,11 +22,12 @@ import com.android.tools.idea.diagnostics.crash.exception.JvmCrashException;
 import com.android.tools.idea.diagnostics.crash.exception.NonGracefulExitException;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
 
 public class StudioCrashReport extends BaseStudioReport {
   private final List<String> descriptions;

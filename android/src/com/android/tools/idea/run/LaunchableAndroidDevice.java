@@ -23,10 +23,10 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.google.common.collect.ImmutableList;
@@ -118,19 +118,19 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   public boolean supportsFeature(@NotNull IDevice.HardwareFeature feature) {
     switch (feature) {
       case WATCH:
-        return SystemImage.WEAR_TAG.equals(myAvdInfo.getTag());
+        return SystemImageTags.WEAR_TAG.equals(myAvdInfo.getTag());
       case TV:
-        return SystemImage.ANDROID_TV_TAG.equals(myAvdInfo.getTag()) || SystemImage.GOOGLE_TV_TAG.equals(myAvdInfo.getTag());
+        return SystemImageTags.ANDROID_TV_TAG.equals(myAvdInfo.getTag()) || SystemImageTags.GOOGLE_TV_TAG.equals(myAvdInfo.getTag());
       case AUTOMOTIVE:
-        return SystemImage.AUTOMOTIVE_TAG.equals(myAvdInfo.getTag());
+        return SystemImageTags.AUTOMOTIVE_TAG.equals(myAvdInfo.getTag());
       default:
         return true;
     }
   }
 
   @Override
-  public boolean getSupportsPrivacySandbox() {
-    return getVersion().isGreaterOrEqualThan(33, 4);
+  public boolean getSupportsSdkRuntime() {
+    return getVersion().isGreaterOrEqualThan(34);
   }
 
   @NotNull

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.resources.Density;
 import com.android.resources.ScreenRatio;
 import com.android.resources.ScreenRound;
 import com.android.resources.ScreenSize;
@@ -29,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * Contains all methods needed to build a {@link Screen} instance.
  */
 public final class AvdScreenData {
-  private AvdDeviceData myDeviceData;
+  private final AvdDeviceData myDeviceData;
 
   public AvdScreenData(AvdDeviceData deviceData) {
     myDeviceData = deviceData;
@@ -40,60 +39,15 @@ public final class AvdScreenData {
     double diagonalPixelResolution;
     if (isRound) {
       // Round: The "diagonal" is the same as the diameter.
-      // Use the width so we don't have to consider a possible chin.
+      // Use the width, so we don't have to consider a possible chin.
       diagonalPixelResolution = screenResolutionWidth;
-    } else {
+    }
+    else {
       // Calculate diagonal resolution in pixels using the Pythagorean theorem: Dp = (pixelWidth^2 + pixelHeight^2)^1/2
       diagonalPixelResolution = Math.sqrt(Math.pow(screenResolutionWidth, 2) + Math.pow(screenResolutionHeight, 2));
     }
     // Calculate dots per inch: DPI = Dp / diagonalInchSize
     return diagonalPixelResolution / diagonalScreenSize;
-  }
-
-  /**
-   * Calculate the screen ratio. Beyond a 5:3 ratio is considered "long"
-   */
-  @NotNull
-  public static ScreenRatio getScreenRatio(int width, int height) {
-    int longSide = Math.max(width, height);
-    int shortSide = Math.min(width, height);
-
-    // Above a 5:3 ratio is "long"
-    if (((double)longSide) / shortSide >= 5.0 / 3) {
-      return ScreenRatio.LONG;
-    }
-    else {
-      return ScreenRatio.NOTLONG;
-    }
-  }
-
-  /**
-   * Calculate the density resource bucket (the "generalized density")
-   * for the device, given its dots-per-inch
-   */
-  @NotNull
-  public static Density getScreenDensity(boolean isTv, double dpi, int screenHeight) {
-
-    if (isTv) {
-      // The 'generalized density' of a TV is based on its
-      // vertical resolution
-      return (screenHeight <= 720) ? Density.TV : Density.XHIGH;
-    }
-    // A hand-held device.
-    // Search for the density enum whose value is closest to the density of our device.
-    Density bucket = Density.MEDIUM;
-    double minDifference = Double.MAX_VALUE;
-    for (Density bucketDensity : Density.values()) {
-      if (!bucketDensity.isValidValueForDevice() || bucketDensity == Density.TV) {
-        continue;
-      }
-      double difference = Math.abs(bucketDensity.getDpiValue() - dpi);
-      if (difference < minDifference) {
-        minDifference = difference;
-        bucket = bucketDensity;
-      }
-    }
-    return bucket;
   }
 
   /**
@@ -108,7 +62,7 @@ public final class AvdScreenData {
 
     screen.setScreenRound((myDeviceData.isScreenRound().get()) ? ScreenRound.ROUND : ScreenRound.NOTROUND);
 
-    int screenWidth  = myDeviceData.screenResolutionWidth().get();
+    int screenWidth = myDeviceData.screenResolutionWidth().get();
     int screenHeight = myDeviceData.screenResolutionHeight().get();
     double screenDiagonal = myDeviceData.diagonalScreenSize().get();
     double effectiveDiagonal = screenDiagonal;
@@ -136,7 +90,7 @@ public final class AvdScreenData {
     screen.setFoldedHeight3(myDeviceData.screenFoldedHeight3().get());
 
 
-    screen.setRatio(getScreenRatio(screenWidth, screenHeight));
+    screen.setRatio(ScreenRatio.create(screenWidth, screenHeight));
 
     double dpi = myDeviceData.screenDpi().get();
     if (dpi <= 0) {

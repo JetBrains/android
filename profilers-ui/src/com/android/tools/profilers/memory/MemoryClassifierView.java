@@ -19,7 +19,6 @@ import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
-import static com.intellij.ui.ExperimentalUI.isNewUI;
 
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
@@ -54,6 +53,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.IconManager;
 import com.intellij.ui.PlatformIcons;
 import com.intellij.ui.SimpleTextAttributes;
@@ -369,7 +369,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         return null;
       }
 
-      MemoryObject treeNodeAdapter = ((MemoryObjectTreeNode<?>)selection.getLastPathComponent()).getAdapter();
+      MemoryObject treeNodeAdapter = ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
       if (treeNodeAdapter instanceof ClassSet) {
         ClassSet classSet = (ClassSet)treeNodeAdapter;
         return new CodeLocation.Builder(classSet.getClassEntry().getClassName()).build();
@@ -766,7 +766,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
           ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
           int textWidth = g.getFontMetrics().stringWidth(text);
 
-          Icon i = mySelected && isFocused() && !isNewUI()
+          Icon i = mySelected && isFocused() && !ExperimentalUI.isNewUI()
                    ? ColoredIconGenerator.generateWhiteIcon(StudioIcons.Common.WARNING)
                    : StudioIcons.Common.WARNING;
           int iconWidth = i.getIconWidth();
@@ -780,7 +780,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
       }
 
       private void setIconColorized(Icon icon) {
-        setIcon(mySelected && isFocused() && !isNewUI() ? ColoredIconGenerator.generateWhiteIcon(icon) : icon);
+        setIcon(mySelected && isFocused() && !ExperimentalUI.isNewUI() ? ColoredIconGenerator.generateWhiteIcon(icon) : icon);
       }
 
       @Override

@@ -17,10 +17,10 @@ package com.android.tools.idea.run.activity;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,7 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
   @Override
   @NotNull
   public String getFlags(@NotNull IDevice device) {
-    List<String> flags = new LinkedList<>();
+    List<String> flags = Lists.newLinkedList();
     if (myWaitForDebugger) {
       // Request Android app VM to start and then suspend all its threads
       if (suspendEnabled() && suspendSupported(device)) {

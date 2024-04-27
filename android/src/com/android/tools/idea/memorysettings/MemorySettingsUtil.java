@@ -17,6 +17,7 @@ package com.android.tools.idea.memorysettings;
 
 import com.android.tools.analytics.HostData;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.MemorySettings;
 import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
@@ -30,9 +31,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.util.system.CpuArch;
 import com.sun.management.OperatingSystemMXBean;
-import java.awt.Window;
 import java.io.IOException;
 import java.util.Locale;
+import java.awt.Window;
 import org.jetbrains.annotations.Nullable;
 
 public class MemorySettingsUtil {
@@ -101,8 +102,10 @@ public class MemorySettingsUtil {
     Project result = null;
     Window activeWindow = WindowManagerEx.getInstanceEx().getMostRecentFocusedWindow();
     if (activeWindow != null) {
-      result = CommonDataKeys.PROJECT
-        .getData(DataManager.getInstance().getDataContext(activeWindow));
+      Project project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(activeWindow));
+      if (project != null && !project.isDefault()) {
+        result = project;
+      }
     }
     return result;
   }

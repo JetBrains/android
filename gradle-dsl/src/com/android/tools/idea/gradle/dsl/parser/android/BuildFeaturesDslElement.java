@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
@@ -68,15 +69,43 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
     {"aidl", property, AIDL, VAR},
     {"aidl", exactly(1), AIDL, SET},
   }).collect(toModelMap());
+
+  public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"compose", property, COMPOSE, VAR},
+    {"dataBinding", property, DATA_BINDING, VAR},
+    {"mlModelBinding", property, ML_MODEL_BINDING, VAR},
+    {"viewBinding", property, VIEW_BINDING, VAR},
+    {"prefab", property, PREFAB, VAR},
+    {"renderScript", property, RENDER_SCRIPT, VAR},
+    {"buildConfig", property, BUILD_CONFIG, VAR},
+    {"aidl", property, AIDL, VAR},
+  }).collect(toModelMap());
   public static final PropertiesElementDescription<BuildFeaturesDslElement> BUILD_FEATURES =
-    new PropertiesElementDescription<>("buildFeatures", BuildFeaturesDslElement.class, BuildFeaturesDslElement::new);
+    new PropertiesElementDescription<>("buildFeatures",
+                                       BuildFeaturesDslElement.class,
+                                       BuildFeaturesDslElement::new,
+                                       BuildFeaturesDslElementSchema::new);
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
   public BuildFeaturesDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  public static final class BuildFeaturesDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @NotNull
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.BuildFeatures";
+    }
   }
 }

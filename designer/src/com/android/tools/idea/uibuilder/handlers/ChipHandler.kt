@@ -15,15 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
-import com.android.SdkConstants.ATTR_CHECKABLE
-import com.android.SdkConstants.ATTR_CHECKED_ICON
-import com.android.SdkConstants.ATTR_CHECKED_ICON_VISIBLE
-import com.android.SdkConstants.ATTR_CHIP_ICON
-import com.android.SdkConstants.ATTR_CHIP_ICON_VISIBLE
-import com.android.SdkConstants.ATTR_CLOSE_ICON
-import com.android.SdkConstants.ATTR_CLOSE_ICON_VISIBLE
-import com.android.SdkConstants.ATTR_STYLE
-import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.*
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.google.common.collect.ImmutableList
 

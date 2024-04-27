@@ -28,7 +28,6 @@ import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.util.Function;
 import com.intellij.util.ThreeState;
 import java.util.EnumSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -144,7 +143,7 @@ public class LaunchCompatibility {
 
     // Verify that the device ABI matches one of the target ABIs for JNI apps.
     if (!supportedAbis.isEmpty()) {
-      Set<Abi> deviceAbis = new LinkedHashSet<>();
+      Set<Abi> deviceAbis = Sets.newLinkedHashSet();
       deviceAbis.addAll(device.getAbis());
 
       if (Sets.intersection(supportedAbis, deviceAbis).isEmpty()) {

@@ -85,7 +85,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
     val dependency = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getDependency("+")
     assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.IMPLEMENTATION).isSupported()).isTrue()
     gradleModuleSystem.registerDependency(coordinate)
-    Mockito.verify(gradleDependencyManager, times(1))
+    Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
       .addDependenciesWithoutSync(myModule, listOf(dependency))
   }
 

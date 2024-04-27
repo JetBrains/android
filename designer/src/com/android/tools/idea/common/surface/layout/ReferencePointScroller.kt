@@ -26,14 +26,17 @@ import java.awt.Rectangle
  * position at a distance to the newReferencePoint that is equal to the distance the
  * [oldScrollPosition] had to the [oldReferencePoint].
  */
-class ReferencePointScroller(
+open class ReferencePointScroller(
   @SwingCoordinate private val oldViewSize: Dimension,
   @SwingCoordinate private val oldScrollPosition: Point,
   @SwingCoordinate private val oldReferencePoint: Point,
-  private val scaleChange: Double,
-  private val oldRectangles: Map<SceneView, Rectangle?>,
-  private val newRectangleProvider: (SceneView) -> Rectangle?
+  oldScale: Double,
+  newScale: Double,
+  private val oldRectangles: Map<SceneView, Rectangle?> = emptyMap(),
+  private val newRectangleProvider: (SceneView) -> Rectangle? = { null }
 ) : DesignSurfaceViewportScroller {
+  private val scaleChange = newScale / maxOf(oldScale, 1e-6)
+
   override fun scroll(port: DesignSurfaceViewport) {
     // the preferred size would be the actual canvas size in viewport.
     val newViewSize = port.viewComponent.preferredSize

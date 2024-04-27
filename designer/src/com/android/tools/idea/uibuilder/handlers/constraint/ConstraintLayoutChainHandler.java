@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_LAYOUT_CHAIN_HELPER_USE_RTL;
-import static com.android.SdkConstants.ATTR_ORIENTATION;
-import static com.android.SdkConstants.VALUE_VERTICAL;
-
 import com.android.AndroidXConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for Chain helper

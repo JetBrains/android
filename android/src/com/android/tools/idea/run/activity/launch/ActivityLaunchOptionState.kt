@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.activity.launch
 
 import com.android.ddmlib.IDevice
+import com.android.tools.deployer.Activator
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.ComponentType
@@ -23,11 +24,13 @@ import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ComponentLaunchOptions
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
+import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.configuration.AndroidBackgroundTaskReceiver
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ui.ConsoleView
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.regex.Pattern
@@ -77,7 +80,8 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val activityQualifiedName = getQualifiedActivityName(device, apkProvider, app.appId)
     val receiver = AndroidBackgroundTaskReceiver(console)
-    app.activateComponent(componentType, activityQualifiedName, extraFlags, mode, receiver)
+    val activator = Activator(app, logger)
+    activator.activate(componentType, activityQualifiedName, extraFlags, mode, receiver, device)
     val matcher = activityDoesNotExistPattern.matcher(receiver.output.joinToString())
     if (matcher.find()) {
       throw AndroidExecutionException(ACTIVITY_DOES_NOT_EXIST, matcher.group())
@@ -98,6 +102,7 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
     @JvmStatic
     protected val activityDoesNotExistPattern = Pattern.compile(ACTIVITY_DOES_NOT_EXIST_REGEX)
 
+    val logger = LogWrapper(Logger.getInstance(ActivityLaunchOptionState::class.java))
   }
 
   abstract fun getQualifiedActivityName(device: IDevice, apkProvider: ApkProvider, appId: String): String

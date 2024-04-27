@@ -25,11 +25,10 @@ import java.time.ZoneId
 private val TIMESTAMP = Instant.ofEpochMilli(1000)
 private val ZONE_ID = ZoneId.of("Asia/Yerevan")
 
-/**
- * Tests for [LogcatMessageWrapper]
- */
+/** Tests for [LogcatMessageWrapper] */
 class LogcatMessageWrapperTest {
-  private val logcatMessage = logcatMessage(WARN, pid = 1, tid = 2, "app", "tag", TIMESTAMP, "message")
+  private val logcatMessage =
+    logcatMessage(WARN, pid = 1, tid = 2, "app", "tag", TIMESTAMP, "message")
 
   @Test
   fun logLine() {

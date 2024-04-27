@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import static com.android.AndroidXConstants.APP_BAR_LAYOUT;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CHAIN;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_HELPER;
-import static com.android.AndroidXConstants.CLASS_NESTED_SCROLL_VIEW;
-import static com.android.AndroidXConstants.COLLAPSING_TOOLBAR_LAYOUT;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.AndroidXConstants.COORDINATOR_LAYOUT;
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
+import static com.android.AndroidXConstants.APP_BAR_LAYOUT;
 import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
 import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_END_OF;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.BUTTON;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CHAIN;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_HELPER;
+import static com.android.AndroidXConstants.CLASS_NESTED_SCROLL_VIEW;
+import static com.android.AndroidXConstants.COLLAPSING_TOOLBAR_LAYOUT;
 import static com.android.SdkConstants.CONSTRAINT_BARRIER_END;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
+import static com.android.AndroidXConstants.COORDINATOR_LAYOUT;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.RELATIVE_LAYOUT;
@@ -44,10 +44,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.adtui.workbench.ComponentStack;
-import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.actions.GotoComponentAction;
-import com.android.tools.idea.common.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -56,9 +54,12 @@ import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.common.LayoutTestUtilities;
+import com.android.tools.idea.common.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.util.MockCopyPasteManager;
+import com.google.common.base.Charsets;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -67,6 +68,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorNavigatable;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -83,7 +85,6 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -92,7 +93,6 @@ import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
@@ -439,7 +439,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
   @NotNull
   private FileEditorManager enableFileOpenCaptures() {
     FileEditorManager fileManager = Mockito.mock(FileEditorManagerEx.class);
-    when(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor.class), ArgumentMatchers.anyBoolean()))
+    when(fileManager.openEditor(Mockito.any(), Mockito.anyBoolean())).thenCallRealMethod();
+    when(fileManager.openFileEditor(Mockito.any(), Mockito.anyBoolean()))
       .thenReturn(Collections.singletonList(Mockito.mock(FileEditor.class)));
     when(fileManager.getSelectedEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
     when(fileManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
@@ -458,9 +459,9 @@ public class NlComponentTreeTest extends LayoutTestCase {
     int lineNumber,
     @NotNull String text
   ) throws IOException {
-    ArgumentCaptor<OpenFileDescriptor> file = ArgumentCaptor.forClass(OpenFileDescriptor.class);
-    Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true));
-    OpenFileDescriptor descriptor = file.getValue();
+    ArgumentCaptor<FileEditorNavigatable> file = ArgumentCaptor.forClass(FileEditorNavigatable.class);
+    Mockito.verify(fileManager).openFileEditor(file.capture(), Mockito.eq(true));
+    OpenFileDescriptor descriptor = (OpenFileDescriptor)file.getValue(); // Downcast needed to extract file offset.
     Pair<LineColumn, String> line = findLineAtOffset(descriptor.getFile(), descriptor.getOffset());
     assertThat(descriptor.getFile().getName()).isEqualTo(fileName);
     assertThat(line.second).isEqualTo(text);
@@ -468,7 +469,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   private Pair<LineColumn, String> findLineAtOffset(@NotNull VirtualFile file, int offset) throws IOException {
-    String text = new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
+    String text = new String(file.contentsToByteArray(), Charsets.UTF_8);
     LineColumn line = StringUtil.offsetToLineColumn(text, offset);
     String lineText = text.substring(offset - line.column, text.indexOf('\n', offset));
     return Pair.create(line, lineText.trim());

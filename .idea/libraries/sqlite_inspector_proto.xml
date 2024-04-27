@@ -1,8 +1,14 @@
 <component name="libraryTable">
   <library name="sqlite-inspector-proto" type="repository">
-    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:sqlite_inspector_proto:231.0.26.0" />
+    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:sqlite_inspector_proto:232.1.23.0">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/sqlite_inspector_proto/232.1.23.0/sqlite_inspector_proto-232.1.23.0.jar">
+          <sha256sum>5ad5621fa5a5a44e4a61e76fac8cdf0516d603b61470197af4e4ef852262b16f</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/sqlite_inspector_proto/231.0.26.0/sqlite_inspector_proto-231.0.26.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/sqlite_inspector_proto/232.1.23.0/sqlite_inspector_proto-232.1.23.0.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

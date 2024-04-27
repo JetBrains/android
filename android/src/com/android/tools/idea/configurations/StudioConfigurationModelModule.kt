@@ -22,7 +22,6 @@ import com.android.tools.configurations.ThemeInfoProvider
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.StudioLayoutlibContext
-import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.module.AndroidModuleInfo
@@ -50,7 +49,7 @@ class StudioConfigurationModelModule(val module: Module): ConfigurationModelModu
   override val project: Project = module.project
   override val name: String = module.name
   override val layoutlibContext: LayoutlibContext = StudioLayoutlibContext(module.project)
-  override val dependencies: ModuleDependencies = StudioModuleDependencies(module)
+  override val dependencies: ModuleDependencies = module.getModuleSystem().moduleDependencies
   override fun getCompatibilityTarget(target: IAndroidTarget): CompatibilityRenderTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target)
 
   override val moduleKey: ModuleKey

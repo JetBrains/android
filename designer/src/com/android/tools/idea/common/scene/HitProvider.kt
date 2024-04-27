@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.common.scene
 
-import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.sdklib.AndroidDpCoordinate
 import java.awt.Rectangle
 
 interface HitProvider {
   fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker)
+
   fun intersects(
     component: SceneComponent,
     sceneTransform: SceneContext,

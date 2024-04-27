@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.drawable
 
+import com.android.tools.idea.actions.ThemeMenuAction
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.configurations.ThemeMenuAction
 import com.android.tools.idea.uibuilder.actions.DrawableBackgroundMenuAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -28,7 +28,7 @@ class DrawableActionGroups(surface: DesignSurface<*>) : ToolbarActionGroups(surf
   override fun getNorthGroup(): ActionGroup {
     // TODO(b/136258816): Update to support multi-model
     return DefaultActionGroup().apply {
-      add(ThemeMenuAction(mySurface::getConfiguration))
+      add(ThemeMenuAction())
       add(DrawableBackgroundMenuAction())
     }
   }

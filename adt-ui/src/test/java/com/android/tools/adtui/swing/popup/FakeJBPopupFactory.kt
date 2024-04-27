@@ -22,7 +22,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.impl.Utils
-import com.intellij.openapi.actionSystem.impl.Utils.createAsyncDataContext
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -77,6 +76,12 @@ class FakeJBPopupFactory : JBPopupFactory() {
    */
   val popupCount: Int
     get() = popups.size
+
+  /**
+   * Returns the number of balloons created using this factory
+   */
+  val balloonCount: Int
+    get() = balloons.size
 
   /**
    * Returns a popup that has been created using this factory.
@@ -208,7 +213,7 @@ class FakeJBPopupFactory : JBPopupFactory() {
   private fun getComponentContextSupplier(parentDataContext: DataContext,
                                           component: Component?): Supplier<DataContext> {
     if (component == null) return Supplier { parentDataContext }
-    val dataContext = createAsyncDataContext(DataManager.getInstance().getDataContext(component))
+    val dataContext = Utils.createAsyncDataContext(DataManager.getInstance().getDataContext(component))
     return when {
       Utils.isAsyncDataContext(dataContext) -> Supplier { dataContext }
       else -> Supplier { DataManager.getInstance().getDataContext(component) }

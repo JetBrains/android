@@ -44,26 +44,35 @@ interface SnapshotLoader {
             object : DeviceDescriptor {
               override val manufacturer: String
                 get() = "" // TODO
+
               override val model: String
                 get() = "" // TODO
+
               override val serial: String
                 get() = "" // TODO
+
               override val isEmulator: Boolean
                 get() = false // TODO
+
               override val apiLevel: Int
                 get() = metadata?.apiLevel ?: 0
+
               override val version: String
                 get() = "" // TODO
+
               override val codename: String
                 get() = "" // TODO
             }
+
         override val abiCpuArch: String
           get() = "" // TODO
+
         override val name: String = metadata?.processName ?: "Unknown"
         override val packageName: String = metadata?.processName ?: "Unknown"
         override val isRunning: Boolean = false
         override val pid: Int
           get() = -1
+
         override val streamId: Long = -1
       }
 

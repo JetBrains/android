@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.refactoring;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;

@@ -22,11 +22,11 @@ import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -48,12 +48,19 @@ import com.intellij.execution.configurations.RemoteConnection
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import java.io.File
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 private enum class DebuggerType {
   JAVA,
@@ -67,15 +74,48 @@ private abstract class XClientProvidingDebugProcess(session: XDebugSession) :
   abstract val client: Client
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class InspectorClientLaunchMonitorTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun monitorOffersUserToStopsStuckConnection() {
     val project = projectRule.project
-    val scheduler = VirtualTimeScheduler()
     val model = NotificationModel(project)
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
+    val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val timeoutScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val monitor =
+      InspectorClientLaunchMonitor(
+        project,
+        model,
+        ListenerCollection.createWithDirectExecutor(),
+        stats,
+        unused,
+        timeoutScope,
+        debuggerScope,
+      )
+    val client = mock<InspectorClient>()
+    monitor.start(client)
+    timeoutScope.testScheduler.advanceUntilIdle()
+    assertThat(timeoutScope.testScheduler.currentTime)
+      .isEqualTo(TimeUnit.SECONDS.toMillis(CONNECT_TIMEOUT_SECONDS))
+    assertThat(model.notifications.single().message)
+      .isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    assertThat(stats.currentProgress).isEqualTo(AttachErrorState.NOT_STARTED)
+    monitor.stop()
+    model.clear()
+  }
+
+  @Test
+  fun noTimeoutMessageIfConnectedBeforeTimeout() {
+    val project = projectRule.project
+    val model = NotificationModel(project)
+    val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
+    val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val timeoutScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
     run {
       val monitor =
         InspectorClientLaunchMonitor(
@@ -83,48 +123,15 @@ class InspectorClientLaunchMonitorTest {
           model,
           ListenerCollection.createWithDirectExecutor(),
           stats,
-          scheduler
+          unused,
+          timeoutScope,
+          debuggerScope,
         )
       val client = mock<InspectorClient>()
       monitor.start(client)
-      scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(model.notifications.single().message)
-        .isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-      assertThat(stats.currentProgress).isEqualTo(AttachErrorState.NOT_STARTED)
-      model.clear()
-    }
-    run {
-      val monitor =
-        InspectorClientLaunchMonitor(
-          project,
-          model,
-          ListenerCollection.createWithDirectExecutor(),
-          stats,
-          scheduler
-        )
-      val client = mock<InspectorClient>()
-      monitor.start(client)
-      scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - 1, TimeUnit.SECONDS)
-      monitor.updateProgress(AttachErrorState.START_REQUEST_SENT)
-      scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - 1, TimeUnit.SECONDS)
-      assertThat(model.notifications).isEmpty()
-      assertThat(stats.currentProgress).isEqualTo(AttachErrorState.START_REQUEST_SENT)
-      scheduler.advanceBy(2, TimeUnit.SECONDS)
-      assertThat(model.notifications.single().message)
-        .isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-      model.clear()
-    }
-    run {
-      val monitor =
-        InspectorClientLaunchMonitor(
-          project,
-          model,
-          ListenerCollection.createWithDirectExecutor(),
-          stats,
-          scheduler
-        )
+      timeoutScope.advanceTimeBy(5.seconds)
       monitor.updateProgress(CONNECTED_STATE)
-      scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
+      timeoutScope.testScheduler.advanceUntilIdle()
       assertThat(model.notifications).isEmpty()
     }
   }
@@ -137,7 +144,8 @@ class InspectorClientLaunchMonitorTest {
 
     val model = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
-    val monitor = InspectorClientLaunchMonitor(projectRule.project, model, listeners, stats)
+    val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val monitor = InspectorClientLaunchMonitor(projectRule.project, model, listeners, stats, scope)
     monitor.updateProgress(AttachErrorState.ADB_PING)
 
     verify(mockListener).invoke(AttachErrorState.ADB_PING)
@@ -172,18 +180,22 @@ class InspectorClientLaunchMonitorTest {
     moduleSystem.usesCompose = true
 
     val model = NotificationModel(projectRule.project)
-    val scheduler = VirtualTimeScheduler()
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
+    val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val timeoutScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
     val monitor =
       InspectorClientLaunchMonitor(
         project,
         model,
         ListenerCollection.createWithDirectExecutor(),
         stats,
-        scheduler
+        unused,
+        timeoutScope,
+        debuggerScope
       )
     monitor.start(client)
-    scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
+    timeoutScope.testScheduler.advanceUntilIdle()
     verify(client, never()).disconnect()
     val notification1 = model.notifications.single()
     assertThat(notification1.message)
@@ -195,7 +207,7 @@ class InspectorClientLaunchMonitorTest {
     notification1.actions.first().invoke(mock())
     assertThat(model.notifications).isEmpty()
 
-    scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
+    timeoutScope.testScheduler.advanceUntilIdle()
     verify(client, never()).disconnect()
     val notification2 = model.notifications.single()
     assertThat(notification2.message)
@@ -207,7 +219,7 @@ class InspectorClientLaunchMonitorTest {
     notification2.actions.first().invoke(mock())
     assertThat(model.notifications).isEmpty()
 
-    scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
+    timeoutScope.testScheduler.advanceUntilIdle()
     verify(client, never()).disconnect()
     val notification3 = model.notifications.single()
     assertThat(notification3.message)
@@ -230,19 +242,23 @@ class InspectorClientLaunchMonitorTest {
     moduleSystem.usesCompose = true
 
     val model = NotificationModel(projectRule.project)
-    val scheduler = VirtualTimeScheduler()
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
+    val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val timeoutScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
     val monitor =
       InspectorClientLaunchMonitor(
         project,
         model,
         ListenerCollection.createWithDirectExecutor(),
         stats,
-        scheduler
+        unused,
+        timeoutScope,
+        debuggerScope
       )
     val client = mock<InspectorClient>()
     monitor.start(client)
-    scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
+    timeoutScope.testScheduler.advanceUntilIdle()
     verify(client, never()).disconnect()
     val notification1 = model.notifications.single()
     assertThat(notification1.message)
@@ -251,6 +267,7 @@ class InspectorClientLaunchMonitorTest {
     assertThat(notification1.actions.last().name).isEqualTo("Disconnect")
 
     monitor.updateProgress(CONNECTED_STATE)
+    timeoutScope.testScheduler.advanceUntilIdle()
     assertThat(model.notifications).isEmpty()
     assertThat(stats.currentProgress).isEqualTo(AttachErrorState.MODEL_UPDATED)
   }
@@ -264,21 +281,25 @@ class InspectorClientLaunchMonitorTest {
     moduleSystem.usesCompose = true
 
     val model = NotificationModel(projectRule.project)
-    val scheduler = VirtualTimeScheduler()
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
+    val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val timeoutScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
     val monitor =
       InspectorClientLaunchMonitor(
         project,
         model,
         ListenerCollection.createWithDirectExecutor(),
         stats,
-        scheduler
+        unused,
+        timeoutScope,
+        debuggerScope
       )
     val client = mock<InspectorClient>()
     monitor.start(client)
     monitor.stop()
     monitor.updateProgress(AttachErrorState.ADB_PING)
-    scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
+    timeoutScope.testScheduler.advanceUntilIdle()
     assertThat(model.notifications).isEmpty()
     assertThat(stats.currentProgress).isEqualTo(AttachErrorState.ADB_PING)
   }
@@ -287,9 +308,11 @@ class InspectorClientLaunchMonitorTest {
   fun debuggerPausedInJava() {
     val client = setupDebuggingProcess(DebuggerType.JAVA, pausedInJava = true)
     val project = projectRule.project
-    val scheduler = VirtualTimeScheduler()
     val model = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
+    val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val timeoutScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
     run {
       val monitor =
         InspectorClientLaunchMonitor(
@@ -297,15 +320,19 @@ class InspectorClientLaunchMonitorTest {
           model,
           ListenerCollection.createWithDirectExecutor(),
           stats,
-          scheduler
+          unused,
+          timeoutScope,
+          debuggerScope
         )
       monitor.start(client)
-      scheduler.advanceBy(DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
+      debuggerScope.advanceTimeBy(DEBUGGER_CHECK_SECONDS.seconds)
+      debuggerScope.testScheduler.runCurrent()
       assertThat(model.notifications.single().message)
         .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
 
       // Check that the timeout warning is not shown when the debugger warning is shown
-      scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
+      timeoutScope.advanceUntilIdle()
+      timeoutScope.testScheduler.runCurrent()
       assertThat(model.notifications.single().message)
         .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
       assertThat(model.notifications.single().actions.first().name).isEqualTo("Resume Debugger")
@@ -329,9 +356,11 @@ class InspectorClientLaunchMonitorTest {
   fun debuggerPausedInNative() {
     val client = setupDebuggingProcess(DebuggerType.HYBRID, pausedInJava = false)
     val project = projectRule.project
-    val scheduler = VirtualTimeScheduler()
     val model = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
+    val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val timeoutScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+    val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
     run {
       val monitor =
         InspectorClientLaunchMonitor(
@@ -339,15 +368,19 @@ class InspectorClientLaunchMonitorTest {
           model,
           ListenerCollection.createWithDirectExecutor(),
           stats,
-          scheduler
+          unused,
+          timeoutScope,
+          debuggerScope
         )
       monitor.start(client)
-      scheduler.advanceBy(DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
+      debuggerScope.advanceTimeBy(DEBUGGER_CHECK_SECONDS.seconds)
+      debuggerScope.testScheduler.runCurrent()
       assertThat(model.notifications.single().message)
         .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
 
       // Check that the timeout warning is not shown when the debugger warning is shown
-      scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
+      timeoutScope.advanceUntilIdle()
+      timeoutScope.testScheduler.runCurrent()
       assertThat(model.notifications.single().message)
         .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
 
@@ -440,4 +473,7 @@ class InspectorClientLaunchMonitorTest {
       override val pid = 1234
       override val streamId = 4321L
     }
+
+  private fun TestScope.advanceTimeBy(duration: Duration) =
+    testScheduler.advanceTimeBy(duration.inWholeMilliseconds)
 }

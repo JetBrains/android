@@ -18,9 +18,9 @@ package com.android.tools.idea.ui.designer.overlays;
 import static icons.StudioIcons.Common.DELETE;
 import static icons.StudioIcons.LayoutEditor.Motion.LOOP;
 import static icons.StudioIcons.LayoutEditor.Toolbar.LAYER;
-import static icons.StudioIcons.LayoutInspector.CLEAR_OVERLAY;
-import static icons.StudioIcons.LayoutInspector.LOAD_OVERLAY;
-import static icons.StudioIcons.LayoutInspector.MODE_3D;
+import static icons.StudioIcons.LayoutInspector.Toolbar.CLEAR_OVERLAY;
+import static icons.StudioIcons.LayoutInspector.Toolbar.LOAD_OVERLAY;
+import static icons.StudioIcons.LayoutInspector.Toolbar.MODE_3D;
 
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;

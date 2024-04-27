@@ -36,7 +36,7 @@ fun Project.dumpSourceProviders(): String {
   return buildString {
     var prefix = ""
 
-    fun out(s: String) = appendLine("$prefix$s")
+    fun out(s: String) = appendln("$prefix$s")
 
     fun <T> nest(title: String? = null, code: () -> T): T {
       if (title != null) {
@@ -170,9 +170,7 @@ fun Project.dumpSourceProviders(): String {
             nest("GeneratedSources:") { sourceProviderManager.generatedSources.dump("GeneratedSources") }
             nest("GeneratedUnitTestSources:") { sourceProviderManager.generatedUnitTestSources.dump("GeneratedUnitTestSources") }
             nest("GeneratedAndroidTestSources:") { sourceProviderManager.generatedAndroidTestSources.dump("GeneratedAndroidTestSources") }
-            nest("GeneratedTestFixturesSources:") {
-              sourceProviderManager.generatedTestFixturesSources.dump("GeneratedTestFixturesSources")
-            }
+            nest("GeneratedTestFixturesSources:") { sourceProviderManager.generatedTestFixturesSources.dump("GeneratedTestFixturesSources") }
             nest(
               "CurrentAndSomeFrequentlyUsedInactiveSourceProviders:"
             ) {

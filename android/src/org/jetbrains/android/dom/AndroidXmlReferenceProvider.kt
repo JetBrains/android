@@ -1,4 +1,5 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0
+// license that can be found in the LICENSE file.
 package org.jetbrains.android.dom
 
 import com.android.SdkConstants
@@ -41,7 +42,10 @@ import org.jetbrains.android.facet.TagFromClassDescriptor
 import org.jetbrains.android.facet.findClassValidInXMLByName
 
 class AndroidXmlReferenceProvider : PsiReferenceProvider() {
-  override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
+  override fun getReferencesByElement(
+    element: PsiElement,
+    context: ProcessingContext
+  ): Array<PsiReference> {
     if (element !is XmlTag) {
       return emptyArray()
     }
@@ -62,7 +66,10 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
     return result.toTypedArray()
   }
 
-  private fun getClassFilter(baseClassQName: String, facet: AndroidFacet): ((String, PsiClass) -> Boolean)? {
+  private fun getClassFilter(
+    baseClassQName: String,
+    facet: AndroidFacet
+  ): ((String, PsiClass) -> Boolean)? {
     if (baseClassQName == CLASS_DRAWABLE) {
       val packageName = facet.queryPackageNameFromManifestIndex() ?: return { _, _ -> false }
       return { _, psiClass -> psiClass.qualifiedName?.startsWith(packageName) == true }
@@ -70,22 +77,26 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
     return null
   }
 
-  private class MyClassOrPackageReference(tag: XmlTag,
-                                          private val myNameElement: ASTNode,
-                                          private val myRangeInNameElement: TextRange,
-                                          private val facet: AndroidFacet,
-                                          private val myBaseClassQName: String,
-                                          private val classFilter: (String, PsiClass) -> Boolean,
-                                          private val myStartTag: Boolean) : PsiReferenceBase<PsiElement?>(tag, true) {
+  private class MyClassOrPackageReference(
+    tag: XmlTag,
+    private val myNameElement: ASTNode,
+    private val myRangeInNameElement: TextRange,
+    private val facet: AndroidFacet,
+    private val myBaseClassQName: String,
+    private val classFilter: (String, PsiClass) -> Boolean,
+    private val myStartTag: Boolean
+  ) : PsiReferenceBase<PsiElement?>(tag, true) {
     private val project = tag.project
     private val packagePrefix = myNameElement.text.substring(0, myRangeInNameElement.startOffset)
     private val isParentContainer by lazy {
-      val parentTagFromClassDescriptor = ((tag.parent as? XmlTag)?.descriptor as? TagFromClassDescriptor) ?: return@lazy true
+      val parentTagFromClassDescriptor =
+        ((tag.parent as? XmlTag)?.descriptor as? TagFromClassDescriptor) ?: return@lazy true
       parentTagFromClassDescriptor.isContainer
     }
 
     override fun resolve(): PsiElement? {
-      return ResolveCache.getInstance(project).resolveWithCaching(this, { _, _ -> resolveInner() }, false, false)
+      return ResolveCache.getInstance(project)
+        .resolveWithCaching(this, { _, _ -> resolveInner() }, false, false)
     }
 
     private fun resolveInner(): PsiElement? {
@@ -93,9 +104,12 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
       val value = myNameElement.text.substring(0, end)
       val facade = JavaPsiFacade.getInstance(project)
       return findClassValidInXMLByName(facet, value, myBaseClassQName) as? PsiElement
-             ?: facade.findPackage(value) as? PsiElement
-             // Special case for migration, because InheritanceUtil.isInheritorOrSelf works incorrectly with MigrationClassImpl
-             ?: facade.findClass(value, facet.module.getModuleSystem().getResolveScope(ScopeType.MAIN)).takeIf { it is MigrationClassImpl }
+        ?: facade.findPackage(value) as? PsiElement
+        // Special case for migration, because InheritanceUtil.isInheritorOrSelf works incorrectly
+        // with MigrationClassImpl
+        ?: facade
+          .findClass(value, facet.module.getModuleSystem().getResolveScope(ScopeType.MAIN))
+          .takeIf { it is MigrationClassImpl }
     }
 
     override fun getVariants(): Array<Any> {
@@ -103,26 +117,31 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
         return emptyArray()
       }
       if (!myStartTag) {
-        // Lookup elements for closing tag are provided by TagNameReferenceCompletionProvider.createClosingTagLookupElements.
+        // Lookup elements for closing tag are provided by
+        // TagNameReferenceCompletionProvider.createClosingTagLookupElements.
         // Essentially it just duplicates opening tag. It's a common logic for all XML tags.
-        // It works because for every tag we have reference - [TagNameReference]. See [TagNameReference.createTagNameReference]
+        // It works because for every tag we have reference - [TagNameReference]. See
+        // [TagNameReference.createTagNameReference]
         return emptyArray()
       }
 
       val apiLevel = StudioAndroidModuleInfo.getInstance(facet).moduleMinApi
 
-      return TagToClassMapper.getInstance(facet.module).getClassMap(myBaseClassQName)
+      return TagToClassMapper.getInstance(facet.module)
+        .getClassMap(myBaseClassQName)
         .filter { (name, psiClass) ->
           return@filter if (packagePrefix.isEmpty() && name == psiClass.qualifiedName) {
             // Don't suggest FQN when we can use short one.
             isClassPackageNeeded(psiClass.qualifiedName!!, psiClass, apiLevel, myBaseClassQName)
-          }
-          else {
+          } else {
             name.startsWith(packagePrefix)
           }
         }
         .filter { (name, psiClass) -> classFilter(name, psiClass) }
-        .map { (name, psiClass) -> createClassAsTagXmlElement(name.removePrefix(packagePrefix), psiClass) }.toTypedArray()
+        .map { (name, psiClass) ->
+          createClassAsTagXmlElement(name.removePrefix(packagePrefix), psiClass)
+        }
+        .toTypedArray()
     }
 
     override fun bindToElement(element: PsiElement): PsiElement {
@@ -132,23 +151,32 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
     }
 
     override fun handleElementRename(newElementName: String): PsiElement? {
-      return ElementManipulators.handleContentChange(myNameElement.psi, myRangeInNameElement, newElementName)
+      return ElementManipulators.handleContentChange(
+        myNameElement.psi,
+        myRangeInNameElement,
+        newElementName
+      )
     }
 
     override fun getRangeInElement(): TextRange {
       val parentOffset = myNameElement.startOffsetInParent
-      return TextRange(parentOffset + myRangeInNameElement.startOffset, parentOffset + myRangeInNameElement.endOffset)
+      return TextRange(
+        parentOffset + myRangeInNameElement.startOffset,
+        parentOffset + myRangeInNameElement.endOffset
+      )
     }
   }
 
   companion object {
-    private fun addReferences(tag: XmlTag,
-                              nameElement: ASTNode,
-                              result: MutableList<PsiReference>,
-                              facet: AndroidFacet,
-                              baseClassQName: String,
-                              classFilter: (String, PsiClass) -> Boolean,
-                              startTag: Boolean) {
+    private fun addReferences(
+      tag: XmlTag,
+      nameElement: ASTNode,
+      result: MutableList<PsiReference>,
+      facet: AndroidFacet,
+      baseClassQName: String,
+      classFilter: (String, PsiClass) -> Boolean,
+      startTag: Boolean
+    ) {
       val text = nameElement.text
       val nameParts = text.split(".")
 
@@ -157,7 +185,17 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
         if (name.isNotEmpty()) {
           offset += name.length
           val range = TextRange(offset - name.length, offset)
-          result.add(MyClassOrPackageReference(tag, nameElement, range, facet, baseClassQName, classFilter, startTag))
+          result.add(
+            MyClassOrPackageReference(
+              tag,
+              nameElement,
+              range,
+              facet,
+              baseClassQName,
+              classFilter,
+              startTag
+            )
+          )
         }
         offset++
       }
@@ -181,9 +219,9 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
 /**
  * Creates a [LookupElement] for layout tags, to improve editing UX.
  *
- * Makes possible to do completions like "TvV" to "android.media.tv.TvView".
- * Adds [XmlTagInnerClassInsertHandler] for inner classes.
- * Adds low priority for deprecated classes and high priority for framework classes compared to androidx and support library alternative.
+ * Makes possible to do completions like "TvV" to "android.media.tv.TvView". Adds
+ * [XmlTagInnerClassInsertHandler] for inner classes. Adds low priority for deprecated classes and
+ * high priority for framework classes compared to androidx and support library alternative.
  */
 fun createClassAsTagXmlElement(name: String, clazz: PsiClass): LookupElement {
 
@@ -195,12 +233,14 @@ fun createClassAsTagXmlElement(name: String, clazz: PsiClass): LookupElement {
   lookupElement = lookupElement.withLookupString(qualifiedName)
   lookupElement = lookupElement.withLookupString(shortClassName)
 
-  val priority = when {
-    clazz.isDeprecated -> -1
-    clazz.name == name -> 2
-    qualifiedName.startsWith(SdkConstants.ANDROID_SUPPORT_PKG_PREFIX) || qualifiedName.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX) -> 1
-    else -> 0
-  }
+  val priority =
+    when {
+      clazz.isDeprecated -> -1
+      clazz.name == name -> 2
+      qualifiedName.startsWith(SdkConstants.ANDROID_SUPPORT_PKG_PREFIX) ||
+        qualifiedName.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX) -> 1
+      else -> 0
+    }
 
   AndroidDomElementDescriptorProvider.getIconForViewTag(shortClassName)?.let {
     lookupElement = lookupElement.withIcon(it)
@@ -208,8 +248,7 @@ fun createClassAsTagXmlElement(name: String, clazz: PsiClass): LookupElement {
 
   if (clazz.containingClass != null) {
     lookupElement = lookupElement.withInsertHandler(XmlTagInnerClassInsertHandler.INSTANCE)
-  }
-  else {
+  } else {
     lookupElement = lookupElement.withInsertHandler(XmlTagInsertHandler.INSTANCE)
   }
 

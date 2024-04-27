@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers
 import android.annotation.SuppressLint
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
@@ -26,6 +27,9 @@ class StopCpuCaptureAction : DumbAwareAction(
   "Stop a CPU capture in the current profiling session",
   null
 ) {
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     val project = e.project
     val profilers = project?.let { AndroidProfilerToolWindowFactory.getProfilerToolWindow(it)?.profilers }

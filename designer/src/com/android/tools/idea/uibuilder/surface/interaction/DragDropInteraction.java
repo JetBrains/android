@@ -20,7 +20,7 @@ import com.android.SdkConstants;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.NlComponent;
@@ -35,7 +35,6 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionEvent;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -198,7 +197,7 @@ public class DragDropInteraction extends Interaction {
       }
 
       //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-      update(location.x, location.y, event.getInfo().getModifiersEx());
+      moveTo(location.x, location.y, event.getInfo().getModifiersEx(), false);
 
       if (acceptsDrop()) {
         DragType dragType = dragEvent.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
@@ -215,11 +214,6 @@ public class DragDropInteraction extends Interaction {
         nlDropEvent.reject();
       }
     }
-  }
-
-  @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
-    moveTo(x, y, modifiersEx, false);
   }
 
   /**
@@ -247,7 +241,22 @@ public class DragDropInteraction extends Interaction {
     InsertType insertType = finishDropInteraction(location.x, location.y, dropEvent.getDropAction(), dropEvent.getTransferable());
     if (insertType != null) {
       //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-      end(dropEvent.getLocation().x, dropEvent.getLocation().y, event.getInfo().getModifiersEx());
+      moveTo(dropEvent.getLocation().x, dropEvent.getLocation().y, event.getInfo().getModifiersEx(), true);
+      boolean hasDragHandler = myDragHandler != null;
+      mySceneView = myDesignSurface.getSceneViewAtOrPrimary(dropEvent.getLocation().x, dropEvent.getLocation().y);
+      if (mySceneView != null && myDragReceiver != null && hasDragHandler) {
+        mySceneView.getSceneManager().getModel().notifyModified(NlModel.ChangeType.DND_END);
+
+        // We need to clear the selection otherwise the targets for the newly component are not added until
+        // another component is selected and then this one reselected
+        mySceneView.getSelectionModel().clear();
+        // Update the scene hierarchy to add the new targets
+        mySceneView.getSceneManager().update();
+        myDragReceiver.updateTargets();
+        // Do not select the dragged components here
+        // These components are either already selected, or they are being created will be selected later
+      }
+      stopDragDropInteraction();
       nlDropEvent.accept(insertType);
       nlDropEvent.complete();
     }
@@ -258,43 +267,18 @@ public class DragDropInteraction extends Interaction {
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
-    moveTo(x, y, modifiersEx, true);
-    boolean hasDragHandler = myDragHandler != null;
-    mySceneView = myDesignSurface.getSceneViewAtOrPrimary(x, y);
-    if (mySceneView != null && myDragReceiver != null && hasDragHandler) {
-      mySceneView.getSceneManager().getModel().notifyModified(NlModel.ChangeType.DND_END);
-
-      // We need to clear the selection otherwise the targets for the newly component are not added until
-      // another component is selected and then this one reselected
-      mySceneView.getSelectionModel().clear();
-      // Update the scene hierarchy to add the new targets
-      mySceneView.getSceneManager().update();
-      myDragReceiver.updateTargets();
-      // Do not select the dragged components here
-      // These components are either already selected, or they are being created will be selected later
-    }
-    stopDragDropInteraction();
-  }
-
-  @Override
   public void cancel(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
-    if (event instanceof DropEvent) {
-      NlDropEvent nlDropEvent = new NlDropEvent(((DropEvent)event).getEventObject());
-      nlDropEvent.reject();
-    }
-  }
-
-  @Override
-  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
-    moveTo(x, y, modifiersEx, false);
-    mySceneView = myDesignSurface.getSceneViewAtOrPrimary(x, y);
+    moveTo(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx(), false);
+    mySceneView = myDesignSurface.getSceneViewAtOrPrimary(event.getInfo().getX(), event.getInfo().getY());
     if (myDragHandler != null) {
       myDragHandler.cancel();
     }
     stopDragDropInteraction();
+    if (event instanceof DropEvent) {
+      NlDropEvent nlDropEvent = new NlDropEvent(((DropEvent)event).getEventObject());
+      nlDropEvent.reject();
+    }
   }
 
   @Nullable
@@ -391,12 +375,7 @@ public class DragDropInteraction extends Interaction {
         }
         if (error == null) {
           ViewEditorImpl editorImpl = new ViewEditorImpl(mySceneView);
-          if (StudioFlags.NELE_DRAG_PLACEHOLDER.get() && CommonDragHandler.isSupportCommonDragHandler(myCurrentHandler)) {
-            myDragHandler = new CommonDragHandler(editorImpl, myCurrentHandler, myDragReceiver, myDraggedComponents, myType);
-          }
-          else {
-            myDragHandler = myCurrentHandler.createDragHandler(editorImpl, myDragReceiver, myDraggedComponents, myType);
-          }
+          myDragHandler = myCurrentHandler.createDragHandler(editorImpl, myDragReceiver, myDraggedComponents, myType);
           if (myDragHandler != null) {
             myDragHandler
               .start(Coordinates.getAndroidXDip(mySceneView, myStartX), Coordinates.getAndroidYDip(mySceneView, myStartY), myStartMask);

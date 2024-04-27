@@ -66,7 +66,8 @@ class WiFiPairingControllerImpl(private val project: Project,
 
     // Check ADB is valid and mDNS is supported on this platform
     project.coroutineScope.launch(uiThread(ModalityState.any())) {
-      when (pairingService.checkMdnsSupport()) {
+      val supportState = pairingService.checkMdnsSupport()
+      when (supportState) {
         MdnsSupportState.Supported -> {
           view.showMdnsCheckSuccess()
           qrCodeScanningController.startPairingProcess()

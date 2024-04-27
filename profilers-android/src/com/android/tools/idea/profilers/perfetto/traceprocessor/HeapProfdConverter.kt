@@ -22,7 +22,6 @@ import com.android.tools.profilers.memory.adapters.ClassDb
 import com.android.tools.profilers.memory.adapters.NativeAllocationInstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import java.util.Base64
-import kotlin.math.abs
 
 /**
  * Helper class to convert from perfetto memory proto to profiler protos.

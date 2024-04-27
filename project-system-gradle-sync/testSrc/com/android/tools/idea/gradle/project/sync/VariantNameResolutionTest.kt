@@ -68,7 +68,8 @@ class VariantNameResolutionTest {
                   testHandleProfiling = null,
                   testFunctionalTest = null,
                   resourceConfigurations = emptyList(),
-                  vectorDrawables = null
+                  vectorDrawables = null,
+                  isDefault = null
                 )
               )
             }

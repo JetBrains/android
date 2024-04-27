@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.WindowManager;
@@ -43,6 +44,6 @@ public class MakeGradleProjectAction extends AndroidStudioGradleAction {
       // Reset info from the previous runs (if any).
       statusBar.setInfo(" ");
     }
-    GradleBuildInvoker.getInstance(project).assemble(TestCompileType.NONE);
+    GradleBuildInvoker.getInstance(project).assemble(ModuleManager.getInstance(project).getModules(), TestCompileType.ALL);
   }
 }

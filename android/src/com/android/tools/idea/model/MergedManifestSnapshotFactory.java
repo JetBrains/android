@@ -167,7 +167,7 @@ class MergedManifestSnapshotFactory {
                                       false,
                                       null,
                                       null,
-                                      null,
+                                      ImmutableList.of(),
                                       ImmutablePermissionHolder.EMPTY,
                                       false,
                                       ImmutableList.of(),

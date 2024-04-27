@@ -33,6 +33,7 @@ class AppInsightsContentPanel(
   project: Project,
   parentDisposable: Disposable,
   cellRenderer: AppInsightsTableCellRenderer,
+  name: String,
   secondaryToolWindows: List<ToolWindowDefinition<AppInsightsToolWindowContext>>,
   createCenterPanel: ((Int) -> Unit) -> Component
 ) : JPanel(BorderLayout()), Disposable {
@@ -55,7 +56,7 @@ class AppInsightsContentPanel(
         firstSize = min((toolWindow?.component?.width ?: 1350) / 3, 700)
       }
     splitter.isFocusCycleRoot = false
-    val workBench = WorkBench<AppInsightsToolWindowContext>(project, APP_INSIGHTS_ID, null, this)
+    val workBench = WorkBench<AppInsightsToolWindowContext>(project, name, null, this)
     workBench.isFocusCycleRoot = false
     workBench.init(splitter, AppInsightsToolWindowContext(), secondaryToolWindows, false)
 

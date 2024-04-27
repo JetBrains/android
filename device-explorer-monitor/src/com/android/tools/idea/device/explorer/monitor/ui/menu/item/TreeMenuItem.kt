@@ -18,8 +18,6 @@ package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.actionSystem.Toggleable
 import javax.swing.Icon
 
 /**
@@ -36,30 +34,18 @@ abstract class TreeMenuItem(protected val listener: DeviceMonitorActionsListener
       return null
     }
 
-  override val action: AnAction = object : ToggleAction() {
+  override val action: AnAction = object : AnAction(icon) {
     override fun update(e: AnActionEvent) {
       val presentation = e.presentation
       presentation.text = text
       presentation.isEnabled = isEnabled
       presentation.isVisible = isVisible
       presentation.icon = icon
-      Toggleable.setSelected(presentation, isSelected(e))
     }
 
     override fun actionPerformed(e: AnActionEvent) {
       run()
-      setSelected(e, !isSelected())
-    }
-
-    override fun isSelected(e: AnActionEvent): Boolean {
-      return isSelected()
-    }
-
-    override fun setSelected(e: AnActionEvent, state: Boolean) {
-      setSelected(state)
     }
   }
   abstract fun getText(numOfNodes: Int): String
-  abstract fun isSelected():Boolean
-  abstract fun setSelected(selected: Boolean)
 }

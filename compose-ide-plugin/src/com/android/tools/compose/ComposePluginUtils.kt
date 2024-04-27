@@ -17,9 +17,8 @@
 package com.android.tools.compose
 
 import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
-import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
 import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
-import com.android.tools.idea.kotlin.findAnnotation
+import com.android.tools.idea.kotlin.hasAnnotation
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
@@ -38,8 +37,8 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.receiverType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
+import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.nj2k.postProcessing.type
@@ -69,8 +68,9 @@ fun isModifierChainLongerThanTwo(element: KtElement): Boolean {
   return false
 }
 
-internal fun KotlinType.isClassOrExtendsClass(classFqName:String): Boolean {
-  return fqName?.asString() == classFqName || supertypes().any { it.fqName?.asString() == classFqName }
+internal fun KotlinType.isClassOrExtendsClass(classFqName: String): Boolean {
+  return fqName?.asString() == classFqName ||
+    supertypes().any { it.fqName?.asString() == classFqName }
 }
 
 internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): FqName? {
@@ -78,43 +78,46 @@ internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): F
     val argumentName = getArgumentName()!!.asName.asString()
     val matchingParam = callee.valueParameters.find { it.name == argumentName } ?: return null
     matchingParam.returnTypeFqName()
-  }
-  else {
+  } else {
     val argumentIndex = (parent as KtValueArgumentList).arguments.indexOf(this)
     val paramAtIndex = callee.valueParameters.getOrNull(argumentIndex) ?: return null
     paramAtIndex.returnTypeFqName()
   }
 }
 
-internal fun KtDeclaration.returnTypeFqName(): FqName? = if (KotlinPluginModeProvider.isK2Mode()) {
-  if (this !is KtCallableDeclaration) null
-  else analyze(this) { asFqName(this@returnTypeFqName.getReturnKtType()) }
-}
-else {
-  this.type()?.fqName
-}
+internal fun KtDeclaration.returnTypeFqName(): FqName? =
+  if (KotlinPluginModeProvider.isK2Mode()) {
+    if (this !is KtCallableDeclaration) null
+    else analyze(this) { asFqName(this@returnTypeFqName.getReturnKtType()) }
+  } else {
+    this.type()?.fqName
+  }
 
 @OptIn(KtAllowAnalysisOnEdt::class)
-internal fun KtElement.callReturnTypeFqName() = if (KotlinPluginModeProvider.isK2Mode()) {
-  allowAnalysisOnEdt {
-    analyze(this) {
-      val callReturnType = this@callReturnTypeFqName.resolveCall()?.singleFunctionCallOrNull()?.symbol?.returnType
-      callReturnType?.let { asFqName(it) }
+internal fun KtElement.callReturnTypeFqName() =
+  if (KotlinPluginModeProvider.isK2Mode()) {
+    allowAnalysisOnEdt {
+      analyze(this) {
+        val callReturnType =
+          this@callReturnTypeFqName.resolveCall()?.singleFunctionCallOrNull()?.symbol?.returnType
+        callReturnType?.let { asFqName(it) }
+      }
     }
+  } else {
+    resolveToCall(BodyResolveMode.PARTIAL)?.resultingDescriptor?.returnType?.fqName
   }
-}
-else {
-  resolveToCall(BodyResolveMode.PARTIAL)?.resultingDescriptor?.returnType?.fqName
-}
 
-// TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType` and `KtTypeRenderer`.
-private fun KtAnalysisSession.asFqName(type: KtType) = type.expandedClassSymbol?.classIdIfNonLocal?.asSingleFqName()
+// TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType`
+// and `KtTypeRenderer`.
+internal fun KtAnalysisSession.asFqName(type: KtType) =
+  type.expandedClassSymbol?.classIdIfNonLocal?.asSingleFqName()
 
-internal fun KtFunction.hasComposableAnnotation() = if (KotlinPluginModeProvider.isK2Mode()) {
-  findAnnotation(ComposeFqNames.Composable) != null
-} else {
-  descriptor?.hasComposableAnnotation() == true
-}
+internal fun KtFunction.hasComposableAnnotation() =
+  if (KotlinPluginModeProvider.isK2Mode()) {
+    hasAnnotation(ComposeClassIds.Composable)
+  } else {
+    descriptor?.hasComposableAnnotation() == true
+  }
 
 internal fun KtAnalysisSession.isComposableInvocation(callableSymbol: KtCallableSymbol): Boolean {
   fun hasComposableAnnotation(annotated: KtAnnotated?) =
@@ -123,10 +126,11 @@ internal fun KtAnalysisSession.isComposableInvocation(callableSymbol: KtCallable
   val type = callableSymbol.returnType
   if (hasComposableAnnotation(type)) return true
   val functionSymbol = callableSymbol as? KtFunctionSymbol
-  if (functionSymbol != null &&
+  if (
+    functionSymbol != null &&
       functionSymbol.isOperator &&
       functionSymbol.name == OperatorNameConventions.INVOKE
-    ) {
+  ) {
     functionSymbol.receiverType?.let { receiverType ->
       if (hasComposableAnnotation(receiverType)) return true
     }

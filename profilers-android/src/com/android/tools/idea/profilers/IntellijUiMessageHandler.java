@@ -28,13 +28,12 @@ public class IntellijUiMessageHandler implements UiMessageHandler {
   private static final String DO_NOT_SHOW_TEXT = "Do not ask me again";
 
   @Override
-  public void displayErrorMessage(@NotNull JComponent parent, @NotNull String title, @NotNull String message) {
+  public void displayErrorMessage(@Nullable JComponent parent, @NotNull String title, @NotNull String message) {
     Messages.showErrorDialog(parent, message, title);
   }
 
   @Override
-  public boolean displayOkCancelMessage(
-                                     @NotNull String title,
+  public boolean displayOkCancelMessage(@NotNull String title,
                                      @NotNull String message,
                                      @NotNull String okText,
                                      @NotNull String cancelText,

@@ -18,13 +18,14 @@ package com.android.tools.idea.diagnostics;
 import com.android.tools.analytics.UsageTracker;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.PathManager;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;

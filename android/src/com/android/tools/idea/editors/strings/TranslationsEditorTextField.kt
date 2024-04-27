@@ -20,6 +20,7 @@ import com.intellij.ui.components.JBTextField
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.util.function.IntSupplier
+import javax.swing.text.JTextComponent
 
 /** A text field that can be wired up to edit a particular column in a [StringResourceTable]. */
 internal class TranslationsEditorTextField(table: StringResourceTable, columnSupplier: IntSupplier) : JBTextField() {

@@ -40,8 +40,7 @@ class DataBindingPackageFinderTest {
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -72,7 +71,12 @@ class DataBindingPackageFinderTest {
 
     val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
 
-    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context))
+    assertThat(
+        fixture.findClass(
+          "com.android.example.viewbinding.databinding.ActivityMainBinding",
+          context
+        )
+      )
       .isInstanceOf(LightBindingClass::class.java)
     assertThat(fixture.findPackage("com.android.example.viewbinding.databinding")).isNotNull()
   }
@@ -88,9 +92,18 @@ class DataBindingPackageFinderTest {
     UIUtil.dispatchAllInvocationEvents()
 
     val context = fixture.findClass("com.android.example.appwithdatabinding.MainActivity")
-    assertThat(LayoutBindingModuleCache.getInstance(projectRule.androidFacet(":app")).dataBindingMode).isEqualTo(DataBindingMode.ANDROIDX)
-    assertThat(fixture.findClass("com.android.example.appwithdatabinding.databinding.ActivityMainBinding", context)).isInstanceOf(
-      LightBindingClass::class.java)
-    assertThat(fixture.findPackage("com.android.example.appwithdatabinding.databinding")).isNotNull()
+    assertThat(
+        LayoutBindingModuleCache.getInstance(projectRule.androidFacet(":app")).dataBindingMode
+      )
+      .isEqualTo(DataBindingMode.ANDROIDX)
+    assertThat(
+        fixture.findClass(
+          "com.android.example.appwithdatabinding.databinding.ActivityMainBinding",
+          context
+        )
+      )
+      .isInstanceOf(LightBindingClass::class.java)
+    assertThat(fixture.findPackage("com.android.example.appwithdatabinding.databinding"))
+      .isNotNull()
   }
 }

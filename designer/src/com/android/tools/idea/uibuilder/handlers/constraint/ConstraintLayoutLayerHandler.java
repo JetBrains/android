@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import static com.android.SdkConstants.ATTR_TITLE;
-import static com.android.SdkConstants.ATTR_VISIBILITY;
-import static com.android.SdkConstants.SHERPA_URI;
-
 import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for Layer helper

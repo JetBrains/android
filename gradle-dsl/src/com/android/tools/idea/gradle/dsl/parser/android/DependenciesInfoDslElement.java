@@ -17,8 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.android.tools.idea.gradle.dsl.model.android.DependenciesInfoModelImpl.INCLUDE_IN_APK;
 import static com.android.tools.idea.gradle.dsl.model.android.DependenciesInfoModelImpl.INCLUDE_IN_BUNDLE;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
@@ -27,14 +26,20 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DependenciesInfoDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<DependenciesInfoDslElement> DEPENDENCIES_INFO =
-    new PropertiesElementDescription<>("dependenciesInfo", DependenciesInfoDslElement.class, DependenciesInfoDslElement::new);
+    new PropertiesElementDescription<>("dependenciesInfo",
+                                       DependenciesInfoDslElement.class,
+                                       DependenciesInfoDslElement::new,
+                                       DependenciesInfoDslElementSchema::new);
 
   public static final ExternalToModelMap ktsToModelMap = Stream.of(new Object[][]{
     {"includeInApk", property, INCLUDE_IN_APK, VAR},
@@ -48,12 +53,31 @@ public class DependenciesInfoDslElement extends GradleDslBlockElement {
     {"includeInBundle", exactly(1), INCLUDE_IN_BUNDLE, SET}
   }).collect(toModelMap());
 
+  public static final ExternalToModelMap declarativeToModelMap = Stream.of(new Object[][]{
+    {"includeInApk", property, INCLUDE_IN_APK, VAR},
+    {"includeInBundle", property, INCLUDE_IN_BUNDLE, VAR}
+  }).collect(toModelMap());
+
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelMap, ktsToModelMap);
+    return getExternalToModelMap(converter, groovyToModelMap, ktsToModelMap, declarativeToModelMap);
   }
 
   DependenciesInfoDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  public static final class DependenciesInfoDslElementSchema extends GradlePropertiesDslElementSchema {
+    @Override
+    @NotNull
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelMap, ktsToModelMap, declarativeToModelMap);
+    }
+
+    @Nullable
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.DependenciesInfo";
+    }
   }
 }

@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
+import org.jetbrains.annotations.TestOnly
 
 import java.util.concurrent.Executor
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -73,22 +74,19 @@ class ListenerCollection<T> private constructor(private val myExecutor: Executor
   }
 
   /**
+   * Returns the size of the collection.
+   */
+  @TestOnly
+  fun size(): Int = myLock.read {
+    return getUpToDateListeners().size
+  }
+
+  /**
    * Iterates over all the listeners in the given [Executor]. This method returns a [ListenableFuture] to know when
    * the processing has finished.
    */
   fun forEach(runOnListener: Consumer<T>): ListenableFuture<Void> {
-    val listeners: Set<T> = myLock.read {
-      if (myListenerSetCopy == null) {
-        // The cache was out-of-date. Rebuild it. First upgrade the lock to write
-        myLock.write {
-          if (myListenerSetCopy == null) {
-            // Cache current list of listeners
-            myListenerSetCopy = ImmutableSet.copyOf(myListenersSet)
-          }
-        }
-      }
-      myListenerSetCopy!!
-    }
+    val listeners: Set<T> = getUpToDateListeners()
 
     if (listeners.isEmpty()) {
       return Futures.immediateFuture(null)
@@ -101,6 +99,19 @@ class ListenerCollection<T> private constructor(private val myExecutor: Executor
     }
 
     return future
+  }
+
+  private fun getUpToDateListeners(): Set<T> = myLock.read {
+    if (myListenerSetCopy == null) {
+      // The cache was out-of-date. Rebuild it. First upgrade the lock to write
+      myLock.write {
+        if (myListenerSetCopy == null) {
+          // Cache current list of listeners
+          myListenerSetCopy = ImmutableSet.copyOf(myListenersSet)
+        }
+      }
+    }
+    myListenerSetCopy!!
   }
 
   companion object {

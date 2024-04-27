@@ -9,6 +9,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAnnotation
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrField
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -28,19 +29,29 @@ class FieldTest {
   @Before
   fun setUp() {
     setUpComposeInProjectFixture(projectRule)
+    disableLiveEdit()
+  }
+
+  @After
+  fun tearDown() {
+    enableLiveEdit()
   }
 
   @Test
   fun testDesc() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         val field: Int = 0
-      }""", "A.kt", "A")
+      }""")
 
-    val new = projectRule.compileIr("""
+    val original = projectRule.directApiCompileIr(file)["A"]!!
+
+    projectRule.modifyKtFile(file, """
       class A {
         val field: String = "value"
-      }""", "A.kt", "A")
+      }""")
+
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -72,15 +83,19 @@ class FieldTest {
 
   @Test
   fun testSignature() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         val field: List<Int>? = null
-      }""", "A.kt", "A")
+      }""")
 
-    val new = projectRule.compileIr("""
+    val original = projectRule.directApiCompileIr(file)["A"]!!
+
+    projectRule.modifyKtFile(file, """
       class A {
         val field: List<String>? = null
-      }""", "A.kt", "A")
+      }""")
+
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -112,15 +127,19 @@ class FieldTest {
 
   @Test
   fun testAccess() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         var field = 0
-      }""", "A.kt", "A")
+      }""")
 
-    val new = projectRule.compileIr("""
+    val original = projectRule.directApiCompileIr(file)["A"]!!
+
+    projectRule.modifyKtFile(file, """
       class A {
         val field = 0
-      }""", "A.kt", "A")
+      }""")
+
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -150,19 +169,23 @@ class FieldTest {
 
   @Test
   fun testAddRemoveField() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         val field = 0
         val other = 1
         val old = "hello"
-      }""", "A.kt", "A")
+      }""")
 
-    val new = projectRule.compileIr("""
+    val original = projectRule.directApiCompileIr(file)["A"]!!
+
+    projectRule.modifyKtFile(file, """
       class A {
         val field = 0
         val other = 1
         val new = 2.0
-      }""", "A.kt", "A")
+      }""")
+
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -192,7 +215,7 @@ class FieldTest {
 
   @Test
   fun testAddRemoveFieldAnnotation() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       annotation class Q
       annotation class R
       annotation class S
@@ -202,9 +225,11 @@ class FieldTest {
         val field = 0
 
         val other = 1
-      }""", "A.kt", "A")
+      }""")
 
-    val new = projectRule.compileIr("""
+    val original = projectRule.directApiCompileIr(file)["A"]!!
+
+    projectRule.modifyKtFile(file, """
       annotation class Q
       annotation class R
       annotation class S
@@ -216,7 +241,9 @@ class FieldTest {
         @field:R
         @field:S
         val other = 1
-      }""", "A.kt", "A")
+      }""")
+
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))

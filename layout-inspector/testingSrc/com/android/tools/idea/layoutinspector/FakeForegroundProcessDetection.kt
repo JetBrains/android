@@ -21,6 +21,9 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessListener
 
 class FakeForegroundProcessDetection : ForegroundProcessDetection {
+  var startInvokeCounter = 0
+  var stopInvokeCounter = 0
+
   val foregroundProcessListeners = mutableListOf<ForegroundProcessListener>()
 
   override fun addForegroundProcessListener(foregroundProcessListener: ForegroundProcessListener) {
@@ -39,6 +42,14 @@ class FakeForegroundProcessDetection : ForegroundProcessDetection {
   ) {}
 
   override fun stopPollingSelectedDevice() {}
+
+  override fun start() {
+    startInvokeCounter += 1
+  }
+
+  override fun stop() {
+    stopInvokeCounter += 1
+  }
 
   fun addNewForegroundProcess(
     deviceDescriptor: DeviceDescriptor,

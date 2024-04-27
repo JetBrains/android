@@ -35,7 +35,9 @@ class TestDesignSurfaceViewport(
       viewRect.x = value.x
       viewRect.y = value.y
     }
+
   override val extentSize: Dimension
     get() = Dimension(viewRect.width, viewRect.height)
+
   override fun addChangeListener(changeListener: ChangeListener) = Unit
 }

@@ -16,27 +16,22 @@
 package com.android.tools.idea.layoutlib;
 
 import com.intellij.DynamicBundle;
+import com.android.annotations.NonNull;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.util.function.Supplier;
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.PropertyKey;
 
 /**
  * Messages bundle.
  */
 public final class LayoutlibBundle {
-  @NonNls
   private static final String BUNDLE_NAME = "messages.LayoutlibBundle";
   private static Reference<ResourceBundle> ourBundle;
 
   private static ResourceBundle getBundle() {
-    ResourceBundle bundle = com.intellij.reference.SoftReference.dereference(ourBundle);
+    ResourceBundle bundle = ourBundle != null ? ourBundle.get() : null;
     if (bundle == null) {
       bundle = DynamicBundle.getResourceBundle(LayoutlibBundle.class.getClassLoader(), BUNDLE_NAME);
       ourBundle = new SoftReference<>(bundle);
@@ -47,16 +42,11 @@ public final class LayoutlibBundle {
   private LayoutlibBundle() {
   }
 
-  @NotNull
-  public static @Nls String message(@NotNull @PropertyKey(resourceBundle = BUNDLE_NAME) String key, @NotNull Object... params) {
+  public static String message(@NonNull String key, @NonNull Object... params) {
     return readFromBundleAndFormat(getBundle(), key, params);
   }
 
-  public static Supplier<String> messagePointer(@NotNull @PropertyKey(resourceBundle = BUNDLE_NAME) String key, @NotNull Object... params) {
-    return () -> message(key, params);
-  }
-
-  private static String readFromBundleAndFormat(@NotNull ResourceBundle bundle, @NotNull String key, @NotNull Object... params) {
+  private static String readFromBundleAndFormat(@NonNull ResourceBundle bundle, @NonNull String key, @NonNull Object... params) {
     String rawValue = bundle.getString(key);
     Locale locale = bundle.getLocale();
     MessageFormat format = new MessageFormat(rawValue, locale);

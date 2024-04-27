@@ -17,11 +17,10 @@ package com.android.tools.idea.compose.gradle.fast
 
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
+import com.android.tools.idea.compose.gradle.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.fast.OutOfProcessCompilerDaemonClientImpl
-import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.CompilerDaemonClient
@@ -29,14 +28,15 @@ import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.isSuccess
 import com.android.tools.idea.editors.fast.toFileNameSet
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
+import com.android.tools.idea.run.deployment.liveedit.MutableIrClassCache
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.util.toIoFile
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
@@ -121,7 +121,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
             { version, _, log, scope -> defaultDaemonFactory(version, log, scope) }
           )
           .also { Disposer.register(projectRule.fixture.testRootDisposable, it) }
-    invokeAndWaitIfNeeded { projectRule.buildAndAssertIsSuccessful() }
+    ApplicationManager.getApplication().invokeAndWait { projectRule.buildAndAssertIsSuccessful() }
     runWriteActionAndWait {
       projectRule.fixture.openFileInEditor(mainFile)
       WriteCommandAction.runWriteCommandAction(projectRule.project) {
@@ -140,7 +140,6 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   @After
   fun tearDown() {
     runBlocking { fastPreviewManager.stopAllDaemons().join() }
-    LiveEditApplicationConfiguration.getInstance().resetDefault()
   }
 
   @Test
@@ -283,6 +282,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       }
     }
 
+    val irCache = MutableIrClassCache()
     val deviceCompilations = AtomicLong(0)
     val deviceThread = thread {
       val function = runReadAction {
@@ -294,7 +294,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       startCountDownLatch.await()
       while (compile) {
         try {
-          LiveEditCompiler(projectRule.project)
+          LiveEditCompiler(projectRule.project, irCache)
             .compile(listOf(LiveEditCompilerInput(psiMainFile, function)))
           deviceCompilations.incrementAndGet()
         } catch (e: LiveEditUpdateException) {

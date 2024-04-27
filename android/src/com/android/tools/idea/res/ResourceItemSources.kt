@@ -62,13 +62,19 @@ internal class PsiResourceFile(
     items.forEach(this::addItem)
   }
 
-  override val folderType get() = _resourceFolderType
-  override val virtualFile: VirtualFile? get() = _psiFile.virtualFile
+  override val folderType
+    get() = _resourceFolderType
+
+  override val virtualFile: VirtualFile?
+    get() = _psiFile.virtualFile
+
   override fun iterator(): Iterator<PsiResourceItem> = _items.values().iterator()
+
   fun isSourceOf(item: ResourceItem): Boolean = (item as? PsiResourceItem)?.sourceFile == this
 
   override fun addItem(item: PsiResourceItem) {
-    // Setting the source first is important, since an item's key gets the folder configuration from the source (i.e. this).
+    // Setting the source first is important, since an item's key gets the folder configuration from
+    // the source (i.e. this).
     item.sourceFile = this
     _items.put(item.key, item)
   }
@@ -79,7 +85,8 @@ internal class PsiResourceFile(
   }
 
   val name = _psiFile.name
-  val psiFile get() = _psiFile
+  val psiFile
+    get() = _psiFile
 
   fun setPsiFile(psiFile: PsiFile, configuration: RepositoryConfiguration) {
     this._psiFile = psiFile
@@ -88,16 +95,16 @@ internal class PsiResourceFile(
   }
 }
 
-/**
- * The [ResourceItemSource] of [BasicResourceItem]s.
- */
+/** The [ResourceItemSource] of [BasicResourceItem]s. */
 internal class VfsResourceFile(
-    override val virtualFile: VirtualFile?, override val configuration: RepositoryConfiguration
+  override val virtualFile: VirtualFile?,
+  override val configuration: RepositoryConfiguration
 ) : ResourceSourceFile, ResourceItemSource<BasicResourceItem> {
 
   private val items = ArrayList<BasicResourceItem>()
 
-  override val folderType get() = getFolderType(virtualFile)
+  override val folderType
+    get() = getFolderType(virtualFile)
 
   override val repository: ResourceFolderRepository
     get() = configuration.repository as ResourceFolderRepository
@@ -113,9 +120,7 @@ internal class VfsResourceFile(
 
   fun isValid(): Boolean = virtualFile != null
 
-  /**
-   * Serializes the object to the given stream without the contained resource items.
-   */
+  /** Serializes the object to the given stream without the contained resource items. */
   @Throws(IOException::class)
   override fun serialize(stream: Base128OutputStream, configIndexes: Object2IntMap<String>) {
     stream.writeString(relativePath)

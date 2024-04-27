@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
-import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Predicate;
+
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Test basic connection interactions

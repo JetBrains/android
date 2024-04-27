@@ -39,6 +39,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -422,6 +423,9 @@ class ResourceExplorerListView(
   }
 
   private fun setContentPanel() {
+    // Because we are reusing the UI items, we should clear the selection
+    // to avoid interaction issues
+    sectionList.getLists().forEach { it.selectionModel.clearSelection() }
     removeAll()
     add(contentPanel)
     revalidate()
@@ -449,7 +453,7 @@ class ResourceExplorerListView(
   private fun populateSearchLinkLabels() {
     if (moduleSearchView == null) return
     searchFuture?.let { future ->
-      if (!future.isDone) {
+      if (!future.isDone()) {
         // Only one 'future' for getOtherModulesResourceLists may run at a time.
         future.cancel(true)
       }
@@ -536,7 +540,7 @@ class ResourceExplorerListView(
 
   private fun displayLoading() {
     showLoadingFuture = null
-    if (populateResourcesFuture?.isDone != false) {
+    if (populateResourcesFuture?.isDone ?: true) {
       return
     }
     sectionListModel.clear()
@@ -549,7 +553,7 @@ class ResourceExplorerListView(
       .filterNot { it.assetSets.isEmpty() }
       .map(this::createSection)
       .toList()
-    if (!sections.isEmpty()) {
+    if (sections.isNotEmpty()) {
       sectionListModel.addSections(sections)
     }
     else {
@@ -688,10 +692,6 @@ class ResourceExplorerListView(
     listeners += listener
   }
 
-  fun removeSelectionListener(listener: SelectionListener) {
-    listeners -= listener
-  }
-
   interface SelectionListener {
     /** Triggers when the [ResourceAssetSet] selection changes. */
     fun onDesignAssetSetSelected(resourceAssetSet: ResourceAssetSet?)
@@ -780,7 +780,7 @@ class ResourceExplorerListView(
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT
+      return ActionUpdateThread.BGT;
     }
   }
 
@@ -802,7 +802,7 @@ class ResourceExplorerListView(
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT
+      return ActionUpdateThread.BGT;
     }
   }
 
@@ -820,7 +820,7 @@ class ResourceExplorerListView(
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT
+      return ActionUpdateThread.BGT;
     }
   }
 
@@ -838,7 +838,7 @@ class ResourceExplorerListView(
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT
+      return ActionUpdateThread.BGT;
     }
   }
 }

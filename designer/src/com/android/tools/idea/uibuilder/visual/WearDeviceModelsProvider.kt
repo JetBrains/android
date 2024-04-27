@@ -27,6 +27,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import java.util.ArrayList
 import org.jetbrains.android.facet.AndroidFacet
 
 /** Recommended wear device configs. */
@@ -87,8 +88,7 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
         if (device.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
       config.deviceState = device.getState(screenOrientation.shortDisplayValue)
       val model =
-        NlModel.builder(facet, virtualFile, config)
-          .withParentDisposable(parentDisposable)
+        NlModel.builder(parentDisposable, facet, virtualFile, config)
           .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()

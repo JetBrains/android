@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.android.synthetic.idea.res
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -21,7 +21,7 @@ class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModule
         get() = AndroidFacet.getInstance(module)
 
     override fun isAndroidModule() = androidFacet != null
-    override fun isGradleModule() = GradleProjectInfo.getInstance(module.project).isBuildWithGradle
+    override fun isGradleModule() = GradleFacet.getInstance(module) != null
 
     override fun getAllResourceDirectories() : List<VirtualFile> {
         val facet = androidFacet ?: return emptyList()

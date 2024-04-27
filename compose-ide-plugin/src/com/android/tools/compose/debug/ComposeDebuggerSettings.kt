@@ -26,11 +26,9 @@ import com.intellij.xdebugger.XDebuggerUtil
 import com.intellij.xdebugger.settings.DebuggerSettingsCategory
 import com.intellij.xdebugger.settings.XDebuggerSettings
 
-@State(
-  name = "ComposeDebuggerSettings",
-  storages = [Storage("compose.debug.xml")]
-)
-class ComposeDebuggerSettings : XDebuggerSettings<ComposeDebuggerSettings>("compose_debugger"), Getter<ComposeDebuggerSettings> {
+@State(name = "ComposeDebuggerSettings", storages = [Storage("compose.debug.xml")])
+class ComposeDebuggerSettings :
+  XDebuggerSettings<ComposeDebuggerSettings>("compose_debugger"), Getter<ComposeDebuggerSettings> {
   var filterComposeRuntimeClasses: Boolean = true
 
   companion object {
@@ -52,6 +50,7 @@ class ComposeDebuggerSettings : XDebuggerSettings<ComposeDebuggerSettings>("comp
     } else listOf()
 
   override fun get() = this
+
   override fun getState() = this
 
   override fun loadState(state: ComposeDebuggerSettings) {

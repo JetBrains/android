@@ -15,46 +15,70 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.fixtures.KeyEventBuilder
 import com.android.tools.idea.common.scene.Scene
+import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.assertInstanceOf
+import java.awt.Point
+import java.awt.event.KeyEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import java.awt.Point
-import java.awt.event.KeyEvent
+import org.mockito.Mockito
 
 private class TestInteractableSurface(private val sceneView: SceneView? = null) :
   InteractableScenesSurface {
   var zoomCounter = 0
   var hoverCounter = 0
-  override fun zoom(type: ZoomType): Boolean {
-    zoomCounter++
-    return true
-  }
-
-  override fun canZoomIn() = true
-  override fun canZoomOut() = true
-  override fun canZoomToFit() = true
-  override fun canZoomToActual() = true
 
   override fun onHover(x: Int, y: Int) {
     hoverCounter++
   }
 
+  override val zoomable: Zoomable
+    get() =
+      object : ZoomController {
+        override var scale: Double = 1.0
+
+        override fun setScale(scale: Double, x: Int, y: Int): Boolean {
+          this.scale = scale
+          return true
+        }
+
+        override fun zoomToFit() = true
+
+        override val screenScalingFactor: Double = 1.0
+
+        override fun zoom(type: ZoomType): Boolean {
+          zoomCounter++
+          return true
+        }
+
+        override fun canZoomIn() = true
+
+        override fun canZoomOut() = true
+
+        override fun canZoomToFit() = true
+
+        override fun canZoomToActual() = true
+      }
+
   override var isPanning = false
   override val isPannable = true
   override var scrollPosition = Point(0, 0)
-  override val scale: Double = 1.0
-  override val screenScalingFactor: Double = 1.0
 
   override fun getData(dataId: String) = null
+
   override fun getSceneViewAtOrPrimary(x: Int, y: Int) = sceneView
+
   override val scene: Scene? = null
   override val focusedSceneView = sceneView
+
   override fun getSceneViewAt(x: Int, y: Int) = sceneView
 }
 
@@ -79,17 +103,23 @@ class LayoutlibInteractionHandlerTest {
 
   @Test
   fun testLayoutlibInteractionWhenPressingNonSpaceKeyAndSceneViewExists() {
-    val handler = LayoutlibInteractionHandler(TestInteractableSurface(TestSceneView(100, 100)))
+    val sceneManager = Mockito.mock(SceneManager::class.java)
+    val handler =
+      LayoutlibInteractionHandler(TestInteractableSurface(TestSceneView(100, 100, sceneManager)))
     val aKeyEvent = KeyEventBuilder(KeyEvent.VK_A, 'a').build()
     val interaction = handler.keyPressedWithoutInteraction(aKeyEvent)
     assertInstanceOf<LayoutlibInteraction>(interaction)
+    Disposer.dispose(sceneManager)
   }
 
   @Test
   fun testLayoutlibInteractionWhenMousePressed() {
-    val handler = LayoutlibInteractionHandler(TestInteractableSurface(TestSceneView(100, 100)))
+    val sceneManager = Mockito.mock(SceneManager::class.java)
+    val handler =
+      LayoutlibInteractionHandler(TestInteractableSurface(TestSceneView(100, 100, sceneManager)))
     val interaction = handler.createInteractionOnPressed(10, 10, 0)
     assertInstanceOf<LayoutlibInteraction>(interaction)
+    Disposer.dispose(sceneManager)
   }
 
   @Test

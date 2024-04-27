@@ -11,7 +11,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.ComponentManagerEx
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.ExtensionNotApplicableException
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.ModuleListener
@@ -22,20 +21,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 
-private class AndroidStartupManager : ProjectActivity {
+class AndroidStartupManager : ProjectActivity {
+
   // A project level service to be used as a parent disposable.
   // Future implementation may reduce the life-time of such a disposable to the
   // moment when the last Android facet is removed (from a non-Gradle project).
   @Service(Service.Level.PROJECT)
   class ProjectDisposableScope : Disposable {
-    override fun dispose() {
-    }
-  }
-
-  init {
-    if (ApplicationManager.getApplication().isUnitTestMode || ApplicationManager.getApplication().isHeadlessEnvironment) {
-      throw ExtensionNotApplicableException.create()
-    }
+    override fun dispose() = Unit
   }
 
   init {
@@ -48,7 +41,7 @@ private class AndroidStartupManager : ProjectActivity {
     suspend fun runAndroidStartupActivities() {
       for (activity in AndroidStartupActivity.STARTUP_ACTIVITY.extensionList) {
         withContext(Dispatchers.EDT) {
-          activity.runActivity(project, project.service<ProjectDisposableScope>())
+          activity.runActivity(project, project.getService(ProjectDisposableScope::class.java))
         }
       }
     }

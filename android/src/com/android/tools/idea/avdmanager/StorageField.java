@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.sdklib.devices.Storage.Unit;
-
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
@@ -25,13 +23,13 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.SimpleListCellRenderer;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import javax.swing.ComboBoxModel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import java.awt.*;
+
+import static com.android.sdklib.devices.Storage.Unit;
 
 /**
  * Storage field for displaying and editing a {@link Storage} value

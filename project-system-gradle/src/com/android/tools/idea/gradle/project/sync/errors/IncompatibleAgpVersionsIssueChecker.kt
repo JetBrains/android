@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.project.sync.AgpVersionsMismatch.Companion.MULTIPLE_AGP_VERSIONS
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
+import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
@@ -33,12 +31,10 @@ class IncompatibleAgpVersionsIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     if (rootCause !is AndroidSyncException) return null
+    if (rootCause.type != AndroidSyncExceptionType.AGP_VERSIONS_MISMATCH) return null
+    // Note: no need to report failure to SyncFailureUsageReporter as for AndroidSyncException
+    // instances it is reported in AndroidGradleProjectResolver.
     val message = rootCause.message ?: return null
-    val matcher = MULTIPLE_AGP_VERSIONS.matcher(message)
-    if (!matcher.find()) return null
-
-    // Log metrics.
-    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS)
     val messageLines = message.lines()
     if (messageLines.isEmpty()) return null
     return BuildIssueComposer("${messageLines[0]}\n${messageLines[1]}").composeBuildIssue()

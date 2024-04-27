@@ -38,13 +38,13 @@ import com.android.tools.profilers.StudioProfiler
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
+import com.android.tools.profilers.ImportedSessionUtils.importFileWithArtifactEvent
+import com.android.tools.profilers.ImportedSessionUtils.makeEndedEvent
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.openapi.diagnostic.Logger
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
@@ -77,7 +77,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
   override fun stopProfiling(session: Common.Session) =
     try {
       // Stop any ongoing allocation tracking sessions (either legacy or jvmti-based).
-      trackAllocations(profilers, session, false, null)
+      trackAllocations(profilers, session, false, false, null)
     }
     catch (e: StatusRuntimeException) {
       logger.info(e)
@@ -96,7 +96,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
       else -> try {
         // Attempts to stop an existing tracking session.
         // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
-        trackAllocations(profilers, session, false, null)
+        trackAllocations(profilers, session, false, false, null)
       }
       catch (e: StatusRuntimeException) {
         logger.info(e)
@@ -106,8 +106,8 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
 
   private fun importHprof(file: File) {
     fun makeInfo(start: Long, end: Long) = HeapDumpInfo.newBuilder().setStartTime(start).setEndTime(end)
-    import(file) { start, end ->
-      makeEndedEvent(start, Common.Event.Kind.MEMORY_HEAP_DUMP) {
+    importFileWithArtifactEvent(sessionsManager, file, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE) { start, end ->
+      makeEndedEvent(start, start, Common.Event.Kind.MEMORY_HEAP_DUMP) {
         setMemoryHeapdump(Memory.MemoryHeapDumpData.newBuilder().setInfo(makeInfo(start, end)))
       }
     }
@@ -115,11 +115,17 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
   }
 
   private fun importHeapprofd(file: File) {
-    import(file) { start, end ->
-      makeEndedEvent(start, Common.Event.Kind.MEMORY_TRACE) {
-        setTraceData(Trace.TraceData.newBuilder().setTraceEnded(TraceEnded.newBuilder().setTraceInfo(TraceInfo.newBuilder()
-                                                                                                       .setFromTimestamp(start)
-                                                                                                       .setToTimestamp(end))))
+    importFileWithArtifactEvent(sessionsManager, file, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE) { start, end ->
+      makeEndedEvent(start, start, Common.Event.Kind.MEMORY_TRACE) {
+        setTraceData(
+          Trace.TraceData.newBuilder().setTraceEnded(
+            TraceEnded.newBuilder().setTraceInfo(
+              TraceInfo.newBuilder()
+                .setFromTimestamp(start)
+                .setToTimestamp(end)
+            )
+          )
+        )
       }
     }
   }
@@ -127,40 +133,12 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
   private fun importLegacyAllocations(file: File) {
     fun makeInfo(start: Long, end: Long) =
       AllocationsInfo.newBuilder().setStartTime(start).setEndTime(end).setLegacy(true).setSuccess(true)
-    import(file) { start, end ->
-      makeEndedEvent(start, Common.Event.Kind.MEMORY_ALLOC_TRACKING) {
+    importFileWithArtifactEvent(sessionsManager, file, Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE) { start, end ->
+      makeEndedEvent(start, start, Common.Event.Kind.MEMORY_ALLOC_TRACKING) {
         setMemoryAllocTracking(Memory.MemoryAllocTrackingData.newBuilder().setInfo(makeInfo(start, end)))
       }
     }
     featureTracker.trackCreateSession(Common.SessionMetaData.SessionType.MEMORY_CAPTURE, SessionsManager.SessionCreationSource.MANUAL)
-  }
-
-  private fun import(file: File, makeEvent: (Long, Long) -> Common.Event) =
-    withFileImportedOnce(file) { bytes, startTimestampsEpochMs, startTime, endTime ->
-      sessionsManager.createImportedSession(file.name,
-                                            Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,
-                                            startTime, endTime,
-                                            startTimestampsEpochMs,
-                                            mapOf(startTime.toString() to ByteString.copyFrom(bytes)),
-                                            makeEvent(startTime, endTime))
-    }
-
-  private fun withFileImportedOnce(file: File, handle: (ByteArray, Long, Long, Long) -> Unit) {
-    // The time when the session is created. Will determine the order in sessions panel.
-    val startTimestampEpochNs = System.currentTimeMillis()
-    val timestampsNs = StudioProfilers.computeImportedFileStartEndTimestampsNs(file)
-    val sessionStartTimeNs = timestampsNs.first
-    val sessionEndTimeNs = timestampsNs.second
-    when {
-      // Select the session if the file has already been imported.
-      sessionsManager.setSessionById(sessionStartTimeNs) -> {}
-      else ->
-        try { Files.readAllBytes(Paths.get(file.path)) }
-        catch (e: IOException) {
-          logger.error("Importing Session Failed: cannot read from ${file.path}")
-          null
-        }?.let { bytes -> handle(bytes, startTimestampEpochNs, sessionStartTimeNs, sessionEndTimeNs) }
-    }
   }
 
   companion object {
@@ -274,10 +252,12 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
         .build()
         .let { client.transportClient.getEventGroups(it).groupsList.map(mapper) }
 
+
     @JvmStatic
     fun trackAllocations(profilers: StudioProfilers,
                          session: Common.Session,
                          enable: Boolean,
+                         endSession: Boolean,
                          responseHandler: Consumer<TrackStatus?>?) {
       val timeNs = profilers.client.transportClient
         .getCurrentTime(TimeRequest.newBuilder().setStreamId(session.streamId).build())
@@ -291,6 +271,10 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
         }
         else {
           type = Commands.Command.CommandType.STOP_ALLOC_TRACKING
+          // To indicate to the STOP_ALLOC_TRACKING command handler to end the current session, we set the session id.
+          if (endSession) {
+            sessionId = session.sessionId
+          }
           setStopAllocTracking(Memory.StopAllocTracking.newBuilder().setRequestTime(timeNs))
         }
       }
@@ -316,11 +300,3 @@ private fun Double.microsToNanos() = when (val us = this.toLong()) {
   Long.MIN_VALUE, Long.MAX_VALUE -> us
   else -> TimeUnit.MICROSECONDS.toNanos(us)
 }
-private fun makeEndedEvent(timeStamp: Long, kind: Common.Event.Kind, prepare: Common.Event.Builder.() -> Unit) =
-  Common.Event.newBuilder()
-    .setKind(kind)
-    .setGroupId(timeStamp)
-    .setTimestamp(timeStamp)
-    .setIsEnded(true)
-    .apply(prepare)
-    .build()

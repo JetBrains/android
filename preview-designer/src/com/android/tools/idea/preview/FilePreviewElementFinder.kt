@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 

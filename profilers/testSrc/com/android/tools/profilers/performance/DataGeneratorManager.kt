@@ -16,7 +16,10 @@
 package com.android.tools.profilers.performance
 
 import com.android.tools.profiler.proto.Common
+import org.junit.Assert.assertNotNull
+
 import java.sql.Connection
+import java.util.ArrayList
 import java.util.Random
 
 /**

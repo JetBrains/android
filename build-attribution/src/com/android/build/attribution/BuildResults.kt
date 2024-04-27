@@ -39,6 +39,7 @@ import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.util.BuildMode
 import kotlinx.collections.immutable.toImmutableMap
 
 sealed interface AbstractBuildAnalysisResult {
@@ -197,7 +198,54 @@ data class BuildAnalysisResults(
   override fun getBuildSessionID(): String {
     return buildSessionID
   }
+
+  fun toHistoricalResults() = HistoricBuildAnalysisResults(
+  getBuildSessionID(),
+  with(buildRequestData) {
+    HistoricalRequestData(mode, rootProjectPath.path, gradleTasks, jvmArguments, commandLineArguments, env)
+  },
+  taskMap,
+  pluginMap,
+  annotationProcessorAnalyzerResult,
+  alwaysRunTasksAnalyzerResult,
+  criticalPathAnalyzerResult,
+  noncacheableTasksAnalyzerResult,
+  garbageCollectionAnalyzerResult,
+  projectConfigurationAnalyzerResult,
+  tasksConfigurationIssuesAnalyzerResult,
+  configurationCachingCompatibilityAnalyzerResult,
+  jetifierUsageAnalyzerResult,
+  downloadsAnalyzerResult,
+  taskCategoryWarningsAnalyzerResult
+  )
 }
+
+data class HistoricBuildAnalysisResults(
+  val buildSessionID: String,
+  val buildRequestData: HistoricalRequestData,
+  val taskMap: Map<String, TaskData>,
+  val pluginMap: Map<String, PluginData>,
+  val annotationProcessorAnalyzerResult: AnnotationProcessorsAnalyzer.Result,
+  val alwaysRunTasksAnalyzerResult: AlwaysRunTasksAnalyzer.Result,
+  val criticalPathAnalyzerResult: CriticalPathAnalyzer.Result,
+  val noncacheableTasksAnalyzerResult: NoncacheableTasksAnalyzer.Result,
+  val garbageCollectionAnalyzerResult: GarbageCollectionAnalyzer.Result,
+  val projectConfigurationAnalyzerResult: ProjectConfigurationAnalyzer.Result,
+  val tasksConfigurationIssuesAnalyzerResult: TasksConfigurationIssuesAnalyzer.Result,
+  val configurationCachingCompatibilityAnalyzerResult: ConfigurationCachingCompatibilityProjectResult,
+  val jetifierUsageAnalyzerResult: JetifierUsageAnalyzerResult,
+  val downloadsAnalyzerResult: DownloadsAnalyzer.Result,
+  val taskCategoryWarningsAnalyzerResult: TaskCategoryWarningsAnalyzer.Result,
+)
+
+data class HistoricalRequestData(
+  val mode: BuildMode?,
+  val rootProjectPath: String,
+  val gradleTasks: List<String>,
+  val jvmArguments: List<String>,
+  val commandLineArguments: List<String>,
+  val env: Map<String, String>
+)
 
 data class FailureResult(
   private val buildSessionID: String,

@@ -27,11 +27,8 @@ import com.android.tools.property.testing.IconTester
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.util.IconLoader
-import com.intellij.ui.NewUiValue
 import icons.StudioIcons
 import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JTable

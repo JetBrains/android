@@ -32,5 +32,9 @@ interface LibraryDeclarationModel : PsiElementHolder {
 
   fun version(): VersionDeclarationModel
 
+  fun updateVersion(compactNotation: String)
+
+  fun updateVersion(version: VersionDeclarationModel)
+
   fun completeModel(): ResolvedPropertyModel?
 }

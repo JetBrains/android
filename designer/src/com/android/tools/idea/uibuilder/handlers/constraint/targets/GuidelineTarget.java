@@ -20,8 +20,7 @@ import static com.android.tools.idea.res.IdeResourcesUtil.resolveStringValue;
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -31,6 +30,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
@@ -38,12 +38,13 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawHorizontalG
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawVerticalGuideline;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.google.common.collect.ImmutableList;
-import java.awt.Cursor;
-import java.util.List;
 import java.util.Locale;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+import java.util.List;
 
 /**
  * Implements the drag behaviour for ConstraintLayout Guideline

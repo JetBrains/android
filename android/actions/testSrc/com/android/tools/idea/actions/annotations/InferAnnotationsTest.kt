@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions.annotations
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.actions.annotations.InferAnnotations.Companion.HEADER
 import com.android.tools.idea.actions.annotations.InferAnnotations.Companion.generateReport
 import com.android.tools.idea.flags.StudioFlags.INFER_ANNOTATIONS_REFACTORING_ENABLED

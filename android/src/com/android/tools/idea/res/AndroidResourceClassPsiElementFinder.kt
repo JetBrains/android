@@ -21,19 +21,19 @@ import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
 
-/**
- * Adapter for [LightResourceClassService] to satisfy the [PsiElementFinder] interface.
- */
-class AndroidResourceClassPsiElementFinder(private val lightResourceClassService: LightResourceClassService) : PsiElementFinder() {
+/** Adapter for [LightResourceClassService] to satisfy the [PsiElementFinder] interface. */
+class AndroidResourceClassPsiElementFinder(
+  private val lightResourceClassService: LightResourceClassService
+) : PsiElementFinder() {
 
-  override fun findClass(qualifiedName: String, scope: GlobalSearchScope) = findClasses(qualifiedName, scope).firstOrNull()
+  override fun findClass(qualifiedName: String, scope: GlobalSearchScope) =
+    findClasses(qualifiedName, scope).firstOrNull()
 
   override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
     val targetPackageName = psiPackage.qualifiedName
     return if (targetPackageName.isEmpty()) {
       PsiClass.EMPTY_ARRAY
-    }
-    else {
+    } else {
       findClasses("$targetPackageName.R", scope)
     }
   }
@@ -46,5 +46,6 @@ class AndroidResourceClassPsiElementFinder(private val lightResourceClassService
     return result.toTypedArray()
   }
 
-  override fun findPackage(qualifiedName: String): PsiPackage? = lightResourceClassService.findRClassPackage(qualifiedName)
+  override fun findPackage(qualifiedName: String): PsiPackage? =
+    lightResourceClassService.findRClassPackage(qualifiedName)
 }

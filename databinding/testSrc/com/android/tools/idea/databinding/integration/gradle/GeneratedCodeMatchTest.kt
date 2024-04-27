@@ -22,6 +22,7 @@ import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -41,6 +42,10 @@ import com.intellij.psi.PsiTypes
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import java.io.File
+import java.io.IOException
+import java.util.TreeSet
+import java.util.jar.JarFile
 import org.apache.commons.io.FileUtils
 import org.junit.Assert.fail
 import org.junit.Before
@@ -55,14 +60,11 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.FieldVisitor
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
-import java.io.File
-import java.io.IOException
-import java.util.TreeSet
-import java.util.jar.JarFile
 
 private fun String.pkgToPath(): String {
   return this.replace(".", "/")
 }
+
 private fun String.pathToPkg(): String {
   return this.replace("/", ".")
 }
@@ -74,28 +76,29 @@ private fun String.pathToPkg(): String {
  * together.
  */
 private object ClassDescriber {
-  private val IMPORTANT_MODIFIERS: Map<String, Int> = mapOf(
-    PsiModifier.PUBLIC to Opcodes.ACC_PUBLIC,
-    PsiModifier.STATIC to Opcodes.ACC_STATIC)
+  private val IMPORTANT_MODIFIERS: Map<String, Int> =
+    mapOf(PsiModifier.PUBLIC to Opcodes.ACC_PUBLIC, PsiModifier.STATIC to Opcodes.ACC_STATIC)
 
-  private val BASIC_ASM_TYPES: Map<PsiType, String> = mapOf(
-    PsiTypes.voidType() to "V",
-    PsiTypes.booleanType() to "Z",
-    PsiTypes.charType() to "C",
-    PsiTypes.byteType() to "B",
-    PsiTypes.shortType() to "S",
-    PsiTypes.intType() to "I",
-    PsiTypes.floatType() to "F",
-    PsiTypes.longType() to "J",
-    PsiTypes.doubleType() to "d")
+  private val BASIC_ASM_TYPES: Map<PsiType, String> =
+    mapOf(
+      PsiTypes.voidType() to "V",
+      PsiTypes.booleanType() to "Z",
+      PsiTypes.charType() to "C",
+      PsiTypes.byteType() to "B",
+      PsiTypes.shortType() to "S",
+      PsiTypes.intType() to "I",
+      PsiTypes.floatType() to "F",
+      PsiTypes.longType() to "J",
+      PsiTypes.doubleType() to "d"
+    )
 
   private fun PsiType.toAsm(): String {
-    return BASIC_ASM_TYPES[this] ?: if (this is PsiArrayType) {
-      "[" + this.componentType.toAsm()
-    }
-    else {
-      "L" + this.canonicalText.pkgToPath() + ";"
-    }
+    return BASIC_ASM_TYPES[this]
+      ?: if (this is PsiArrayType) {
+        "[" + this.componentType.toAsm()
+      } else {
+        "L" + this.canonicalText.pkgToPath() + ";"
+      }
   }
 
   /**
@@ -105,50 +108,74 @@ private object ClassDescriber {
   fun collectDescriptionSet(classReader: ClassReader, exclude: Set<String> = setOf()): Set<String> {
     val descriptionSet = TreeSet<String>()
 
-    classReader.accept(object : ClassVisitor(Opcodes.ASM5) {
-      override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String?, interfaces: Array<String>?) {
-        val interfaceList = interfaces!!.toMutableList().apply { sort() }
-        descriptionSet.add("$name : $superName -> ${interfaceList.joinToString(", ")}")
-      }
-
-      override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<String>?): MethodVisitor? {
-        if (access and Opcodes.ACC_PUBLIC != 0 && !name.startsWith("<")) {
-          descriptionSet.add("${modifierDesc(access)} $name : $desc")
+    classReader.accept(
+      object : ClassVisitor(Opcodes.ASM5) {
+        override fun visit(
+          version: Int,
+          access: Int,
+          name: String,
+          signature: String?,
+          superName: String?,
+          interfaces: Array<String>?
+        ) {
+          val interfaceList = interfaces!!.toMutableList().apply { sort() }
+          descriptionSet.add("$name : $superName -> ${interfaceList.joinToString(", ")}")
         }
-        return super.visitMethod(access, name, desc, signature, exceptions)
-      }
 
-      override fun visitField(access: Int, name: String, desc: String, signature: String?, value: Any?): FieldVisitor? {
-        if (access and Opcodes.ACC_PUBLIC != 0) {
-          descriptionSet.add("${modifierDesc(access)} $name : $desc")
+        override fun visitMethod(
+          access: Int,
+          name: String,
+          desc: String,
+          signature: String?,
+          exceptions: Array<String>?
+        ): MethodVisitor? {
+          if (access and Opcodes.ACC_PUBLIC != 0 && !name.startsWith("<")) {
+            descriptionSet.add("${modifierDesc(access)} $name : $desc")
+          }
+          return super.visitMethod(access, name, desc, signature, exceptions)
         }
-        return super.visitField(access, name, desc, signature, value)
-      }
-    }, 0)
+
+        override fun visitField(
+          access: Int,
+          name: String,
+          desc: String,
+          signature: String?,
+          value: Any?
+        ): FieldVisitor? {
+          if (access and Opcodes.ACC_PUBLIC != 0) {
+            descriptionSet.add("${modifierDesc(access)} $name : $desc")
+          }
+          return super.visitField(access, name, desc, signature, value)
+        }
+      },
+      0
+    )
 
     descriptionSet.removeAll(exclude)
     return descriptionSet
   }
 
-  /**
-   * Given PSI class, return a list of descriptions for that class.
-   */
+  /** Given PSI class, return a list of descriptions for that class. */
   fun collectDescriptionSet(psiClass: PsiClass): TreeSet<String> {
     val descriptionSet = TreeSet<String>()
     val superTypes = psiClass.superTypes
-    val superType = if (superTypes.isEmpty()) "java/lang/Object" else superTypes[0].canonicalText.pkgToPath()
-    val sortedInterfaces = psiClass.interfaces
-      .map { psiInterface -> psiInterface.qualifiedName!!.pkgToPath() }
-      .sorted()
+    val superType =
+      if (superTypes.isEmpty()) "java/lang/Object" else superTypes[0].canonicalText.pkgToPath()
+    val sortedInterfaces =
+      psiClass.interfaces.map { psiInterface -> psiInterface.qualifiedName!!.pkgToPath() }.sorted()
 
-    descriptionSet.add("${psiClass.qualifiedName!!.pkgToPath()} : $superType -> ${sortedInterfaces.joinToString(", ")}")
+    descriptionSet.add(
+      "${psiClass.qualifiedName!!.pkgToPath()} : $superType -> ${sortedInterfaces.joinToString(", ")}"
+    )
     for (method in psiClass.methods) {
       if (method.modifierList.hasModifierProperty(PsiModifier.PUBLIC)) {
         descriptionSet.add("${method.modifierDesc()} ${method.name} : ${method.methodDesc()}")
       }
     }
     for (field in psiClass.fields) {
-      if (field.modifierList != null && field.modifierList!!.hasModifierProperty(PsiModifier.PUBLIC)) {
+      if (
+        field.modifierList != null && field.modifierList!!.hasModifierProperty(PsiModifier.PUBLIC)
+      ) {
         descriptionSet.add("${field.modifierDesc()} ${field.name} : ${field.fieldDesc()}")
       }
     }
@@ -170,30 +197,39 @@ private object ClassDescriber {
   }
 
   private fun PsiModifierListOwner.modifierDesc(): String {
-    return IMPORTANT_MODIFIERS.keys.filter { modifier -> this.modifierList!!.hasModifierProperty(modifier) }.joinToString(" ")
+    return IMPORTANT_MODIFIERS.keys
+      .filter { modifier -> this.modifierList!!.hasModifierProperty(modifier) }
+      .joinToString(" ")
   }
 
   private fun modifierDesc(access: Int): String {
-    return IMPORTANT_MODIFIERS.entries.filter { it.value and access != 0 }.joinToString(" ") { it.key }
+    return IMPORTANT_MODIFIERS.entries
+      .filter { it.value and access != 0 }
+      .joinToString(" ") { it.key }
   }
 }
 
 /**
- * This class compiles a real project with data binding then checks whether the generated Binding classes match the virtual ones.
+ * This class compiles a real project with data binding then checks whether the generated Binding
+ * classes match the virtual ones.
  */
 @RunWith(Parameterized::class)
 class GeneratedCodeMatchTest(private val parameters: TestParameters) {
   companion object {
+    @Suppress("unused") // Used by JUnit
     @get:Parameters(name = "{0}")
     @get:JvmStatic
     val parameters: List<TestParameters>
-      get() = Lists.newArrayList(TestParameters(DataBindingMode.SUPPORT), TestParameters(DataBindingMode.ANDROIDX))
+      get() =
+        Lists.newArrayList(
+          TestParameters(DataBindingMode.SUPPORT),
+          TestParameters(DataBindingMode.ANDROIDX)
+        )
   }
 
   private val projectRule = AndroidGradleProjectRule()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
@@ -202,9 +238,11 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     private fun String.pairify() = this.indexOf(':').let { substring(0, it) to substring(it + 1) }
 
     val projectName: String =
-      if (mode == DataBindingMode.ANDROIDX) PROJECT_WITH_DATA_BINDING_ANDROID_X else PROJECT_WITH_DATA_BINDING_SUPPORT
-    val dataBindingLibArtifact: Pair<String,String> =
-      if (mode == DataBindingMode.ANDROIDX) ANDROIDX_DATA_BINDING_LIB_ARTIFACT.pairify() else DATA_BINDING_LIB_ARTIFACT.pairify()
+      if (mode == DataBindingMode.ANDROIDX) PROJECT_WITH_DATA_BINDING_ANDROID_X
+      else PROJECT_WITH_DATA_BINDING_SUPPORT
+    val dataBindingLibArtifact: Pair<String, String> =
+      if (mode == DataBindingMode.ANDROIDX) ANDROIDX_DATA_BINDING_LIB_ARTIFACT.pairify()
+      else DATA_BINDING_LIB_ARTIFACT.pairify()
     val dataBindingBaseBindingClass: String = mode.viewDataBinding.pkgToPath() + ".class"
 
     // `toString` output is used by JUnit for parameterized test names, so keep it simple
@@ -221,13 +259,17 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
 
   private fun findViewDataBindingClass(): ClassReader {
     val model = GradleAndroidModel.get(projectRule.androidFacet(":app"))!!
-    val classJar = model.mainArtifact.compileClasspath.androidLibraries.first { lib ->
-      lib.target.component?.let {
-        it.group == parameters.dataBindingLibArtifact.first && it.name == parameters.dataBindingLibArtifact.second
-      } ?: false
-    }.target.runtimeJarFiles.find {
-      it.name == "classes.jar"
-    }
+    val classJar =
+      model.mainArtifact.compileClasspath.libraries
+        .filterIsInstance(IdeAndroidLibrary::class.java)
+        .first { lib ->
+          lib.component?.let {
+            it.group == parameters.dataBindingLibArtifact.first &&
+              it.name == parameters.dataBindingLibArtifact.second
+          } ?: false
+        }
+        .runtimeJarFiles
+        .find { it.name == "classes.jar" }
 
     assertThat(classJar?.exists()).isTrue()
     JarFile(classJar, true).use {
@@ -245,16 +287,24 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
 
     val syncState = GradleSyncState.getInstance(projectRule.project)
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
-    assertThat(parameters.mode).isEqualTo(LayoutBindingModuleCache.getInstance(projectRule.androidFacet(":app")).dataBindingMode)
+    assertThat(parameters.mode)
+      .isEqualTo(
+        LayoutBindingModuleCache.getInstance(projectRule.androidFacet(":app")).dataBindingMode
+      )
 
     // trigger initialization
     StudioResourceRepositoryManager.getModuleResources(projectRule.androidFacet(":app"))
 
-    val classesOut = File(projectRule.project.basePath, "/app/build/intermediates/javac//debug/classes")
+    val classesOut =
+      File(
+        projectRule.project.basePath,
+        "/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes"
+      )
 
     val classes = FileUtils.listFiles(classesOut, arrayOf("class"), true)
     assertWithMessage("No compiled classes found. Something is wrong with this test.")
-      .that(classes).isNotEmpty()
+      .that(classes)
+      .isNotEmpty()
 
     val viewDataBindingClass = findViewDataBindingClass()
 
@@ -262,30 +312,34 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     // description set for the Binding subclasses, since otherwise it's just noise to us
     val baseClassInfo = ClassDescriber.collectDescriptionSet(viewDataBindingClass)
 
-    val classMap = classes.mapNotNull<File, ClassReader> { file ->
-      try {
-        ClassReader(FileUtils.readFileToByteArray(file))
-      }
-      catch (e: IOException) {
-        e.printStackTrace()
-        fail(e.message)
-        null
-      }
-    }.map { classReader -> classReader.className to classReader }.toMap()
+    val classMap =
+      classes
+        .mapNotNull<File, ClassReader> { file ->
+          try {
+            ClassReader(FileUtils.readFileToByteArray(file))
+          } catch (e: IOException) {
+            e.printStackTrace()
+            fail(e.message)
+            null
+          }
+        }
+        .map { classReader -> classReader.className to classReader }
+        .toMap()
 
     val context = fixture.findClass("com.android.example.appwithdatabinding.MainActivity")
 
     // The data binding compiler generates a bunch of stuff we don't care about in Studio. The
     // following set is what we want to make sure we generate PSI for.
-    val interestingClasses = setOf(
-      "${parameters.mode.packageName}DataBindingComponent",
-      "com.android.example.appwithdatabinding.BR",
-      "com.android.example.appwithdatabinding.databinding.ActivityMainBinding",
-      "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBinding",
-      "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBindingImpl",
-      "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBindingLandImpl",
-      "com.android.example.appwithdatabinding.databinding.NoVariableLayoutBinding"
-    )
+    val interestingClasses =
+      setOf(
+        "${parameters.mode.packageName}DataBindingComponent",
+        "com.android.example.appwithdatabinding.BR",
+        "com.android.example.appwithdatabinding.databinding.ActivityMainBinding",
+        "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBinding",
+        "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBindingImpl",
+        "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBindingLandImpl",
+        "com.android.example.appwithdatabinding.databinding.NoVariableLayoutBinding"
+      )
     val generatedClasses = mutableSetOf<String>()
     val missingClasses = mutableSetOf<String>()
     for (classReader in classMap.values) {
@@ -306,10 +360,16 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
 
       assertWithMessage(className).that(psiInfo).isEqualTo(asmInfo)
     }
-    assertWithMessage("Failed to find expected generated data binding classes; did the compiler change?")
-      .that(generatedClasses).containsExactlyElementsIn(interestingClasses)
+    assertWithMessage(
+        "Failed to find expected generated data binding classes; did the compiler change?"
+      )
+      .that(generatedClasses)
+      .containsExactlyElementsIn(interestingClasses)
 
-    assertWithMessage("PSI could not be found for some generated code: ${missingClasses.joinToString(", ")}")
-      .that(missingClasses).isEmpty()
+    assertWithMessage(
+        "PSI could not be found for some generated code: ${missingClasses.joinToString(", ")}"
+      )
+      .that(missingClasses)
+      .isEmpty()
   }
 }

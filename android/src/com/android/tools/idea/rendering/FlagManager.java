@@ -21,14 +21,13 @@ import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.intellij.openapi.diagnostic.Logger;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.util.Function;
 import icons.AndroidIcons;
 import icons.StudioIcons;
-import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
 import javax.swing.ListCellRenderer;
@@ -72,7 +71,7 @@ public class FlagManager {
    * Map from region to flag icon
    */
   @NotNull
-  private final Map<String, Icon> myImageMap = new HashMap<>();
+  private final Map<String, Icon> myImageMap = Maps.newHashMap();
 
   /**
    * Returns the flag for the given language and region.
@@ -174,7 +173,6 @@ public class FlagManager {
         // This shouldn't happen in production, but IconLoader.findIcon can throw exceptions
         // when IconLoader.STRICT is set to true, which is the case when running unit tests
         // or with idea.is.internal=true
-        Logger.getInstance(FlagManager.class).error(t);
       }
       if (flagImage == null) {
         flagImage = StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG;

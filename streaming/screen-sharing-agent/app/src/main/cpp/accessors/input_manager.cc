@@ -39,9 +39,6 @@ InputManager& InputManager::GetInstance(Jni jni) {
 }
 
 void InputManager::InjectInputEvent(Jni jni, const JObject& input_event, InputEventInjectionSync mode) {
-  if (Log::IsEnabled(Log::Level::DEBUG)) {
-    Log::D("input_event: %s", input_event.ToString().c_str());
-  }
   InputManager& instance = GetInstance(jni);
   if (!instance.input_manager_.CallBooleanMethod(jni, instance.inject_input_event_method_, input_event.ref(), static_cast<jint>(mode))) {
     string eventText = input_event.ToString();

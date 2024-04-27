@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.editors;
 
-import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
-import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
-import static com.android.SdkConstants.SDK_DIR_PROPERTY;
-
 import com.intellij.lang.properties.codeInspection.unused.ImplicitPropertyUsageProvider;
 import com.intellij.lang.properties.psi.Property;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.psi.PsiFile;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Provider which defines some properties as implicitly used, such that they don't get
@@ -38,7 +36,8 @@ public class GradleImplicitPropertyUsageProvider implements ImplicitPropertyUsag
       return true;
     }
 
-    if (Comparing.equal(file.getName(), "gradle.properties", caseSensitive)) {
+    if (Comparing.equal(file.getName(), "gradle.properties", caseSensitive) ||
+        Comparing.equal(file.getName(), "resources.properties", caseSensitive)) {
       // Ignore all properties in the gradle.properties; we don't have a complete set of what's used
       // and we don't want to suggest to the user that these are unused
       return true;

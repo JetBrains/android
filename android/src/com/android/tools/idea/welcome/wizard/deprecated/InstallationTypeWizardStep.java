@@ -17,11 +17,10 @@ package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.ui.components.JBScrollPane;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JRadioButton;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 /**
  * Wizard step for selecting installation types

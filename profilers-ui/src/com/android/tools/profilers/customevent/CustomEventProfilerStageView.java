@@ -21,7 +21,7 @@ import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StreamingTimeline;
-import com.android.tools.adtui.stdui.StreamingScrollbar;
+import com.android.tools.adtui.stdui.TimelineScrollbar;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererFactory;
@@ -77,7 +77,7 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
     StreamingTimeline timeline = getStage().getTimeline();
 
     // The scrollbar can modify the view range of timeline and the tracks.
-    getComponent().add(new StreamingScrollbar(timeline, getComponent()), BorderLayout.SOUTH);
+    getComponent().add(new TimelineScrollbar(timeline, getComponent()), BorderLayout.SOUTH);
 
     // Two row panel:
     // 1. first row contains the EventMonitor and the tracks for each user event.

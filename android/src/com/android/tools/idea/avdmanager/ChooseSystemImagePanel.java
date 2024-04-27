@@ -21,19 +21,19 @@ import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_HINGE_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_PIXEL_4A_DEVICE_API;
-import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
-import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECTANGULAR_WEAR_API;
 import static com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API;
+import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
+import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
 import static com.android.sdklib.AndroidVersion.VersionCodes.TIRAMISU;
 
 import com.android.repository.Revision;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.idea.avdmanager.SystemImagePreview.ImageRecommendation;
@@ -149,7 +149,7 @@ public class ChooseSystemImagePanel extends JPanel
                                                                           image.getTag(),
                                                                           isArm64HostOs);
 
-    if (theDevice != null && !image.getTag().equals(SystemImage.WEAR_TAG)) {
+    if (theDevice != null && !image.getTag().equals(SystemImageTags.WEAR_TAG)) {
       // For non-Wear devices, adjust the recommendation based on Play Store
       if (theDevice.hasPlayStore()) {
         // The device supports Google Play Store. Recommend only system images that also support Play Store.
@@ -197,7 +197,7 @@ public class ChooseSystemImagePanel extends JPanel
       return SystemImageClassification.OTHER;
     }
 
-    if (tag.equals(SystemImage.WEAR_TAG)) {
+    if (tag.equals(SystemImageTags.WEAR_TAG)) {
       // For Wear, recommend based on API level (all Wear have Google APIs)
       return (apiLevel >= MIN_RECOMMENDED_WEAR_API && (isArm64HostOs || isAvdIntel))
              ? SystemImageClassification.RECOMMENDED
@@ -206,16 +206,33 @@ public class ChooseSystemImagePanel extends JPanel
     if (apiLevel < MIN_RECOMMENDED_API) {
       return SystemImageClassification.PERFORMANT;
     }
-    if (SystemImageDescription.TAGS_WITH_GOOGLE_API.contains(tag) &&
-        (isArm64HostOs ||
-         (SystemImageDescription.TV_TAGS.contains(tag) && // Android TV does not ship x86_64 images at any API level.
-          apiLevel != TIRAMISU) || // Tiramisu is an unsupported Android TV version.
-         (apiLevel <= MAX_32_BIT_API && abi == Abi.X86) ||
-         (apiLevel > MAX_32_BIT_API && abi == Abi.X86_64))
-    ) {
-      // Only recommend ARM images on ARM hosts, 32-bit x86 system images where api-level <= 30, and 64-bit images where api-level > 30.
+
+    if (!SystemImageDescription.TAGS_WITH_GOOGLE_API.contains(tag)) {
+      return SystemImageClassification.PERFORMANT;
+    }
+
+    // Android TV does not ship x86_64 images at any API level, so we recommend
+    // almost all images on the same OS.
+    if (SystemImageDescription.TV_TAGS.contains(tag)) {
+      if (apiLevel == TIRAMISU) { // Tiramisu is an unsupported Android TV version.
+        return SystemImageClassification.PERFORMANT;
+      } else {
+        return SystemImageClassification.RECOMMENDED;
+      }
+    }
+
+    // Recommend ARM images on ARM hosts.
+    if (isArm64HostOs) {
       return SystemImageClassification.RECOMMENDED;
     }
+
+    // Only recommend 32-bit x86 images when API level < 31, or 64-bit x86 images when API level >= 31.
+    if (apiLevel <= MAX_32_BIT_API && abi == Abi.X86) {
+      return SystemImageClassification.RECOMMENDED;
+    } else if (apiLevel > MAX_32_BIT_API && abi == Abi.X86_64) {
+      return SystemImageClassification.RECOMMENDED;
+    }
+
     return SystemImageClassification.PERFORMANT;
   }
 
@@ -271,15 +288,15 @@ public class ChooseSystemImagePanel extends JPanel
     }
 
     // Unknown/generic device?
-    if (deviceTagId == null || deviceTagId.equals(SystemImage.DEFAULT_TAG.getId())) {
+    if (deviceTagId == null || deviceTagId.equals(SystemImageTags.DEFAULT_TAG.getId())) {
       // If so include all system images, except those we *know* not to match this type
       // of device. Rather than just checking "imageTag.getId().equals(SystemImage.DEFAULT_TAG.getId())"
       // here (which will filter out system images with a non-default tag, such as the Google API
       // system images (see issue #78947), we instead deliberately skip the other form factor images
-      return !imageTag.equals(SystemImage.ANDROID_TV_TAG) && !imageTag.equals(SystemImage.GOOGLE_TV_TAG) &&
-             !imageTag.equals(SystemImage.WEAR_TAG) && !imageTag.equals(SystemImage.DESKTOP_TAG) &&
-             !imageTag.equals(SystemImage.CHROMEOS_TAG) && !imageTag.equals(SystemImage.AUTOMOTIVE_TAG) &&
-             !imageTag.equals(SystemImage.AUTOMOTIVE_PLAY_STORE_TAG);
+      return !imageTag.equals(SystemImageTags.ANDROID_TV_TAG) && !imageTag.equals(SystemImageTags.GOOGLE_TV_TAG) &&
+             !imageTag.equals(SystemImageTags.WEAR_TAG) && !imageTag.equals(SystemImageTags.DESKTOP_TAG) &&
+             !imageTag.equals(SystemImageTags.CHROMEOS_TAG) && !imageTag.equals(SystemImageTags.AUTOMOTIVE_TAG) &&
+             !imageTag.equals(SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG);
     }
 
     // 4K TV requires at least S (API 31)
@@ -290,12 +307,12 @@ public class ChooseSystemImagePanel extends JPanel
     }
 
     // Android TV / Google TV and vice versa
-    if (deviceTagId.equals(SystemImage.ANDROID_TV_TAG.getId()) || deviceTagId.equals(SystemImage.GOOGLE_TV_TAG.getId())) {
-      return imageTag.equals(SystemImage.ANDROID_TV_TAG) || imageTag.equals(SystemImage.GOOGLE_TV_TAG);
+    if (deviceTagId.equals(SystemImageTags.ANDROID_TV_TAG.getId()) || deviceTagId.equals(SystemImageTags.GOOGLE_TV_TAG.getId())) {
+      return imageTag.equals(SystemImageTags.ANDROID_TV_TAG) || imageTag.equals(SystemImageTags.GOOGLE_TV_TAG);
     }
 
     // Non-square rectangular Wear OS requires at least P (API 28)
-    if (imageTag.equals(SystemImage.WEAR_TAG) && !device.isScreenRound()) {
+    if (imageTag.equals(SystemImageTags.WEAR_TAG) && !device.isScreenRound()) {
       Dimension screenSize = device.getScreenSize(ScreenOrientation.PORTRAIT);
       if (screenSize != null && screenSize.getWidth() != screenSize.getHeight()) {
         if (image.getVersion().getFeatureLevel() < MIN_RECTANGULAR_WEAR_API) {
@@ -383,7 +400,7 @@ public class ChooseSystemImagePanel extends JPanel
     switch (myTabPane.getSelectedIndex()) {
       case 0: // "Recommended"
         myRecommendedImageList.makeListCurrent();
-        if (myDevice != null && SystemImage.WEAR_TAG.getId().equals(myDevice.getTagId())) {
+        if (myDevice != null && SystemImageTags.WEAR_TAG.getId().equals(myDevice.getTagId())) {
           mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_WEAR);
         } else if (myDevice != null && myDevice.hasPlayStore()) {
           mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_GOOGLE_PLAY);

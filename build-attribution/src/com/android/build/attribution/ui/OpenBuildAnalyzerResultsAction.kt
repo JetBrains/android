@@ -18,6 +18,7 @@ package com.android.build.attribution.ui
 
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -28,6 +29,10 @@ import com.intellij.util.text.DateFormatUtil
  * Opens window with a list of previous Build Analyses results
  */
 class OpenBuildAnalyzerResultsAction : AnAction() {
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
+  }
   override fun update(e: AnActionEvent) {
     val project = e.project
     if (!StudioFlags.BUILD_ANALYZER_HISTORY.get() || project == null) {

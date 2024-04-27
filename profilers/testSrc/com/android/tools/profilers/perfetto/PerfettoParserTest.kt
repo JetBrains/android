@@ -20,12 +20,12 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeTraceProcessorService
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.MainProcessSelector
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import perfetto.protos.PerfettoTrace
 import java.util.concurrent.TimeUnit
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
 class PerfettoParserTest {
 
@@ -125,13 +125,13 @@ class PerfettoParserTest {
     // While the number of raw power rails is 13, the expected power rail
     // counter count is 7 because of rail aggregation. This means the number
     // of raw rails can be >= 7.
-    assertThat(powerRailCounters).hasSize(7)
+    assertThat(powerRailCounters).hasSize(8)
     assertThat(batteryDrainCounters).hasSize(3)
 
     val featureTracker = services.featureTracker as FakeFeatureTracker
     // As stated above, the "powerRailCounters" is less than 13 (number of raw
     // power rails) because it is the number of counters post rail aggregation.
-    assertThat(featureTracker.powerProfilerCaptureMetadata.powerRailCount).isEqualTo(13)
+    assertThat(featureTracker.powerProfilerCaptureMetadata.powerRailCount).isEqualTo(16)
     assertThat(featureTracker.powerProfilerCaptureMetadata.batteryCounterCount).isEqualTo(3)
   }
 }

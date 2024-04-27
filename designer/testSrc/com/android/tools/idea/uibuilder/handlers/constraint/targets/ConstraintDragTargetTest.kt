@@ -25,7 +25,7 @@ class ConstraintDragTargetTest : SceneTest() {
   fun testUpdateAttribute() {
     val button = myScreen.get("@id/button").sceneComponent!!
 
-    val dropHandler = ConstraintDragTarget.ConstraintDropHandler(button)
+    val dropHandler = ConstraintDropHandler(button)
     val transaction = button.authoritativeNlComponent.startAttributeTransaction()
 
     dropHandler.updateAttributes(transaction, button, 14, 10)

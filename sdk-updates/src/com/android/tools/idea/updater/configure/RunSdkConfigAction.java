@@ -49,21 +49,21 @@ public class RunSdkConfigAction extends DumbAwareAction {
   }
 
   @Override
-  public @NotNull ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.BGT;
-  }
-
-  @Override
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     presentation.setEnabledAndVisible(isAndroidSdkManagerEnabled());
 
-    if (!IdeInfo.getInstance().isAndroidStudio()
-        && e.getPlace().equals(ActionPlaces.POPUP)) {
+    if (ActionPlaces.MAIN_TOOLBAR.equals(e.getPlace()) && !IdeInfo.getInstance().isAndroidStudio()) {
       @Nullable Project project = e.getProject();
       boolean hasAndroidFacets = project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
       presentation.setVisible(hasAndroidFacets);
     }
+  }
+
+  @Override
+  @NotNull
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

@@ -25,6 +25,7 @@ import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.PSDEvent
+import com.intellij.collaboration.ui.util.name
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.JavaUiBundle
 import com.intellij.ide.util.PropertiesComponent
@@ -67,8 +68,11 @@ import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.KeyEvent
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 import java.util.EventListener
 import java.util.function.Consumer
+import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -101,6 +105,62 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   private var myOpenTimeMs: Long = 0
   private var inDoOK = false
   private var needsSync = false
+
+  /**
+   * Handle enable/disable of Ok/Apply buttons
+   */
+  inner class ActionEnablerHelper {
+    private var myOkAction: Action? = null
+    private var myApplyAction: Action? = null
+    private var isApplyEnabled = false // state of apply button without validation errors
+    private var isDisabled = false // flag that means we have validation errors
+    private var isInEventLoop = false
+
+    private val propertyChangedListener = object : PropertyChangeListener {
+      override fun propertyChange(evt: PropertyChangeEvent?) {
+        val event = evt ?: return
+        if (event.propertyName == "enabled" && !isInEventLoop) {
+          (event.newValue as? Boolean)?.let { isApplyEnabled = it }
+          if (isDisabled) {
+            isInEventLoop = true
+            myApplyAction?.isEnabled = false
+          }
+        }
+        isInEventLoop = false
+      }
+    }
+
+    fun setActions(allActions: List<Action>) {
+      myOkAction = allActions.firstOrNull { action ->
+        action.name?.lowercase()?.contains("ok") ?: false
+      }
+      myApplyAction = allActions.firstOrNull { action ->
+        action.name?.lowercase()?.contains("apply") ?: false
+      }
+      myApplyAction?.isEnabled?.let { isApplyEnabled = it }
+      myApplyAction?.addPropertyChangeListener(propertyChangedListener)
+    }
+
+    fun updateActions(enableActions: Boolean) {
+      isDisabled = !enableActions
+      myOkAction?.isEnabled = enableActions
+      myApplyAction?.removePropertyChangeListener(propertyChangedListener)
+      if (enableActions)
+        myApplyAction?.isEnabled = isApplyEnabled
+      else
+        myApplyAction?.isEnabled = false
+      myApplyAction?.addPropertyChangeListener(propertyChangedListener)
+    }
+
+    fun tearDown() {
+      myApplyAction?.removePropertyChangeListener(propertyChangedListener)
+      myApplyAction = null
+      myOkAction = null
+    }
+
+  }
+
+  private var actionEnabler = ActionEnablerHelper()
 
   override fun getPreferredFocusedComponent(): JComponent? = myToFocus
 
@@ -215,7 +275,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     val left = object : JPanel(BorderLayout()) {
       override fun getMinimumSize(): Dimension {
         val original = super.getMinimumSize()
-        return Dimension(Math.max(original.width, JBUI.scale(150)), original.height)
+        return Dimension(Math.max(original.width, JBUI.scale(170)), original.height)
       }
     }
 
@@ -306,8 +366,11 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       init {
         contentPanel.preferredSize = Dimension(JBUI.scale(950), JBUI.scale(500))
         contentPanel.minimumSize = Dimension(JBUI.scale(900), JBUI.scale(400))
+        // createActions does not create them but rather provide what already created
+        actionEnabler.setActions(createActions().toList())
       }
     }
+
     UiNotifyConnector.Once(dialog.contentPane, object : Activatable {
       override fun showNotify() {
         advanceInit.run()
@@ -318,7 +381,6 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     }
     dialog.showAndGet()
   }
-
 
   private fun initSidePanel() {
 
@@ -347,12 +409,18 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     myConfigurables[configurable] = null
     (configurable as? Place.Navigator)?.setHistory(myHistory)
     val counterDisplayConfigurable = configurable as? CounterDisplayConfigurable
+    val validationDisplayConfigurable = configurable as? ValidationAggregateDisplayConfigurable
     mySidePanel!!.addPlace(
       createPlaceFor(configurable),
       Presentation(configurable.displayName),
-      counterDisplayConfigurable?.let { { SidePanel.ProblemStats(it.count, it.containsErrors()) } })
-    counterDisplayConfigurable?.add(
-      CounterDisplayConfigurable.CountChangeListener { UIUtil.invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)
+      counterDisplayConfigurable?.let { { SidePanel.ProblemStats(it.count, it.containsErrors()) } },
+      validationDisplayConfigurable?.let { { it.hasValidationErrors() } }
+      )
+    counterDisplayConfigurable?.add({ UIUtil.invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)
+    // refresh side panel to update error bubble
+    validationDisplayConfigurable?.add({ UIUtil.invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)
+    // add callback for ok/apply actions enabler
+    validationDisplayConfigurable?.add({ actionEnabler.updateActions(!validationDisplayConfigurable.hasValidationErrors()) }, myDisposable)
   }
 
   fun <T : Configurable> findConfigurable(type: Class<T>): T? = myConfigurables.keys.filterIsInstance(type).firstOrNull()
@@ -416,6 +484,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       myToolbarComponent = null
       myErrorsComponent = null
       myToFocus = null
+      actionEnabler.tearDown()
     }
   }
 

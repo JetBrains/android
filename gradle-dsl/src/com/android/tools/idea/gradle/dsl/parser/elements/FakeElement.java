@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
-
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.stream.Collectors;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
 
 /**
  * A {@link FakeElement} that is used to represent models that are derived from part of a {@link GradleDslElement}.

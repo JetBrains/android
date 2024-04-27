@@ -23,12 +23,11 @@ import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
-import com.android.tools.idea.common.error.IssuePanelSplitter
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
 import com.android.tools.idea.compose.preview.gallery.GalleryModeWrapperPanel
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
@@ -36,15 +35,20 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
-import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.requestBuild
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
@@ -55,16 +59,17 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
-import com.intellij.ui.JBSplitter
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import java.awt.BorderLayout
+import java.awt.Insets
 import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
 
-private const val ISSUE_SPLITTER_DIVIDER_WIDTH_PX = 3
 private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compose/preview"
 
 /** Interface that isolates the view of the Compose view so it can be replaced for testing. */
@@ -141,9 +146,10 @@ interface ComposePreviewView {
     previewElements: Collection<ComposePreviewElementInstance>,
     psiFile: PsiFile,
     progressIndicator: ProgressIndicator,
-    onRenderCompleted: () -> Unit,
+    onRenderCompleted: (Int) -> Unit,
     previewElementModelAdapter: ComposePreviewElementModelAdapter,
     modelUpdater: NlModel.NlModelUpdaterInterface,
+    navigationHandler: PreviewNavigationHandler,
     configureLayoutlibSceneManager:
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
   ): List<ComposePreviewElementInstance> {
@@ -161,6 +167,7 @@ interface ComposePreviewView {
       onRenderCompleted,
       previewElementModelAdapter,
       modelUpdater,
+      navigationHandler,
       configureLayoutlibSceneManager
     )
   }
@@ -180,12 +187,14 @@ interface ComposePreviewView {
     configureLayoutlibSceneManager:
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
     refreshFilter: (LayoutlibSceneManager) -> Boolean,
+    refreshOrder: (LayoutlibSceneManager) -> Int
   ) {
     mainSurface.refreshExistingPreviewElements(
       progressIndicator,
       modelToPreview,
       configureLayoutlibSceneManager,
-      refreshFilter
+      refreshFilter,
+      refreshOrder
     )
   }
 }
@@ -249,12 +258,15 @@ internal class ComposePreviewViewImpl(
   override val mainSurface =
     mainDesignSurfaceBuilder
       .setDelegateDataProvider { key ->
-        if (PANNABLE_KEY.`is`(key)) {
-          this@ComposePreviewViewImpl
-        } else if (GuiInputHandler.CURSOR_RECEIVER.`is`(key)) {
+        when {
+          PANNABLE_KEY.`is`(key) -> this@ComposePreviewViewImpl
           // TODO(b/229842640): We should actually pass the [scrollPane] here, but it does not work
-          workbench
-        } else dataProvider.getData(key)
+          GuiInputHandler.CURSOR_RECEIVER.`is`(key) -> workbench
+          PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(key) -> {
+            DataProvider { getDataInBackground(it) }
+          }
+          else -> dataProvider.getData(key)
+        }
       }
       .build()
       .apply {
@@ -263,8 +275,24 @@ internal class ComposePreviewViewImpl(
         setScale(0.25)
       }
 
+  private fun getDataInBackground(dataId: String): Any? {
+    if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
+      // DesignSurface's data provider will return the root XML element, which for Compose
+      // Previews is a ComposeViewAdapter. This is used, for example, to populate the editor's
+      // navigation bar. If we return ComposeViewAdapter, the navigation bar will show the file
+      // that contains it, i.e. the ComposeAdapterLightVirtualFile XML file. Instead, we should
+      // return its origin file, so the navigation bar will show the kotlin file containing the
+      // composable.
+      return (mainSurface.models.firstOrNull()?.virtualFile as? ComposeAdapterLightVirtualFile)
+        ?.originFile
+        ?.toPsiFile(project)
+    }
+    return null
+  }
+
   override val isPannable: Boolean
     get() = mainSurface.isPannable
+
   override var isPanning: Boolean
     get() = mainSurface.isPanning
     set(value) {
@@ -292,7 +320,7 @@ internal class ComposePreviewViewImpl(
    * inspector that lists all the animations the preview has.
    */
   private val mainPanelSplitter =
-    JBSplitter(true, 0.7f).apply { dividerWidth = ISSUE_SPLITTER_DIVIDER_WIDTH_PX }
+    OnePixelSplitter(true, 0.7f).apply { this.setBlindZone { Insets(1, 0, 1, 0) } }
 
   /** [ActionData] that triggers Build and Refresh of the preview. */
   private val buildAndRefreshAction: ActionData
@@ -306,6 +334,7 @@ internal class ComposePreviewViewImpl(
         // the mouse is hovering the link
       }
     }
+
   private val actionsToolbar: ActionsToolbar
 
   val content = JPanel(BorderLayout())
@@ -334,10 +363,10 @@ internal class ComposePreviewViewImpl(
 
     mainPanelSplitter.firstComponent = contentPanel
 
-    val issueErrorSplitter =
-      IssuePanelSplitter(psiFilePointer.virtualFile, mainSurface, mainPanelSplitter)
+    IssuePanelService.getInstance(project)
+      .registerFileToSurface(psiFilePointer.virtualFile, mainSurface)
 
-    workbench.init(issueErrorSplitter, mainSurface, listOf(), false)
+    workbench.init(mainPanelSplitter, mainSurface, listOf(), false)
     workbench.hideContent()
     val projectStatus = projectBuildStatusManager.statusFlow.value
     log.debug("ProjectStatus: $projectStatus")

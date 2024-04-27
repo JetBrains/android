@@ -19,8 +19,8 @@ import static com.android.tools.idea.run.configuration.execution.TestUtilsKt.cre
 import static com.android.tools.idea.util.ModuleExtensionsKt.getAndroidFacet;
 import static com.intellij.testFramework.UsefulTestCase.assertEmpty;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 

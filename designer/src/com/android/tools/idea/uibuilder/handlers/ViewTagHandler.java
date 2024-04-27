@@ -15,34 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
-import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
-import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_BACKGROUND;
-import static com.android.SdkConstants.ATTR_CLASS;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_STYLE;
-import static com.android.SdkConstants.CLASS_VIEW;
-import static com.android.SdkConstants.VIEW_TAG;
-
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.api.*;
 import com.google.common.collect.ImmutableList;
 import icons.StudioIcons;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Predicate;
-import javax.swing.Icon;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Predicate;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <view>} tag.

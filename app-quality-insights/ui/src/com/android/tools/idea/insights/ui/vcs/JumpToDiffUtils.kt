@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.VCS_CATEGORY
 import com.android.tools.idea.insights.vcs.VcsForAppInsights
 import com.android.tools.idea.insights.vcs.createShortRevisionString
@@ -26,6 +27,7 @@ import com.intellij.diff.util.DiffUserDataKeys
 import com.intellij.diff.util.DiffUserDataKeysEx
 import com.intellij.diff.util.Side
 import com.intellij.openapi.ListSelection
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.Pair
@@ -40,18 +42,20 @@ import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
 /**
- * Context data for showing the diff view.
+ * Context data for requesting a diff view.
  *
  * @param vcsKey denotes the VCS type of the commit.
  * @param revision denotes the commit we are diffing with.
  * @param filePath is for locating the revision content and the current content.
  * @param lineNumber (1-based) is for placing caret at the line where the crash is captured.
+ * @param origin is to scope the request
  */
 data class ContextDataForDiff(
   val vcsKey: VCS_CATEGORY,
   val revision: String,
   val filePath: FilePath,
-  val lineNumber: Int
+  val lineNumber: Int,
+  val origin: Connection?
 )
 
 /**
@@ -62,7 +66,7 @@ data class ContextDataForDiff(
  *
  * The caret is placed on the line of the left panel where the crash is associated to.
  */
-internal fun goToDiff(context: ContextDataForDiff, project: Project) {
+fun goToDiff(context: ContextDataForDiff, project: Project) {
   val requestChain = InsightsDiffRequestChain(context, project)
 
   // TODO: Should bring up an existing window if there is one instead of creating a new one.
@@ -93,17 +97,29 @@ class InsightsDiffRequestChain(val context: ContextDataForDiff, val project: Pro
       return ListSelection.create(chained, null)
     } catch (exception: Exception) {
       // Rethrow, then the exception message would be printed out in the diff view.
-      throw DiffRequestProducerException(exception)
+      throw DiffRequestProducerException(exception.message, exception.cause)
     }
   }
 
   private val changes: List<Change>
     get() {
-      val vcsContext =
+      val vcsContent =
         VcsForAppInsights.getExtensionByKey(context.vcsKey)
           ?.createVcsContent(context.filePath, context.revision, project)
 
-      return createChangesWithCurrentContentForFile(context.filePath, vcsContext)
+      // We try to retrieve content beforehand to have a chance to make the error message more
+      // user-friendly if there's errors. If no retrieving errors, still it doesn't hurt as
+      // there's a cache layer under the hood and our effort is not wasted.
+      try {
+        vcsContent?.content
+      } catch (exception: Exception) {
+        val message = "Source revision is not available. Update your working tree and try again."
+
+        thisLogger().warn(message + "(original message: ${exception.message})")
+        throw DiffRequestProducerException(message, exception.cause)
+      }
+
+      return createChangesWithCurrentContentForFile(context.filePath, vcsContent)
     }
 }
 

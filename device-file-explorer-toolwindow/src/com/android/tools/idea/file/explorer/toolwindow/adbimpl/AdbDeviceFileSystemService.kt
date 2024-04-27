@@ -16,6 +16,7 @@
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
 import com.android.adblib.ConnectedDevice
+import com.android.adblib.DeviceSelector
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.pairWithNestedState
@@ -31,7 +32,6 @@ import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -97,6 +97,14 @@ constructor(
           }
       }
       .stateIn(coroutineScope, SharingStarted.Lazily, emptyList())
+
+  override suspend fun getFileSystem(serialNumber: String): DeviceFileSystem? {
+    val handle =
+      deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))
+        ?: return null
+    val device = handle.state.connectedDevice ?: return null
+    return newDeviceFileSystem(handle, device)
+  }
 
   private fun newDeviceFileSystem(handle: DeviceHandle, connectedDevice: ConnectedDevice) =
     AdbDeviceFileSystem(handle, connectedDevice, edtExecutor, dispatcher)

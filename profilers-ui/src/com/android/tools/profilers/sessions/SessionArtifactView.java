@@ -25,6 +25,8 @@ import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
+import com.android.tools.profilers.ExportArtifactUtils;
+import com.android.tools.profilers.ExportableArtifact;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.IconUtil;
@@ -271,6 +273,12 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   protected abstract JComponent buildComponent();
 
   protected void exportArtifact() {
+    if (getArtifact() instanceof ExportableArtifact exportableArtifact) {
+      assert !getArtifact().isOngoing();
+      ExportArtifactUtils.exportArtifact(exportableArtifact.getExportableName(), exportableArtifact.getExportExtension(),
+                                         getArtifact()::export, getSessionsView().getIdeProfilerComponents(),
+                                         getProfilers().getIdeServices());
+    }
   }
 
   private void showHoverState(boolean hover) {

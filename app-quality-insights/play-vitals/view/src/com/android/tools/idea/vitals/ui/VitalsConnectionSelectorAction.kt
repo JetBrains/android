@@ -53,7 +53,7 @@ class VitalsConnectionSelectorAction(
           onSelected(it)
         }
         .asPopup()
-    val owner = eve.inputEvent.component
+    val owner = eve.inputEvent!!.component
     val location = getLocationOnScreen(owner)
     location.translate(0, owner.height)
     popup.showInScreenCoordinates(owner, location)

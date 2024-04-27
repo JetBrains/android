@@ -29,6 +29,7 @@ import icons.StudioIcons
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.LayoutManager
+import java.text.NumberFormat
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -53,7 +54,8 @@ val offlineModeIcon =
     UIUtil.getErrorForeground()
   )
 
-fun Any?.ifZero(fallback: String) = this.toString().takeUnless { it == "0" } ?: fallback
+fun Long.formatNumberToPrettyString(): String =
+  NumberFormat.getIntegerInstance().format(this).takeUnless { it == "0" } ?: "-"
 
 val dateFormatter: DateTimeFormatter
   get() =
@@ -144,9 +146,24 @@ class JListSimpleColoredComponent<T>(icon: Icon?, list: JList<T>, hasFocus: Bool
   }
 }
 
-fun prettyRangeString(lower: Any, upper: Any) =
+fun prettyRangeString(lower: Any, upper: Any = lower) =
   if (lower == upper) {
     lower.toString()
   } else {
     "$lower → $upper"
+  }
+
+const val DETAIL_PANEL_HORIZONTAL_SPACING = 10
+
+/**
+ * Shortens the full even id to a form friendly for presentation in the UI.
+ *
+ * Vitals event IDs follow the format: sessionId_eventId. If the eventId is longer than 15
+ * characters, it is to be shortened to the 6 prefix and suffix characters with ellipses in between.
+ *
+ * Crashlytics eventIds do not come with the sessionId so the call to substringAfterLast is a noop.
+ */
+fun String.shortenEventId() =
+  substringAfterLast('_').let {
+    if (it.length > 15) it.replaceRange(6..it.length - 7, "...") else it
   }

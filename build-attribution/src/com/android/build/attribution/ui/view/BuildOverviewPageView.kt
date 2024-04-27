@@ -51,7 +51,7 @@ class BuildOverviewPageView(
   val model: BuildOverviewPageModel,
   val actionHandlers: ViewActionHandlers
 ) : BuildAnalyzerDataPageView {
-  private val linksHandler = HtmlLinksHandler(actionHandlers)
+  val linksHandler = HtmlLinksHandler(actionHandlers)
 
   private val buildInformationPanel = JPanel().apply {
     name = "info"

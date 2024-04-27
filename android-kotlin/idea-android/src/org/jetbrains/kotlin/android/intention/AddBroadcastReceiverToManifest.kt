@@ -17,41 +17,17 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.SdkConstants
-import com.android.tools.idea.kotlin.isSubclassOf
-import org.jetbrains.android.dom.manifest.Manifest
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
-import org.jetbrains.kotlin.android.isSubclassOf
-import org.jetbrains.kotlin.asJava.toLightClass
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
-import org.jetbrains.kotlin.psi.KtClass
+import com.intellij.psi.PsiClass
+import org.jetbrains.android.dom.AndroidAttributeValue
+import org.jetbrains.android.dom.manifest.Application
+import org.jetbrains.android.dom.manifest.Receiver
 
 
-class AddBroadcastReceiverToManifest : AbstractRegisterComponentAction("Add broadcast receiver to manifest") {
-    override fun isApplicableTo(element: KtClass, manifest: Manifest): Boolean =
-            element.isSubclassOfBroadcastReceiver() && !element.isRegisteredBroadcastReceiver(manifest)
-
-    override fun applyTo(element: KtClass, manifest: Manifest) {
-        val psiClass = element.toLightClass() ?: return
-        manifest.application.addReceiver().receiverClass.value = psiClass
-    }
-
-    private fun KtClass.isRegisteredBroadcastReceiver(manifest: Manifest) = manifest.application.receivers.any {
-        it.receiverClass.value?.qualifiedName == fqName?.asString()
-    }
-
-    @OptIn(KtAllowAnalysisOnEdt::class)
-    private fun KtClass.isSubclassOfBroadcastReceiver() = if (KotlinPluginModeProvider.isK2Mode()) {
-        allowAnalysisOnEdt {
-            analyze(this@isSubclassOfBroadcastReceiver) {
-                isSubclassOf(this@isSubclassOfBroadcastReceiver, SdkConstants.CLASS_BROADCASTRECEIVER, strict = true)
-            }
-        }
-    }
-    else {
-        (descriptor as? ClassDescriptor)?.defaultType?.isSubclassOf(SdkConstants.CLASS_BROADCASTRECEIVER, strict = true) ?: false
-    }
+class AddBroadcastReceiverToManifest : AbstractRegisterComponentAction<Receiver>(
+    text = "Add broadcast receiver to manifest",
+    componentClassName = SdkConstants.CLASS_BROADCASTRECEIVER,
+) {
+    override fun Application.getCurrentComponents(): List<Receiver> = receivers
+    override fun Application.addComponent(): Receiver = addReceiver()
+    override fun Receiver.getComponentClass(): AndroidAttributeValue<PsiClass> = receiverClass
 }

@@ -25,10 +25,10 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Converts the [PreferredVisibility] value into the equivalent [TextEditorWithPreview.Layout]. */
 private fun PreferredVisibility?.toTextEditorLayout(): TextEditorWithPreview.Layout? =
@@ -122,6 +122,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     preview.component.addComponentListener(
       object : ComponentListener {
         override fun componentResized(e: ComponentEvent?) {}
+
         override fun componentMoved(e: ComponentEvent?) {}
 
         override fun componentShown(e: ComponentEvent?) {
@@ -215,6 +216,8 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
   }
 
   override fun getShowEditorAction(): SplitEditorAction = showEditorAction
+
   override fun getShowEditorAndPreviewAction(): SplitEditorAction = showEditorAndPreviewAction
+
   override fun getShowPreviewAction(): SplitEditorAction = showPreviewAction
 }

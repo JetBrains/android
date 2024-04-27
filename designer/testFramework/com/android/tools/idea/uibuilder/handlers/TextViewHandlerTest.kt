@@ -65,17 +65,23 @@ private class HolderViewActionPresentation : ViewActionPresentation {
 
 class FakeViewEditor : ViewEditor() {
   override fun getCompileSdkVersion(): AndroidVersion? = null
+
   override fun getMinSdkVersion(): AndroidVersion = AndroidVersion.DEFAULT
+
   override fun getTargetSdkVersion(): AndroidVersion = AndroidVersion.DEFAULT
+
   override fun getConfiguration(): Configuration {
     TODO("Not yet implemented")
   }
+
   override fun getModel(): NlModel {
     TODO("Not yet implemented")
   }
+
   override fun getSceneBuilder(): LayoutlibSceneManager {
     TODO("Not yet implemented")
   }
+
   override fun getRootViews(): MutableCollection<ViewInfo> = mutableListOf()
 
   override fun measureChildren(
@@ -92,12 +98,14 @@ class FakeViewEditor : ViewEditor() {
     children: MutableList<NlComponent>,
     index: Int
   ): Boolean = false
+
   override fun insertChildren(
     parent: NlComponent,
     children: MutableList<NlComponent>,
     index: Int,
     insertType: InsertType
   ) {}
+
   override fun moduleDependsOnAppCompat(): Boolean = false
 }
 

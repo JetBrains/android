@@ -35,67 +35,90 @@ internal fun jsonPropertyName() = PlatformPatterns.psiElement(JsonElementTypes.I
 internal fun jsonStringValue() =
   PlatformPatterns.psiElement(JsonElementTypes.SINGLE_QUOTED_STRING).withParent<JsonStringLiteral>()
 
-internal fun PsiElementPattern<*, *>.withConstraintSetsParentAtLevel(level: Int) = withPropertyParentAtLevel(level, KeyWords.ConstraintSets)
-internal fun PsiElementPattern<*, *>.withTransitionsParentAtLevel(level: Int) = withPropertyParentAtLevel(level, KeyWords.Transitions)
+internal fun PsiElementPattern<*, *>.withConstraintSetsParentAtLevel(level: Int) =
+  withPropertyParentAtLevel(level, KeyWords.ConstraintSets)
+
+internal fun PsiElementPattern<*, *>.withTransitionsParentAtLevel(level: Int) =
+  withPropertyParentAtLevel(level, KeyWords.Transitions)
 
 internal fun PsiElementPattern<*, *>.insideClearArray() = inArrayWithinConstraintBlockProperty {
   // For the 'clear' constraint block property
   matches(KeyWords.Clear)
 }
 
-internal fun PsiElementPattern<*, *>.insideConstraintArray() = inArrayWithinConstraintBlockProperty {
-  // The parent property name may only be a StandardAnchor
-  oneOf(StandardAnchor.values().map { it.keyWord })
-}
+internal fun PsiElementPattern<*, *>.insideConstraintArray() =
+  inArrayWithinConstraintBlockProperty {
+    // The parent property name may only be a StandardAnchor
+    oneOf(StandardAnchor.values().map { it.keyWord })
+  }
 
 /**
- * [PsiElementPattern] that matches an element in a [JsonArray] within a Constraint block. Where the property the array is assigned to, has
- * a name that is matched by [matchPropertyName].
+ * [PsiElementPattern] that matches an element in a [JsonArray] within a Constraint block. Where the
+ * property the array is assigned to, has a name that is matched by [matchPropertyName].
  */
-internal fun PsiElementPattern<*, *>.inArrayWithinConstraintBlockProperty(matchPropertyName: StringPattern.() -> StringPattern) =
+internal fun PsiElementPattern<*, *>.inArrayWithinConstraintBlockProperty(
+  matchPropertyName: StringPattern.() -> StringPattern
+) =
   withSuperParent(2, psiElement<JsonArray>())
     .withSuperParent(
       BASE_DEPTH_FOR_LITERAL_IN_PROPERTY + 1, // JsonArray adds one level
-      psiElement<JsonProperty>().withChild(
-        // The first expression in a JsonProperty corresponds to the name of the property
-        psiElement<JsonReferenceExpression>().withText(StandardPatterns.string().matchPropertyName())
-      )
+      psiElement<JsonProperty>()
+        .withChild(
+          // The first expression in a JsonProperty corresponds to the name of the property
+          psiElement<JsonReferenceExpression>()
+            .withText(StandardPatterns.string().matchPropertyName())
+        )
     )
-    .withConstraintSetsParentAtLevel(CONSTRAINT_BLOCK_PROPERTY_DEPTH + 1) // JsonArray adds one level
+    .withConstraintSetsParentAtLevel(
+      CONSTRAINT_BLOCK_PROPERTY_DEPTH + 1
+    ) // JsonArray adds one level
 // endregion
 
 // region Kotlin Syntax Helpers
-internal inline fun <reified T : PsiElement> psiElement(): PsiElementPattern<T, PsiElementPattern.Capture<T>> =
-  PlatformPatterns.psiElement(T::class.java)
+internal inline fun <reified T : PsiElement> psiElement():
+  PsiElementPattern<T, PsiElementPattern.Capture<T>> = PlatformPatterns.psiElement(T::class.java)
 
-internal inline fun <reified T : PsiElement> PsiElementPattern<*, *>.withParent() = this.withParent(T::class.java)
+internal inline fun <reified T : PsiElement> PsiElementPattern<*, *>.withParent() =
+  this.withParent(T::class.java)
 
 /**
- * Pattern such that when traversing up the tree from the current element, the element at [level] is a [JsonProperty]. And its name matches
- * the given [name].
+ * Pattern such that when traversing up the tree from the current element, the element at [level] is
+ * a [JsonProperty]. And its name matches the given [name].
  */
 internal fun PsiElementPattern<*, *>.withPropertyParentAtLevel(level: Int, name: String) =
   withPropertyParentAtLevel(level, listOf(name))
 
 /**
- * Pattern such that when traversing up the tree from the current element, the element at [level] is a [JsonProperty]. Which name matches
- * one of the given [names].
+ * Pattern such that when traversing up the tree from the current element, the element at [level] is
+ * a [JsonProperty]. Which name matches one of the given [names].
  */
-internal fun PsiElementPattern<*, *>.withPropertyParentAtLevel(level: Int, names: Collection<String>) =
-  this.withSuperParent(level, psiElement<JsonProperty>().withChild(
-    psiElement<JsonReferenceExpression>().withText(StandardPatterns.string().oneOf(names)))
+internal fun PsiElementPattern<*, *>.withPropertyParentAtLevel(
+  level: Int,
+  names: Collection<String>
+) =
+  this.withSuperParent(
+    level,
+    psiElement<JsonProperty>()
+      .withChild(
+        psiElement<JsonReferenceExpression>().withText(StandardPatterns.string().oneOf(names))
+      )
   )
 
 /**
- * Verifies that the current element is at the given [index] of the elements contained by its [JsonArray] parent.
+ * Verifies that the current element is at the given [index] of the elements contained by its
+ * [JsonArray] parent.
  */
-internal fun <T : JsonValue> PsiElementPattern<T, PsiElementPattern.Capture<T>>.atIndexOfJsonArray(index: Int) =
-  with(object : PatternCondition<T>("atIndexOfJsonArray") {
-    override fun accepts(element: T, context: ProcessingContext?): Boolean {
-      val parent = element.context as? JsonArray ?: return false
-      val children = parent.valueList
-      val indexOfSelf = children.indexOf(element)
-      return index == indexOfSelf
+internal fun <T : JsonValue> PsiElementPattern<T, PsiElementPattern.Capture<T>>.atIndexOfJsonArray(
+  index: Int
+) =
+  with(
+    object : PatternCondition<T>("atIndexOfJsonArray") {
+      override fun accepts(element: T, context: ProcessingContext?): Boolean {
+        val parent = element.context as? JsonArray ?: return false
+        val children = parent.valueList
+        val indexOfSelf = children.indexOf(element)
+        return index == indexOfSelf
+      }
     }
-  })
+  )
 // endregion

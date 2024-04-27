@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.importing
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.Info
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.roots.impl.DirectoryIndexExcludePolicy
@@ -57,7 +57,7 @@ class InitialImportExcludeDirectoryPolicy(private val project: Project) : Direct
 }
 
 private fun Project.isGradleProject(): Boolean {
-  return GradleProjectInfo.getInstance(this).isBuildWithGradle
+  return Info.getInstance(this).isBuildWithGradle
 }
 
 private fun Project.projectHasSourceRoots(): Boolean {

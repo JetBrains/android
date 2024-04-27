@@ -25,11 +25,13 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.OptionTag
 import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * Global formatting options.
- */
-@State(name = "AndroidLogcatFormattingOptions", storages = [Storage("androidLogcatFormattingOptions.xml")])
-internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() : PersistentStateComponent<AndroidLogcatFormattingOptions> {
+/** Global formatting options. */
+@State(
+  name = "AndroidLogcatFormattingOptions",
+  storages = [Storage("androidLogcatFormattingOptions.xml")]
+)
+internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() :
+  PersistentStateComponent<AndroidLogcatFormattingOptions> {
   @OptionTag(converter = FormattingOptionsStyleConverter::class)
   var defaultFormatting: FormattingOptions.Style = FormattingOptions.Style.STANDARD
 
@@ -52,25 +54,30 @@ internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() :
 
     fun getDefaultOptions() = getInstance().defaultFormatting.formattingOptions
 
-    val DEFAULT_STANDARD = FormattingOptions(
-      TimestampFormat(TimestampFormat.Style.DATETIME, enabled = true),
-      ProcessThreadFormat(ProcessThreadFormat.Style.BOTH, enabled = true),
-      TagFormat(maxLength = 23, hideDuplicates = false, enabled = true),
-      AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = true)
-    )
+    val DEFAULT_STANDARD =
+      FormattingOptions(
+        TimestampFormat(TimestampFormat.Style.DATETIME, enabled = true),
+        ProcessThreadFormat(ProcessThreadFormat.Style.BOTH, enabled = true),
+        TagFormat(maxLength = 23, hideDuplicates = false, enabled = true, colorize = true),
+        AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = true),
+        ProcessNameFormat(maxLength = 35, hideDuplicates = false, enabled = false),
+      )
 
-    val DEFAULT_COMPACT = FormattingOptions(
-      TimestampFormat(TimestampFormat.Style.TIME, enabled = true),
-      ProcessThreadFormat(ProcessThreadFormat.Style.BOTH, enabled = false),
-      TagFormat(maxLength = 23, hideDuplicates = false, enabled = false),
-      AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = false)
-    )
+    val DEFAULT_COMPACT =
+      FormattingOptions(
+        TimestampFormat(TimestampFormat.Style.TIME, enabled = true),
+        ProcessThreadFormat(ProcessThreadFormat.Style.BOTH, enabled = false),
+        TagFormat(maxLength = 23, hideDuplicates = false, enabled = false, colorize = true),
+        AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = false),
+        ProcessNameFormat(maxLength = 35, hideDuplicates = false, enabled = false),
+      )
   }
 
   private class FormattingOptionsStyleConverter : Converter<FormattingOptions.Style>() {
     override fun toString(value: FormattingOptions.Style): String = value.name
 
-    override fun fromString(value: String): FormattingOptions.Style = FormattingOptions.Style.valueOf(value)
+    override fun fromString(value: String): FormattingOptions.Style =
+      FormattingOptions.Style.valueOf(value)
   }
 
   private class FormattingOptionsConverter : Converter<FormattingOptions>() {
@@ -79,6 +86,7 @@ internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() :
     override fun toString(value: FormattingOptions): String =
       gson.toJson(value, FormattingOptions::class.java).replace(Regex("(?<!\\\\)\""), "'")
 
-    override fun fromString(value: String): FormattingOptions? = gson.fromJson(value, FormattingOptions::class.java)
+    override fun fromString(value: String): FormattingOptions? =
+      gson.fromJson(value, FormattingOptions::class.java)
   }
 }

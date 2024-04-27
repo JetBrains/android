@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcemanager.qualifiers
 
-
 import com.android.ide.common.resources.configuration.CountryCodeQualifier
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.FolderConfiguration
@@ -136,10 +135,10 @@ class QualifierConfigurationViewModelTest {
     assertEquals(1, qualifierConfiguration.parameters.size)
     assertTrue { qualifierConfiguration.parameters[0] is CollectionParam<*> }
     val listParam = qualifierConfiguration.parameters[0] as CollectionParam<Density>
-    val density = listParam.values.first { it == Density.DPI_260 }
+    val density = listParam.values.first { it == Density.XHIGH }
     listParam.paramValue = density
     assertEquals(listParam.paramValue, density)
-    assertEquals(DensityQualifier(Density.DPI_260), qualifierConfiguration.buildQualifier())
+    assertEquals(DensityQualifier(Density.XHIGH), qualifierConfiguration.buildQualifier())
   }
 
   @Test
@@ -166,19 +165,19 @@ class QualifierConfigurationViewModelTest {
                                                        "RE", "RW", "SN", "PM", "SC", "SY", "TD", "TG", "TN", "VU", "WF")
     region.paramValue = region.values.first { it == "BE" }
     val listParam = qualifierConfiguration!!.parameters[0] as CollectionParam<Density>
-    val density = listParam.values.first { it == Density.DPI_260 }
+    val density = listParam.values.first { it == Density.XXXHIGH }
     listParam.paramValue = density
     val folderConfiguration1 = viewModel.applyConfiguration()
     assertEquals(folderConfiguration, folderConfiguration1)
     assertTrue { callbackCalled }
-    assertEquals("drawable-fr-rBE-260dpi", folderConfiguration.getFolderName(ResourceFolderType.DRAWABLE))
+    assertEquals("drawable-fr-rBE-xxxhdpi", folderConfiguration.getFolderName(ResourceFolderType.DRAWABLE))
   }
 
   @Test
   fun defaults() {
     val folderConfiguration = FolderConfiguration()
 
-    val densityInit = DensityQualifier(Density.DPI_260)
+    val densityInit = DensityQualifier(Density.create(260))
     val localeInit = LocaleQualifier(null, "fr", "US", null)
     val networkInit = NetworkCodeQualifier(123)
     val screenDimensionInit = ScreenDimensionQualifier(12, 34)
@@ -193,7 +192,7 @@ class QualifierConfigurationViewModelTest {
     val localeConfiguration = viewModel.selectQualifier(localeInit)
     val networkConfiguration = viewModel.selectQualifier(networkInit)
     val screenSizeConfiguration = viewModel.selectQualifier(screenDimensionInit)
-    assertEquals(Density.DPI_260, densityConfiguration!!.parameters[0].paramValue)
+    assertEquals(Density.create(260), densityConfiguration!!.parameters[0].paramValue)
 
     assertEquals("fr", localeConfiguration!!.parameters[0].paramValue)
     assertEquals("US", localeConfiguration.parameters[1].paramValue)
@@ -207,7 +206,7 @@ class QualifierConfigurationViewModelTest {
   @Test
   fun availableQualifiers() {
     val folderConfiguration = FolderConfiguration()
-    folderConfiguration.addQualifier(DensityQualifier(Density.DPI_260))
+    folderConfiguration.addQualifier(DensityQualifier(Density.create(260)))
     folderConfiguration.addQualifier(LocaleQualifier(null, "fr", "US", null))
     val networkCodeQualifier = NetworkCodeQualifier(123)
     folderConfiguration.addQualifier(networkCodeQualifier)
@@ -233,12 +232,11 @@ class QualifierConfigurationViewModelTest {
 
     val densityQualifier = viewModel.getAvailableQualifiers().first { it is DensityQualifier }
     val densityConfiguration = viewModel.selectQualifier(densityQualifier)!!
-    (densityConfiguration.parameters.first() as CollectionParam<Density>).paramValue = Density.DPI_300
+    (densityConfiguration.parameters.first() as CollectionParam<Density>).paramValue = Density.create(300)
     viewModel.applyConfiguration()
-    assertThat(folderConfiguration.densityQualifier!!.value).isEqualTo(Density.DPI_300)
+    assertThat(folderConfiguration.densityQualifier!!.value).isEqualTo(Density.create(300))
     assertThat(viewModel.getAvailableQualifiers().map { it.name }).doesNotContain("Density")
     viewModel.deselectQualifier(densityQualifier)
     assertThat(folderConfiguration.densityQualifier!!.value).isNull()
-
   }
 }

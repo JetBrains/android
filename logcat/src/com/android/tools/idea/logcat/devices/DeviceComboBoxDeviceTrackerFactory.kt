@@ -17,9 +17,7 @@ package com.android.tools.idea.logcat.devices
 
 import com.intellij.openapi.project.Project
 
-/**
- * A [Project] service that creates an [IDeviceComboBoxDeviceTracker]
- */
+/** A [Project] service that creates an [IDeviceComboBoxDeviceTracker] */
 internal fun interface DeviceComboBoxDeviceTrackerFactory {
   fun createDeviceComboBoxDeviceTracker(preexistingDevice: Device?): IDeviceComboBoxDeviceTracker
 
@@ -27,5 +25,4 @@ internal fun interface DeviceComboBoxDeviceTrackerFactory {
     fun getInstance(project: Project): DeviceComboBoxDeviceTrackerFactory =
       project.getService(DeviceComboBoxDeviceTrackerFactory::class.java)
   }
-
 }

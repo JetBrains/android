@@ -53,8 +53,6 @@ class EmulatorConfigurationTest {
     assertThat(config?.skinFolder?.toString()?.replace('\\', '/'))
         .endsWith("tools/adt/idea/artwork/resources/device-art-resources/pixel_3_xl")
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isFoldable).isFalse()
-    assertThat(config?.isRollable).isFalse()
     assertThat(config?.isWearOs).isFalse()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
@@ -80,8 +78,6 @@ class EmulatorConfigurationTest {
     assertThat(config?.density).isEqualTo(320)
     assertThat(config?.skinFolder?.toString()?.replace('\\', '/')).isEqualTo("${baseDir}/Android/Sdk/skins/nexus_10")
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isFoldable).isFalse()
-    assertThat(config?.isRollable).isFalse()
     assertThat(config?.isWearOs).isFalse()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.LANDSCAPE)
@@ -107,8 +103,6 @@ class EmulatorConfigurationTest {
     assertThat(config?.density).isEqualTo(240)
     assertThat(config?.skinFolder?.toString()).isEqualTo(FakeEmulator.getSkinFolder("wearos_small_round").toString())
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isFoldable).isFalse()
-    assertThat(config?.isRollable).isFalse()
     assertThat(config?.isWearOs).isTrue()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
@@ -132,18 +126,16 @@ class EmulatorConfigurationTest {
     assertThat(config?.displayWidth).isEqualTo(2208)
     assertThat(config?.displayHeight).isEqualTo(1840)
     assertThat(config?.density).isEqualTo(420)
-    assertThat(config?.skinFolder).isNull()
+    assertThat(config?.skinFolder?.toString()).isEqualTo(FakeEmulator.getSkinFolder("pixel_fold").toString())
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isFoldable).isTrue()
-    assertThat(config?.isRollable).isFalse()
     assertThat(config?.isWearOs).isFalse()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
     assertThat(config?.postures).containsExactly(
-        PostureDescriptor(PostureValue.POSTURE_CLOSED, 0.0, 30.0),
-        PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, 30.0, 150.0),
-        PostureDescriptor(PostureValue.POSTURE_OPENED, 150.0, 180.0))
+        PostureDescriptor(PostureValue.POSTURE_CLOSED, PostureDescriptor.ValueType.HINGE_ANGLE, 0.0, 30.0),
+        PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 30.0, 150.0),
+        PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 150.0, 180.0))
     assertThat(config?.api).isEqualTo(33)
   }
 
@@ -164,16 +156,14 @@ class EmulatorConfigurationTest {
     assertThat(config?.density).isEqualTo(420)
     assertThat(config?.skinFolder).isNull()
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isFoldable).isFalse()
-    assertThat(config?.isRollable).isTrue()
     assertThat(config?.isWearOs).isFalse()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
     assertThat(config?.postures).containsExactly(
-        PostureDescriptor(PostureValue.POSTURE_CLOSED, 58.55, 76.45),
-        PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, 76.45, 94.35),
-        PostureDescriptor(PostureValue.POSTURE_OPENED, 94.35, 100.0))
+        PostureDescriptor(PostureValue.POSTURE_CLOSED, PostureDescriptor.ValueType.ROLL_PERCENTAGE, 58.55, 76.45),
+        PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.ROLL_PERCENTAGE, 76.45, 94.35),
+        PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.ROLL_PERCENTAGE, 94.35, 100.0))
     assertThat(config?.api).isEqualTo(31)
   }
 
@@ -194,16 +184,18 @@ class EmulatorConfigurationTest {
     assertThat(config?.density).isEqualTo(420)
     assertThat(config?.skinFolder).isNull()
     assertThat(config?.hasAudioOutput).isTrue()
-    assertThat(config?.isFoldable).isFalse()
-    assertThat(config?.isRollable).isFalse()
     assertThat(config?.isWearOs).isFalse()
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
-    assertThat(config?.displayModes).containsExactly(DisplayMode(DisplayModeValue.PHONE, 1080, 2340),
-                                                     DisplayMode(DisplayModeValue.FOLDABLE, 1768, 2208),
-                                                     DisplayMode(DisplayModeValue.TABLET, 1920, 1200),
-                                                     DisplayMode(DisplayModeValue.DESKTOP, 1920, 1080))
-    assertThat(config?.postures).isEmpty()
+    assertThat(config?.displayModes).containsExactly(
+        DisplayMode(DisplayModeValue.PHONE, 1080, 2340, false),
+        DisplayMode(DisplayModeValue.FOLDABLE, 1768, 2208, true),
+        DisplayMode(DisplayModeValue.TABLET, 1920, 1200, false),
+        DisplayMode(DisplayModeValue.DESKTOP, 1920, 1080, false))
+    assertThat(config?.postures).containsExactly(
+        PostureDescriptor(PostureValue.POSTURE_CLOSED, PostureDescriptor.ValueType.HINGE_ANGLE, 0.0, 30.0),
+        PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 30.0, 150.0),
+        PostureDescriptor(PostureValue.POSTURE_OPENED, PostureDescriptor.ValueType.HINGE_ANGLE, 150.0, 180.0))
     assertThat(config?.api).isEqualTo(32)
   }
 }

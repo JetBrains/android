@@ -22,7 +22,7 @@ import com.intellij.util.Alarm
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.*
+import javax.swing.JComponent
 
 abstract class PsDaemon protected constructor(protected val parentDisposable: Disposable) : Disposable {
   protected abstract val mainQueue: MergingUpdateQueue

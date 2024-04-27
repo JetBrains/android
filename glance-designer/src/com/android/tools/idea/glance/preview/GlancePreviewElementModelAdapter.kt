@@ -19,71 +19,38 @@ import com.android.SdkConstants
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.DataContextHolder
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementModelAdapter
-import com.android.tools.idea.preview.xml.PreviewXmlBuilder
-import com.intellij.openapi.actionSystem.DataContext
+import com.android.tools.preview.PreviewXmlBuilder
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 
 private const val PREFIX = "GlancePreview"
 private val GLANCE_PREVIEW_ELEMENT_INSTANCE =
-  DataKey.create<MethodPreviewElement>("$PREFIX.PreviewElement")
+  DataKey.create<GlancePreviewElement>("$PREFIX.PreviewElement")
 
 /** [PreviewElementModelAdapter] adapting [GlancePreviewElement] to [NlModel]. */
-abstract class GlancePreviewElementModelAdapter<T : MethodPreviewElement, M : DataContextHolder> :
-  PreviewElementModelAdapter<T, M> {
-  override fun calcAffinity(el1: T, el2: T?): Int {
-    if (el2 == null) return 3
+abstract class GlancePreviewElementModelAdapter<M : DataContextHolder> :
+  MethodPreviewElementModelAdapter<GlancePreviewElement, M>(GLANCE_PREVIEW_ELEMENT_INSTANCE) {
 
-    return when {
-      // These are the same
-      el1 == el2 -> 0
-
-      // The method and display settings are the same
-      el1.methodFqcn == el2.methodFqcn && el1.displaySettings == el2.displaySettings -> 1
-
-      // The name of the @Composable method matches but other settings might be different
-      el1.methodFqcn == el2.methodFqcn -> 2
-
-      // No match
-      else -> 4
-    }
-  }
-
-  override fun applyToConfiguration(previewElement: T, configuration: Configuration) {
+  override fun applyToConfiguration(
+    previewElement: GlancePreviewElement,
+    configuration: Configuration
+  ) {
     configuration.target = configuration.settings.highestApiTarget
   }
-
-  override fun modelToElement(model: M): T? =
-    if (!Disposer.isDisposed(model)) {
-      model.dataContext.getData(GLANCE_PREVIEW_ELEMENT_INSTANCE) as? T
-    } else null
-
-  /**
-   * Creates a [DataContext] that is when assigned to [NlModel] can be retrieved with
-   * [modelToElement] call against that model.
-   */
-  override fun createDataContext(previewElement: T) = DataContext { dataId ->
-    when (dataId) {
-      GLANCE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
-      else -> null
-    }
-  }
-
-  override fun toLogString(previewElement: T) = "displayName=${previewElement.displaySettings.name}"
 }
 
 internal const val APP_WIDGET_VIEW_ADAPTER =
   "androidx.glance.appwidget.preview.GlanceAppWidgetViewAdapter"
 
-object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<GlancePreviewElement, NlModel>() {
+object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<NlModel>() {
   override fun toXml(previewElement: GlancePreviewElement) =
     PreviewXmlBuilder(APP_WIDGET_VIEW_ADAPTER)
       .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, "wrap_content")
       .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, "wrap_content")
-      .toolsAttribute("composableName", previewElement.methodFqcn)
+      .toolsAttribute("composableName", previewElement.methodFqn)
       .buildString()
 
   override fun createLightVirtualFile(
@@ -97,12 +64,12 @@ object AppWidgetModelAdapter : GlancePreviewElementModelAdapter<GlancePreviewEle
 internal const val WEAR_TILE_VIEW_ADAPTER =
   "androidx.glance.wear.tiles.preview.GlanceTileServiceViewAdapter"
 
-object WearTilesModelAdapter : GlancePreviewElementModelAdapter<GlancePreviewElement, NlModel>() {
+object WearTilesModelAdapter : GlancePreviewElementModelAdapter<NlModel>() {
   override fun toXml(previewElement: GlancePreviewElement) =
     PreviewXmlBuilder(WEAR_TILE_VIEW_ADAPTER)
       .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, "wrap_content")
       .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, "wrap_content")
-      .toolsAttribute("composableName", previewElement.methodFqcn)
+      .toolsAttribute("composableName", previewElement.methodFqn)
       .buildString()
 
   override fun createLightVirtualFile(

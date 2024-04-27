@@ -93,12 +93,14 @@ class ResourceExplorer private constructor(
         facet,
         resourceExplorerViewModel.supportedResourceTypes[resourceExplorerViewModel.resourceTypeIndex],
         importersProvider,
-        resourceExplorerViewModel.filterOptions)
+        resourceExplorerViewModel.filterOptions
+      )
       val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
       val toolbar = ResourceExplorerToolbar.create(toolbarViewModel, moduleComboEnabled = true)
       val resourceExplorerView = ResourceExplorerView(
         viewModel = resourceExplorerViewModel,
-        resourceImportDragTarget = resourceImportDragTarget)
+        resourceImportDragTarget = resourceImportDragTarget
+      )
       return ResourceExplorer(
         facet,
         resourceExplorerViewModel,
@@ -121,39 +123,44 @@ class ResourceExplorer private constructor(
       showThemeAttributes: Boolean,
       currentFile: VirtualFile?,
       updateResourceCallback: (resourceItem: ResourceItem) -> Unit,
-      doSelectResourceCallback: (resourceItem: ResourceItem) -> Unit): ResourceExplorer {
+      doSelectResourceCallback: (resourceItem: ResourceItem) -> Unit
+    ): ResourceExplorer {
       val importersProvider = ImportersProvider()
-      val resourceExplorerViewModel = ResourceExplorerViewModel.createResPickerViewModel(facet,
-                                                                                         currentFile,
-                                                                                         preferredResourceType ?: types.first(),
-                                                                                         types,
-                                                                                         showSampleData,
-                                                                                         showThemeAttributes,
-                                                                                         { asset ->
-                                                                                           doSelectResourceCallback(asset.resourceItem)
-                                                                                         },
-                                                                                         updateResourceCallback)
+      val resourceExplorerViewModel = ResourceExplorerViewModel.createResPickerViewModel(
+        facet = facet,
+        configurationContextFile = currentFile,
+        preferredResourceTab = preferredResourceType ?: types.first(),
+        supportedResourceTypes = types,
+        showSampleData = showSampleData,
+        showThemeAttributes = showThemeAttributes,
+        selectAssetAction = { asset -> doSelectResourceCallback(asset.resourceItem) },
+        updateResourceCallback = updateResourceCallback
+      )
       val toolbarViewModel = ResourceExplorerToolbarViewModel(
         facet,
         resourceExplorerViewModel.supportedResourceTypes[resourceExplorerViewModel.resourceTypeIndex],
         importersProvider,
-        resourceExplorerViewModel.filterOptions)
+        resourceExplorerViewModel.filterOptions
+      )
       val resourceImportDragTarget = ResourceImportDragTarget(facet, importersProvider)
       val toolbar = ResourceExplorerToolbar.create(toolbarViewModel, moduleComboEnabled = false)
-      val resourceExplorerView = ResourceExplorerView(viewModel = resourceExplorerViewModel,
-                                                      preselectedResourceName = preselectedResourceName,
-                                                      resourceImportDragTarget = resourceImportDragTarget,
-                                                      withMultiModuleSearch = false,
-                                                      withSummaryView = true,
-                                                      withDetailView = false,
-                                                      multiSelection = false)
+      val resourceExplorerView = ResourceExplorerView(
+        viewModel = resourceExplorerViewModel,
+        preselectedResourceName = preselectedResourceName,
+        resourceImportDragTarget = resourceImportDragTarget,
+        withMultiModuleSearch = false,
+        withSummaryView = true,
+        withDetailView = false,
+        multiSelection = false
+      )
       val explorer = ResourceExplorer(
-        facet,
-        resourceExplorerViewModel,
-        resourceExplorerView,
-        toolbarViewModel,
-        toolbar,
-        resourceImportDragTarget)
+        facet = facet,
+        resourceExplorerViewModel = resourceExplorerViewModel,
+        resourceExplorerView = resourceExplorerView,
+        toolbarViewModel = toolbarViewModel,
+        toolbar = toolbar,
+        resourceImportDragTarget = resourceImportDragTarget
+      )
       explorer.preferredSize = DIALOG_PREFERRED_SIZE
       return explorer
     }

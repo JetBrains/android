@@ -20,6 +20,10 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.google.api.client.auth.oauth2.TokenResponseException
+import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.google.api.client.http.HttpHeaders
+import com.google.api.client.http.HttpResponseException
 import com.google.common.truth.Truth.assertThat
 import java.io.IOException
 import kotlinx.coroutines.runBlocking
@@ -69,6 +73,23 @@ class RunGrpcCatchingTest {
       val ready = LoadingState.Ready("hello")
       val result = runGrpcCatching(ready) { throw mock<TokenResponseException>() }
       assertThat(result).isInstanceOf(LoadingState.Unauthorized::class.java)
+    }
+
+  @Test
+  fun `runGrpcCatching when block throws GoogleJsonResponseException should return ServerFailure`() =
+    runBlocking {
+      val ready = LoadingState.Ready("hello")
+      val httpResponseExceptionBuilder =
+        HttpResponseException.Builder(400, "Bad Request", HttpHeaders())
+      val jsonError =
+        GoogleJsonError().apply {
+          set("status", "not found")
+          message = "resource is not found"
+        }
+      val exception = GoogleJsonResponseException(httpResponseExceptionBuilder, jsonError)
+      val result = runGrpcCatching(ready) { throw exception }
+      assertThat(result)
+        .isEqualTo(LoadingState.ServerFailure("not found: resource is not found", exception))
     }
 
   @Test

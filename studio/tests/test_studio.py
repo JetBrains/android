@@ -1,4 +1,4 @@
-import io
+import xml.etree.ElementTree as ET
 import os
 import re
 import unittest
@@ -41,6 +41,45 @@ class StudioTests(unittest.TestCase):
       self.assertEqual(i, len(expected[platform]), "Expected item did not appear")
       self.assertEqual(i, len(actual[platform]), "Unexpected item")
 
+  def test_version_metadata(self):
+    # Parse version metadata.
+    with zipfile.ZipFile(f"tools/adt/idea/studio/android-studio.linux.zip", "r") as distro:
+      build_txt = distro.read("android-studio/build.txt").decode("utf-8")
+      with zipfile.ZipFile(distro.open("android-studio/lib/resources.jar")) as jar:
+        app_xml = ET.parse(jar.open("idea/AndroidStudioApplicationInfo.xml"))
+      with zipfile.ZipFile(distro.open("android-studio/plugins/android/lib/android.jar")) as jar:
+        android_plugin_xml = ET.parse(jar.open("META-INF/plugin.xml"))
+      with zipfile.ZipFile(distro.open("android-studio/plugins/Kotlin/lib/kotlin-plugin.jar")) as jar:
+        kotlin_plugin_xml = ET.parse(jar.open("META-INF/plugin.xml"))
+
+    # The build number should have 5 components and it should match build.txt.
+    namespace = "http://jetbrains.org/intellij/schema/application-info"
+    (build,) = app_xml.findall(f"./{{{namespace}}}build")
+    build_number = build.get("number") or self.fail("build number not found")
+    self.assertRegex(build_number, r"AI-\d+\.\d+\.\d+\.\d+\.(\d+|SNAPSHOT)")
+    self.assertEqual(build_number, build_txt, "Build number does not match build.txt")
+
+    # The version suffix should be specified, otherwise ApplicationInfoImpl uses a default for EAPs.
+    (version,) = app_xml.findall(f"./{{{namespace}}}version")
+    version_suffix = version.get("suffix")
+    self.assertEqual(version_suffix, "", "Unexpected version suffix")
+
+    # The API version (for plugin compatibility) should be a 3-component IntelliJ build number.
+    api_version = build.get("apiVersion") or self.fail("apiVersion not found")
+    self.assertRegex(api_version, r"\d+\.\d+\.\d+")
+
+    # Bundled Android plugins should have a version and compatibility range matching the IDE.
+    (android_plugin_version,) = android_plugin_xml.findall("./version")
+    self.assertEqual(android_plugin_version.text, build_number.removeprefix("AI-"))
+    (android_plugin_compat,) = android_plugin_xml.findall("idea-version")
+    self.assertEqual(android_plugin_compat.get("since-build"), api_version)
+    self.assertEqual(android_plugin_compat.get("until-build"), api_version)
+
+    # Bundled platform plugins should have a compatibility range matching the IDE.
+    (kotlin_plugin_compat,) = kotlin_plugin_xml.findall("idea-version")
+    self.assertEqual(kotlin_plugin_compat.get("since-build"), api_version)
+    self.assertTrue(kotlin_plugin_compat.get("until-build").startswith(api_version))
+
   def test_mac_contents_clean(self):
     name = "tools/adt/idea/studio/android-studio.mac.zip"
     file = zipfile.ZipFile(name)
@@ -57,7 +96,6 @@ class StudioTests(unittest.TestCase):
           self.assertFalse(f.filename.endswith("/BUILD") or f.filename.endswith("/BUILD.bazel"),
                            "Unexpected BUILD file in zip " + name + ": " + f.filename)
 
-  @unittest.skip("b/243077361")
   def test_game_tools_artifacts_are_present(self):
     all_required = [
         "plugins/android/lib/game-tools.jar",
@@ -156,27 +194,6 @@ class StudioTests(unittest.TestCase):
         for f in file.infolist():
           if f.external_attr & 0x1800000 != 0x1800000:
             self.fail("Found file without full read/write permissions: %s %x" % (f.filename, f.external_attr))
-
-  def test_kotlin_plugin_not_duplicated(self):
-    # Motive: bundling the Kotlin plugin is handled specially in BaseIdeaProperties.groovy
-    name = "tools/adt/idea/studio/android-studio.mac.zip"
-    with zipfile.ZipFile(name) as mac_zip:
-      kotlin_plugin_count = sum(name.endswith("kotlin-plugin.jar") for name in mac_zip.namelist())
-      self.assertEqual(kotlin_plugin_count, 1)
-
-  def test_android_plugin_version(self):
-    # Motive: we used to have a custom stamping, let's make sure it's not there anymore.
-    name = "tools/adt/idea/studio/android-studio.linux.zip"
-    with zipfile.ZipFile(name, "r") as linux_zip:
-      android_jar = linux_zip.read("android-studio/plugins/android/lib/android.jar")
-      build_txt = linux_zip.read("android-studio/build.txt").decode("utf-8")
-      version = build_txt[3:] # remove AI-
-      with zipfile.ZipFile(io.BytesIO(android_jar), "r") as jar:
-        xml = jar.read("META-INF/plugin.xml")
-        m = re.search("<version>(.*)</version>", xml.decode("utf-8"))
-        if not m:
-          self.fail("Android's plugin.xml does not contain a version tag")
-        self.assertEquals(version, m.group(1))
 
 if __name__ == "__main__":
   unittest.main()

@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.ui.GuiTestingService.isInTestingMode;
+import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.AgpVersion;
@@ -31,7 +32,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.system.CpuArch;
 import java.io.File;
 import java.io.IOException;
@@ -117,31 +117,17 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   public File findEmbeddedProfilerTransform() {
-    final String path = "plugins/android/resources/profilers-transform.jar";
-    if (StudioPathManager.isRunningFromSources()) {
+    if (StudioPathManager.isRunningFromSources() && IdeInfo.getInstance().isAndroidStudio()) {
       // Development build
       return StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/profiler/transform/profilers-transform.jar").toFile();
     } else {
+      final String path = "plugins/android/resources/profilers-transform.jar";
       @Nullable File file = getOptionalIjPath(path);
       if (file != null && file.exists()) {
         return file;
       }
       return new File(PathManager.getHomePath(), path);
     }
-  }
-
-  public String findEmbeddedInstaller() {
-    final String path = "plugins/android/resources/installer";
-    if (StudioPathManager.isRunningFromSources() && IdeInfo.getInstance().isAndroidStudio()) {
-      // Development mode
-      return StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer").toAbsolutePath().toString();
-    } else {
-      File file = getOptionalIjPath(path);
-      if (file != null && file.exists()) {
-        return file.getAbsolutePath();
-      }
-    }
-    return new File(PathManager.getHomePath(), path).getAbsolutePath();
   }
 
   @Nullable
@@ -197,6 +183,22 @@ public class EmbeddedDistributionPaths {
     catch (Throwable t) {
       Logger.getInstance(EmbeddedDistributionPaths.class).warn("Failed to find a valid embedded JDK", t);
       return null;
+    }
+  }
+
+  public String findEmbeddedInstaller() {
+    if (StudioPathManager.isRunningFromSources() && IdeInfo.getInstance().isAndroidStudio()) {
+      // Development mode
+      return StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer")
+        .toString();
+    }
+    else {
+      String pathString = "plugins/android/resources/installer";
+      File file = getOptionalIjPath(pathString);
+      if (file != null && file.exists()) {
+        return file.getAbsolutePath();
+      }
+      return new File(PathManager.getHomePath(), pathString).getAbsolutePath();
     }
   }
 
@@ -272,6 +274,6 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   private static String getIdeHomePath() {
-    return FileUtilRt.toSystemDependentName(PathManager.getHomePath());
+    return toSystemDependentName(PathManager.getHomePath());
   }
 }

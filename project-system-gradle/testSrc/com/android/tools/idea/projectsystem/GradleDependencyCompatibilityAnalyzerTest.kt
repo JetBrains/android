@@ -330,6 +330,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(foundDependency.lowerBoundVersion!!.major).isEqualTo(23)
 
     // TODO: b/129297171
+    @Suppress("ConstantConditionIf")
     if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
       // When we were checking the parsed gradle file we were able to detect a specified "+" in the version.
       assertThat(foundDependency.acceptsGreaterRevisions()).isTrue()

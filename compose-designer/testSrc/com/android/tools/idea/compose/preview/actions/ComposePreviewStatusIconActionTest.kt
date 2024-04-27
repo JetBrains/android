@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.ide.common.rendering.api.Result
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
@@ -47,6 +48,7 @@ class ComposePreviewStatusIconActionTest {
     MapDataContext().also {
       it.put(COMPOSE_PREVIEW_MANAGER, composePreviewManager)
       it.put(CommonDataKeys.PROJECT, projectRule.project)
+      it.put(SCENE_VIEW, sceneViewMock)
     }
   }
 
@@ -57,7 +59,6 @@ class ComposePreviewStatusIconActionTest {
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
-      interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
     )
 
   private val tf = listOf(true, false)
@@ -70,6 +71,7 @@ class ComposePreviewStatusIconActionTest {
   private val renderLoggerMock = Mockito.mock(RenderLogger::class.java)
   private val resultMock = Mockito.mock(Result::class.java)
   private var renderError = false
+
   init {
     Mockito.`when`(sceneViewMock.sceneManager).then {
       return@then sceneManagerMock
@@ -82,6 +84,9 @@ class ComposePreviewStatusIconActionTest {
     }
     Mockito.`when`(renderLoggerMock.hasErrors()).then {
       return@then renderError
+    }
+    Mockito.`when`(resultMock.isSuccess).then {
+      return@then !renderError
     }
     Mockito.`when`(renderResultMock.renderResult).then {
       return@then resultMock
@@ -96,7 +101,7 @@ class ComposePreviewStatusIconActionTest {
 
   @Test
   fun testIconState() {
-    val action = ComposePreviewStatusIconAction(sceneViewMock)
+    val action = ComposePreviewStatusIconAction()
     val event = TestActionEvent.createTestEvent(context)
 
     // Syntax error has priority over the other properties
@@ -108,17 +113,34 @@ class ComposePreviewStatusIconActionTest {
               for (fastPreviewDisableReason in fastPreviewDisableReasons) {
                 updateFastPreviewStatus(fastPreviewDisableReason)
                 this.renderError = renderError
-                composePreviewManager.currentStatus =
+                val status =
                   originStatus.copy(
                     hasRuntimeErrors = runtimeError,
                     hasSyntaxErrors = syntaxError,
                     isOutOfDate = outOfDate,
                     isRefreshing = refreshing
                   )
+                composePreviewManager.currentStatus = status
                 action.update(event)
                 val expectedToShowIcon = renderError && !refreshing
-                assertEquals(expectedToShowIcon, event.presentation.isEnabled)
-                assertEquals(expectedToShowIcon, event.presentation.isVisible)
+                assertEquals(
+                  """
+                    isEnabled has the wrong state (expected=$expectedToShowIcon, was=${event.presentation.isEnabled})
+                    status=$status
+                  """
+                    .trimIndent(),
+                  expectedToShowIcon,
+                  event.presentation.isEnabled
+                )
+                assertEquals(
+                  """
+                    isVisible has the wrong state (expected=$expectedToShowIcon, was=${event.presentation.isEnabled})
+                    status=$status
+                  """
+                    .trimIndent(),
+                  expectedToShowIcon,
+                  event.presentation.isVisible
+                )
                 if (expectedToShowIcon) {
                   assertEquals(StudioIcons.Common.WARNING, event.presentation.icon)
                 }

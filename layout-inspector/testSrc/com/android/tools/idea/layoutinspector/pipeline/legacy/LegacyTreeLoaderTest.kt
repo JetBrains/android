@@ -25,7 +25,7 @@ import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
@@ -44,9 +44,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatcher
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyBoolean
-import org.mockito.Mockito.eq
 import org.mockito.Mockito.verify
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream

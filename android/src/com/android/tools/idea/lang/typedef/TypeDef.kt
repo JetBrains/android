@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.typedef
 
-import com.android.tools.lint.checks.getFqName
 import com.intellij.codeInsight.completion.PrioritizedLookupElement
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
@@ -24,6 +23,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiNamedElement
+import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtProperty
@@ -70,19 +70,18 @@ internal data class TypeDef(val annotation: PsiElement, val values: List<PsiElem
   }
 
   /**
-   * Returns a decorated and prioritized (via wrapping with [PrioritizedLookupElement]) version of
-   * the given [LookupElement], or `null` if it does not correspond to a value of this [TypeDef] or
-   * required information is missing.
+   * Returns a decorated version of the given [LookupElement], or [delegate] if it does not correspond
+   * to a value of this [TypeDef] or required information is missing.
    */
-  fun decorateAndPrioritize(delegate: LookupElement): LookupElement? {
+  fun maybeDecorateAndPrioritize(delegate: LookupElement): LookupElement {
     val completionElement = delegate.psiElement?.navigationElement
-    if (completionElement !is PsiNamedElement || completionElement !in valuesSet) return null
-    val fqName = completionElement.getFqName() ?: return null
-    val annotationName = getName() ?: return null
-    val lookupStrings = completionElement.getLookupStrings() ?: return null
+    if (completionElement !is PsiNamedElement || completionElement !in valuesSet) return delegate
+    val fqName = completionElement.kotlinFqName?.asString() ?: return delegate
+    val annotationName = getName() ?: return delegate
+    val lookupStrings = completionElement.getLookupStrings() ?: return delegate
     val icon = completionElement.getIcon(/* flags= */ 0)
-    val decorated = TypeDefLookupElementDecorator(delegate, fqName, annotationName, lookupStrings, icon)
-    return PrioritizedLookupElement.withPriority(decorated, HIGH_PRIORITY)
+    val element = TypeDefLookupElementDecorator(delegate, fqName, annotationName, lookupStrings, icon)
+    return PrioritizedLookupElement.withPriority(element, HIGH_PRIORITY)
   }
 
   private class TypeDefLookupElementDecorator(

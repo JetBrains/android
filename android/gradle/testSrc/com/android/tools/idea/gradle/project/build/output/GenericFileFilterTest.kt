@@ -31,7 +31,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import kotlin.random.Random
 
@@ -43,7 +43,7 @@ class GenericFileFilterTest {
 
   @Before
   fun setUp() {
-    whenever(localFileSystem.findFileByPathIfCached(ArgumentMatchers.anyString())).thenAnswer { invocation ->
+    whenever(localFileSystem.findFileByPathIfCached(Mockito.anyString())).thenAnswer { invocation ->
       val pathString = invocation.arguments.single() as String
       mock(VirtualFile::class.java).apply {
         whenever(this.path).thenReturn(pathString)
@@ -319,7 +319,7 @@ class GenericFileFilterTest {
     var previousInputStartIndex = 0
     val results = mutableListOf<Filter.Result?>()
 
-    whenever(localFileSystem.findFileByPathIfCached(ArgumentMatchers.argThat {arg ->
+    whenever(localFileSystem.findFileByPathIfCached(Mockito.argThat {arg ->
       !validPaths.any {
         arg == it || it.startsWith("$arg/") || it.startsWith("$arg\\")
       }

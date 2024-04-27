@@ -20,7 +20,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
-import kotlinx.coroutines.flow.Flow
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -204,8 +203,8 @@ fun setupOnSaveListener(
  * Returns a new flow that gets all the document changes for the given [psiFile]. The flow is cancelled if the [parentDisposable] is disposed.
  * [onReady] will be called when the flow is ready to start processing events from the document.
  */
-fun documentChangeFlow(psiFile: PsiFile, parentDisposable: Disposable, log: Logger? = null, onReady: () -> Unit = {}): Flow<Long> =
-  disposableCallbackFlow("ChangeListenerFlow", log, parentDisposable) {
+fun documentChangeFlow(psiFile: PsiFile, parentDisposable: Disposable, log: Logger? = null, onReady: () -> Unit = {}) =
+  disposableCallbackFlow<Long>("ChangeListenerFlow", log, parentDisposable) {
     val documentManager = PsiDocumentManager.getInstance(psiFile.project)
     val document = ReadAction.compute<Document, Throwable> { documentManager.getDocument(psiFile)!! }
     document.addDocumentListener(

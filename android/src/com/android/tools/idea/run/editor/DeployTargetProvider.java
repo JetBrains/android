@@ -35,10 +35,14 @@ public abstract class DeployTargetProvider {
   @NotNull
   public static List<DeployTargetProvider> getProviders() {
     if (ourTargets == null) {
-      ourTargets = Arrays.asList(EP_NAME.getExtensions());
+      ourTargets = Arrays.stream(EP_NAME.getExtensions()).filter(DeployTargetProvider::isEnabled).toList();
     }
 
     return ourTargets;
+  }
+
+  public boolean isEnabled() {
+    return true;
   }
 
   @NotNull

@@ -1,0 +1,4 @@
+These are part of a random sampling of documentation files from developer.android.com
+They were downloaded in November 2023 and specific items chosen to exercise various
+aspects of the AndroidJavaDocExternalFilter code. Certain unnecessary parts of the file
+were removed to limit file size.

@@ -207,6 +207,11 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
       isOpaque = false
     }
 
+    override fun setVisible(isVisible: Boolean) {
+      super.setVisible(isVisible)
+      isOpaque = isVisible
+    }
+
     override fun getUnitIncrement(direction: Int): Int = 5
 
     override fun getBlockIncrement(direction: Int): Int = 1

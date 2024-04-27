@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidProject
 import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter
-import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionOutputLinkFilter
 import com.android.tools.idea.gradle.project.build.attribution.buildOutputLine
@@ -36,7 +35,8 @@ import com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA
 import com.android.tools.idea.gradle.util.BuildMode.REBUILD
 import com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN
 import com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME
-import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.gradle.buildRootDir
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.google.common.annotations.VisibleForTesting
@@ -54,6 +54,8 @@ import com.intellij.build.events.impl.SkippedResultImpl
 import com.intellij.build.events.impl.StartBuildEventImpl
 import com.intellij.build.events.impl.SuccessResultImpl
 import com.intellij.icons.AllIcons
+import com.intellij.ide.SaveAndSyncHandler
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -61,6 +63,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.compiler.CompilerPaths
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent
@@ -75,7 +78,15 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileSystemUtil
+import com.intellij.openapi.util.io.FileUtilRt
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.newvfs.RefreshQueue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import com.intellij.serviceContainer.NonInjectable
+import com.intellij.util.PathUtil
 import com.intellij.xdebugger.XDebugSession
 import org.gradle.tooling.BuildAction
 import org.jetbrains.annotations.TestOnly
@@ -190,7 +201,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
    * Execute Gradle tasks that compile the relevant Java sources.
    *
    * @param modules         Modules that need to be compiled
-   * @param testCompileType Kind of tests that the caller is interested in. Use {@link TestCompileType#ALL} if compiling just the
+   * @param testCompileType Kind of tests that the caller is interested in. Use {@link TestCompileType#NONE} if compiling just the
    *                        main sources, {@link TestCompileType#UNIT_TESTS} if class files for running unit tests are needed.
    */
   override fun compileJava(modules: Array<Module>, testCompileType: TestCompileType): ListenableFuture<GradleMultiInvocationResult> {
@@ -203,10 +214,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
   }
 
   override fun assemble(testCompileType: TestCompileType): ListenableFuture<AssembleInvocationResult> {
-    val modules = ProjectStructure.getInstance(project).leafHolderModules.toTypedArray().takeUnless { it.isEmpty() }
-      // If there is no Android modules an invocation of `assemble` below  will still fail but provide a notification to the user.
-      ?: ModuleManager.getInstance(project).modules
-    return assemble(modules, testCompileType)
+    return assemble(ModuleManager.getInstance(project).modules, testCompileType)
   }
 
   override fun assemble(modules: Array<Module>, testCompileType: TestCompileType): ListenableFuture<AssembleInvocationResult> {
@@ -241,7 +249,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     val buildMode = REBUILD
     val moduleManager: ModuleManager = ModuleManager.getInstance(project)
     val tasks: ListMultimap<Path, String> =
-      GradleTaskFinder.getInstance().findTasksToExecute(moduleManager.modules, buildMode, TestCompileType.NONE)
+      GradleTaskFinder.getInstance().findTasksToExecute(moduleManager.modules, buildMode, TestCompileType.ALL)
     return combineGradleInvocationResults(
       tasks.keySet()
         .map { rootPath -> executeTasks(buildMode, rootPath.toFile(), tasks.get(rootPath)) }
@@ -391,7 +399,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     return true
   }
 
-  private inner class MyListener(
+  private inner class MyListener constructor(
     private val buildEventDispatcher: BuildEventDispatcher,
     private val request: GradleBuildInvoker.Request,
     private val buildViewManager: BuildViewManager,
@@ -466,6 +474,8 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     }
 
     override fun onEnd(id: ExternalSystemTaskId) {
+      refreshRelevantGradleOutputs()
+
       val eventDispatcherFinished = CountDownLatch(1)
       buildEventDispatcher.invokeOnCompletion {
         if (buildFailed) {
@@ -486,6 +496,57 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
         }
       }
       super.onEnd(id)
+    }
+
+    private fun refreshRelevantGradleOutputs() {
+      // Schedule refresh to detect changes to e.g. generated sources by Gradle build
+      SaveAndSyncHandler.getInstance().scheduleRefresh()
+
+      // Schedule refresh of all compiler outputs (javac/kotlinc/R.jar outputs) when VFS is out of sync with the file system
+      val allOutputs = CachedValuesManager.getManager(project).getCachedValue(
+        project,
+        CachedValueProvider {
+          CachedValueProvider.Result(
+            CompilerPaths.getOutputPaths(ModuleManager.getInstance(project).modules),
+            ProjectSyncModificationTracker.getInstance(project)
+          )
+        }
+      )
+      val fs = LocalFileSystem.getInstance();
+      val toRefresh = mutableSetOf<VirtualFile>()
+
+      for (outputRoot in allOutputs) {
+        val attributes = FileSystemUtil.getAttributes(FileUtilRt.toSystemDependentName(outputRoot));
+        val vFile = fs.findFileByPath(outputRoot)
+
+        if (vFile == null) {
+          if (attributes == null) {
+            // do nothing - the file does not exist and it is not in VFS
+          } else {
+            // Output exists, but it is not in VFS. We'll refresh its parent.
+            val parent = fs.refreshAndFindFileByPath(PathUtil.getParentPath(outputRoot));
+            if (parent != null && toRefresh.add(parent)) {
+              @Suppress("UnusedVariable")
+              val unused = parent.getChildren();
+            }
+          }
+        }
+        else {
+          if (attributes == null) {
+            // file does not exist, but it is in VFS
+            toRefresh.add(vFile);
+          }
+          else if (attributes.isDirectory() != vFile.isDirectory()) {
+            // Refresh as file became a directory, or vice versa
+            toRefresh.add(vFile);
+          }
+        }
+      }
+
+      if (!toRefresh.isEmpty()) {
+        val asynchronous = !ApplicationManager.getApplication().isUnitTestMode
+        RefreshQueue.getInstance().refresh(asynchronous, false, null, toRefresh);
+      }
     }
 
     override fun onSuccess(id: ExternalSystemTaskId) {
@@ -518,7 +579,10 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       if (startBuildEventPosted) {
         val title = "$executionName failed"
         val dataContext: DataContext = BuildConsoleUtils.getDataContext(id, buildViewManager)
-        val failureResult: FailureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, project, dataContext)
+        val failureResult: FailureResult = ExternalSystemUtil.createFailureResult(
+          title, e,
+          GRADLE_SYSTEM_ID, project, request.rootProjectPath.absolutePath, dataContext
+        )
         buildEventDispatcher.onEvent(id, FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult))
       }
       super.onFailure(id, e)
@@ -534,11 +598,13 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     }
   }
 
-  private inner class RestartAction(private val myRequest: GradleBuildInvoker.Request) : AnAction() {
+  private inner class RestartAction constructor(private val myRequest: GradleBuildInvoker.Request) : AnAction() {
 
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = !buildStopper.contains(myRequest.taskId)
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
       val newRequest: GradleBuildInvoker.Request = GradleBuildInvoker.Request.copyRequest(myRequest)
@@ -550,10 +616,12 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     }
   }
 
-  private inner class StopAction(private val myRequest: GradleBuildInvoker.Request) : AnAction() {
+  private inner class StopAction constructor(private val myRequest: GradleBuildInvoker.Request) : AnAction() {
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = buildStopper.contains(myRequest.taskId)
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
       buildStopper.attemptToStopBuild(myRequest.taskId, null)

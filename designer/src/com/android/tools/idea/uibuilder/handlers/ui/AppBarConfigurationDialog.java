@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.ui;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME;
+import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.AndroidXConstants.APP_BAR_LAYOUT;
+import static com.android.SdkConstants.APP_PREFIX;
+import static com.android.SdkConstants.AUTO_URI;
 import static com.android.AndroidXConstants.CLASS_NESTED_SCROLL_VIEW;
 import static com.android.AndroidXConstants.COORDINATOR_LAYOUT;
 import static com.android.AndroidXConstants.FLOATING_ACTION_BUTTON;
-import static com.android.SdkConstants.ANDROID_NS_NAME;
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.APP_PREFIX;
-import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.TOOLS_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.XMLNS_PREFIX;
-import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationUtilKt.formatNamespaces;
 
 import com.android.annotations.concurrency.WorkerThread;
@@ -39,13 +38,14 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.rendering.StudioRenderService;
+import com.android.tools.idea.rendering.RenderServiceUtilsKt;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;
+import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.rendering.imagepool.ImagePool;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -119,7 +119,7 @@ public class AppBarConfigurationDialog extends JDialog {
   private final NlModel myModel;
   private final Disposable myDisposable;
   private final JBLoadingPanel myLoadingPanel;
-  private final boolean myUserAndroidxDependency;
+  private final boolean myUseAndroidxDependency;
   private JPanel myContentPane;
   private JButton myButtonOK;
   private JButton myButtonCancel;
@@ -150,7 +150,7 @@ public class AppBarConfigurationDialog extends JDialog {
 
   public AppBarConfigurationDialog(@NotNull NlModel model, boolean useAndroidxDependency) {
     myModel = model;
-    myUserAndroidxDependency = useAndroidxDependency;
+    myUseAndroidxDependency = useAndroidxDependency;
     myDisposable = Disposer.newDisposable();
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myDisposable, 20);
     myLoadingPanel.add(myContentPane);
@@ -263,7 +263,7 @@ public class AppBarConfigurationDialog extends JDialog {
 
     Module module = myModel.getModule();
 
-    GoogleMavenArtifactId artifact = myUserAndroidxDependency ?
+    GoogleMavenArtifactId artifact = myUseAndroidxDependency ?
                                      GoogleMavenArtifactId.ANDROIDX_DESIGN :
                                      GoogleMavenArtifactId.DESIGN;
     boolean designAdded = DependencyManagementUtil
@@ -362,7 +362,9 @@ public class AppBarConfigurationDialog extends JDialog {
   private XmlFile generateXml(boolean collapsed) {
     DumbService.getInstance(getProject()).waitForSmartMode();
     StringBuilder text = new StringBuilder(SAMPLE_REPETITION * SAMPLE_TEXT.length());
-    text.append(SAMPLE_TEXT.repeat(SAMPLE_REPETITION));
+    for (int i = 0; i < SAMPLE_REPETITION; i++) {
+      text.append(SAMPLE_TEXT);
+    }
     Map<String, String> namespaces = getNameSpaces(null, collapsed);
     String content = Templates.getTextView(namespaces.get(ANDROID_URI), text.toString());
     String xml = getXml(content, collapsed, namespaces);
@@ -596,7 +598,7 @@ public class AppBarConfigurationDialog extends JDialog {
   private CompletableFuture<BufferedImage> renderImage(@NotNull XmlFile xmlFile) {
     AndroidFacet facet = myModel.getFacet();
     RenderService renderService = StudioRenderService.getInstance(getProject());
-    final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, facet, myModel.getConfiguration())
+    final CompletableFuture<RenderTask> taskFuture = RenderServiceUtilsKt.taskBuilderWithHtmlLogger(renderService, facet, myModel.getConfiguration())
       .withPsiFile(new PsiXmlFile(xmlFile))
       .build();
     return taskFuture.thenCompose(task -> {

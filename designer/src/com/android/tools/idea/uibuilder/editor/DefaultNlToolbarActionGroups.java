@@ -16,8 +16,10 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.actions.SetColorBlindModeAction;
+import com.android.tools.idea.actions.ColorBlindModeAction;
+import com.android.tools.idea.actions.DeviceMenuAction;
 import com.android.tools.idea.actions.SetScreenViewProviderAction;
+import com.android.tools.idea.actions.SystemUiModeAction;
 import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.common.actions.NextDeviceAction;
 import com.android.tools.idea.common.actions.RefreshRenderAction;
@@ -26,14 +28,10 @@ import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.DeviceMenuAction;
-import com.android.tools.idea.configurations.LocaleMenuAction;
-import com.android.tools.idea.configurations.NightModeMenuAction;
-import com.android.tools.idea.configurations.OrientationMenuAction;
-import com.android.tools.idea.configurations.SystemUiModeAction;
-import com.android.tools.idea.configurations.TargetMenuAction;
-import com.android.tools.idea.configurations.ThemeMenuAction;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.actions.LocaleMenuAction;
+import com.android.tools.idea.actions.OrientationMenuAction;
+import com.android.tools.idea.actions.TargetMenuAction;
+import com.android.tools.idea.actions.ThemeMenuAction;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.android.tools.idea.ui.designer.overlays.OverlayMenuAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
@@ -41,7 +39,6 @@ import com.android.tools.idea.uibuilder.actions.LayoutQualifierDropdownMenu;
 import com.android.tools.idea.uibuilder.actions.SwitchToNextScreenViewProviderAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -103,40 +100,31 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(designModeAction);
     group.addSeparator();
 
-    OrientationMenuAction orientationMenuAction = new OrientationMenuAction(mySurface::getConfiguration, true);
+    OrientationMenuAction orientationMenuAction = new OrientationMenuAction(true);
     appendShortcutText(orientationMenuAction, ToggleDeviceOrientationAction.getInstance());
     group.add(orientationMenuAction);
 
-    if (StudioFlags.NELE_OVERLAY_PROVIDER.get()
-        && OverlayConfiguration.EP_NAME.hasAnyExtensions()) {
+    if (OverlayConfiguration.EP_NAME.hasAnyExtensions()) {
       group.addSeparator();
       OverlayMenuAction overlayAction = new OverlayMenuAction(mySurface.getOverlayConfiguration(), mySurface::repaint);
       group.add(overlayAction);
     }
 
     group.addSeparator();
-    if (StudioFlags.NELE_DYNAMIC_THEMING_ACTION.get()) {
-      SystemUiModeAction systemUiModeAction = new SystemUiModeAction(mySurface::getConfiguration);
-      appendShortcutText(systemUiModeAction, ToggleDeviceNightModeAction.getInstance());
-      group.add(systemUiModeAction);
-    }
-    else {
-      NightModeMenuAction nightModeAction = new NightModeMenuAction(mySurface::getConfiguration);
-      appendShortcutText(nightModeAction, ToggleDeviceNightModeAction.getInstance());
-      group.add(nightModeAction);
-    }
+    SystemUiModeAction systemUiModeAction = new SystemUiModeAction();
+    appendShortcutText(systemUiModeAction, ToggleDeviceNightModeAction.getInstance());
+    group.add(systemUiModeAction);
 
     group.addSeparator();
-    DeviceMenuAction menuAction = new DeviceMenuAction(() -> mySurface.getConfigurations().stream().findFirst().orElse(null),
-                                                       (oldDevice, newDevice) -> mySurface.zoomToFit());
+    DeviceMenuAction menuAction = new DeviceMenuAction((oldDevice, newDevice) -> mySurface.zoomToFit());
     appendShortcutText(menuAction, NextDeviceAction.getInstance());
     group.add(menuAction);
 
-    group.add(new TargetMenuAction(mySurface::getConfiguration));
-    group.add(new ThemeMenuAction(mySurface::getConfiguration));
+    group.add(new TargetMenuAction());
+    group.add(new ThemeMenuAction());
 
     group.addSeparator();
-    group.add(new LocaleMenuAction(mySurface::getConfiguration));
+    group.add(new LocaleMenuAction());
 
     group.addSeparator();
     return group;
@@ -152,19 +140,13 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   @NotNull
   private DropDownAction createDesignModeAction() {
-    NlDesignSurface nlDesignSurface = (NlDesignSurface) mySurface;
     DropDownAction designSurfaceMenu =
       new DropDownAction("Select Design Surface", "Select Design Surface", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
-    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER, nlDesignSurface));
-    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.BLUEPRINT, nlDesignSurface));
-    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER_AND_BLUEPRINT, nlDesignSurface));
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER));
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.BLUEPRINT));
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER_AND_BLUEPRINT));
 
-    DefaultActionGroup colorBlindMode = DropDownAction.createSubMenuGroup(() -> "Color Blind Modes");
-    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.PROTANOPES, nlDesignSurface));
-    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, nlDesignSurface));
-    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.DEUTERANOPES, nlDesignSurface));
-    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.DEUTERANOMALY, nlDesignSurface));
-    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.TRITANOPES, nlDesignSurface));
+    DefaultActionGroup colorBlindMode = new ColorBlindModeAction();
     designSurfaceMenu.addAction(colorBlindMode);
 
     designSurfaceMenu.addSeparator();

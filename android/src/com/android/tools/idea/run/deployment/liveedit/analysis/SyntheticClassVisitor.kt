@@ -44,6 +44,6 @@ private class SupportMethodVisitor : MethodVisitor {
 
   override fun visitInstructions(old: IrInstructionList, new: IrInstructionList) {
     // Filter out the debugging info that compose modifies on every change
-    hasNonSourceInfoChanges = !onlyHasSourceInfoChanges(old, new)
+    hasNonSourceInfoChanges = !onlyComposeDebugConstantChanges(old, new)
   }
 }

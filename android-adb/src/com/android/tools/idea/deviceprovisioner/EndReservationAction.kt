@@ -19,7 +19,6 @@ import com.android.sdklib.deviceprovisioner.ReservationState
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import kotlinx.coroutines.launch
 
 class EndReservationAction : AnAction() {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -27,13 +26,15 @@ class EndReservationAction : AnAction() {
   override fun update(event: AnActionEvent) {
     event.presentation.isEnabledAndVisible =
       event.reservationAction() != null &&
-      event.deviceHandle()?.state?.reservation?.state?.takeIf {
-        it != ReservationState.COMPLETE && it != ReservationState.ERROR
-      } != null
+        event.deviceHandle()?.state?.reservation?.state?.takeIf {
+          it != ReservationState.COMPLETE && it != ReservationState.ERROR
+        } != null
   }
 
-  override fun actionPerformed(e: AnActionEvent) {
-    val handle = e.deviceHandle() ?: return
-    handle.scope.launch { handle.reservationAction?.endReservation() }
+  override fun actionPerformed(event: AnActionEvent) {
+    val handle = event.deviceHandle() ?: return
+    handle.launchCatchingDeviceActionException(project = event.project) {
+      reservationAction?.endReservation()
+    }
   }
 }

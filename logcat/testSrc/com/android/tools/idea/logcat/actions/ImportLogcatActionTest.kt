@@ -39,17 +39,17 @@ import java.nio.file.Path
 import kotlin.io.path.name
 import kotlin.io.path.writeText
 
-/**
- * Tests for [ImportLogcatAction]
- */
+/** Tests for [ImportLogcatAction] */
 class ImportLogcatActionTest {
   private val projectRule = ProjectRule()
   private val fakeFileChooserFactory = FakeFileChooserFactory()
 
   @get:Rule
-  val rule = RuleChain(
-    projectRule,
-    ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory))
+  val rule =
+    RuleChain(
+      projectRule,
+      ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory)
+    )
 
   @Test
   fun actionPerformed() {
@@ -61,22 +61,30 @@ class ImportLogcatActionTest {
     verify(mockLogcatPresenter).openLogcatFile(fakeFileChooserFactory.virtualFile.toNioPath())
   }
 
-  private fun testEvent(logcatPresenter: LogcatPresenter) = TestActionEvent.createTestEvent(
-    MapDataContext(mapOf(
-      CommonDataKeys.PROJECT to projectRule.project,
-      LogcatPresenter.LOGCAT_PRESENTER_ACTION to logcatPresenter,
-    )))
+  private fun testEvent(logcatPresenter: LogcatPresenter) =
+    TestActionEvent.createTestEvent(
+      MapDataContext(
+        mapOf(
+          CommonDataKeys.PROJECT to projectRule.project,
+          LogcatPresenter.LOGCAT_PRESENTER_ACTION to logcatPresenter,
+        )
+      )
+    )
 
   private class FakeFileChooserFactory : FileChooserFactoryImpl() {
     private val fileSystem = createInMemoryFileSystem()
-    private val path = this@FakeFileChooserFactory.fileSystem.getPath("file.logcat").apply {
-      writeText("")
-    }
-    val virtualFile = object : LightVirtualFile(path.name) {
-      override fun toNioPath(): Path = this@FakeFileChooserFactory.fileSystem.getPath(name)
-    }
+    private val path =
+      this@FakeFileChooserFactory.fileSystem.getPath("file.logcat").apply { writeText("") }
+    val virtualFile =
+      object : LightVirtualFile(path.name) {
+        override fun toNioPath(): Path = this@FakeFileChooserFactory.fileSystem.getPath(name)
+      }
 
-    override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog =
+    override fun createFileChooser(
+      descriptor: FileChooserDescriptor,
+      project: Project?,
+      parent: Component?
+    ): FileChooserDialog =
       object : FileChooserDialog {
         override fun choose(project: Project?, vararg toSelect: VirtualFile?): Array<VirtualFile> = arrayOf(virtualFile)
       }

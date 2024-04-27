@@ -27,8 +27,8 @@ interface ModuleDependencies {
     .filter { it.mavenGroupId.startsWith(SdkConstants.ANDROIDX_PKG) }
     .any { dependsOn(it) }
 
-  /** Returns a list R-classes fqcns from the module and all of its dependencies. */
-  val rClassesNames: List<String>
+  /** Returns a list of `R` class package names (resource package names) from the module and all of its dependencies. */
+  fun getResourcePackageNames(includeExternalLibraries: Boolean): List<String>
 
   fun findPsiClassInModuleAndDependencies(fqcn: String): PsiClass?
 }

@@ -21,15 +21,14 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.LO
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.LOGCAT_USAGE
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 
-/**
- * A convenience container for usage tracing methods.
- */
+/** A convenience container for usage tracing methods. */
 internal object LogcatUsageTracker {
   fun log(logcatUsageEvent: LogcatUsageEvent.Builder) {
     UsageTracker.log(
       AndroidStudioEvent.newBuilder()
         .setCategory(LOGCAT)
         .setKind(LOGCAT_USAGE)
-        .setLogcatUsageEvent(logcatUsageEvent))
+        .setLogcatUsageEvent(logcatUsageEvent)
+    )
   }
 }

@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface UiMessageHandler {
-  void displayErrorMessage(@NotNull JComponent parent, @NotNull String title, @NotNull String message);
+  void displayErrorMessage(@Nullable JComponent parent, @NotNull String title, @NotNull String message);
 
   /**
    * @param doNotShowSettingSaver if not null, a "do not ask again" option will be shown, and the function will be invoked to save the

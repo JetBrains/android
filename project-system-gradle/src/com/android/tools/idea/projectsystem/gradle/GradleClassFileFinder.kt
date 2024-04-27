@@ -17,34 +17,36 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.ProjectBuildTracker
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
+import com.android.tools.idea.projectsystem.getPathFromFqcn
+import com.android.tools.idea.rendering.classloading.loaders.JarManager
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.vfs.JarFileSystem
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.ParameterizedCachedValue
 import com.intellij.psi.util.ParameterizedCachedValueProvider
+import com.intellij.util.io.isFile
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Optional
 import java.util.regex.Pattern
 import kotlin.io.path.extension
+import kotlin.io.path.isRegularFile
 
 /**
  * [CompileRoots] of a module, including dependencies. [directories] is the list of paths to
  * directories containing class outputs. [jars] constains a list of the jar outputs in the
  * [CompileRoots] (typically R.jar files).
  */
-private data class CompileRoots(val allRoots: List<Path>) {
+private data class CompileRoots(val allRoots: List<Path>, val jarManager: JarManager?) {
   private val RESOURCE_CLASS_NAME = Pattern.compile(".+\\.R(\\$[^.]+)?$")
 
   /** Returns true if [className] is an R class name. */
@@ -52,7 +54,7 @@ private data class CompileRoots(val allRoots: List<Path>) {
     RESOURCE_CLASS_NAME.matcher(className).matches()
 
   /** Cache to avoid querying the CompileRoots on every query since many of them are repeated. */
-  private val cache: Cache<String, Optional<VirtualFile>> =
+  private val cache: Cache<String, Optional<ClassContent>> =
     CacheBuilder.newBuilder()
       .softValues()
       .maximumSize(StudioFlags.GRADLE_CLASS_FINDER_CACHE_LIMIT.get())
@@ -64,31 +66,29 @@ private data class CompileRoots(val allRoots: List<Path>) {
       .filter { Files.isDirectory(it) }
 
   /** Contains a list of the jar outputs in the [CompileRoots] (typically R.jar files) */
-  private val jars: List<VirtualFile> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    allRoots
-      .filter { it.extension == SdkConstants.EXT_JAR }
-      .mapNotNull { VfsUtil.findFile(it, true) }
-      .mapNotNull { JarFileSystem.getInstance().getJarRootForLocalFile(it) }
+  private val jars: List<Path> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    allRoots.filter { it.isRegularFile() && it.extension == SdkConstants.EXT_JAR }
   }
 
-
   /** Finds a class in the directories included in this [CompileRoots]. */
-  private fun findClassInDirectoryRoots(fqcn: String): VirtualFile? {
-    val classPath = fqcn.replace(".", "/") + SdkConstants.DOT_CLASS
+  private fun findClassInDirectoryRoots(fqcn: String): ClassContent? {
     return directories
-      .map { it.resolve(classPath) }
-      .firstOrNull { Files.exists(it) }
-      ?.let { VfsUtil.findFile(it, true) }
+      .map { it.resolve(getPathFromFqcn(fqcn)).toFile() }
+      .firstOrNull { it.isFile() }
+      ?.let { ClassContent.loadFromFile(it) }
   }
 
   /** Finds a class in the jars included in this [CompileRoots]. */
-  private fun findClassInJarRoots(fqcn: String): VirtualFile? {
-    val pathSegments = fqcn.split(".").toTypedArray()
-    pathSegments[pathSegments.size - 1] += SdkConstants.DOT_CLASS
-    return jars.firstNotNullOfOrNull { VfsUtil.findRelativeFile(it, *pathSegments) }
+  private fun findClassInJarRoots(fqcn: String): ClassContent? {
+    val entryPath = getPathFromFqcn(fqcn)
+
+    return jars.firstNotNullOfOrNull {
+      val bytes = jarManager?.loadFileFromJar(it, entryPath) ?: return@firstNotNullOfOrNull null
+      ClassContent.fromJarEntryContent(it.toFile(), bytes)
+    }
   }
 
-  fun findClass(fqcn: String): VirtualFile? =
+  fun findClass(fqcn: String): ClassContent? =
     cache
       .get(fqcn) {
         Optional.ofNullable(
@@ -102,7 +102,7 @@ private data class CompileRoots(val allRoots: List<Path>) {
       .orElse(null)
 
   companion object {
-    val EMPTY = CompileRoots(listOf())
+    val EMPTY = CompileRoots(listOf(), null)
   }
 }
 
@@ -119,7 +119,8 @@ private fun Module.getNonCachedCompileOutputsIncludingDependencies(
           GradleClassFinderUtil.getModuleCompileOutputs(it, includeAndroidTests).toList()
         }
         .map { it.toPath() }
-        .toList()
+        .toList(),
+      JarManager.getInstance(project),
     )
       .also {
         Logger.getInstance(GradleClassFileFinder::class.java).debug("CompileRoots recalculated $it")
@@ -177,8 +178,10 @@ private fun Module.getCompileOutputs(includeAndroidTests: Boolean): CompileRoots
 class GradleClassFileFinder
 private constructor(private val module: Module, private val includeAndroidTests: Boolean) :
   ClassFileFinder {
-  override fun findClassFile(fqcn: String): VirtualFile? =
-    module.getCompileOutputs(includeAndroidTests).findClass(fqcn)
+
+  override fun findClassFile(fqcn: String): ClassContent? {
+    return module.getCompileOutputs(includeAndroidTests).findClass(fqcn)
+  }
 
   companion object {
     @JvmOverloads

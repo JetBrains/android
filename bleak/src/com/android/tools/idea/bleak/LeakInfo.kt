@@ -28,29 +28,27 @@ class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
 
   override fun toString() = buildString {
     appendln(leaktrace)
-    appendLine(
-      " ${leakRoot.degree} child nodes (+${leakRoot.degree - prevLeakRoot.degree}) [${childrenObjects.size} distinct child objects (+${childrenObjects.size - prevChildrenObjects.size})]. New child nodes: ${addedChildren.size}")
+    appendln(" ${leakRoot.degree} child nodes (+${leakRoot.degree - prevLeakRoot.degree}) [${childrenObjects.size} distinct child objects (+${childrenObjects.size - prevChildrenObjects.size})]. New child nodes: ${addedChildren.size}")
     addedChildren.take(20).forEach {
-      appendLine("   Added: ${it.objString()}")
+        appendln("   Added: ${it.objString()}")
     }
     // if many objects are added, print summary information about their most common classes
     if (addedChildren.size > 20) {
-      appendLine("   ...")
-      appendLine("  Most common classes of added objects: ")
+      appendln("   ...")
+      appendln("  Most common classes of added objects: ")
       mostCommonClassesOf(addedChildren, 5).forEach {
-        appendLine("    ${it.second} ${it.first.name}")
+        appendln("    ${it.second} ${it.first.name}")
       }
     }
 
     // print information about objects retained by the added children:
     if (retainedByAllChildren.isEmpty()) {
-      appendLine("\nDominator information omitted: timeout exceeded.")
+      appendln("\nDominator information omitted: timeout exceeded.")
       return@buildString
     }
-    appendLine(
-      "\nRetained by new children: ${retainedByNewChildren.size} objects (${retainedByNewChildren.map { it.getApproximateSize() }.sum()} bytes)")
+    appendln("\nRetained by new children: ${retainedByNewChildren.size} objects (${retainedByNewChildren.map { it.getApproximateSize() }.sum()} bytes)")
     mostCommonClassesOf(retainedByNewChildren, 50).forEach {
-      appendLine("    ${it.second} ${it.first.name}")
+      appendln("    ${it.second} ${it.first.name}")
     }
 
     // print information about objects retained by all of the children. Sometimes severity is considerably underestimated by
@@ -58,10 +56,9 @@ class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
     // by all of the leaked objects (and so are not retained by the last-iteration children alone, but are retained by all of the children
     // in aggregate). However, this may also overestimate the severity, since there can be many other objects in the array unrelated to the
     // actual leak in question.
-    appendLine(
-      "\nRetained by all children: ${retainedByAllChildren.size} objects (${retainedByAllChildren.map { it.getApproximateSize() }.sum()} bytes)")
+    appendln("\nRetained by all children: ${retainedByAllChildren.size} objects (${retainedByAllChildren.map { it.getApproximateSize() }.sum()} bytes)")
     mostCommonClassesOf(retainedByAllChildren, 50).forEach {
-      appendLine("    ${it.second} ${it.first.name}")
+      appendln("    ${it.second} ${it.first.name}")
     }
   }
 

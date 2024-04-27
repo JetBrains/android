@@ -27,7 +27,8 @@ import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
  * @see XmlResourceDomFileDescription
  */
 public class MotionDomFileDescription extends SingleRootResourceDomFileDescription<MotionScene> {
+  public static final String ROOT_TAG_NAME = "MotionScene";
   public MotionDomFileDescription() {
-    super(MotionScene.class, "MotionScene", ResourceFolderType.XML);
+    super(MotionScene.class, ROOT_TAG_NAME, ResourceFolderType.XML);
   }
 }

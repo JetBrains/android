@@ -94,4 +94,8 @@ abstract class ViewNodeCache<D>(protected val model: InspectorModel) {
     val innerMap = cache.computeIfAbsent(rootId) { ConcurrentHashMap() }
     innerMap[viewId] = data
   }
+
+  fun clear() {
+    cache.clear()
+  }
 }

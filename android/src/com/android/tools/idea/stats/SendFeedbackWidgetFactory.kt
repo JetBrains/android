@@ -19,7 +19,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.StatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidgetFactory
 
-internal class SendFeedbackWidgetFactory : StatusBarWidgetFactory {
+class SendFeedbackWidgetFactory
+  : StatusBarWidgetFactory {
+
   override fun getId() = "SendFeedbackPanel"
   override fun getDisplayName() = "Send Feedback to Google"
   override fun createWidget(project: Project): StatusBarWidget = SendFeedbackPanel()

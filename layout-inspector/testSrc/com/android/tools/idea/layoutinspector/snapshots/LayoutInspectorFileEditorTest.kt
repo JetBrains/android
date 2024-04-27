@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.snapshots
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.workbench.WorkBench

@@ -21,6 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
+import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -92,8 +93,8 @@ class AssistantInvokerImpl : AssistantInvoker {
               "the Android Gradle Plugin and the version of Android Studio.\nTo re-enable forced updates " +
               "please go to 'Tools > Internal Actions > Edit Studio Flags' and set " +
               "'${StudioFlags.DISABLE_FORCED_UPGRADES.displayName}' to 'Off'."
-    val notification = AGP_UPGRADE_NOTIFICATION_GROUP.createNotification(msg, MessageType.WARNING)
-    notification.notify(project)
+    val notification = NotificationGroupManager.getInstance().getNotificationGroup(AGP_UPGRADE_NOTIFICATION_GROUP_ID)?.createNotification(msg, MessageType.WARNING)
+    notification?.notify(project)
   }
 
   override fun performRecommendedPluginUpgrade(project: Project) {

@@ -28,13 +28,12 @@ import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveA
 import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
 
-
-class MemoryStageLegends private constructor (stage: BaseStreamingMemoryProfilerStage,
-                                              range: Range,
-                                              isTooltip: Boolean,
-                                              usage: DetailedMemoryUsage)
-      : LegendComponentModel(range) {
-  constructor(stage: BaseStreamingMemoryProfilerStage, range: Range, isTooltip: Boolean): this(stage, range, isTooltip, stage.detailedMemoryUsage)
+class MemoryStageLegends private constructor(range: Range,
+                                             isTooltip: Boolean,
+                                             usage: DetailedMemoryUsage,
+                                             isLiveAllocationTrackingReady: () -> Boolean) : LegendComponentModel(range) {
+  constructor(usage: DetailedMemoryUsage, range: Range, isTooltip: Boolean, isLiveAllocationTrackingReady: () -> Boolean) :
+    this(range, isTooltip, usage, isLiveAllocationTrackingReady)
 
   val javaLegend = SeriesLegend(usage.javaSeries, MEMORY_AXIS_FORMATTER, range)
   val nativeLegend = SeriesLegend(usage.nativeSeries, MEMORY_AXIS_FORMATTER, range)
@@ -45,8 +44,8 @@ class MemoryStageLegends private constructor (stage: BaseStreamingMemoryProfiler
   val totalLegend = SeriesLegend(usage.totalMemorySeries, MEMORY_AXIS_FORMATTER, range)
   val objectsLegend = SeriesLegend(usage.objectsSeries, OBJECT_COUNT_AXIS_FORMATTER, range, usage.objectsSeries.name,
                                    Interpolatable.RoundedSegmentInterpolator, Predicate { r ->
-    // if live allocation is not enabled, show the object series as long as there is data.
-    !stage.isLiveAllocationTrackingReady ||
+    // If live allocation is not enabled, show the object series as long as there is data.
+    !isLiveAllocationTrackingReady() ||
     // Controls whether the series should be shown by looking at whether there is a FULL tracking mode event within the query range.
     usage.allocationSamplingRateDurations.series.getSeriesForRange(r).let { data ->
       data.isNotEmpty() && getModeFromFrequency(data.last().value.currentRate.samplingNumInterval) == FULL

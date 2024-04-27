@@ -19,7 +19,8 @@ import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.android.refactoring.UnusedResourcesHandler;
+import com.intellij.psi.PsiFile;
+import org.jetbrains.android.refactoring.UnusedResourcesProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,11 +35,34 @@ public class UnusedResourcesQuickFix extends DefaultLintQuickFix {
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     Project project = startElement.getProject();
-    UnusedResourcesHandler.invoke(project, null, myResource, true, true);
+    MyResourcesProcessorFilter filter = myResource != null ? new MyResourcesProcessorFilter(myResource) : null;
+
+    UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
+    processor.setIncludeIds(true);
+    processor.run();
   }
 
   @Override
   public boolean startInWriteAction() {
     return false;
+  }
+
+  private static class MyResourcesProcessorFilter implements UnusedResourcesProcessor.Filter {
+    @NotNull
+    private final String myResource;
+
+    MyResourcesProcessorFilter(@NotNull String resource) {
+      myResource = resource;
+    }
+
+    @Override
+    public boolean shouldProcessFile(@NotNull PsiFile psiFile) {
+      return true;
+    }
+
+    @Override
+    public boolean shouldProcessResource(@Nullable String resource) {
+      return myResource.equals(resource);
+    }
   }
 }

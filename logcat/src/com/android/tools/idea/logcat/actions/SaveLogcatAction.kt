@@ -50,12 +50,17 @@ private const val SAVE_PATH_KEY = "Logcat.SavePath"
 private const val LOGCAT_EXT = "logcat"
 
 internal class SaveLogcatAction :
-  DumbAwareAction(LogcatBundle.message("logcat.save.log.action.text"), null, AllIcons.ToolbarDecorator.Export) {
+  DumbAwareAction(
+    LogcatBundle.message("logcat.save.log.action.text"),
+    null,
+    AllIcons.ToolbarDecorator.Export
+  ) {
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabled = e.getLogcatPresenter()?.let {
-      it.getSelectedDevice() != null && it.getBacklogMessages().isNotEmpty()
-    } ?: false
+    e.presentation.isEnabled =
+      e.getLogcatPresenter()?.let {
+        it.getSelectedDevice() != null && it.getBacklogMessages().isNotEmpty()
+      } ?: false
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -63,9 +68,12 @@ internal class SaveLogcatAction :
     val logcatPresenter = e.getLogcatPresenter() ?: return
     val device = logcatPresenter.getSelectedDevice() ?: return
 
-    val dialog = FileChooserFactory.getInstance().createSaveFileDialog(
-      FileSaverDescriptor(LogcatBundle.message("logcat.save.log.dialog.title"), "", LOGCAT_EXT),
-      project)
+    val dialog =
+      FileChooserFactory.getInstance()
+        .createSaveFileDialog(
+          FileSaverDescriptor(LogcatBundle.message("logcat.save.log.dialog.title"), "", LOGCAT_EXT),
+          project
+        )
 
     val timestamp = SimpleDateFormat("yyyy-MM-dd_HHmmss", Locale.ROOT).format(Date())
     val deviceName = device.name.replace(' ', '-')
@@ -77,19 +85,26 @@ internal class SaveLogcatAction :
     val logcatMessages = logcatPresenter.getBacklogMessages()
     val filter = logcatPresenter.getFilter()
 
-    val projectApplicationIds = project.getService(ProjectApplicationIdsProvider::class.java)?.getPackageNames() ?: emptySet()
+    val projectApplicationIds =
+      project.getService(ProjectApplicationIdsProvider::class.java)?.getPackageNames() ?: emptySet()
 
     AndroidCoroutineScope(logcatPresenter, AndroidDispatchers.diskIoThread).launch {
-      LogcatFileIo().writeLogcat(file.toPath(), logcatMessages, device, filter, projectApplicationIds)
+      LogcatFileIo()
+        .writeLogcat(file.toPath(), logcatMessages, device, filter, projectApplicationIds)
       val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
       if (virtualFile == null) {
         LOGGER.warn("Failed to save Logcat file: $file")
         return@launch
       }
-      val notification = Notification("Logcat", LogcatBundle.message("logcat.save.log.notification.text"), NotificationType.INFORMATION)
-        .addAction(OpenInEditorAction(virtualFile))
-        .addAction(RevealLogcatFileAction(virtualFile))
-        .addAction(OpenInLogcatAction(virtualFile, "${device.name} Android ${device.release}"))
+      val notification =
+        Notification(
+            "Logcat",
+            LogcatBundle.message("logcat.save.log.notification.text"),
+            NotificationType.INFORMATION
+          )
+          .addAction(OpenInEditorAction(virtualFile))
+          .addAction(RevealLogcatFileAction(virtualFile))
+          .addAction(OpenInLogcatAction(virtualFile, "${device.name} Android ${device.release}"))
       Notifications.Bus.notify(notification, project)
     }
   }
@@ -101,8 +116,7 @@ internal class SaveLogcatAction :
     val lastPath = properties.getValue(SAVE_PATH_KEY)
     return if (lastPath != null) {
       LocalFileSystem.getInstance().findFileByPath(lastPath)
-    }
-    else project.guessProjectDir()
+    } else project.guessProjectDir()
   }
 
   private class OpenInEditorAction(val file: VirtualFile) :
@@ -129,7 +143,10 @@ internal class SaveLogcatAction :
     override fun getActionUpdateThread() = EDT
 
     override fun actionPerformed(e: AnActionEvent) {
-      e.project?.messageBus?.syncPublisher(ShowLogcatListener.TOPIC)?.showLogcatFile(file.toNioPath(), tabName)
+      e.project
+        ?.messageBus
+        ?.syncPublisher(ShowLogcatListener.TOPIC)
+        ?.showLogcatFile(file.toNioPath(), tabName)
     }
   }
 }

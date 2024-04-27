@@ -1,8 +1,6 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom.manifest;
 
-import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
-
 import com.android.SdkConstants;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.model.AndroidModel;
@@ -18,6 +16,8 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
   public ManifestDomFileDescription() {
     super(Manifest.class, AndroidManifest.NODE_MANIFEST);

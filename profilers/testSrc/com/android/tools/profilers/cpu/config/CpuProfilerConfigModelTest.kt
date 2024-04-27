@@ -50,6 +50,38 @@ class CpuProfilerConfigModelTest {
   }
 
   @Test
+  fun taskProfilingConfigValueAfterUpdateProfilingConfigForP() {
+    setDevice(AndroidVersion.VersionCodes.P)
+    // Before updateProfilingConfigurations
+    assertThat(model!!.taskProfilingConfigurations).hasSize(0)
+
+    // After updateProfilingConfigurations
+    model!!.updateProfilingConfigurations()
+    assertThat(model!!.taskProfilingConfigurations).hasSize(5)
+    assertThat(model!!.taskProfilingConfigurations[0].name).isEqualTo(FakeIdeProfilerServices.ART_SAMPLED_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[1].name).isEqualTo(FakeIdeProfilerServices.ART_INSTRUMENTED_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[2].name).isEqualTo(FakeIdeProfilerServices.SIMPLEPERF_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[3].name).isEqualTo(FakeIdeProfilerServices.PERFETTO_NATIVE_ALLOCATIONS_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[4].name).isEqualTo(FakeIdeProfilerServices.PERFETTO_SYSTEM_TRACE_CONFIG.name)
+  }
+
+  @Test
+  fun taskProfilingConfigValueAfterUpdateProfilingConfigForM() {
+    setDevice(AndroidVersion.VersionCodes.M)
+    // Before updateProfilingConfigurations
+    assertThat(model!!.taskProfilingConfigurations).hasSize(0)
+
+    // After updateProfilingConfigurations
+    model!!.updateProfilingConfigurations()
+    assertThat(model!!.taskProfilingConfigurations).hasSize(5)
+    assertThat(model!!.taskProfilingConfigurations[0].name).isEqualTo(FakeIdeProfilerServices.ART_SAMPLED_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[1].name).isEqualTo(FakeIdeProfilerServices.ART_INSTRUMENTED_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[2].name).isEqualTo(FakeIdeProfilerServices.SIMPLEPERF_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[3].name).isEqualTo(FakeIdeProfilerServices.PERFETTO_NATIVE_ALLOCATIONS_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[4].name).isEqualTo(FakeIdeProfilerServices.ATRACE_CONFIG.name)
+  }
+
+  @Test
   fun defaultProfilingConfigsReturnsOnlyDeviceSupported() {
     setDevice(AndroidVersion.VersionCodes.LOLLIPOP)
     model!!.updateProfilingConfigurations()

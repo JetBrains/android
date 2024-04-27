@@ -20,8 +20,9 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.stdui.CloseButton
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.CONNECTION
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.google.common.annotations.VisibleForTesting
@@ -32,12 +33,12 @@ import java.awt.CardLayout
 import javax.swing.JPanel
 
 /** View to display detailed information of an interception rule or connection. */
-class NetworkInspectorDetailsPanel(
+internal class NetworkInspectorDetailsPanel(
   inspectorView: NetworkInspectorView,
   usageTracker: NetworkInspectorTracker
 ) : JPanel(BorderLayout()) {
 
-  @VisibleForTesting val connectionDetailsView: ConnectionDetailsView
+  @VisibleForTesting val connectionDataDetailsView: ConnectionDataDetailsView
 
   val ruleDetailsView: RuleDetailsView
 
@@ -55,9 +56,9 @@ class NetworkInspectorDetailsPanel(
     val rootPanel = JPanel(TabularLayout("*,Fit-", "Fit-,*"))
 
     cardLayoutView = JPanel(cardLayout)
-    connectionDetailsView = ConnectionDetailsView(inspectorView, usageTracker)
+    connectionDataDetailsView = ConnectionDataDetailsView(inspectorView, usageTracker)
     ruleDetailsView = RuleDetailsView(usageTracker)
-    cardLayoutView.add(connectionDetailsView, NetworkInspectorModel.DetailContent.CONNECTION.name)
+    cardLayoutView.add(connectionDataDetailsView, CONNECTION.name)
     cardLayoutView.add(ruleDetailsView, NetworkInspectorModel.DetailContent.RULE.name)
     val model = inspectorView.model
     model.aspect.addDependency(aspectObserver).onChange(NetworkInspectorAspect.DETAILS) {
@@ -68,7 +69,7 @@ class NetworkInspectorDetailsPanel(
       NetworkInspectorAspect.SELECTED_CONNECTION
     ) {
       usageTracker.trackConnectionDetailsSelected()
-      model.selectedConnection?.let { setHttpData(it) }
+      model.selectedConnection?.let { setConnectionData(it) }
       repaint()
     }
     model.aspect.addDependency(aspectObserver).onChange(NetworkInspectorAspect.SELECTED_RULE) {
@@ -81,16 +82,16 @@ class NetworkInspectorDetailsPanel(
     // Add a wrapper to move the close button center vertically.
     val closeButtonWrapper = JPanel(BorderLayout())
     closeButtonWrapper.add(closeButton, BorderLayout.CENTER)
-    closeButtonWrapper.border = JBUI.Borders.empty(3, 0, 0, 0)
+    closeButtonWrapper.border = JBUI.Borders.emptyTop(3)
     rootPanel.add(closeButtonWrapper, TabularLayout.Constraint(0, 1))
     rootPanel.add(cardLayoutView, TabularLayout.Constraint(0, 0, 2, 2))
     add(rootPanel)
   }
 
-  /** Updates the view to show given [httpData]. */
-  private fun setHttpData(httpData: HttpData) {
+  /** Updates the view to show given [data]. */
+  private fun setConnectionData(data: ConnectionData) {
     background = JBColor.background()
-    connectionDetailsView.setHttpData(httpData)
+    connectionDataDetailsView.setConnectionData(data)
   }
 
   /** Updates the view to show given [rule]. */

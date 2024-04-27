@@ -19,12 +19,14 @@ import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
+import com.android.tools.idea.dagger.index.psiwrappers.DaggerAnnotation
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.KtPropertyWrapper
+import com.android.tools.idea.dagger.index.psiwrappers.hasAnnotation
+import com.android.tools.idea.dagger.index.readClassId
+import com.android.tools.idea.dagger.index.writeClassId
 import com.android.tools.idea.dagger.localization.DaggerBundle
-import com.android.tools.idea.dagger.unboxed
-import com.android.tools.idea.kotlin.hasAnnotation
 import com.android.tools.idea.kotlin.psiType
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.openapi.project.Project
@@ -37,6 +39,8 @@ import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
+import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
@@ -94,13 +98,13 @@ private object ComponentProvisionMethodIndexer : DaggerConceptIndexer<DaggerInde
     val containingClass = wrapper.getContainingClass() ?: return
     if (
       containingClass.getIsAnnotatedWithAnyOf(
-        DaggerAnnotations.COMPONENT,
-        DaggerAnnotations.SUBCOMPONENT
+        DaggerAnnotation.COMPONENT,
+        DaggerAnnotation.SUBCOMPONENT
       )
     ) {
       indexEntries.addIndexValue(
         returnType.getSimpleName() ?: "",
-        ComponentProvisionMethodIndexValue(containingClass.getFqName(), wrapper.getSimpleName())
+        ComponentProvisionMethodIndexValue(containingClass.getClassId(), wrapper.getSimpleName())
       )
     }
   }
@@ -117,13 +121,13 @@ private object ComponentProvisionPropertyIndexer : DaggerConceptIndexer<DaggerIn
     val containingClass = wrapper.getContainingClass() ?: return
     if (
       containingClass.getIsAnnotatedWithAnyOf(
-        DaggerAnnotations.COMPONENT,
-        DaggerAnnotations.SUBCOMPONENT
+        DaggerAnnotation.COMPONENT,
+        DaggerAnnotation.SUBCOMPONENT
       )
     ) {
       indexEntries.addIndexValue(
         propertyType.getSimpleName() ?: "",
-        ComponentProvisionPropertyIndexValue(containingClass.getFqName(), wrapper.getSimpleName())
+        ComponentProvisionPropertyIndexValue(containingClass.getClassId(), wrapper.getSimpleName())
       )
     }
   }
@@ -131,20 +135,21 @@ private object ComponentProvisionPropertyIndexer : DaggerConceptIndexer<DaggerIn
 
 @VisibleForTesting
 internal data class ComponentProvisionMethodIndexValue(
-  val classFqName: String,
+  val classId: ClassId,
   val methodSimpleName: String
 ) : IndexValue() {
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
-    output.writeString(classFqName)
+    output.writeClassId(classId)
     output.writeString(methodSimpleName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType: DataType = DataType.COMPONENT_PROVISION_METHOD
+
     override fun read(input: DataInput) =
-      ComponentProvisionMethodIndexValue(input.readString(), input.readString())
+      ComponentProvisionMethodIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
@@ -181,7 +186,8 @@ internal data class ComponentProvisionMethodIndexValue(
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
     val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
+      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
+        ?: return emptyList()
     return psiClass.methods.filter { it.name == methodSimpleName }
   }
 
@@ -190,20 +196,21 @@ internal data class ComponentProvisionMethodIndexValue(
 
 @VisibleForTesting
 internal data class ComponentProvisionPropertyIndexValue(
-  val classFqName: String,
+  val classId: ClassId,
   val propertySimpleName: String
 ) : IndexValue() {
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
-    output.writeString(classFqName)
+    output.writeClassId(classId)
     output.writeString(propertySimpleName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.COMPONENT_PROVISION_PROPERTY
+
     override fun read(input: DataInput) =
-      ComponentProvisionPropertyIndexValue(input.readString(), input.readString())
+      ComponentProvisionPropertyIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
@@ -225,13 +232,10 @@ internal data class ComponentProvisionPropertyIndexValue(
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    val ktClassOrObject =
-      JavaPsiFacade.getInstance(project).findClass(classFqName, scope)?.navigationElement
-        as? KtClassOrObject
-        ?: return emptyList()
-    return listOfNotNull(ktClassOrObject.findPropertyByName(propertySimpleName))
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> =
+    KotlinFullClassNameIndex.get(classId.asFqNameString(), project, scope).mapNotNull {
+      it.findPropertyByName(propertySimpleName)
+    }
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -242,6 +246,7 @@ internal data class ComponentProvisionMethodDaggerElement(
 ) : ConsumerDaggerElementBase() {
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
+
   internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
 
   override val metricsElementType = DaggerEditorEvent.ElementType.COMPONENT_METHOD
@@ -251,7 +256,7 @@ internal data class ComponentProvisionMethodDaggerElement(
 }
 
 private fun KtClassOrObject.isComponentOrSubcomponent() =
-  hasAnnotation(DaggerAnnotations.COMPONENT) || hasAnnotation(DaggerAnnotations.SUBCOMPONENT)
+  hasAnnotation(DaggerAnnotation.COMPONENT) || hasAnnotation(DaggerAnnotation.SUBCOMPONENT)
 
 private fun PsiClass.isComponentOrSubcomponent() =
-  hasAnnotation(DaggerAnnotations.COMPONENT) || hasAnnotation(DaggerAnnotations.SUBCOMPONENT)
+  hasAnnotation(DaggerAnnotation.COMPONENT) || hasAnnotation(DaggerAnnotation.SUBCOMPONENT)

@@ -16,6 +16,7 @@
 package com.android.tools.adtui.actions;
 
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -41,6 +42,12 @@ public class EnableSwingProfilerAction extends DumbAwareToggleAction {
 
   public EnableSwingProfilerAction() {
     super("Enable Swing Profiler");
+  }
+
+  @Override
+  @NotNull
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

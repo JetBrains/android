@@ -57,6 +57,18 @@ class ProguardR8InspectionsTest : ProguardR8TestCase() {
     myFixture.checkHighlighting()
   }
 
+  fun testUnresolvedClassNameInFlagRule() {
+    // Regression test for b/301246673
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -dontwarn test.MyNotExistingClass
+      -dontnote test.MyNotExistingClass
+      """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
   fun testWildcards() {
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,

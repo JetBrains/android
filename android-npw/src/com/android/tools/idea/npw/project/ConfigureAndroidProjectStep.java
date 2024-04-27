@@ -28,6 +28,7 @@ import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.crea
 import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
+import com.android.ide.common.repository.AgpVersion;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.AndroidVersion;
@@ -35,8 +36,10 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
+import com.android.tools.idea.npw.module.ConfigureModuleStepKt;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.validator.ProjectNameValidator;
@@ -44,9 +47,11 @@ import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.expressions.Expression;
+import com.android.tools.idea.observable.expressions.value.TransformOptionalExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -54,6 +59,7 @@ import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
+import com.android.tools.idea.ui.validation.validators.StringPathValidator;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
@@ -65,6 +71,8 @@ import com.android.tools.idea.wizard.template.TemplateConstraint;
 import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.collect.Lists;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.progress.util.BackgroundTaskUtil;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.HyperlinkLabel;
@@ -72,15 +80,15 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -120,6 +128,9 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JComboBox myMinSdkCombo;
   private JComboBox<BuildConfigurationLanguageForNewProject> myBuildConfigurationLanguageCombo;
   private ContextHelpLabel myBuildConfigurationLanguageLabel;
+
+  private ContextHelpLabel myAndroidGradlePluginLabel;
+  private JComboBox<AgpVersion> myAndroidGradlePluginCombo;
   private FormFactorSdkControls myFormFactorSdkControls;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
@@ -165,7 +176,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     TextProperty locationText = new TextProperty(myProjectLocation.getTextField());
     BoolProperty isLocationSynced = new BoolValueProperty(true);
     myBindings.bind(locationText, computedLocation, isLocationSynced);
-    myBindings.bind(myProjectModel.getProjectLocation(), locationText);
+    myBindings.bind(myProjectModel.getProjectLocation(), locationText.trim());
     myListeners.listen(locationText, value -> isLocationSynced.set(value.equals(computedLocation.get())));
 
     OptionalProperty<VersionItem> androidSdkInfo = getModel().androidSdkInfo();
@@ -175,17 +186,42 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
       myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS);
-      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS_VERSION_CATALOG);
       myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.Groovy);
+      myBindings.bind(myProjectModel.getUseGradleKts(), new TransformOptionalExpression<BuildConfigurationLanguageForNewProject, Boolean>(true, new SelectedItemProperty<>(myBuildConfigurationLanguageCombo)) {
+        @NotNull
+        @Override
+        protected Boolean transform(@NotNull BuildConfigurationLanguageForNewProject value) {
+          return value.getUseKts();
+        }
+      });
     } else {
       myBuildConfigurationLanguageLabel.setVisible(false);
       myBuildConfigurationLanguageCombo.setVisible(false);
     }
 
+    if (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.get()) {
+      AgpVersion newProject = AgpVersions.getNewProject();
+      myAndroidGradlePluginCombo.addItem(newProject);
+      myBindings.bindTwoWay(ObjectProperty.wrap(new SelectedItemProperty<>(myAndroidGradlePluginCombo)), myProjectModel.getAgpVersion());
+      BackgroundTaskUtil.executeOnPooledThread(this, () -> {
+        Set<AgpVersion> suggestedAgpVersions = AgpVersions.INSTANCE.getNewProjectWizardVersions();
+        ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
+          for (AgpVersion version : suggestedAgpVersions) {
+            if (version.equals(newProject)) continue;
+            myAndroidGradlePluginCombo.addItem(version);
+          }
+        });
+      });
+      ConfigureModuleStepKt.registerKtsAgpVersionValidation(myValidatorPanel, myProjectModel);
+    } else {
+      myAndroidGradlePluginLabel.setVisible(false);
+      myAndroidGradlePluginCombo.setVisible(false);
+    }
+
     myValidatorPanel.registerValidator(myProjectModel.getApplicationName(), new ProjectNameValidator());
 
-    Expression<Path> locationFile = myProjectModel.getProjectLocation().transform(Paths::get);
-    myValidatorPanel.registerValidator(locationFile, PathValidator.createDefault("project location"));
+    myValidatorPanel.registerValidator(myProjectModel.getProjectLocation(),
+                                       new StringPathValidator(PathValidator.createDefault("Save location")));
 
     myValidatorPanel.registerValidator(myProjectModel.getPackageName(),
                                        value -> Validator.Result.fromNullableMessage(AndroidUtils.validatePackageName(value)));
@@ -240,13 +276,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       (myTvCheck.isVisible() && myTvCheck.isSelected()) ||
       getModel().formFactor.get() == FormFactor.Automotive // Automotive projects include a mobile module for Android Auto by default
     );
-    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get() && myBuildConfigurationLanguageCombo.getSelectedItem() != null) {
-      BuildConfigurationLanguageForNewProject selected = (BuildConfigurationLanguageForNewProject) myBuildConfigurationLanguageCombo.getSelectedItem();
-      myProjectModel.getUseGradleKts()
-        .set(selected.getUseKts());
-      myProjectModel.getUseVersionCatalog()
-        .set(selected.getUseVersionCatalog());
-    }
+
     myInstallRequests.clear();
     myInstallLicenseRequests.clear();
 
@@ -322,5 +352,9 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       "Learn more",
       () -> BrowserUtil.browse(KOTLIN_DSL_LINK));
     myBuildConfigurationLanguageLabel.setHorizontalTextPosition(SwingConstants.LEFT);
+    myAndroidGradlePluginLabel = ContextHelpLabel.create(
+      "This is only shown for development builds of Android Studio",
+      "It can be hidden while idea.is.internal=true by setting Studio flag " + StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.getId() + " to false");
+    myAndroidGradlePluginLabel.setHorizontalTextPosition(SwingConstants.LEFT);
   }
 }

@@ -27,10 +27,10 @@ import org.jetbrains.android.facet.AndroidRootUtil
 import java.io.IOException
 
 /**
- * An implementation of [SampleDataDirectoryProvider] which houses a
- * module's sample data directory in the main content root of the module.
+ * An implementation of [SampleDataDirectoryProvider] which houses a module's sample data directory
+ * in the main content root of the module.
  */
-class MainContentRootSampleDataDirectoryProvider(module: Module): SampleDataDirectoryProvider {
+class MainContentRootSampleDataDirectoryProvider(module: Module) : SampleDataDirectoryProvider {
   val module: Module = module.getHolderModule()
 
   override fun getSampleDataDirectory(): PathString? {
@@ -42,8 +42,6 @@ class MainContentRootSampleDataDirectoryProvider(module: Module): SampleDataDire
 
   @Throws(IOException::class)
   override fun getOrCreateSampleDataDirectory(): PathString? {
-    return getSampleDataDirectory()?.apply {
-      VfsUtil.createDirectoryIfMissing(nativePath)
-    }
+    return getSampleDataDirectory()?.apply { VfsUtil.createDirectoryIfMissing(nativePath) }
   }
 }

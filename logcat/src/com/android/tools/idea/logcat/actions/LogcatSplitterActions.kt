@@ -20,11 +20,13 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 
-/**
- * An action that opens a popup menu with Logcat format-related actions
- */
-internal class LogcatSplitterActions(splitterActions: ActionGroup)
-  : PopupActionGroupAction(LogcatBundle.message("logcat.splitter.actions.text"), null, AllIcons.Actions.SplitVertically) {
+/** An action that opens a popup menu with Logcat format-related actions */
+internal class LogcatSplitterActions(splitterActions: ActionGroup) :
+  PopupActionGroupAction(
+    LogcatBundle.message("logcat.splitter.actions.text"),
+    null,
+    AllIcons.Actions.SplitVertically
+  ) {
 
   private val splitterActions = splitterActions.getChildren(null).asList()
 

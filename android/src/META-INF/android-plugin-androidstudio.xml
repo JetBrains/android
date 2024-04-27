@@ -30,28 +30,36 @@
     <applicationService serviceImplementation="com.intellij.openapi.application.IdeUrlTrackingParametersProvider"
                         overrides="true"/>
 
+    <!-- Suppress tip-of-the-day because it does not work correctly in Android Studio (b/302571384). -->
+    <actionConfigurationCustomizer implementation="com.android.tools.idea.startup.SuppressTipOfTheDay$ActionSuppressor"/>
+    <applicationService serviceInterface="com.intellij.ide.util.TipAndTrickManager"
+                        serviceImplementation="com.android.tools.idea.startup.SuppressTipOfTheDay$OverridingTipAndTrickManager"
+                        overrides="true"/>
+
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
 
     <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidStudioCodeStyleSettingsProvider" order="last"/>
 
     <statusBarWidgetFactory id="SendFeedbackPanel" implementation="com.android.tools.idea.stats.SendFeedbackWidgetFactory"/>
 
-    <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
+    <errorHandler implementation="com.android.tools.idea.diagnostics.error.AndroidStudioErrorReportSubmitter"/>
     <applicationInitializedListener id="Startup.StartLowMemoryReporter"
                                     implementation="com.android.tools.idea.stats.LowMemoryReporter$OnStartup"/>
     <backgroundPostStartupActivity implementation="com.android.tools.idea.stats.GcPauseWatcher$Initializer" />
     <backgroundPostStartupActivity implementation="com.android.tools.idea.serverflags.ServerFlagDownloader$Initializer" />
     <backgroundPostStartupActivity implementation="com.android.tools.idea.diagnostics.WindowsCRuntimeChecker" os="windows" />
     <backgroundPostStartupActivity implementation="com.android.tools.idea.diagnostics.DiagnosticsReportCleaner" />
-    <applicationService serviceInterface="com.intellij.toolWindow.DefaultToolWindowLayoutProvider"
-                        serviceImplementation="com.android.tools.idea.AndroidStudioDefaultToolWindowLayoutProvider"
-                        overrides="true"/>
     <defender.config implementation="com.android.tools.idea.diagnostics.windows.AndroidWindowsDefenderCheckerExt"/>
+    <defaultToolWindowLayout
+      id="AndroidStudioDefaultToolWindowLayoutExtension"
+      implementation="com.android.tools.idea.AndroidStudioDefaultToolWindowLayoutExtension"
+      order="last"
+    />
     <applicationService serviceInterface="com.intellij.diagnostic.LowMemoryNotifier" preload="true" overrides="true"
                         serviceImplementation="com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier"/>
+    <execution.applicationRunLineMarkerHider implementation="com.android.tools.idea.run.AndroidRunMarkerHider"/>
 
     <projectService serviceImplementation="com.android.tools.idea.stats.ToolWindowTrackerService"/>
-    <postStartupActivity implementation="com.android.tools.idea.project.LibraryToolWindowInitializer"/>
 
     <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
   </extensions>
@@ -66,7 +74,9 @@
 
   <actions>
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
-    <group id="AndroidToolsGroup" icon="StudioIcons.Common.ANDROID_HEAD" popup="false" keep-content="true" overrides="true"/>
+    <reference ref="AndroidToolsGroup">
+      <add-to-group group-id="ToolsMenu" anchor="first"/>
+    </reference>
 
     <action class="com.intellij.ide.actions.HelpTopicsAction" id="IntelliJ.HelpTopics" text="IntelliJ IDEA Help">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics" />
@@ -125,11 +135,6 @@
             class="com.android.tools.idea.apk.ImportApkAction">
       <add-to-group group-id="WelcomeScreen.QuickStart"/>
     </action>
-    <separator>
-      <add-to-group group-id="WelcomeScreen.QuickStart"
-                    relative-to-action="WelcomeScreen.AndroidStudio.apkProfilingAndDebugging"
-                    anchor="after"/>
-    </separator>
 
     <action id="ImportApkAction"
             class="com.android.tools.idea.apk.ImportApkAction" text="Profile or Debug APK...">
@@ -144,28 +149,32 @@
             class="com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromFileAction"
             icon="AllIcons.ToolbarDecorator.Import"
             overrides="true"/>
+    <action
+        id="SendFeedback"
+        class="com.android.tools.idea.actions.SendFeedbackAction"
+        overrides="true"
+        text="Submit _Feedback"
+        description="Submit feedback to the Android Studio team"/>
+    <action
+        id="CollectZippedLogs"
+        class="com.android.tools.idea.actions.CreateDiagnosticReportAction"
+        overrides="true"
+        text="Collect Logs and Diagnostic Data"
+        description="Collect logs and diagnostic data"/>
+    <action
+        id="ResetUserIdAction"
+        class="com.android.tools.idea.actions.ResetUserIdAction"
+        text="Reset Data Sharing User Identifier"
+        description="Reset Data Sharing User Identifier"/>
 
     <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
       <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
     </action>
-    <action
-            id="SendFeedback"
-            class="com.android.tools.idea.actions.SendFeedbackAction"
-            overrides="true"/>
-    <action
-            id="CollectZippedLogs"
-            class="com.android.tools.idea.actions.CreateDiagnosticReportAction"
-            overrides="true"
-            text="Collect Logs and Diagnostic Data"
-            description="Collect logs and diagnostic data"/>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
     <defaultProjectTypeProvider type="Android"/>
     <targetElementEvaluator language="XML" implementationClass="org.jetbrains.android.dom.AndroidXmlTargetElementEvaluatorEx" order="first"/>
-    <applicationService serviceInterface="org.jetbrains.plugins.gradle.service.GradleInstallationManager"
-                        serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager"
-                        overrides="true"/>
 
     <!-- Unregister DefaultJdkConfigurator b/112481251 -->
     <applicationService serviceInterface="com.intellij.openapi.projectRoots.DefaultJdkConfigurator"
@@ -173,10 +182,6 @@
                         overrides="true"
                         headlessImplementation="com.android.tools.idea.sdk.StudioJdkConfigurator"
     />
-
-    <projectService serviceInterface="org.jetbrains.plugins.gradle.settings.GradleSettings"
-                    serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
-                    overrides="true"/>
 
     <welcomeFrameProvider implementation="com.android.tools.idea.welcome.wizard.FirstRunWizardFrameProvider" order="FIRST"/>
 
@@ -195,7 +200,7 @@
     <applicationConfigurable groupId="build" id="instant.run"
                              provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"
                              bundle="messages.AndroidBundle"
-                             key="configurable.DeploymentConfigurable.display.name"/>
+                             key="configurable.DeploymentConfigurable.displayName"/>
 
     <statistic.eventLog.eventLoggerProvider implementation="com.android.tools.idea.stats.AndroidStudioStatisticsEventLoggerProvider"/>
     <projectService serviceInterface="com.intellij.codeInsight.NullableNotNullManager"

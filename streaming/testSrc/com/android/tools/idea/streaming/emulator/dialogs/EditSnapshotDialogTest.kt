@@ -26,8 +26,8 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JCheckBox
+import javax.swing.JTextArea
 import javax.swing.JTextField
-import javax.swing.JTextPane
 
 /**
  * Tests for [EditSnapshotDialog].
@@ -49,7 +49,7 @@ class EditSnapshotDialogTest {
       val nameField = ui.getComponent<JTextField>()
       nameField.text = "  magic moment  " // Leading and trailing spaces are used to test truncation.
 
-      val descriptionField = ui.getComponent<JTextPane>()
+      val descriptionField = ui.getComponent<JTextArea>()
       descriptionField.text = "  This snapshot captures a truly magic moment  " // Leading and trailing spaces are used to test truncation.
 
       val useToBootCheckbox = ui.getComponent<JCheckBox>()

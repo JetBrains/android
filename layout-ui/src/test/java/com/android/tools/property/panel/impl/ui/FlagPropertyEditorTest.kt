@@ -19,19 +19,17 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_INPUT_TYPE
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
-import com.android.tools.property.panel.api.FlagsPropertyItem
-import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.property.panel.impl.model.TableLineModelImpl
 import com.android.tools.property.panel.impl.model.util.FakeFlagsPropertyItem
 import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.property.panel.impl.table.EditorPanel
-import com.android.tools.property.panel.impl.table.PTableCellEditorProviderImpl
 import com.android.tools.property.ptable.PTableColumn
 import com.android.tools.property.ptable.PTableItem
 import com.android.tools.property.ptable.PTableModel
@@ -45,21 +43,24 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.replaceService
+import com.intellij.ui.components.JBCheckBox
 import org.junit.Before
-import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
+import java.awt.Component
+import java.awt.Container
 import javax.swing.JComponent
 import javax.swing.JScrollPane
 import javax.swing.JTextField
+import javax.swing.SwingUtilities
 
 class FlagPropertyEditorTest {
 
-  companion object {
-    @JvmField @ClassRule val rule = ApplicationRule()
-  }
+  private val rule = ApplicationRule()
+  private val disposableRule = DisposableRule()
 
-  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val chain = RuleChain.outerRule(rule).around(disposableRule)!!
 
   @Before
   fun setUp() {
@@ -126,6 +127,58 @@ class FlagPropertyEditorTest {
     assertThat(flagEditor.components.singleOrNull { it is JTextField }).isNull()
   }
 
+  @Test
+  fun testCompositeFlagSelectionShowsSingleFlagsDisabled() {
+    val table = createTableWithFlagEditors()
+    val flagEditor = getEditorFromTable(table, 2)
+    val panel = FlagPropertyPanel(flagEditor.editorModel, flagEditor.tableParent!!, 400)
+    panel.setSize(400, 800)
+    val ui = FakeUi(panel, createFakeWindow = true)
+    clickFlag(ui, panel, "six")
+
+    val checked = findCheckedCheckBoxes(panel)
+    assertThat(checked.map { it.text }).containsExactly("two", "four", "six")
+    val disabled = findDisabledCheckBoxes(panel)
+    assertThat(disabled.map { it.text }).containsExactly("two", "four")
+  }
+
+  @Test
+  fun testSingleFlagsMakesCompositeFlagDisabled() {
+    val table = createTableWithFlagEditors()
+    val flagEditor = getEditorFromTable(table, 2)
+    val panel = FlagPropertyPanel(flagEditor.editorModel, flagEditor.tableParent!!, 400)
+    panel.setSize(400, 800)
+    val ui = FakeUi(panel, createFakeWindow = true)
+    clickFlag(ui, panel, "one")
+    clickFlag(ui, panel, "two")
+    clickFlag(ui, panel, "eight")
+
+    val checked = findCheckedCheckBoxes(panel)
+    assertThat(checked.map { it.text })
+      .containsExactly("one", "two", "three", "eight", "nine", "ten", "eleven")
+    val disabled = findDisabledCheckBoxes(panel)
+    assertThat(disabled.map { it.text }).containsExactly("three", "nine", "ten", "eleven")
+  }
+
+  private fun clickFlag(ui: FakeUi, panel: FlagPropertyPanel, name: String) {
+    val checkBox = findCheckBox(panel, name)
+    val location = SwingUtilities.convertPoint(checkBox.parent, checkBox.location, panel)
+    ui.mouse.focus = checkBox
+    ui.mouse.click(location.x + 10, location.y + 10)
+  }
+
+  private fun findCheckBox(panel: FlagPropertyPanel, name: String): JBCheckBox {
+    return panel.flatten().filterIsInstance<JBCheckBox>().single { it.text == name }
+  }
+
+  private fun findDisabledCheckBoxes(panel: FlagPropertyPanel): List<JBCheckBox> {
+    return panel.flatten().filterIsInstance<JBCheckBox>().filter { !it.isEnabled }
+  }
+
+  private fun findCheckedCheckBoxes(panel: FlagPropertyPanel): List<JBCheckBox> {
+    return panel.flatten().filterIsInstance<JBCheckBox>().filter { it.isSelected }
+  }
+
   private fun createTableWithFlagEditors(): TableEditor {
     val flag1 =
       FakeFlagsPropertyItem(
@@ -172,20 +225,9 @@ class FlagPropertyEditorTest {
         }
       }
     val controlTypeProvider = SimpleControlTypeProvider<PropertyItem>(ControlType.FLAG_EDITOR)
-    val nameControlTypeProvider =
-      SimpleControlTypeProvider<NewPropertyItem>(ControlType.TEXT_EDITOR)
     val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
     val uiProvider = TableUIProvider(controlTypeProvider, editorProvider)
 
-    val cellEditorProvider =
-      PTableCellEditorProviderImpl(
-        NewPropertyItem::class.java,
-        nameControlTypeProvider,
-        EditorProvider.createForNames(),
-        FlagsPropertyItem::class.java,
-        controlTypeProvider,
-        editorProvider
-      )
     return TableEditor(
       lineModel,
       uiProvider.tableCellRendererProvider,
@@ -221,6 +263,13 @@ private class PTableTestModel(vararg items: PTableItem) : PTableModel {
   }
 }
 
-private class SomeAction internal constructor(title: String) : AnAction(title) {
+private class SomeAction constructor(title: String) : AnAction(title) {
   override fun actionPerformed(e: AnActionEvent) {}
+}
+
+fun Component.flatten(): List<Component> {
+  if (this !is Container) {
+    return listOf(this)
+  }
+  return components.flatMap { it.flatten() }.plus(this)
 }

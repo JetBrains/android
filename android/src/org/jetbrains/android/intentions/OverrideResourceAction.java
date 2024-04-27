@@ -20,8 +20,8 @@ import static com.android.SdkConstants.ATTR_NAME;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
@@ -474,9 +474,8 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       return ResourceFolderType.getFolderType(inputString) != null && FolderConfiguration.getConfigForFolder(inputString) != null;
     }
 
-    @NotNull
     @Override
-    public PsiElement [] create(@NotNull String newName) throws Exception {
+    public PsiElement[] create(String newName) throws Exception {
       PsiDirectory subdirectory = myDirectory.findSubdirectory(newName);
       if (subdirectory == null) {
         subdirectory = myDirectory.createSubdirectory(newName);
@@ -485,7 +484,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     }
 
     @Override
-    public @NotNull String getActionName(@NotNull String newName) {
+    public String getActionName(String newName) {
       return "Select Resource Directory";
     }
 

@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.statelist.ItemHandler;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -43,7 +44,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,9 +72,9 @@ public class ViewHandlerManager implements Disposable {
   private static final Runnable SUPER_CLASS_LOOKUP = () -> {};
 
   private final Project myProject;
-  private final Map<String, ViewHandler> myHandlers = Collections.synchronizedMap(new HashMap<>());
-  private final Map<ViewHandler, List<ViewAction>> myToolbarActions = new HashMap<>();
-  private final Map<ViewHandler, List<ViewAction>> myMenuActions = new HashMap<>();
+  private final Map<String, ViewHandler> myHandlers = Collections.synchronizedMap(Maps.newHashMap());
+  private final Map<ViewHandler, List<ViewAction>> myToolbarActions = Maps.newHashMap();
+  private final Map<ViewHandler, List<ViewAction>> myMenuActions = Maps.newHashMap();
 
   /**
    * A {@link ViewHandler} return when no real {@link ViewHandler} can be found.

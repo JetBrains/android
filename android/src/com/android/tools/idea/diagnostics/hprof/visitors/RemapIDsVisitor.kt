@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.diagnostics.hprof.visitors
 
-import com.android.tools.idea.diagnostics.hprof.classstore.HProfMetadata
 import com.android.tools.idea.diagnostics.hprof.parser.ConstantPoolEntry
 import com.android.tools.idea.diagnostics.hprof.parser.HProfVisitor
 import com.android.tools.idea.diagnostics.hprof.parser.HeapDumpRecordType
@@ -23,10 +22,10 @@ import com.android.tools.idea.diagnostics.hprof.parser.InstanceFieldEntry
 import com.android.tools.idea.diagnostics.hprof.parser.StaticFieldEntry
 import com.android.tools.idea.diagnostics.hprof.parser.Type
 import com.android.tools.idea.diagnostics.hprof.util.FileBackedHashMap
-import gnu.trove.TLongIntHashMap
+import com.android.tools.idea.diagnostics.hprof.util.IDMapper
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
-import java.util.function.LongUnaryOperator
 
 abstract class RemapIDsVisitor : HProfVisitor() {
   private var currentID = 0
@@ -66,19 +65,33 @@ abstract class RemapIDsVisitor : HProfVisitor() {
 
   abstract fun addMapping(oldId: Long, newId: Int)
 
-  abstract fun getRemappingFunction(): LongUnaryOperator
+  abstract fun getIDMapper(): IDMapper
 
   companion object {
     fun createMemoryBased(): RemapIDsVisitor {
-      val map = TLongIntHashMap()
+      val map = Long2IntOpenHashMap()
       map.put(0, 0)
       return object : RemapIDsVisitor() {
         override fun addMapping(oldId: Long, newId: Int) {
-          map.put(oldId, newId)
+          if (oldId != 0L) {
+            map.put(oldId, newId)
+          }
         }
 
-        override fun getRemappingFunction(): LongUnaryOperator {
-          return LongUnaryOperator { map[it].toLong() }
+        override fun getIDMapper(): IDMapper {
+          return object : IDMapper {
+            override fun getID(id: Long): Long {
+              if (isValidID(id))
+                return map[id].toLong()
+              else {
+                return 0
+              }
+            }
+
+            override fun isValidID(id: Long): Boolean {
+              return map.containsKey(id)
+            }
+          }
         }
       }
     }
@@ -89,17 +102,25 @@ abstract class RemapIDsVisitor : HProfVisitor() {
         maxInstanceCount, KEY_SIZE, VALUE_SIZE)
       return object : RemapIDsVisitor() {
         override fun addMapping(oldId: Long, newId: Int) {
+          if (oldId == 0L) return
           remapIDsMap.put(oldId).putInt(newId)
         }
 
-        override fun getRemappingFunction(): LongUnaryOperator {
-          return LongUnaryOperator { operand ->
-            if (operand == 0L) 0L else
-            {
-              if (remapIDsMap.containsKey(operand))
-                remapIDsMap[operand]!!.int.toLong()
-              else
-                throw HProfMetadata.RemapException()
+        override fun getIDMapper(): IDMapper {
+          return object : IDMapper {
+            override fun getID(id: Long): Long {
+              return if (id == 0L) 0L else
+              {
+                if (remapIDsMap.containsKey(id))
+                  remapIDsMap[id]!!.int.toLong()
+                else {
+                  return 0
+                }
+              }
+            }
+
+            override fun isValidID(id: Long): Boolean {
+              return remapIDsMap.containsKey(id)
             }
           }
         }
@@ -112,5 +133,7 @@ abstract class RemapIDsVisitor : HProfVisitor() {
 
     private const val KEY_SIZE = 8
     private const val VALUE_SIZE = 4
+
   }
+
 }

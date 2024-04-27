@@ -29,7 +29,7 @@ class NullabilityUtilsTest : JavaPsiTestCase() {
   }
 
   fun testCanAnnotateTypesWithNullabilityAnnotations() {
-    val dummyType = PsiType.getTypeByName("dummy.test.ExampleType", project, GlobalSearchScope.everythingScope(project))
+    val dummyType = PsiType.getTypeByName("dummy.test.ExampleType", project, GlobalSearchScope.everythingScope(project));
     val nonNullDummyType = project.annotateType(dummyType, true, null)
     val nullableDummyType = project.annotateType(dummyType, false, null)
 

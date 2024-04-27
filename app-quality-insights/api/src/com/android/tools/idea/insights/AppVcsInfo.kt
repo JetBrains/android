@@ -27,18 +27,27 @@ const val PROJECT_ROOT_PREFIX = "\$PROJECT_DIR"
 const val ABOVE_PROJECT_ROOT_PREFIX = "\$ABOVE_PROJECT_DIR"
 
 /** Representation of the version control system used by an App. */
-data class AppVcsInfo(val repoInfo: List<RepoInfo>) {
-  companion object {
-    val NONE = AppVcsInfo(emptyList())
+sealed class AppVcsInfo {
+  data class ValidInfo(val repoInfo: List<RepoInfo>) : AppVcsInfo()
 
+  data class Error(val cause: GenerateErrorReason) : AppVcsInfo()
+
+  object NONE : AppVcsInfo()
+
+  companion object {
     fun fromProto(textProto: String): AppVcsInfo {
       val proto = decode(textProto)
       return fromProto(proto)
     }
 
     private fun fromProto(proto: BuildStamp): AppVcsInfo {
-      val repositories = proto.repositoriesList.mapNotNull { RepoInfo.fromProto(it) }
-      return AppVcsInfo(repoInfo = repositories)
+      return if (proto.hasGenerateErrorReason()) {
+        Error(GenerateErrorReason.fromProto(proto.generateErrorReason))
+      } else if (proto.repositoriesList.isNotEmpty()) {
+        ValidInfo(repoInfo = proto.repositoriesList.mapNotNull { RepoInfo.fromProto(it) })
+      } else {
+        NONE
+      }
     }
   }
 }
@@ -76,5 +85,27 @@ fun decode(textProto: String): BuildStamp {
   } catch (exception: Exception) {
     logger().warn("Error when decoding from text proto ($textProto): $exception")
     BuildStamp.getDefaultInstance()
+  }
+}
+
+enum class GenerateErrorReason(val message: String) {
+  NO_SUPPORTED_VCS_FOUND(
+    "The Android Gradle Plugin was unable to find a Git repository rooted in your app's project root when this version of your app was built."
+  ),
+  NO_VALID_GIT_FOUND(
+    "The Android Gradle Plugin was unable to read the Git repository at the root project level. '.git/HEAD' or '.git/refs/heads/${'$'}{branch}' were not found or unreadable."
+  ),
+  UNSPECIFIED(
+    "The Android Gradle Plugin was unable to save version control information for an unknown reason."
+  );
+
+  companion object {
+    fun fromProto(proto: BuildStamp.GenerateErrorReason): GenerateErrorReason {
+      return when (proto) {
+        BuildStamp.GenerateErrorReason.NO_SUPPORTED_VCS_FOUND -> NO_SUPPORTED_VCS_FOUND
+        BuildStamp.GenerateErrorReason.NO_VALID_GIT_FOUND -> NO_VALID_GIT_FOUND
+        else -> UNSPECIFIED
+      }
+    }
   }
 }

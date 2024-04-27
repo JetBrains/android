@@ -16,15 +16,12 @@
 package com.android.tools.idea.tests.gui.uibuilder
 
 import com.android.tools.idea.bleak.UseBleak
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ProblemsPaneFixture
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,18 +36,6 @@ class VisualLintTest {
   @JvmField
   @Rule
   val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
-
-  @Before
-  fun setup() {
-    StudioFlags.NELE_VISUAL_LINT.override(true)
-    StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_VISUAL_LINT.clearOverride()
-    StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.clearOverride()
-  }
 
   @Test
   @Throws(Exception::class)

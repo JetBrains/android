@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid;
 
+import org.junit.Test;
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
 
 public final class GridInfoTest {
   @Test

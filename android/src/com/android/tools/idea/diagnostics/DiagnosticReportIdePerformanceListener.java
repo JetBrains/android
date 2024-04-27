@@ -26,9 +26,9 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.messages.MessageBusConnection;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,7 +55,7 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
     private Path myThreadDumpPath;
   }
 
-  DiagnosticReportIdePerformanceListener(Consumer<DiagnosticReport> reportCallback) {
+  public DiagnosticReportIdePerformanceListener(Consumer<DiagnosticReport> reportCallback) {
     myReportCallback = reportCallback;
   }
 
@@ -208,7 +208,7 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
     if (Files.exists(reportPath)) {
       return reportPath;
     }
-    try (PrintWriter out = new PrintWriter(reportPath.toFile(), StandardCharsets.UTF_8)) {
+    try (PrintWriter out = new PrintWriter(reportPath.toFile(), "UTF-8")) {
       out.write(reportContents);
       LOG.info(String.format("Freeze report saved: %s", reportPath));
     }

@@ -18,6 +18,6 @@ package com.android.tools.idea.sdk.install
 enum class VmType {
   HAXM,
   AEHD {
-    override fun toString() = "Android Emulator hypervisor driver"
+    override fun toString() = "Android Emulator hypervisor driver";
   } ;
 }

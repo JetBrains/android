@@ -1,12 +1,17 @@
 <component name="libraryTable">
   <library name="guava-testlib" type="repository">
-    <properties include-transitive-deps="false" maven-id="com.google.guava:guava-testlib:31.1-jre" />
+    <properties include-transitive-deps="false" maven-id="com.google.guava:guava-testlib:31.1-jre">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/com/google/guava/guava-testlib/31.1-jre/guava-testlib-31.1-jre.jar">
+          <sha256sum>7813fcf7e29033bd210499587d74606b116e62e3b720403d2b48e727eb38c2d3</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/com/google/guava/guava-testlib/31.1-jre/guava-testlib-31.1-jre.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/guava/guava-testlib/31.1-jre/guava-testlib-31.1-jre-sources.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/com/google/guava/guava-testlib/31.1-jre/guava-testlib-31.1-jre-sources.jar!/" />
     </SOURCES>
   </library>

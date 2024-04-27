@@ -1,14 +1,16 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.resources.ResourceType;
+import com.android.SdkConstants;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.GenericAttributeValue;
-import java.util.Map;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 class ViewStyleUsageData implements StyleUsageData {
   private final XmlTag myTag;

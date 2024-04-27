@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis
 
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
+import com.android.tools.idea.run.deployment.liveedit.MutableIrClassCache
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ClassDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.Differ
@@ -32,45 +34,99 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.util.Computable
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.testFramework.utils.editor.commitToPsi
 import org.jetbrains.kotlin.codegen.state.GenerationState
+import org.jetbrains.kotlin.idea.base.util.KOTLIN_FILE_TYPES
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtFile
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
-fun diff(old: IrClass, new: IrClass) = Differ.diff(old, new)
-
-fun AndroidProjectRule.Typed<CodeInsightTestFixture, Nothing>.compileIr(text: String, fileName: String, className: String): IrClass {
-  return compileIr(text, fileName).single { it.name == className }
+fun diff(old: IrClass, new: IrClass): ClassDiff? {
+  return Differ.diff(old, new)
 }
 
-fun AndroidProjectRule.Typed<CodeInsightTestFixture, Nothing>.compileIr(text: String, fileName: String): List<IrClass> {
-  val originalFile = fixture.configureByText(fileName, text) as KtFile
-  val output = mutableListOf<ByteArray>()
-  ApplicationManager.getApplication().runReadAction {
+fun AndroidProjectRule.Typed<*, Nothing>.createKtFile(name: String, content: String): KtFile {
+  val file = fixture.configureByText(name, content)
+  assert(file.fileType in KOTLIN_FILE_TYPES)
+  return file as KtFile
+}
+
+fun AndroidProjectRule.Typed<*, Nothing>.modifyKtFile(file: KtFile, content: String) {
+  WriteCommandAction.runWriteCommandAction(project) {
+    val document = PsiDocumentManager.getInstance(project).getDocument(file) ?: fail("No document for $file")
+    document.replaceString(0, document.textLength, content)
+    document.commitToPsi(project)
+  }
+}
+
+/**
+ * Disables Live Edit so that we can edit files without triggering it. Creating a new project rule starts the LiveEditService in the
+ * background, so this helps avoid wasted compute/potential unexpected behavior/noisy logs that come from LE detecting file changes.
+ */
+fun disableLiveEdit() {
+  LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.DISABLED
+}
+
+/**
+ * Enables Live Edit so that edits to Kotlin files will trigger it
+ */
+fun enableLiveEdit() {
+  LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
+}
+
+/**
+ * Compiles the given files and parses the generated classes into [IrClass] objects. Returns a map of class name to [IrClass]
+ */
+fun AndroidProjectRule.Typed<*, Nothing>.directApiCompileIr(inputFile: KtFile) = directApiCompileIr(listOf(inputFile))
+
+/**
+ * Compiles the given file and parses the generated classes into [IrClass] objects. Returns a map of class name to [IrClass]
+ */
+fun AndroidProjectRule.Typed<*, Nothing>.directApiCompileIr(inputFiles: List<KtFile>) = directApiCompile(inputFiles).map {
+  IrClass(it)
+}.associateBy { it.name }
+
+/**
+ * Compile the given file without calling into [LiveEditCompiler]. Should only be used to set up for tests.
+ */
+fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFile: KtFile) = directApiCompile(listOf(inputFile))
+
+/**
+ * Compile the given files without calling into [LiveEditCompiler]. Should only be used to set up for tests.
+ */
+fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFiles: List<KtFile>): List<ByteArray> {
+  return ApplicationManager.getApplication().runReadAction(Computable<List<ByteArray>> {
     runWithCompileLock {
-      val inputFiles = listOf(originalFile)
+      val output = mutableListOf<ByteArray>()
       val resolution = fetchResolution(project, inputFiles)
       val analysisResult = analyze(inputFiles, resolution)
-      val generationState: GenerationState = try {
-        backendCodeGen(project,
-                       analysisResult,
-                       inputFiles,
-                       inputFiles.first().module!!,
-                       emptySet())
-      } catch (t: Throwable) {
-        throw LiveEditUpdateException.internalError("Internal Error During Code Gen", t)
-      }
-
+      val generationState: GenerationState = backendCodeGen(project,
+                                                            analysisResult,
+                                                            inputFiles,
+                                                            inputFiles.first().module!!,
+                                                            emptySet())
       generationState.factory.asList()
         .filter { it.relativePath.endsWith(".class") }
         .map { it.asByteArray() }
         .forEach { output.add(it) }
+      output
     }
+  })
+}
+
+fun AndroidProjectRule.Typed<*, Nothing>.initialCache(files: List<KtFile>): MutableIrClassCache {
+  val cache = MutableIrClassCache()
+  for (file in files) {
+    val classes = directApiCompileIr(file)
+    classes.values.forEach { cache.update(it) }
   }
-  return output.map { IrClass(it) }
+  return cache
 }
 
 /**

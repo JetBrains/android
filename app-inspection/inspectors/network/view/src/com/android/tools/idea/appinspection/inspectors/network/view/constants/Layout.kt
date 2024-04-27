@@ -34,7 +34,7 @@ val LEGEND_RIGHT_PADDING = JBUI.scale(9)
 
 val ROW_HEIGHT_PADDING = JBUI.scale(4)
 
-val TOOLTIP_BORDER: Border = JBUI.Borders.empty(8, 10, 8, 10)
+val TOOLTIP_BORDER: Border = JBUI.Borders.empty(8, 10)
 
 // The total usable height of the toolbar is 30px the 1px is for a 1px border at the bottom of the
 // toolbar.

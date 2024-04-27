@@ -23,7 +23,6 @@ import static com.android.SdkConstants.LINEAR_LAYOUT;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.resources.Density;
 import com.android.tools.adtui.actions.ZoomType;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
@@ -31,6 +30,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.google.common.collect.ImmutableList;
@@ -609,5 +609,13 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.getLayout().layoutContainer(surface);
     surface.zoomToFit();
     assertEquals(0.01, surface.getScale());
+  }
+
+  public void testNlSupportedActions() {
+    NlDesignSurface surface = mySurface;
+    // All NlSupportedActions are supported by default in the NlDesignSurface
+    for (NlSupportedActions value : NlSupportedActions.values()) {
+      assertTrue(NlSupportedActionsKt.isActionSupported(surface, value));
+    }
   }
 }

@@ -19,10 +19,9 @@ import com.intellij.codeInsight.generation.OverrideImplementsAnnotationsFilter
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.psi.KtFile
 
-/**
- * Ensure that any @Composable annotations are retained when implementing an interface.
- */
+/** Ensure that any @Composable annotations are retained when implementing an interface. */
 class ComposeOverrideImplementsAnnotationsFilter : OverrideImplementsAnnotationsFilter {
   override fun getAnnotations(file: PsiFile): Array<String> =
-    if (file is KtFile && isComposeEnabled(file)) arrayOf(COMPOSABLE_ANNOTATION_FQ_NAME) else arrayOf()
+    if (file is KtFile && isComposeEnabled(file)) arrayOf(COMPOSABLE_ANNOTATION_FQ_NAME)
+    else arrayOf()
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
+import com.intellij.openapi.diagnostic.Logger
 
 enum class PairingFeature(val minVersion: Int) {
   // Applicable to phone
@@ -51,6 +52,11 @@ const val OEM_COMPANION_FALLBACK_APP_ID = "com.google.android.wearable.app"
 private suspend fun IDevice.getAppVersionCode(appId: String) =
   VERSION_CODE_PATTERN.find(runShellCommand("dumpsys package $appId | grep versionCode | head -n1"))?.groupValues?.get(1)?.toInt()
 
+private val availableCompanionAppIds = setOf(
+  PIXEL_COMPANION_APP_ID,
+  OEM_COMPANION_FALLBACK_APP_ID
+)
+
 suspend fun IDevice.getCompanionAppIdForWatch(): String {
   val settingValue = getSecureSetting(OEM_COMPANION_SETTING_KEY)
   if (settingValue.isNotBlank() && settingValue != "null") {
@@ -61,6 +67,25 @@ suspend fun IDevice.getCompanionAppIdForWatch(): String {
     return propertyValue
   }
   return OEM_COMPANION_FALLBACK_APP_ID
+}
+
+enum class CompanionSupport {
+  /** The companion app is supported. */
+  SUPPORTED,
+  /** The companion app is not supported for this phone/emulator abi. */
+  INCOMPATIBLE_ABI,
+  /** This is companion app is not known to the pairing assistant. */
+  INCOMPATIBLE_COMPANION_ID,
+}
+
+fun IDevice.supportsCompanionAppId(companionAppId: String): CompanionSupport {
+  if (!availableCompanionAppIds.contains(companionAppId)) return CompanionSupport.INCOMPATIBLE_COMPANION_ID
+
+  if (companionAppId == OEM_COMPANION_FALLBACK_APP_ID && abis.singleOrNull() == "x86_64") {
+    Logger.getInstance(PairingFeature::class.java).warn("$OEM_COMPANION_FALLBACK_APP_ID does not support x86_64 abi.")
+    return CompanionSupport.INCOMPATIBLE_ABI
+  }
+  return CompanionSupport.SUPPORTED
 }
 
 suspend fun IDevice.hasPairingFeature(pairingFeature: PairingFeature, companionAppId: String? = null): Boolean {

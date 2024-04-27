@@ -80,7 +80,13 @@ class LocaleAnalyzerTest {
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, layoutFile)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel =
-      SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, layoutFile)
+      SyncNlModel.create(
+        projectRule.fixture.testRootDisposable,
+        NlComponentRegistrar,
+        null,
+        facet,
+        layoutFile
+      )
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
     RenderTestUtil.withRenderTask(facet, layoutFile, configuration) { task: RenderTask ->
@@ -144,7 +150,13 @@ class LocaleAnalyzerTest {
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, layoutFile)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel =
-      SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, layoutFile)
+      SyncNlModel.create(
+        projectRule.fixture.testRootDisposable,
+        NlComponentRegistrar,
+        null,
+        facet,
+        layoutFile
+      )
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
     RenderTestUtil.withRenderTask(facet, layoutFile, configuration) { task: RenderTask ->
@@ -207,7 +219,13 @@ class LocaleAnalyzerTest {
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, layoutFile)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel =
-      SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, layoutFile)
+      SyncNlModel.create(
+        projectRule.fixture.testRootDisposable,
+        NlComponentRegistrar,
+        null,
+        facet,
+        layoutFile
+      )
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
     RenderTestUtil.withRenderTask(facet, layoutFile, configuration) { task: RenderTask ->

@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.kotlin
 
+import com.android.tools.tests.AdtTestProjectDescriptors
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import com.intellij.testFramework.LightProjectDescriptor
+import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -29,7 +31,9 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Test
 
-class AndroidKtPsiUtilsTest : LightJavaCodeInsightFixtureTestCase() {
+class AndroidKtPsiUtilsTest : BasePlatformTestCase() {
+
+  override fun getProjectDescriptor(): LightProjectDescriptor = AdtTestProjectDescriptors.kotlin()
 
   @Test
   fun testKtClass_insideBody() {
@@ -115,7 +119,7 @@ class AndroidKtPsiUtilsTest : LightJavaCodeInsightFixtureTestCase() {
   fun testKtClass_className_kotlinBuiltin() {
     val file = setFileContents("""
       class <caret>Foo
-    """.trimIndent(), packageName = "kotlin.some.package")
+    """.trimIndent(), packageName = "kotlin.some.`package`")
 
     assertThat(file.getElementAtCaret<KtClass>().getQualifiedName()).isNull()
   }

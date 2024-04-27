@@ -21,7 +21,7 @@ import com.android.build.attribution.getSuccessfulResult
 import com.android.build.output.DownloadRequestItem
 import com.android.build.output.DownloadsInfoExecutionConsole
 import com.android.build.output.DownloadsInfoPresentableBuildEvent
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker

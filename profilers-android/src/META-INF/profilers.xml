@@ -23,9 +23,9 @@
                       doNotActivateOnStart="true"/>
     <applicationService serviceImplementation="com.android.tools.idea.profilers.AndroidProfilerService"/>
   </extensions>
-  <actions resource-bundle="messages.AndroidProfilerBundle">
+  <actions>
     <action id="Android.ChooseProfileConfiguration" class="com.android.tools.idea.profilers.ChooseProfileConfigurationPopupAction"
-            icon="StudioIcons.Shell.Toolbar.PROFILER">
+            text="Profile..." description="Choose and profile configuration" icon="StudioIcons.Shell.Toolbar.PROFILER">
       <add-to-group group-id="RunMenu" anchor="after" relative-to-action="ChooseDebugConfiguration" />
     </action>
     <action id="Android.ProfileWithLowOverhead" class="com.android.tools.idea.profilers.ProfileProfileableAction">
@@ -35,6 +35,8 @@
     <action id="Android.StopProfilingSession" class="com.android.tools.idea.profilers.StopProfilingSessionAction">
     </action>
     <action id="Android.StartSystemTrace" class="com.android.tools.idea.profilers.StartSystemTraceAction">
+    </action>
+    <action id="Android.StartCallstackSample" class="com.android.tools.idea.profilers.StartCallstackSampleAction">
     </action>
     <action id="Android.StopCpuCapture" class="com.android.tools.idea.profilers.StopCpuCaptureAction">
     </action>
@@ -58,6 +60,11 @@
     <fileType name="PerfettoCapture" implementationClass="com.android.tools.idea.profilers.capture.PerfettoCaptureFileType"
               extensions="pftrace;perfetto-trace"/>
   </extensions>
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.profilers.profilerProgramRunnerToken"
+                    interface="com.android.tools.idea.profilers.ProfilerProgramRunnerToken"
+                    area="IDEA_PROJECT"/>
+  </extensionPoints>
   <projectListeners>
     <listener class="com.android.tools.idea.profilers.AndroidProfilerRunWindowRestorerExecutionListener" topic="com.intellij.execution.ExecutionListener" />
     <listener class="com.android.tools.idea.profilers.ProfilerExecutionListener" topic="com.intellij.execution.ExecutionListener"/>

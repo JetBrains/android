@@ -24,7 +24,6 @@ import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.android.tools.idea.util.toDisplayString
 import com.google.common.cache.CacheBuilder
 import com.google.common.hash.Hashing
@@ -437,11 +436,6 @@ class FastPreviewManager private constructor(
                    buildMessage,
                    if (result.isSuccess) NotificationType.INFORMATION else NotificationType.WARNING)
         .notify(project)
-    }
-
-    if (result.isSuccess) {
-      // The project has built successfully so we can drop the constants that we were keeping.
-      ProjectConstantRemapper.getInstance(project).clearConstants(null)
     }
 
     return@withLock Pair(result, outputDir.toAbsolutePath().toString()).also {

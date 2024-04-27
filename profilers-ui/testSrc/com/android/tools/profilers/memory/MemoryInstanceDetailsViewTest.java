@@ -254,7 +254,7 @@ public class MemoryInstanceDetailsViewTest {
     assertFalse(menus.get(0).isEnabled());
 
     // Selects the referer node and triggers the context menu action to select the ref instance.
-    TreeNode refNode = ((MemoryObjectTreeNode<?>)tree.getModel().getRoot()).getChildAt(0);
+    TreeNode refNode = ((MemoryObjectTreeNode)tree.getModel().getRoot()).getChildAt(0);
     tree.setSelectionPath(new TreePath(refNode));
     assertTrue(menus.get(0).isEnabled());
     menus.get(0).run();

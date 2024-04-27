@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.gradle.index
 
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.android.AndroidTestCase
+import org.junit.Rule
 import org.junit.Test
 
-class VersionCatalogFileIndexContributorTest: AndroidTestCase() {
+class VersionCatalogFileIndexContributorTest{
 
+  @get:Rule
+  val projectRule = AndroidProjectRule.onDisk()
+  private val fixture get() = projectRule.fixture
+  private val project get() = projectRule.project
   @Test
   fun testCatalogInIndex() {
-    val tomlFile = myFixture.addFileToProject("gradle/libs.versions.toml", "")
-    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
+    val tomlFile = fixture.addFileToProject("gradle/libs.versions.toml", "")
+    fixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
 
     val contributor = VersionCatalogFileIndexContributor()
     val files = contributor.getAdditionalProjectRootsToIndex(project)
@@ -34,11 +39,11 @@ class VersionCatalogFileIndexContributorTest: AndroidTestCase() {
 
   @Test
   fun testNoCatalogsOutsideOfGradleFolder() {
-    val rootTomlFile = myFixture.addFileToProject("./libs.versions.toml", "")
-    myFixture.configureFromExistingVirtualFile(rootTomlFile.virtualFile)
+    val rootTomlFile = fixture.addFileToProject("./libs.versions.toml", "")
+    fixture.configureFromExistingVirtualFile(rootTomlFile.virtualFile)
 
-    val subdirectoryTomlFile = myFixture.addFileToProject("./gradle/test/libs.versions.toml", "")
-    myFixture.configureFromExistingVirtualFile(subdirectoryTomlFile.virtualFile)
+    val subdirectoryTomlFile = fixture.addFileToProject("./gradle/test/libs.versions.toml", "")
+    fixture.configureFromExistingVirtualFile(subdirectoryTomlFile.virtualFile)
 
     val contributor = VersionCatalogFileIndexContributor()
     val files = contributor.getAdditionalProjectRootsToIndex(project)

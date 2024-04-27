@@ -70,6 +70,7 @@ import javax.swing.UIManager
 /** Interactive tester of a ComponentTree. */
 object ComponentTreeManualTest {
 
+  @Suppress("UnusedMainParameter")
   @JvmStatic
   fun main(args: Array<String>) {
     startTestApplication()
@@ -100,9 +101,11 @@ object ComponentTreeManualTest {
     val settings =
       object : AdvancedSettings() {
         override fun getSetting(id: String) = false
+
         override fun setSetting(id: String, value: Any, expectType: AdvancedSettingType) {
           TODO("Not yet implemented")
         }
+
         override fun getDefault(id: String): Any {
           throw NotImplementedError()
         }

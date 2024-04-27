@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.visual.colorblindmode
 import com.intellij.openapi.Disposable
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
+import java.lang.StringBuilder
 import java.util.function.Function
 import kotlin.math.pow
 
@@ -29,10 +30,11 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
   companion object {
     private var removeGammaCLut: DoubleArray? = null
   }
+
   private var cbmCLut: ColorLut? = null
 
   /**
-   * Pre condition : BufferedImage must be [BufferedImage.TYPE_INT_ARGB]. Returns true if color
+   * Pre condition : BufferedImage must be [BufferedImage.TYPE_INT_ARGB_PRE]. Returns true if color
    * conversion was successful. False otherwise
    */
   fun convert(startImage: BufferedImage, postImage: BufferedImage): Boolean {
@@ -42,8 +44,8 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
     }
 
     if (
-      startImage.type != BufferedImage.TYPE_INT_ARGB ||
-        postImage.type != BufferedImage.TYPE_INT_ARGB
+      startImage.type != BufferedImage.TYPE_INT_ARGB_PRE ||
+        postImage.type != BufferedImage.TYPE_INT_ARGB_PRE
     ) {
       println("Error:: BufferedImage not supported for color blind mode.")
       return false
@@ -62,18 +64,11 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
   /**
    * Corrects alpha value assuming background is white
    *
-   * @param color int containing rgb color (e.g. 0xFFFFFF)
-   * @param alpha value from [1,255]
+   * @param color int containing argb color with alpha pre-multiplied (e.g. 0xFFFFFF)
    */
   private fun alphaCorrect(color: Int): Int {
-    val a = a(color).toDouble() / 255.0
-    val whiteBg = (1 - a) * 255
-
-    return combine(
-      a * r(color).toDouble() + whiteBg,
-      a * g(color).toDouble() + whiteBg,
-      a * b(color).toDouble() + whiteBg
-    )
+    val whiteBg = 255 - a(color)
+    return combine(r(color) + whiteBg, g(color) + whiteBg, b(color) + whiteBg)
   }
 
   override fun dispose() {

@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.Connection
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -28,7 +29,8 @@ data class ActiveConnectionChanged(val connection: Connection) : ChangeEvent {
 
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
     val newState = state.selectConnection(connection)
     if (newState == state) {
@@ -37,7 +39,9 @@ data class ActiveConnectionChanged(val connection: Connection) : ChangeEvent {
     return StateTransition(
       newState.copy(
         issues = LoadingState.Loading,
+        currentIssueVariants = LoadingState.Ready(null),
         currentIssueDetails = LoadingState.Ready(null),
+        currentEvents = LoadingState.Ready(null),
         currentNotes = LoadingState.Ready(null),
         // reset the version, device and OS filters upon connection change.
         filters =

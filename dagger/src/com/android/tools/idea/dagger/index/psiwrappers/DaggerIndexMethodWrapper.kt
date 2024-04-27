@@ -25,9 +25,13 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 interface DaggerIndexMethodWrapper : DaggerIndexAnnotatedWrapper {
   /** Simple name of the method. Eg: "someMethodName" */
   fun getSimpleName(): String
+
   fun getReturnType(): DaggerIndexTypeWrapper?
+
   fun getParameters(): List<DaggerIndexParameterWrapper>
+
   fun getIsConstructor(): Boolean
+
   fun getContainingClass(): DaggerIndexClassWrapper?
 }
 

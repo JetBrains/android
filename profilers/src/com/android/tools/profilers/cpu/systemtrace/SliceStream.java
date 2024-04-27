@@ -61,7 +61,7 @@ public final class SliceStream {
     return this;
   }
 
-  /*
+  /**
    * @param name to match on slices default is *
    */
   public SliceStream matchName(@NotNull String name) {

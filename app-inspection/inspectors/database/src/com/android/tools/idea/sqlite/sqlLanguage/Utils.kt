@@ -82,8 +82,7 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
                   ?.children
                   ?.filterIsInstance<AndroidSqlColumnRefExpression>()
                   ?.firstOrNull()
-                  ?.text
-                  ?: bindParameterText
+                  ?.text ?: bindParameterText
               }
 
             parametersNames.add(SqliteParameter(parameterName, parentIsInExpression(bindParameter)))

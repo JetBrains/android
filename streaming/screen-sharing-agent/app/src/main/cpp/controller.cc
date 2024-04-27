@@ -41,7 +41,7 @@ namespace {
 constexpr int BUFFER_SIZE = 4096;
 constexpr int UTF8_MAX_BYTES_PER_CHARACTER = 4;
 
-constexpr int SOCKET_RECEIVE_TIMEOUT_MILLIS = 500;
+constexpr int SOCKET_RECEIVE_TIMEOUT_MILLIS = 200;
 
 int64_t UptimeMillis() {
   timespec t = { 0, 0 };
@@ -88,6 +88,32 @@ bool ContainsMultipleDeviceStates(const string& states_text) {
   return states_text.find("DeviceState{") != states_text.rfind("DeviceState{");
 }
 
+bool CheckVideoSize(Size video_resolution) {
+  if (video_resolution.width > 0 && video_resolution.height > 0) {
+    return true;
+  }
+  Log::E("An attempt to set an invalid video resolution: %dx%d", video_resolution.width, video_resolution.height);
+  return false;
+}
+
+void InjectMotionEvent(Jni jni, const MotionEvent& event, InputEventInjectionSync mode) {
+  JObject motion_event = event.ToJava();
+  if (event.action == AMOTION_EVENT_ACTION_HOVER_MOVE || Log::IsEnabled(Log::Level::VERBOSE)) {
+    Log::V("motion_event: %s", motion_event.ToString().c_str());
+  } else if (Log::IsEnabled(Log::Level::DEBUG)) {
+    Log::D("motion_event: %s", motion_event.ToString().c_str());
+  }
+  InputManager::InjectInputEvent(jni, motion_event, mode);
+}
+
+void InjectKeyEvent(Jni jni, const KeyEvent& event, InputEventInjectionSync mode) {
+  JObject key_event = event.ToJava();
+  if (Log::IsEnabled(Log::Level::DEBUG)) {
+    Log::D("key_event: %s", key_event.ToString().c_str());
+  }
+  InputManager::InjectInputEvent(jni, key_event, mode);
+}
+
 }  // namespace
 
 Controller::Controller(int socket_fd)
@@ -100,25 +126,26 @@ Controller::Controller(int socket_fd)
       clipboard_listener_(this),
       max_synced_clipboard_length_(0),
       clipboard_changed_(),
-      device_state_listener_(this) {
+      device_state_listener_(this),
+      ui_settings_() {
   assert(socket_fd > 0);
   char channel_marker = 'C';
   write(socket_fd_, &channel_marker, sizeof(channel_marker));  // Control channel marker.
 }
 
 Controller::~Controller() {
-  Shutdown();
+  Stop();
+  input_stream_.Close();
+  output_stream_.Close();
   delete pointer_helper_;
   delete key_character_map_;
 }
 
-void Controller::Shutdown() {
+void Controller::Stop() {
   if (device_supports_multiple_states_) {
     DeviceStateManager::RemoveDeviceStateListener(&device_state_listener_);
   }
-  input_stream_.Close();
-  output_stream_.Close();
-  close(socket_fd_);
+  stopped = true;
 }
 
 void Controller::Initialize() {
@@ -156,14 +183,10 @@ void Controller::Initialize() {
     DeviceStateManager::AddDeviceStateListener(&device_state_listener_);
     int32_t device_state = DeviceStateManager::GetDeviceState(jni_);
     Log::D("Controller::Initialize: device_state=%d", device_state);
-    {
-      scoped_lock lock(device_state_mutex_);
-      if (!device_state_changed_) {
-        device_state_ = device_state;
-        device_state_changed_ = true;
-      }
-    }
+    device_state_ = device_state;
   }
+
+  DisplayManager::AddDisplayListener(jni_, this);
 
   Agent::InitializeSessionEnvironment();
 }
@@ -174,25 +197,25 @@ void Controller::Run() {
 
   try {
     for (;;) {
-      if (max_synced_clipboard_length_ != 0) {
-        if (clipboard_changed_.exchange(false)) {
-          ProcessClipboardChange();
+      auto socket_timeout = SOCKET_RECEIVE_TIMEOUT_MILLIS;
+      if (!stopped) {
+        if (max_synced_clipboard_length_ != 0) {
+          SendClipboardChangedNotification();
         }
-      }
 
-      if (device_supports_multiple_states_) {
-        int32_t device_state = TakeChangedDeviceState();
-        if (device_state >= 0) {
-          Log::D("Controller::Run: device_state=%d", device_state);
-          SendDeviceStateNotification(device_state);
+        if (device_supports_multiple_states_) {
+          SendDeviceStateNotification();
         }
+
+        if (poll_displays_until_ != steady_clock::time_point()) {
+          PollDisplays();
+          socket_timeout /= 5;  // Reduce socket timeout to increase polling frequency.
+        }
+
+        SendPendingDisplayEvents();
       }
 
-      if (max_synced_clipboard_length_ != 0 || device_supports_multiple_states_) {
-        // Set a receive timeout to check for clipboard and device state changes frequently.
-        SetReceiveTimeoutMillis(SOCKET_RECEIVE_TIMEOUT_MILLIS, socket_fd_);
-      }
-
+      SetReceiveTimeoutMillis(socket_timeout, socket_fd_);  // Set a receive timeout to avoid blocking for a long time.
       int32_t message_type;
       try {
         message_type = input_stream_.ReadInt32();
@@ -201,7 +224,9 @@ void Controller::Run() {
       }
       SetReceiveTimeoutMillis(0, socket_fd_);  // Remove receive timeout for reading the rest of the message.
       unique_ptr<ControlMessage> message = ControlMessage::Deserialize(message_type, input_stream_);
-      ProcessMessage(*message);
+      if (!stopped) {
+        ProcessMessage(*message);
+      }
     }
   } catch (EndOfFile& e) {
     Log::D("Controller::Run: End of command stream");
@@ -212,7 +237,7 @@ void Controller::Run() {
 
 void Controller::ProcessMessage(const ControlMessage& message) {
   if (message.type() != MotionEventMessage::TYPE) { // Exclude
-    Log::D("Controller::ProcessMessage %d", message.type());
+    Log::W("Controller::ProcessMessage %d", message.type());
   }
   switch (message.type()) {
     case MotionEventMessage::TYPE:
@@ -235,12 +260,12 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       ProcessSetMaxVideoResolution((const SetMaxVideoResolutionMessage&) message);
       break;
 
-    case StopVideoStreamMessage::TYPE:
-      StopVideoStream();
+    case StartVideoStreamMessage::TYPE:
+      StartVideoStream((const StartVideoStreamMessage&) message);
       break;
 
-    case StartVideoStreamMessage::TYPE:
-      StartVideoStream();
+    case StopVideoStreamMessage::TYPE:
+      StopVideoStream((const StopVideoStreamMessage&) message);
       break;
 
     case StartClipboardSyncMessage::TYPE:
@@ -253,6 +278,18 @@ void Controller::ProcessMessage(const ControlMessage& message) {
 
     case RequestDeviceStateMessage::TYPE:
       RequestDeviceState((const RequestDeviceStateMessage&) message);
+      break;
+
+    case DisplayConfigurationRequest::TYPE:
+      SendDisplayConfigurations((const DisplayConfigurationRequest&) message);
+      break;
+
+    case UiSettingsRequest::TYPE:
+      SendUiSettings((const UiSettingsRequest&) message);
+      break;
+
+    case SetDarkModeMessage::TYPE:
+      SetDarkMode((const SetDarkModeMessage&) message);
       break;
 
     default:
@@ -282,6 +319,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     if (action == AMOTION_EVENT_ACTION_UP) {
       motion_event_start_time_ = 0;
     }
+    Agent::RecordTouchEvent();
   }
   if (action == AMOTION_EVENT_ACTION_HOVER_MOVE || message.action_button() != 0 || message.button_state() != 0) {
     // AINPUT_SOURCE_MOUSE
@@ -294,7 +332,10 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     event.source = AINPUT_SOURCE_STYLUS | AINPUT_SOURCE_TOUCHSCREEN;
   }
 
-  DisplayInfo display_info = Agent::GetDisplayInfo();
+  DisplayInfo display_info = Agent::GetDisplayInfo(message.display_id());
+  if (!display_info.IsValid()) {
+    return;
+  }
 
   for (auto& pointer : message.pointers()) {
     JObject properties = pointer_properties_.GetElement(jni_, event.pointer_count);
@@ -319,12 +360,12 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   // They have to be converted to a sequence of pointer-specific events.
   if (action == AMOTION_EVENT_ACTION_DOWN) {
     if (message.action_button()) {
-      InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
+      InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
       event.action = AMOTION_EVENT_ACTION_BUTTON_PRESS;
       event.action_button = message.action_button();
     } else {
       for (int i = 1; event.pointer_count = i, i < message.pointers().size(); i++) {
-        InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
+        InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
         event.action = AMOTION_EVENT_ACTION_POINTER_DOWN | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
       }
     }
@@ -333,25 +374,24 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     if (message.action_button()) {
       event.action = AMOTION_EVENT_ACTION_BUTTON_RELEASE;
       event.action_button = message.action_button();
-      InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
+      InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
       event.action = AMOTION_EVENT_ACTION_UP;
       event.action_button = 0;
     } else {
       for (int i = event.pointer_count; --i > 1;) {
         event.action = AMOTION_EVENT_ACTION_POINTER_UP | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
         pointer_helper_->SetPointerPressure(pointer_coordinates_.GetElement(jni_, i), 0);
-        InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
+        InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
         event.pointer_count = i;
       }
       event.action = AMOTION_EVENT_ACTION_UP;
     }
   }
-  Agent::RecordTouchEvent();
-  InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
+  InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
 
   if (event.action == AMOTION_EVENT_ACTION_UP) {
     // This event may have started an app. Update the app-level display orientation.
-    Agent::SetVideoOrientation(DisplayStreamer::CURRENT_VIDEO_ORIENTATION);
+    Agent::SetVideoOrientation(message.display_id(), DisplayStreamer::CURRENT_VIDEO_ORIENTATION);
 
     if (!display_info.IsOn()) {
       ProcessKeyboardEvent(KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));  // Wakeup the display.
@@ -369,12 +409,10 @@ void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
   event.code = message.keycode();
   event.meta_state = message.meta_state();
   event.source = KeyCharacterMap::VIRTUAL_KEYBOARD;
-  JObject key_event = event.ToJava();
-  InputManager::InjectInputEvent(jni, key_event, InputEventInjectionSync::NONE);
+  InjectKeyEvent(jni, event, InputEventInjectionSync::NONE);
   if (action == KeyEventMessage::ACTION_DOWN_AND_UP) {
     event.action = AKEY_EVENT_ACTION_UP;
-    key_event = event.ToJava();
-    InputManager::InjectInputEvent(jni, key_event, InputEventInjectionSync::NONE);
+    InjectKeyEvent(jni, event, InputEventInjectionSync::NONE);
   }
 }
 
@@ -383,12 +421,15 @@ void Controller::ProcessTextInput(const TextInputMessage& message) {
   for (uint16_t c: text) {
     JObjectArray event_array = key_character_map_->GetEvents(&c, 1);
     if (event_array.IsNull()) {
-      Log::E("Unable to map character '\\u%04X' to key events", c);
+      Log::E(jni_.GetAndClearException(), "Unable to map character '\\u%04X' to key events", c);
       continue;
     }
     auto len = event_array.GetLength();
     for (int i = 0; i < len; i++) {
       JObject key_event = event_array.GetElement(i);
+      if (Log::IsEnabled(Log::Level::DEBUG)) {
+        Log::D("key_event: %s", key_event.ToString().c_str());
+      }
       InputManager::InjectInputEvent(jni_, key_event, InputEventInjectionSync::NONE);
     }
   }
@@ -400,25 +441,28 @@ void Controller::ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& 
     Log::E("An attempt to set an invalid device orientation: %d", orientation);
     return;
   }
-  Agent::SetVideoOrientation(orientation);
+  Agent::SetVideoOrientation(PRIMARY_DISPLAY_ID, orientation);
 }
 
 void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message) {
-  const Size& size = message.size();
-  if (size.width <= 0 || size.height <= 0) {
-    Log::E("An attempt to set an invalid video resolution: %dx%d", size.width, size.height);
-    return;
+  if (CheckVideoSize(message.max_video_size())) {
+    Agent::SetMaxVideoResolution(message.display_id(), message.max_video_size());
   }
-  Agent::SetMaxVideoResolution(size);
 }
 
-void Controller::StopVideoStream() {
-  Agent::StopVideoStream();
+void Controller::StopVideoStream(const StopVideoStreamMessage& message) {
+  Agent::StopVideoStream(message.display_id());
 }
 
-void Controller::StartVideoStream() {
-  Agent::StartVideoStream();
-  WakeUpDevice();
+void Controller::StartVideoStream(const StartVideoStreamMessage& message) {
+  if (CheckVideoSize(message.max_video_size())) {
+    Agent::StartVideoStream(message.display_id(), message.max_video_size());
+    WakeUpDevice();
+  }
+}
+
+void Controller::WakeUpDevice() {
+  ProcessKeyboardEvent(Jvm::GetJni(), KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));
 }
 
 void Controller::StartClipboardSync(const StartClipboardSyncMessage& message) {
@@ -443,8 +487,16 @@ void Controller::StopClipboardSync() {
   }
 }
 
-void Controller::ProcessClipboardChange() {
-  Log::D("Controller::ProcessClipboardChange");
+void Controller::OnPrimaryClipChanged() {
+  Log::D("Controller::OnPrimaryClipChanged");
+  clipboard_changed_ = true;
+}
+
+void Controller::SendClipboardChangedNotification() {
+  if (!clipboard_changed_.exchange(false)) {
+    return;
+  }
+  Log::D("Controller::SendClipboardChangedNotification");
   ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
   string text = clipboard_manager->GetText();
   if (text.empty() || text == last_clipboard_text_) {
@@ -465,46 +517,155 @@ void Controller::RequestDeviceState(const RequestDeviceStateMessage& message) {
   DeviceStateManager::RequestState(jni_, message.state(), 0);
 }
 
-int32_t Controller::TakeChangedDeviceState() {
-  scoped_lock lock(device_state_mutex_);
-  if (device_state_changed_) {
-    device_state_changed_ = false;
-    Log::D("Controller::TakeChangedDeviceState: device_state_=%d", device_state_);
-    return device_state_;
+void Controller::OnDeviceStateChanged(int32_t device_state) {
+  Log::D("Controller::OnDeviceStateChanged(%d)", device_state);
+  int32_t previous_state = device_state_.exchange(device_state);
+  if (previous_state != device_state) {
+    Agent::SetVideoOrientation(PRIMARY_DISPLAY_ID, DisplayStreamer::CURRENT_DISPLAY_ORIENTATION);
   }
-  return -1;
 }
 
-void Controller::SendDeviceStateNotification(int32_t device_state) {
-  Log::D("Controller::SendDeviceStateNotification(%d)", device_state);
-  DeviceStateNotification notification(device_state);
-  notification.Serialize(output_stream_);
+void Controller::SendDeviceStateNotification() {
+  int32_t device_state = device_state_;
+  if (device_state != previous_device_state_) {
+    Log::D("Sending DeviceStateNotification(%d)", device_state);
+    DeviceStateNotification notification(device_state);
+    notification.Serialize(output_stream_);
+    output_stream_.Flush();
+    previous_device_state_ = device_state;
+    if ((Agent::flags() & B_303684492_WORKAROUND) != 0 && Agent::feature_level() >= 34) {
+      StartDisplayPolling();  // Workaround for b/303684492.
+    }
+  }
+}
+
+void Controller::SendDisplayConfigurations(const DisplayConfigurationRequest& request) {
+  vector<int32_t> display_ids = DisplayManager::GetDisplayIds(jni_);
+  vector<pair<int32_t, DisplayInfo>> displays;
+  displays.reserve(display_ids.size());
+  for (auto display_id : display_ids) {
+    DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni_, display_id);
+    if (display_info.IsOn() && (display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0) {
+      Log::D("Returning display configuration: displayId=%d state=%d flags=0x%2x size=%dx%d orientation=%d",
+             display_id, display_info.state, display_info.flags, display_info.logical_size.width, display_info.logical_size.height,
+             display_info.rotation);
+      displays.emplace_back(display_id, display_info);
+    }
+  }
+  DisplayConfigurationResponse response(request.request_id(), std::move(displays));
+  response.Serialize(output_stream_);
   output_stream_.Flush();
 }
 
-void Controller::OnPrimaryClipChanged() {
-  Log::D("Controller::OnPrimaryClipChanged");
-  clipboard_changed_ = true;
+void Controller::SendUiSettings(const UiSettingsRequest& message) {
+  UiSettingsResponse response(message.request_id());
+  ui_settings_.Get(&response);
+  response.Serialize(output_stream_);
+  output_stream_.Flush();
 }
 
-void Controller::OnDeviceStateChanged(int32_t device_state) {
-  Log::D("Controller::OnDeviceStateChanged(%d)", device_state);
-  bool changed = false;
+void Controller::SetDarkMode(const SetDarkModeMessage& message) {
+  ui_settings_.SetDarkMode(message.dark_mode());
+}
+
+void Controller::OnDisplayAdded(int32_t display_id) {
+  unique_lock lock(display_events_mutex_);
+  pending_display_events_.emplace_back(display_id, DisplayEvent::Type::ADDED);
+}
+
+void Controller::OnDisplayRemoved(int32_t display_id) {
+  unique_lock lock(display_events_mutex_);
+  pending_display_events_.emplace_back(display_id, DisplayEvent::Type::REMOVED);
+}
+
+void Controller::OnDisplayChanged(int32_t display_id) {
+}
+
+void Controller::SendPendingDisplayEvents() {
+  vector<DisplayEvent> display_events;
   {
-    scoped_lock lock(device_state_mutex_);
-    if (device_state_ != device_state) {
-      changed = true;
-      device_state_ = device_state;
-      device_state_changed_ = true;
+    unique_lock lock(display_events_mutex_);
+    swap(display_events, pending_display_events_);
+  }
+
+  for (auto event : display_events) {
+    if (event.type == DisplayEvent::Type::ADDED) {
+      DisplayAddedNotification notification(event.display_id);
+      notification.Serialize(output_stream_);
+      output_stream_.Flush();
+      Log::D("Sent DisplayAddedNotification(%d)", event.display_id);
+    }
+    else if (event.type == DisplayEvent::Type::REMOVED) {
+      DisplayRemovedNotification notification(event.display_id);
+      notification.Serialize(output_stream_);
+      output_stream_.Flush();
+      Log::D("Sent DisplayRemovedNotification(%d)", event.display_id);
     }
   }
-  if (changed) {
-    Agent::SetVideoOrientation(DisplayStreamer::CURRENT_DISPLAY_ORIENTATION);
+}
+
+void Controller::StartDisplayPolling() {
+  auto displays = GetDisplays();
+  for (auto display : displays) {
+    // Due to uncertain timing of events we have to assume that the display was both added and changed.
+    DisplayManager::OnDisplayAdded(jni_, display.first);
+    DisplayManager::OnDisplayChanged(jni_, display.first);
+  }
+  current_displays_ = displays;
+  Log::D("Controller::StartDisplayPolling current_displays_.size()=%d", static_cast<int>(current_displays_.size()));
+  poll_displays_until_ = steady_clock::now() + 500ms;
+}
+
+void Controller::StopDisplayPolling() {
+  Log::D("Controller::StopDisplayPolling");
+  current_displays_.clear();
+  poll_displays_until_ = steady_clock::time_point();
+}
+
+void Controller::PollDisplays() {
+  auto displays = GetDisplays();
+  for (auto d1 = displays.begin(), d2 = current_displays_.begin(); d1 != displays.end() || d2 != current_displays_.end();) {
+    if (d2 == current_displays_.end()) {
+      // Due to uncertain timing of events we have to assume that the display was both added and changed.
+      DisplayManager::OnDisplayAdded(jni_, d1->first);
+      DisplayManager::OnDisplayChanged(jni_, d1->first);
+      d1++;
+    } else if (d1 == displays.end()) {
+      DisplayManager::OnDisplayRemoved(jni_, d2->first);
+      d2++;
+    } else if (d1->first < d2->first) {
+      // Due to uncertain timing of events we have to assume that the display was both added and changed.
+      DisplayManager::OnDisplayAdded(jni_, d1->first);
+      DisplayManager::OnDisplayChanged(jni_, d1->first);
+      d1++;
+    } else if (d1->first > d2->first) {
+      DisplayManager::OnDisplayRemoved(jni_, d2->first);
+      d2++;
+    } else {
+      if (d1->second != d2->second) {
+        DisplayManager::OnDisplayChanged(jni_, d1->first);
+      }
+      d1++;
+      d2++;
+    }
+  }
+
+  current_displays_ = displays;
+  if (steady_clock::now() > poll_displays_until_) {
+    StopDisplayPolling();
   }
 }
 
-void Controller::WakeUpDevice() {
-  ProcessKeyboardEvent(Jvm::GetJni(), KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));
+map<int32_t, DisplayInfo> Controller::GetDisplays() {
+  vector<int32_t> display_ids = DisplayManager::GetDisplayIds(jni_);
+  map<int32_t, DisplayInfo> displays;
+  for (auto display_id: display_ids) {
+    DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni_, display_id);
+    if (display_info.IsOn() && (display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0) {
+      displays[display_id] = display_info;
+    }
+  }
+  return displays;
 }
 
 Controller::ClipboardListener::~ClipboardListener() = default;

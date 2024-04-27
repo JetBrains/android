@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.google.common.annotations.VisibleForTesting
@@ -78,28 +78,14 @@ abstract class AbstractSetLanguageLevel8QuickFix(private val setJvmTarget: Boole
 class SetLanguageLevel8AllQuickFix(setJvmTarget: Boolean) : AbstractSetLanguageLevel8QuickFix(setJvmTarget, "all modules") {
   override val id = "set.java.level.8.all"
 
-  override fun buildFilesToApply(project: Project) = ProjectFacetManager.getInstance(project)
-    .getModulesWithFacet(AndroidFacet.ID)
-    .mapNotNull { GradleUtil.getGradleModuleModel(it) }
-    .mapNotNull { it.buildFile }
-    .distinct()
-    .toList()
+  override fun buildFilesToApply(project: Project) = project.allBuildFiles()
 }
 
 class SetLanguageLevel8ModuleQuickFix(val modulePath: String, setJvmTarget: Boolean): AbstractSetLanguageLevel8QuickFix(setJvmTarget, "module $modulePath") {
   override val id = "set.java.level.8.module"
 
   override fun buildFilesToApply(project: Project): List<VirtualFile> {
-    return listOfNotNull(
-      // TODO(b/149203281): Fix support for composite projects.
-      GradleHolderProjectPath(
-        FileUtil.toSystemIndependentName((project.guessProjectDir()?.path ?: return emptyList())),
-        modulePath
-      ).resolveIn(project)
-    )
-      .filter { AndroidFacet.getInstance(it) != null }
-      .mapNotNull { GradleUtil.getGradleModuleModel(it) }
-      .mapNotNull { it.buildFile }
+    return project.moduleBuildFiles(modulePath)
   }
 }
 
@@ -243,4 +229,24 @@ private class SetJava8UsageInfo(element: PsiElement, val buildFile: VirtualFile)
     }
     return lines.joinToString(prefix = "Set ", separator = ", ")
   }
+}
+
+fun Project.allBuildFiles(): List<VirtualFile> = ProjectFacetManager.getInstance(this)
+  .getModulesWithFacet(AndroidFacet.ID)
+  .mapNotNull { GradleProjectSystemUtil.getGradleModuleModel(it) }
+  .mapNotNull { it.buildFile }
+  .distinct()
+  .toList()
+
+fun Project.moduleBuildFiles(modulePath: String): List<VirtualFile> {
+  return listOfNotNull(
+    // TODO(b/149203281): Fix support for composite projects.
+    GradleHolderProjectPath(
+      FileUtil.toSystemIndependentName((guessProjectDir()?.path ?: return emptyList())),
+      modulePath
+    ).resolveIn(this)
+  )
+    .filter { AndroidFacet.getInstance(it) != null }
+    .mapNotNull { GradleProjectSystemUtil.getGradleModuleModel(it) }
+    .mapNotNull { it.buildFile }
 }

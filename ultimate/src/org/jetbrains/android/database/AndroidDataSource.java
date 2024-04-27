@@ -13,15 +13,16 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.classpath.SimpleClasspathElement;
 import com.intellij.util.ui.classpath.SimpleClasspathElementFactory;
 import com.intellij.util.xmlb.annotations.Tag;
-import icons.StudioIcons;
+import icons.AndroidArtworkIcons;
+import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import javax.swing.Icon;
-import org.jdom.Element;
-import org.jetbrains.annotations.NotNull;
 
 class AndroidDataSource extends LocalDataSource implements ModificationTracker {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSource");
@@ -147,7 +148,7 @@ class AndroidDataSource extends LocalDataSource implements ModificationTracker {
 
   @Override
   public Icon getBaseIcon() {
-    return StudioIcons.Common.ANDROID_HEAD;
+    return AndroidArtworkIcons.Icons.Android;
   }
 
   @Override

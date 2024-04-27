@@ -25,18 +25,18 @@ import com.android.tools.idea.compose.gradle.clickPreviewImage
 import com.android.tools.idea.compose.gradle.clickPreviewName
 import com.android.tools.idea.compose.gradle.preview.TestComposePreviewView
 import com.android.tools.idea.compose.gradle.preview.displayName
+import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.navigation.findComponentHits
 import com.android.tools.idea.compose.preview.navigation.findNavigatableComponentHit
 import com.android.tools.idea.compose.preview.parseViewInfo
-import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.getRootComponent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
+import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -108,6 +108,7 @@ class PreviewNavigationTest {
   @get:Rule val rule = RuleChain(projectRule, FlagRule(StudioFlags.COMPOSE_PREVIEW_SELECTION, true))
   private val project: Project
     get() = projectRule.project
+
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 

@@ -27,6 +27,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.awt.RelativePoint
 import java.awt.Color
 import java.awt.Point
+import java.awt.dnd.DropTargetDragEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JPanel
@@ -55,6 +56,10 @@ open class ComposeNavigationInteractionHandler(
       },
       TooltipPopupCreator(surface)
     )
+
+  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int) = null
+
+  override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent) = null
 
   override fun hoverWhenNoInteraction(
     @SwingCoordinate mouseX: Int,

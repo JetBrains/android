@@ -43,7 +43,7 @@ abstract class PanelAction(
     get() = (getRequiredData(PlatformDataKeys.FILE_EDITOR) as StringResourceEditor).panel
   /** The non-`null` [Project] associated with `this` [AnActionEvent]. */
   protected val AnActionEvent.requiredProject: Project
-    get() = getRequiredData(CommonDataKeys.PROJECT)
+    get() = requireNotNull(getData(CommonDataKeys.PROJECT))
 
   private fun AnActionEvent.hasRequiredData(): Boolean =
       (getData(PlatformDataKeys.FILE_EDITOR) is StringResourceEditor) && (project != null)

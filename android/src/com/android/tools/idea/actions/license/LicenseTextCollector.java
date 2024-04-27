@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.actions.license;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import com.google.common.base.Charsets;
 import java.nio.file.Files;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import org.jetbrains.annotations.NotNull;
 
 public class LicenseTextCollector {
   private final Path myHome;
@@ -55,7 +56,7 @@ public class LicenseTextCollector {
   @NotNull
   private static String getLicenseText(@NotNull Path path) {
     try {
-      return Files.readString(path, StandardCharsets.UTF_8)
+      return Files.readString(path, Charsets.UTF_8)
         .replaceAll("(?s)<style(\\s*)>.*?</style(\\s*)>", "")
         .replaceAll("<.*?>", "");
     }

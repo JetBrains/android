@@ -26,9 +26,9 @@ import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.actionSystem.ex.ActionPopupMenuListener
-import org.mockito.ArgumentMatchers.intThat
 import org.mockito.Mockito
 import org.mockito.Mockito.anyInt
+import org.mockito.Mockito.intThat
 import java.awt.event.KeyEvent
 
 class VisualizationInteractionHandlerTest : SceneTest() {

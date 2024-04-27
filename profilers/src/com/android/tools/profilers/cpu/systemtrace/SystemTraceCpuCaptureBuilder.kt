@@ -96,7 +96,10 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val node = CaptureNode(nodeFactory.getNode(traceEventModel.name), ClockType.GLOBAL)
     node.startGlobal = traceEventModel.startTimestampUs
     node.endGlobal = traceEventModel.endTimestampUs
-    // Should we drop these thread times, as SystemTrace does not support dual clock?
+    // In System Trace, a trace event's thread start and thread end timestamps aren't directly shown by the profiler,
+    // but its CPU Duration is shown, which is inferred as the difference between the two timestamps. Therefore, we set
+    // `startThread` as the global correspond, and set `endThread` to reflect the `cpuTimeUs`. The profiler will
+    // surface their difference in the UI.
     node.startThread = traceEventModel.startTimestampUs
     node.endThread = traceEventModel.startTimestampUs + traceEventModel.cpuTimeUs
     node.depth = depth

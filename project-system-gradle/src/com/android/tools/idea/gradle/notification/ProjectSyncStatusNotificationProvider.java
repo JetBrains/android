@@ -23,21 +23,21 @@ import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ThreeState.YES;
 
-import com.android.repository.Revision;
+import com.android.annotations.concurrency.AnyThread;
 import com.android.tools.idea.actions.HideAndroidBannerAction;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
-import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncNeededReason;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder;
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.BuildContentManager;
 import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -52,8 +52,6 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotificationProvider;
-import com.intellij.util.ThreeState;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.io.File;
@@ -67,41 +65,34 @@ import org.jetbrains.annotations.Nullable;
  * Notifies users that a Gradle project "sync" is required (because of changes to build files, or because the last attempt failed) or
  * in progress; if no sync is required or active, displays hints and/or diagnostics about editing the Project Structure.
  */
-public class ProjectSyncStatusNotificationProvider implements EditorNotificationProvider, DumbAware {
-  @NotNull private final GradleProjectInfo myProjectInfo;
+public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorNotificationProvider {
+  @NotNull private final AndroidProjectSystem myProjectSystem;
   @NotNull private final GradleSyncState mySyncState;
-  @NotNull private final GradleVersionCatalogDetector myVersionCatalogDetector;
   private static final long HIDE_ACTION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(30);
 
   @SuppressWarnings("unused") // Invoked by IDEA
   public ProjectSyncStatusNotificationProvider(@NotNull Project project) {
-    this(GradleProjectInfo.getInstance(project), GradleSyncState.getInstance(project), GradleVersionCatalogDetector.getInstance(project));
+    this(ProjectSystemUtil.getProjectSystem(project), GradleSyncState.getInstance(project));
   }
 
   @NonInjectable
-  public ProjectSyncStatusNotificationProvider(@NotNull GradleProjectInfo projectInfo,
-                                               @NotNull GradleSyncState syncState,
-                                               @NotNull GradleVersionCatalogDetector versionCatalogDetector) {
-    myProjectInfo = projectInfo;
+  public ProjectSyncStatusNotificationProvider(@NotNull AndroidProjectSystem projectSystem, @NotNull GradleSyncState syncState) {
+    myProjectSystem = projectSystem;
     mySyncState = syncState;
-    myVersionCatalogDetector = versionCatalogDetector;
   }
 
+  @AnyThread
   @Override
-  public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
-                                                                                                                 @NotNull VirtualFile file) {
+  @Nullable
+  public Function<? super FileEditor, ? extends JComponent> collectNotificationData(@NotNull Project project, @NotNull VirtualFile file) {
     NotificationPanel.Type newPanelType = notificationPanelType();
-    if (newPanelType == NotificationPanel.Type.NONE) return null;
-
-    return fileEditor -> {
-      return newPanelType.create(project, file, myProjectInfo);
-    };
+    return newPanelType.getProvider(project, file, mySyncState.getSyncNeededReason());
   }
 
   @VisibleForTesting
   @NotNull
   NotificationPanel.Type notificationPanelType() {
-    if (!myProjectInfo.isBuildWithGradle() || shouldHideBanner()) {
+    if (!(myProjectSystem instanceof GradleProjectSystem) || shouldHideBanner()) {
       return NotificationPanel.Type.NONE;
     }
     if (mySyncState.isSyncInProgress()) {
@@ -110,16 +101,8 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
     if (mySyncState.lastSyncFailed()) {
       return NotificationPanel.Type.FAILED;
     }
-
-    ThreeState gradleSyncNeeded = mySyncState.isSyncNeeded();
-    if (gradleSyncNeeded == YES) {
+    if (mySyncState.isSyncNeeded() == YES) {
       return NotificationPanel.Type.SYNC_NEEDED;
-    }
-
-    if (myVersionCatalogDetector.isVersionCatalogProject()) {
-      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.get()) {
-        return NotificationPanel.Type.VERSION_CATALOG_PROJECT;
-      }
     }
 
     return NotificationPanel.Type.PROJECT_STRUCTURE;
@@ -131,39 +114,29 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
    * banners are dismissed when `updateAllNotifications` is called.
    */
   static boolean shouldHideBanner() {
-      long now = System.currentTimeMillis();
-      String lastHiddenValue =
-        PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_HIDE_ACTION_TIMESTAMP", "0");
-      long lastHidden = Long.parseLong(lastHiddenValue);
-      return (now - lastHidden) < HIDE_ACTION_TIMEOUT_MS;
-    }
+    long now = System.currentTimeMillis();
+    String lastHiddenValue = PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_HIDE_ACTION_TIMESTAMP", "0");
+    long lastHidden = Long.parseLong(lastHiddenValue);
+    return (now - lastHidden) < HIDE_ACTION_TIMEOUT_MS;
+  }
 
   @VisibleForTesting
   static class NotificationPanel extends EditorNotificationPanel {
     enum Type {
       NONE() {
         @Override
-        @Nullable NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+        @Nullable
+        Function<? super FileEditor, NotificationPanel> getProvider(@NotNull Project project,
+                                                                    @NotNull VirtualFile file,
+                                                                    @Nullable GradleSyncNeededReason gradleSyncReason) {
           return null;
         }
-      },
-      VERSION_CATALOG_PROJECT() {
-        @Override
-        @Nullable NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
-          if (VersionCatalogProjectNotificationPanel.userAllowsShow(project)) {
-            File ioFile = virtualToIoFile(file);
-            if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile) && !ioFile.getName().endsWith("versions.toml")) {
-              return null;
-            }
-            return new VersionCatalogProjectNotificationPanel(project, this);
-          }
-          return PROJECT_STRUCTURE.create(project, file, projectInfo);
-        }
-      },
-      PROJECT_STRUCTURE() {
+      }, PROJECT_STRUCTURE() {
         @Override
         @Nullable
-        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+        Function<? super FileEditor, NotificationPanel> getProvider(@NotNull Project project,
+                                                                    @NotNull VirtualFile file,
+                                                                    @Nullable GradleSyncNeededReason gradleSyncReason) {
           if (ProjectStructureNotificationPanel.userAllowsShow()) {
             File ioFile = virtualToIoFile(file);
             if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile)) {
@@ -179,64 +152,75 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
                 return null;
               }
             }
-            return new ProjectStructureNotificationPanel(project, this, module);
+            Module finalModule = module;
+            return (editor) -> new ProjectStructureNotificationPanel(project, finalModule);
           }
           return null;
         }
-      },
-      IN_PROGRESS() {
+      }, IN_PROGRESS() {
         @Override
         @NotNull
-        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
-          return new NotificationPanel(this, "Gradle project sync in progress...");
+        Function<? super FileEditor, NotificationPanel> getProvider(@NotNull Project project,
+                                                                    @NotNull VirtualFile file,
+                                                                    @Nullable GradleSyncNeededReason gradleSyncReason) {
+          return (editor) -> new NotificationPanel("Gradle project sync in progress...");
         }
-      },
-      FAILED() {
+      }, FAILED() {
         @Override
         @NotNull
-        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+        Function<? super FileEditor, NotificationPanel> getProvider(@NotNull Project project,
+                                                                    @NotNull VirtualFile file,
+                                                                    @Nullable GradleSyncNeededReason gradleSyncReason) {
           String text = "Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.";
-          return new SyncProblemNotificationPanel(project, this, text);
+          return (editor) -> new SyncProblemNotificationPanel(project, text);
         }
-      },
-      SYNC_NEEDED() {
+      }, SYNC_NEEDED() {
         @Override
         @Nullable
-        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
-          boolean buildFilesModified = GradleFiles.getInstance(project).areExternalBuildFilesModified();
-          String text = (buildFilesModified ? "External build files" : "Gradle files") +
-                        " have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
-          return new StaleGradleModelNotificationPanel(project, this, text);
+        Function<? super FileEditor, NotificationPanel> getProvider(@NotNull Project project,
+                                                                    @NotNull VirtualFile file,
+                                                                    @Nullable GradleSyncNeededReason gradleSyncReason) {
+          if (gradleSyncReason == null) return null;
+
+          String text = null;
+          switch (gradleSyncReason) {
+            case GRADLE_JVM_CONFIG_CHANGED ->
+              text = "Gradle JDK configuration has changed. A project sync may be necessary for the IDE to apply those changes.";
+            case GRADLE_BUILD_FILES_CHANGED ->
+              text = "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
+            case EXTERNAL_BUILD_FILES_CHANGED -> {
+              // Set this to true so that the request sent to gradle daemon contains arg -Pandroid.injected.refresh.external.native.model=true,
+              // which would refresh the C++ project. See com.android.tools.idea.gradle.project.sync.common.CommandLineArgs for related logic.
+              project.putUserData(AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
+
+              text = "External build files have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
+            }
+          }
+          String finalText = text;
+          return (editor) -> new StaleGradleModelNotificationPanel(project, finalText);
         }
       };
 
       @Nullable
-      abstract NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo);
+      abstract Function<? super FileEditor, NotificationPanel> getProvider(@NotNull Project project,
+                                                                           @NotNull VirtualFile file,
+                                                                           @Nullable GradleSyncNeededReason gradleSyncReason);
     }
 
-    @NotNull private final Type type;
-
-    NotificationPanel(@NotNull Type type, @NotNull String text) {
-      super(JBUI.CurrentTheme.Banner.WARNING_BACKGROUND, Status.Info);
-      this.type = type;
+    NotificationPanel(@NotNull String text) {
+      super((Color)null, Status.Info);
       setText(text);
     }
   }
 
   @VisibleForTesting
   static class StaleGradleModelNotificationPanel extends NotificationPanel {
-    StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
-      super(type, text);
-      if (GradleFiles.getInstance(project).areExternalBuildFilesModified()) {
-        // Set this to true so that the request sent to gradle daemon contains arg -Pandroid.injected.refresh.external.native.model=true,
-        // which would refresh the C++ project. See com.android.tools.idea.gradle.project.sync.common.CommandLineArgs for related logic.
-        project.putUserData(AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
-      }
-      createActionLabel("Sync Now",
-                        () -> GradleSyncInvoker.getInstance()
-                          .requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_USER_STALE_CHANGES), null));
+    StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull String text) {
+      super(text);
+      createActionLabel("Sync Now", () -> GradleSyncInvoker.getInstance()
+        .requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_USER_STALE_CHANGES), null));
       createActionLabel("Ignore these changes", () -> {
-        GradleFiles.getInstance(project).removeChangedFiles();
+        GradleSyncStateHolder.getInstance(project).ignoreChangedFiles();
         this.setVisible(false);
       });
     }
@@ -244,12 +228,11 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
 
   @VisibleForTesting
   static class SyncProblemNotificationPanel extends NotificationPanel {
-    SyncProblemNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
-      super(type, text);
+    SyncProblemNotificationPanel(@NotNull Project project, @NotNull String text) {
+      super(text);
 
-      createActionLabel("Try Again",
-                        () -> GradleSyncInvoker.getInstance()
-                          .requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_USER_TRY_AGAIN), null));
+      createActionLabel("Try Again", () -> GradleSyncInvoker.getInstance()
+        .requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_USER_TRY_AGAIN), null));
 
       createActionLabel("Open 'Build' View", () -> {
         ToolWindow tw = BuildContentManager.getInstance(project).getOrCreateToolWindow();
@@ -266,32 +249,12 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
   }
 
   @VisibleForTesting
-  static class VersionCatalogProjectNotificationPanel extends NotificationPanel {
-    private static final String TEXT = "Project uses Gradle Version Catalogs: some editor tools may not work as expected";
-
-    VersionCatalogProjectNotificationPanel(@NotNull Project project, @NotNull Type type) {
-      super(type, TEXT);
-      createActionLabel("Hide notification", () -> {
-        String version = ApplicationInfo.getInstance().getShortVersion();
-        PropertiesComponent.getInstance(project).setValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", version);
-        setVisible(false);
-      });
-    }
-
-    static boolean userAllowsShow(@NotNull Project project) {
-      String lastHiddenValue = PropertiesComponent.getInstance(project).getValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", "0.0");
-      Revision revision = Revision.safeParseRevision(lastHiddenValue);
-      return revision.compareTo(Revision.safeParseRevision(ApplicationInfo.getInstance().getShortVersion())) < 0;
-    }
-  }
-
-  @VisibleForTesting
   static class ProjectStructureNotificationPanel extends NotificationPanel {
     private static final String TEXT = "You can use the Project Structure dialog to view and edit your project configuration";
     private static final long RESHOW_TIMEOUT_MS = TimeUnit.DAYS.toMillis(30);
 
-    ProjectStructureNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull Module module) {
-      super(type, TEXT);
+    ProjectStructureNotificationPanel(@NotNull Project project, @NotNull Module module) {
+      super(TEXT);
 
       String shortcutText = KeymapUtil.getFirstKeyboardShortcutText("ShowProjectStructureSettings");
       String label = "Open";
@@ -305,8 +268,8 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
         }
       });
       createActionLabel("Hide notification", () -> {
-        PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP",
-                                                   Long.toString(System.currentTimeMillis()));
+        PropertiesComponent.getInstance()
+          .setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", Long.toString(System.currentTimeMillis()));
         setVisible(false);
       });
     }

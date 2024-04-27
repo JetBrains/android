@@ -22,7 +22,6 @@ import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.laf.HeadlessTableUI;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
@@ -49,7 +48,6 @@ public class DynamicFeaturesParametersTest {
   @Before
   public void setUp() throws Exception {
     StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.override(featureOnFeatureFlagEnabled);
-    IdeSdks.removeJdksOn(projectRule.getTestRootDisposable());
   }
 
   @After

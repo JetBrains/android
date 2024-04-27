@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
-
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
 
 /**
  * Test dual connection interactions

@@ -20,6 +20,7 @@ import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.ui.LafManager;
@@ -50,7 +51,6 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -90,7 +90,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
    * Default minimum size is slightly less than 1366x768 at 200%
    */
   private final Dimension myMinimumWindowSize = JBUI.size(500, 350);
-  private Map<Action, JButton> myActionToButtonMap = new HashMap<>();
+  private Map<Action, JButton> myActionToButtonMap = Maps.newHashMap();
   private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = Atomics.newReference();
   private boolean myIsActive;
 

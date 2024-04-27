@@ -28,7 +28,11 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionMenu;
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.LayeredIcon;
@@ -68,7 +72,6 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListModel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 
 /**
@@ -86,10 +89,12 @@ public class StudioInteractionService {
   public void findAndInvokeComponent(List<ASDriver.ComponentMatcher> matchers) throws InterruptedException, TimeoutException, InvocationTargetException {
     log("Attempting to find and invoke a component with matchers: " + matchers);
     // TODO(b/234067246): consider this timeout when addressing b/234067246. At 10000 or less, this fails occasionally on Windows.
-    long timeoutMillis = 60000;
+    long timeoutMillis = 180000;
     Function<Component, Boolean> filter = this::isComponentInvokable;
     Consumer<Component> invoke = this::invokeComponent;
+    long startTime = System.currentTimeMillis();
     filterAndExecuteComponent(matchers, timeoutMillis, filter, invoke);
+    log(String.format("Found and invoked the component in %dms", System.currentTimeMillis() - startTime));
   }
 
   public void waitForComponent(List<ASDriver.ComponentMatcher> matchers, boolean waitForEnabled)
@@ -410,38 +415,40 @@ public class StudioInteractionService {
    *   <li>Unsuccessfully filtering and executing any component</li>
    * </ol>
    * <p>
-   * In case #1, if we were to use {@link SwingUtilities#invokeAndWait} to filter and invoke the
+   * In case #1, if we were to use {@link Application#invokeAndWait} to filter and invoke the
    * component, then the calling thread would not resume until the modal dialog is closed (due to
    * the "AndWait" part of "invokeAndWait"). In our case, the calling thread is the gRPC server's
    * thread, meaning no future requests from test code could be handled. This effectively means
    * that the test would be forever stalled—no requests can interact with the dialog (so it will
    * never close), and the calling thread is waiting forever in
-   * {@link SwingUtilities#invokeAndWait}.
+   * {@link Application#invokeAndWait}.
    * <p>
-   * In cases #2 and #3, {@link SwingUtilities#invokeAndWait} <i>could</i> be used to filter and
+   * In cases #2 and #3, {@link Application#invokeAndWait} <i>could</i> be used to filter and
    * invoke a component. However, because we have to accommodate case #1 anyway and because we
    * can't distinguish which case we'll be in ahead of time, we need to opt for
-   * {@link SwingUtilities#invokeLater}.
+   * {@link Application#invokeLater}.
    * <p>
    * In all cases, we must ensure that the component does not disappear or otherwise become invalid
    * between <b>finding</b> and <b>invoking</b> (see b/235277847).
    */
   private void filterAndExecuteComponent(List<ASDriver.ComponentMatcher> matchers, long timeoutMillis, Function<Component, Boolean> filter, Consumer<Component> exec)
-    throws InterruptedException, InvocationTargetException, TimeoutException {
+    throws InterruptedException, TimeoutException {
     long msBetweenRetries = 300;
     long startTime = System.currentTimeMillis();
     long elapsedTime = 0;
     final AtomicBoolean foundComponent = new AtomicBoolean(false);
     final AtomicBoolean invokedComponent = new AtomicBoolean(false);
+    Application app = ApplicationManager.getApplication();
 
     while (elapsedTime < timeoutMillis) {
-      SwingUtilities.invokeLater(() -> {
+      app.invokeLater(() -> {
         Optional<Component> component = findComponentFromMatchers(matchers);
         if (component.isPresent() && filter.apply(component.get())) {
           foundComponent.set(true);
-          exec.accept(component.get());
+          Runnable execComponent = () -> exec.accept(component.get());
+          ((TransactionGuardImpl)TransactionGuard.getInstance()).performUserActivity(execComponent);
         }
-      });
+      }, ModalityState.any()); // Using ModalityState.any() to ensure this runs even if there are modal dialogs open.
 
       // The invokeLater call above queues a Runnable to be executed on the UI thread at some point
       // in the future. This means that the calling thread continues its own execution immediately.
@@ -454,13 +461,13 @@ public class StudioInteractionService {
       // In case #1 though, the invokeLater Runnable will eventually try spawning a modal dialog,
       // at which point Swing will know that it can execute the invokeAndWait Runnable even though
       // the invokeLater Runnable hasn't finished.
-      SwingUtilities.invokeAndWait(() -> {
+      app.invokeAndWait(() -> {
         if (foundComponent.get()) {
           // Note: all we can know is that we ATTEMPTED to invoke the component, not that it was
           // successful.
           invokedComponent.set(true);
         }
-      });
+      }, ModalityState.any());
 
       if (invokedComponent.get()) {
         break;

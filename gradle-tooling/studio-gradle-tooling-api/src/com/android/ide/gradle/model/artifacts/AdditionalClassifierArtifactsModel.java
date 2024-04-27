@@ -24,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
  * resolved artifacts.
  */
 public interface AdditionalClassifierArtifactsModel {
-  String SAMPLE_SOURCE_CLASSIFIER = "samplessources";
   /**
    * Returns the list of resolved artifacts.
    */

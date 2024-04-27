@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
+import com.android.tools.idea.appinspection.inspector.api.launch.MinimumArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.protobuf.ByteString
@@ -29,6 +30,8 @@ import com.android.tools.profiler.proto.Common
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import java.nio.file.Path
 import java.nio.file.Paths
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 const val INSPECTOR_ID = "test.inspector.1"
 const val INSPECTOR_ID_2 = "test.inspector.2"
@@ -45,8 +48,22 @@ val TEST_JAR =
 const val TEST_PROJECT = "test.project"
 
 const val MIN_VERSION = "0.0.0-dev"
-val TEST_ARTIFACT =
-  ArtifactCoordinate("test_group_id", "test_artifact_id", MIN_VERSION, ArtifactCoordinate.Type.JAR)
+
+fun mockMinimumArtifactCoordinate(
+  groupId: String,
+  artifactId: String,
+  version: String
+): MinimumArtifactCoordinate =
+  mock(MinimumArtifactCoordinate::class.java).also {
+    `when`(it.groupId).thenReturn(groupId)
+    `when`(it.artifactId).thenReturn(artifactId)
+    `when`(it.version).thenReturn(version)
+    `when`(it.toArtifactCoordinateProto()).thenCallRealMethod()
+    `when`(it.toString()).thenReturn("$groupId:$artifactId:$version")
+  }
+
+val TEST_ARTIFACT = mockMinimumArtifactCoordinate("test_group_id", "test_artifact_id", MIN_VERSION)
+
 val TEST_COMPATIBILITY = LibraryCompatibility(TEST_ARTIFACT)
 
 /** A collection of utility functions for inspection tests. */
@@ -111,12 +128,8 @@ object AppInspectionTestUtils {
     project: String = TEST_PROJECT
   ) = LaunchParameters(descriptor, inspectorId, jar, project, TEST_COMPATIBILITY)
 
-  fun createArtifactCoordinate(
-    groupId: String,
-    artifactId: String,
-    version: String,
-    type: ArtifactCoordinate.Type = ArtifactCoordinate.Type.JAR
-  ) = ArtifactCoordinate(groupId, artifactId, version, type)
+  fun createArtifactCoordinate(groupId: String, artifactId: String, version: String) =
+    ArtifactCoordinate(groupId, artifactId, version)
 
   /** Keeps track of the copied jar so tests could verify the operation happened. */
   object TestTransportJarCopier : AppInspectionJarCopier {

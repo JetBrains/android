@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.tools.idea.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
-import static com.android.tools.idea.gradle.util.AndroidGradleUtil.getDisplayNameForModule;
 import static com.android.tools.idea.project.messages.MessageType.INFO;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
@@ -28,6 +27,7 @@ import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -173,7 +173,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
                                                   @Nullable VirtualFile buildFile) {
     if (buildFile == null) {
       // No build file found, just include the name of the module.
-      String text = getDisplayNameForModule(module);
+      String text = ProjectSystemUtil.getModuleSystem(module).getDisplayNameForModule();
       return new SyncMessageHyperlink("url." + module.getName(), text) {
         @NotNull
         @Override
@@ -210,8 +210,8 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
                                                           @NotNull Module module,
                                                           @NotNull List<IdeSyncIssue> syncIssues,
                                                           @NotNull VirtualFile buildFile) {
-
-    return new OpenFileSyncMessageHyperlink(buildFile.getPath(), getDisplayNameForModule(module), -1, -1);
+    @NotNull String displayName = ProjectSystemUtil.getModuleSystem(module).getDisplayNameForModule();
+    return new OpenFileSyncMessageHyperlink(buildFile.getPath(), displayName, -1, -1);
   }
 
   /**

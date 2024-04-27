@@ -41,7 +41,7 @@ class DragAndDropListModelTest {
     val finalArray = arrayOf(THIRD, FIRST, SECOND)
     val model = DragAndDropListModel<SimpleListModelElement>()
     addElements(model, initialArray)
-    model.moveElementTo(THIRD, 0)
+    model.moveElementTo(THIRD, 0);
     validateOrder(model, finalArray)
   }
 
@@ -107,8 +107,8 @@ class DragAndDropListModelTest {
   }
 
   private fun addElements(model: DragAndDropListModel<SimpleListModelElement>, values: Array<SimpleListModelElement>) {
-    for (element in values) {
-      model.insertOrderedElement(element)
+    for (i in 0 until values.size) {
+      model.insertOrderedElement(values[i])
     }
   }
 

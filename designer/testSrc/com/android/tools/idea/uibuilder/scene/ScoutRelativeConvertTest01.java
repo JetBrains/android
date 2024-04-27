@@ -15,30 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_END;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_BELOW;
-import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END;
-import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
-import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START;
-import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP;
-import static com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF;
-import static com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF;
-import static com.android.SdkConstants.RELATIVE_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
-import static com.android.SdkConstants.VALUE_TRUE;
-
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.intellij.openapi.command.WriteCommandAction;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  *  Test a simple horizontal spread inside chain

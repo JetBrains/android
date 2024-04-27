@@ -15,42 +15,41 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.view.details.HttpDataComponentFactory.ConnectionType.RESPONSE
-import com.google.common.annotations.VisibleForTesting
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
+import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.RESPONSE
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 /** Tab which shows a response's headers and payload. */
-class ResponseTabContent : TabContent() {
-  private lateinit var panel: JPanel
+internal class ResponseTabContent : TabContent() {
+  private val panel =
+    createVerticalPanel(TAB_SECTION_VGAP).apply {
+      border = JBUI.Borders.empty(0, HORIZONTAL_PADDING)
+    }
+
   override val title: String
     get() = "Response"
 
   override fun createComponent(): JComponent {
-    panel =
-      createVerticalPanel(TAB_SECTION_VGAP).apply {
-        border = JBUI.Borders.empty(0, HORIZONTAL_PADDING)
-      }
     return createVerticalScrollPane(panel)
   }
 
-  override fun populateFor(data: HttpData?, httpDataComponentFactory: HttpDataComponentFactory) {
+  override fun populateFor(data: ConnectionData?, dataComponentFactory: DataComponentFactory) {
     panel.removeAll()
     if (data == null) {
       return
     }
-    val headersComponent = httpDataComponentFactory.createHeaderComponent(RESPONSE)
-    panel.add(createHideablePanel(SECTION_TITLE_HEADERS, headersComponent, null))
-    panel.add(httpDataComponentFactory.createBodyComponent(RESPONSE))
-  }
-
-  @VisibleForTesting
-  fun findPayloadBody(): JComponent? {
-    return findComponentWithUniqueName(
-      panel,
-      HttpDataComponentFactory.ConnectionType.RESPONSE.bodyComponentId
-    )
+    val headersComponent = dataComponentFactory.createHeaderComponent(RESPONSE)
+    if (headersComponent != null) {
+      panel.add(createHideablePanel(SECTION_TITLE_HEADERS, headersComponent, null))
+    }
+    val trailersComponent = dataComponentFactory.createTrailersComponent()
+    if (trailersComponent != null) {
+      panel.add(createHideablePanel(SECTION_TITLE_TRAILERS, trailersComponent, null))
+    }
+    val bodyComponent = dataComponentFactory.createBodyComponent(RESPONSE)
+    if (bodyComponent != null) {
+      panel.add(bodyComponent)
+    }
   }
 }

@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.getWorksCategoryNode
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import javax.swing.tree.DefaultMutableTreeNode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -29,7 +30,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import javax.swing.tree.DefaultMutableTreeNode
 
 class BackgroundTaskTreeModelTest {
 
@@ -37,6 +37,7 @@ class BackgroundTaskTreeModelTest {
     override val scope: CoroutineScope,
   ) : AppInspectorMessenger {
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray = rawData
+
     override val eventFlow = emptyFlow<ByteArray>()
   }
 

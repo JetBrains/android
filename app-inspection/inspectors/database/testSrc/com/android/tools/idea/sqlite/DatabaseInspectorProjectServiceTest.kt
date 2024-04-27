@@ -47,6 +47,7 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.util.concurrency.EdtExecutorService
+import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
@@ -54,7 +55,6 @@ import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
-import java.io.File
 
 class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
@@ -152,8 +152,10 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
         object : DatabaseInspectorClientCommandsChannel {
           override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> =
             Futures.immediateFuture(null)
+
           override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> =
             Futures.immediateFuture(null)
+
           override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> =
             Futures.immediateFuture(null)
         }
@@ -249,8 +251,10 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
       object : DatabaseInspectorClientCommandsChannel {
         override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> =
           Futures.immediateFuture(null)
+
         override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> =
           Futures.immediateFuture(null)
+
         override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> =
           Futures.immediateFuture(null)
       }

@@ -26,8 +26,8 @@ import com.android.tools.property.ptable.PTableModelUpdateListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.junit.Test
 import kotlin.properties.Delegates
+import org.junit.Test
 
 class EmptyTablePanelTest {
 

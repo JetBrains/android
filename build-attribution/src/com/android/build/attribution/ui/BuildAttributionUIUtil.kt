@@ -28,6 +28,7 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.SwingHelper
+import org.jetbrains.kotlin.lombok.utils.capitalize
 import javax.swing.Icon
 import javax.swing.JEditorPane
 import javax.swing.event.HyperlinkEvent

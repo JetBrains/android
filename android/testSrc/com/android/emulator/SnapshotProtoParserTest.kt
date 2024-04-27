@@ -20,6 +20,7 @@ import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Path
 import kotlin.test.assertEquals

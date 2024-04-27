@@ -1,0 +1,77 @@
+========== CATEGORY ANDROID:UNCATEGORIZED =========
+Owned: 72B/3 objects
+      Histogram:
+        24B/1 objects: java.util.ImmutableCollections$List12
+        24B/1 objects: [B
+        24B/1 objects: java.lang.String
+      Studio objects histogram:
+      Category roots histogram:
+Platform object: 0B/0 objects[0B/0 objects]
+=============== CATEGORY DIAGNOSTICS ==============
+Owned: 72B/4 objects
+      Histogram:
+        32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+        24B/1 objects: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      Studio objects histogram:
+        32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      Category roots histogram:
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      Disposed but strong referenced objects:
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+Platform object: 0B/0 objects[0B/0 objects]
+=========== COMPONENT UNCATEGORIZED_MAIN ==========
+Owned: 72B/3 objects
+      Histogram:
+        24B/1 objects: java.util.ImmutableCollections$List12
+        24B/1 objects: [B
+        24B/1 objects: java.lang.String
+      Studio objects histogram:
+      Component roots histogram:
+Platform object: 0B/0 objects[0B/0 objects]
+=================== COMPONENT D ===================
+Owned: 72B/4 objects
+      Histogram:
+        32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+        24B/1 objects: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      Studio objects histogram:
+        32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      Component roots histogram:
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      Disposed but strong referenced objects:
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+Number of instances of tracked classes:
+      com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D:1
+Platform object: 0B/0 objects[0B/0 objects]
+================ EXCEEDED CLUSTER D ===============
+================= DISPOSED OBJECTS ================
+Root 1:
+[    1/100%/   16B]      144B/1 objects          (root): java.util.ImmutableCollections$List12
+[    1/100%/   16B]       72B/1 objects          e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+[    1/100%/   16B]       56B/1 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+[    1/100%/   16B]       16B/1 objects *        []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)
+======== INSTANCES OF EACH NOMINATED CLASS ========
+Nominated classes:
+ --> [32B/2 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+ --> [24B/1 objects] [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+ --> [16B/1 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+
+CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B (2 objects)
+Root 1:
+[    2/100%/   32B]      144B/1 objects          (root): java.util.ImmutableCollections$List12
+[    2/100%/   32B]       72B/1 objects          e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+[    2/100%/   32B]       56B/1 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+[    1/ 50%/   16B]       16B/1 objects *        +-[]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)
+[    1/ 50%/   16B]       16B/1 objects *        \-[]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+CLASS: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B; (1 objects)
+Root 1:
+[    1/100%/   24B]      144B/1 objects          (root): java.util.ImmutableCollections$List12
+[    1/100%/   24B]       72B/1 objects          e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+[    1/100%/   24B]       56B/1 objects *        myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B; {0-250KB->1;}
+CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D (1 objects)
+Root 1:
+[    1/100%/   16B]      144B/1 objects          (root): java.util.ImmutableCollections$List12
+[    1/100%/   16B]       72B/1 objects *        e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D

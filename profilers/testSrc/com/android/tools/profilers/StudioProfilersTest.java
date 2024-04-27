@@ -39,6 +39,8 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
+import com.android.tools.profilers.tasks.ProfilerTaskType;
+import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import java.util.List;
@@ -1223,6 +1225,65 @@ public final class StudioProfilersTest {
   }
 
   @Test
+  public void testSessionDoesNotAutoStartOnProcessChangeWithTaskBasedUxEnabled() {
+    myIdeProfilerServices.enableTaskBasedUx(true);
+    myProfilers.setPreferredProcess(null, FAKE_PROCESS.getName(), null);
+
+    Common.Device device = FAKE_DEVICE;
+    myTransportService.addDevice(device);
+
+    Common.Process debuggableEvent = FAKE_PROCESS.toBuilder()
+      .setStartTimestampNs(5)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
+      .build();
+    myTransportService.addProcess(device, debuggableEvent);
+
+    Common.Process profileableEvent = debuggableEvent.toBuilder()
+      .setStartTimestampNs(10)
+      .setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE)
+      .build();
+    myTransportService.addProcess(device, profileableEvent);
+
+    myTimer.setCurrentTimeNs(20);
+    // Will attempt to start a new session on the preferred process, but fail because Task-Based UX is enabled.
+    myProfilers.setProcess(device, null);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Check that setProcess was not called on process change and thus the session id is the default of 0.
+    assertThat(myProfilers.getSession().getPid()).isNotEqualTo(FAKE_PROCESS.getPid());
+    assertThat(myProfilers.getSession().getPid()).isEqualTo(0);
+  }
+
+  @Test
+  public void testSessionDoesAutoStartOnProcessChangeWithTaskBasedUxDisabled() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+    myProfilers.setPreferredProcess(null, FAKE_PROCESS.getName(), null);
+
+    Common.Device device = FAKE_DEVICE;
+    myTransportService.addDevice(device);
+
+    Common.Process debuggableEvent = FAKE_PROCESS.toBuilder()
+      .setStartTimestampNs(5)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
+      .build();
+    myTransportService.addProcess(device, debuggableEvent);
+
+    Common.Process profileableEvent = debuggableEvent.toBuilder()
+      .setStartTimestampNs(10)
+      .setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE)
+      .build();
+    myTransportService.addProcess(device, profileableEvent);
+
+    myTimer.setCurrentTimeNs(20);
+    // Will attempt to start a new session on the preferred process and succeed because Task-Based UX is disabled.
+    myProfilers.setProcess(device, null);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Check that setProcess was called on process change and thus the session id is of the selected process.
+    assertThat(myProfilers.getSession().getPid()).isEqualTo(FAKE_PROCESS.getPid());
+  }
+
+  @Test
   public void testNewSessionResetsStage() {
     assertThat(myProfilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
 
@@ -1555,6 +1616,91 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getSessionsManager().getSelectedSession().getSessionId()).isEqualTo(finishedSession.getSessionId());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myProfilers.getSessionsManager().getSelectedSession().getSessionId()).isEqualTo(finishedSession.getSessionId());
+  }
+
+  @Test
+  public void testSetProcessWithNoProcessChangeWithTaskBasedUxEnabled() {
+    myIdeProfilerServices.enableTaskBasedUx(true);
+    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, new SystemTraceTaskHandler(myProfilers.getSessionsManager(),
+                               myIdeProfilerServices.getFeatureConfig().isTraceboxEnabled()));
+    assertThat(myProfilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
+
+    // Adds a device without processes. Session should be null.
+    Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
+    myTransportService.addDevice(device);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+    assertThat(myProfilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
+
+    // Adds a process, which should not trigger the session to start due to Task-Based UX being enabled.
+    Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
+    myTransportService.addProcess(device, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myProfilers.setProcess(device, process, Common.ProfilerTaskType.SYSTEM_TRACE);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    Common.Session firstSession = myProfilers.getSession();
+    assertThat(firstSession.getStreamId()).isEqualTo(device.getDeviceId());
+    assertThat(firstSession.getPid()).isEqualTo(process.getPid());
+    assertThat(firstSession.getEndTimestamp()).isEqualTo(Long.MAX_VALUE);
+
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // Create second session by calling setProcess again (even with same process) with Task-Based UX enabled.
+    myProfilers.setProcess(device, process, Common.ProfilerTaskType.SYSTEM_TRACE);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Two sessions should be created by now.
+    assertThat(myProfilers.getSessionsManager().mySessionItems).hasSize(2);
+    Common.Session secondSession = myProfilers.getSession();
+    assertThat(secondSession.getStreamId()).isEqualTo(device.getDeviceId());
+    assertThat(secondSession.getPid()).isEqualTo(process.getPid());
+    // The first session should not be the same as the second session.
+    assertThat(secondSession).isNotEqualTo(firstSession);
+    assertThat(myProfilers.getSessionsManager().mySessionItems.get(secondSession.getSessionId())).isNotNull();
+    assertThat(myProfilers.getSessionsManager().mySessionItems.get(secondSession.getSessionId()).isOngoing()).isTrue();
+    // Confirm that the first session was ended.
+    assertThat(myProfilers.getSessionsManager().mySessionItems.get(firstSession.getSessionId())).isNotNull();
+    assertThat(myProfilers.getSessionsManager().mySessionItems.get(firstSession.getSessionId()).isOngoing()).isFalse();
+  }
+
+  @Test
+  public void testSetProcessWithNoProcessChangeWithTaskBasedUxDisabled() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+    assertThat(myProfilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
+
+    // Adds a device without processes. Session should be null.
+    Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
+    myTransportService.addDevice(device);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+    assertThat(myProfilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
+
+    // Adds a process, which should trigger the session to start due to Task-Based UX being disabled.
+    Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
+    myTransportService.addProcess(device, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // This call to setProcess will not create a new session, but will select the session.
+    myProfilers.setProcess(device, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    Common.Session firstSession = myProfilers.getSession();
+    assertThat(firstSession.getStreamId()).isEqualTo(device.getDeviceId());
+    assertThat(firstSession.getPid()).isEqualTo(process.getPid());
+    assertThat(firstSession.getEndTimestamp()).isEqualTo(Long.MAX_VALUE);
+
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // This call to setProcess should not create a new session because the process is the same.
+    myProfilers.setProcess(device, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // No new session should have been created after the first one.
+    assertThat(myProfilers.getSessionsManager().mySessionItems).hasSize(1);
+    Common.Session secondSession = myProfilers.getSession();
+    assertThat(secondSession.getStreamId()).isEqualTo(device.getDeviceId());
+    assertThat(secondSession.getPid()).isEqualTo(process.getPid());
+    // The first session should be the same as the second session.
+    assertThat(secondSession).isEqualTo(firstSession);
+    // Confirm that the first session was not ended.
+    assertThat(myProfilers.getSessionsManager().mySessionItems.get(firstSession.getSessionId())).isNotNull();
+    assertThat(myProfilers.getSessionsManager().mySessionItems.get(firstSession.getSessionId()).isOngoing()).isTrue();
   }
 
   @Test

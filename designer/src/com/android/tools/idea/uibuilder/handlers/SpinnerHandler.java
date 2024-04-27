@@ -15,24 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_BACKGROUND;
-import static com.android.SdkConstants.ATTR_DROPDOWN_WIDTH;
-import static com.android.SdkConstants.ATTR_ENTRIES;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_MIN_WIDTH;
-import static com.android.SdkConstants.ATTR_POPUP_BACKGROUND;
-import static com.android.SdkConstants.ATTR_SPINNER_MODE;
-import static com.android.SdkConstants.VALUE_MATCH_PARENT;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.xml.XmlBuilder;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <Spinner>} widget.

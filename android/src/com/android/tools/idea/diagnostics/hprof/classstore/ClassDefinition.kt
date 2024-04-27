@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.hprof.classstore
 
-import java.util.function.LongUnaryOperator
+import com.android.tools.idea.diagnostics.hprof.util.IDMapper
 
 class ClassDefinition(val name: String,
                       val id: Long,
@@ -35,7 +35,7 @@ class ClassDefinition(val name: String,
 
     if (id != other.id) return false
 
-    if (id == 0L) {
+    if (id == 0L && other.id == 0L) {
       return name == other.name
     }
 
@@ -49,8 +49,8 @@ class ClassDefinition(val name: String,
     get() = name.substringBefore('!')
 
   companion object {
-    const val OBJECT_PREAMBLE_SIZE = 8
-    const val ARRAY_PREAMBLE_SIZE = 12
+    val OBJECT_PREAMBLE_SIZE = 8
+    val ARRAY_PREAMBLE_SIZE = 12
 
     fun computePrettyName(name: String): String {
       if (!name.startsWith('['))
@@ -92,8 +92,8 @@ class ClassDefinition(val name: String,
 
   fun isPrimitiveArray(): Boolean = isArray() && name.length == 2
 
-  fun copyWithRemappedIDs(remappingFunction: LongUnaryOperator): ClassDefinition {
-    fun map(id: Long): Long = remappingFunction.applyAsLong(id)
+  fun copyWithRemappedIDs(idMapper: IDMapper): ClassDefinition {
+    fun map(id: Long): Long = idMapper.getID(id)
     val newConstantFields = LongArray(constantFields.size) {
       map(constantFields[it])
     }

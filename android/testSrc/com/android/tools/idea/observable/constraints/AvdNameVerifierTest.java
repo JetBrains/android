@@ -15,11 +15,11 @@
  */
 
 package com.android.tools.idea.observable.constraints;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 import com.android.tools.idea.avdmanager.AvdNameVerifier;
-import org.junit.Test;
+
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link com.android.tools.idea.avdmanager.AvdNameVerifier}

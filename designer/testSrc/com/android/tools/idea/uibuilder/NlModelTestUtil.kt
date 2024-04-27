@@ -51,8 +51,12 @@ fun createNlModelFromTagName(
   val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet.module)
   val file = LightLayoutFile(xmlContent)
   val model =
-    NlModel.builder(androidFacet, file, configurationManager.getConfiguration(file))
-      .withParentDisposable(androidFacet.module)
+    NlModel.builder(
+        androidFacet.module,
+        androidFacet,
+        file,
+        configurationManager.getConfiguration(file)
+      )
       .withComponentRegistrar { NlComponentRegistrar }
       .build()
 
@@ -93,6 +97,7 @@ private class StubTagSnapshotTreeNode(private val component: NlComponent) :
 private class LightLayoutFile(xmlContent: String) :
   LightVirtualFile("layout.xml", XmlFileType.INSTANCE, xmlContent) {
   private val parent = LightVirtualFile("layout")
+
   override fun getParent(): VirtualFile {
     return parent
   }

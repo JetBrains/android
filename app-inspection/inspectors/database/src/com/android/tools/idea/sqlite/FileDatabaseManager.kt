@@ -18,19 +18,20 @@ package com.android.tools.idea.sqlite
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileDownloaderService
-import com.android.tools.idea.file.explorer.toolwindow.fs.DownloadProgress
+import com.android.tools.idea.device.explorer.files.external.services.DeviceFileDownloaderService
+import com.android.tools.idea.device.explorer.files.fs.DownloadProgress
 import com.android.tools.idea.io.IdeFileService
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Job
 import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.coroutines.coroutineContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
 
 /** Class responsible for downloading and deleting file database data */
 interface FileDatabaseManager {
@@ -73,12 +74,14 @@ class FileDatabaseManagerImpl(
       try {
         // store files in Studio caches
         val downloadDestinationFolder = IdeFileService("database-inspector").cacheRoot
-        deviceFileDownloaderService.downloadFiles(
-          processDescriptor.device.serial,
-          pathsToDownload,
-          disposableDownloadProgress,
-          downloadDestinationFolder
-        )
+        withContext(edtDispatcher) {
+          deviceFileDownloaderService.downloadFiles(
+            processDescriptor.device.serial,
+            pathsToDownload,
+            disposableDownloadProgress,
+            downloadDestinationFolder
+          )
+        }
       } catch (e: IllegalArgumentException) {
         throw DeviceNotFoundException(
           "Device '${processDescriptor.device.model} ${processDescriptor.device.serial}' not found.",

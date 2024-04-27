@@ -17,6 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizable;
@@ -45,7 +46,7 @@ public class DeployTargetContext implements JDOMExternalizable {
 
     // noinspection UnstableApiUsage
     myDeployTargetStates = deployTargetProviders.stream()
-      .collect(Collectors.toMap(DeployTargetProvider::getId, DeployTargetProvider::createState));
+      .collect(ImmutableMap.toImmutableMap(DeployTargetProvider::getId, DeployTargetProvider::createState));
   }
 
   @NotNull

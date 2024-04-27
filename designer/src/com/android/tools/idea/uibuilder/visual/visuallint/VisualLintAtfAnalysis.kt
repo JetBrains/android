@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.surface.NlAtfIssue
 import com.android.tools.idea.uibuilder.surface.NlScannerLayoutParser
 import com.android.tools.idea.uibuilder.surface.RenderResultMetricData
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorHierarchy
@@ -150,5 +151,10 @@ class VisualLintAtfIssue(
 
   override fun shouldHighlight(model: NlModel): Boolean {
     return sourceModel == model
+  }
+
+  fun appliedColorBlindFilter(): ColorBlindMode {
+    return ColorBlindMode.values().firstOrNull { it.displayName == sourceModel.modelDisplayName }
+      ?: ColorBlindMode.NONE
   }
 }

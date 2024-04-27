@@ -15,29 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
-import static com.android.SdkConstants.ATTR_TITLE;
-import static com.android.SdkConstants.PreferenceAttributes.ATTR_DEFAULT_VALUE;
-import static com.android.SdkConstants.PreferenceAttributes.ATTR_DEPENDENCY;
-import static com.android.SdkConstants.PreferenceAttributes.ATTR_DISABLE_DEPENDENTS_STATE;
-import static com.android.SdkConstants.PreferenceAttributes.ATTR_ICON;
-import static com.android.SdkConstants.PreferenceAttributes.ATTR_KEY;
-import static com.android.SdkConstants.PreferenceAttributes.ATTR_PERSISTENT;
-import static com.android.SdkConstants.PreferenceAttributes.ATTR_SUMMARY;
-import static com.android.SdkConstants.PreferenceAttributes.ATTR_SUMMARY_OFF;
-import static com.android.SdkConstants.PreferenceAttributes.ATTR_SUMMARY_ON;
-import static com.android.SdkConstants.PreferenceAttributes.ATTR_SWITCH_TEXT_OFF;
-import static com.android.SdkConstants.PreferenceAttributes.ATTR_SWITCH_TEXT_ON;
-
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.xml.XmlBuilder;
+import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
+import static com.android.SdkConstants.ATTR_TITLE;
+import static com.android.SdkConstants.PreferenceAttributes.*;
 
 public final class SwitchPreferenceHandler extends PreferenceHandler {
   @Language("XML")

@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.common.analytics;
 
- import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
- import static com.android.AndroidXConstants.COORDINATOR_LAYOUT;
  import static com.android.SdkConstants.AD_VIEW;
  import static com.android.SdkConstants.ANDROID_URI;
  import static com.android.SdkConstants.ATTR_LAYOUT_COLLAPSE_MODE;
  import static com.android.SdkConstants.ATTR_TEXT;
  import static com.android.SdkConstants.AUTO_URI;
+ import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
  import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+ import static com.android.AndroidXConstants.COORDINATOR_LAYOUT;
  import static com.android.SdkConstants.DESIGN_LIB_ARTIFACT;
  import static com.android.SdkConstants.GRID_LAYOUT_LIB_ARTIFACT;
  import static com.android.SdkConstants.LEANBACK_V17_ARTIFACT;
@@ -48,15 +48,15 @@ package com.android.tools.idea.common.analytics;
 
  import com.android.ide.common.rendering.api.ResourceNamespace;
  import com.android.ide.common.rendering.api.ResourceReference;
- import com.android.tools.dom.attrs.AttributeDefinition;
- import com.android.tools.dom.attrs.AttributeDefinitions;
- import com.android.tools.dom.attrs.StyleableDefinition;
  import com.intellij.openapi.util.text.StringUtil;
  import com.intellij.testFramework.ServiceContainerUtil;
  import java.util.HashMap;
  import java.util.Map;
  import java.util.Set;
  import org.jetbrains.android.AndroidTestCase;
+ import com.android.tools.dom.attrs.AttributeDefinition;
+ import com.android.tools.dom.attrs.AttributeDefinitions;
+ import com.android.tools.dom.attrs.StyleableDefinition;
  import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
  import org.jetbrains.android.resourceManagers.LocalResourceManager;
  import org.jetbrains.android.resourceManagers.ModuleResourceManagers;

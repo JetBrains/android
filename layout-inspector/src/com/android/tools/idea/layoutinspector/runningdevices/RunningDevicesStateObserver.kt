@@ -19,11 +19,13 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DeviceId
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
@@ -41,13 +43,17 @@ import kotlinx.coroutines.launch
 class RunningDevicesStateObserver(
   private val project: Project,
   private val scope: CoroutineScope
-) {
+) : Disposable {
 
   interface Listener {
     /** Called when the selected tab in Running Devices changes */
     fun onSelectedTabChanged(deviceId: DeviceId?)
     /** Called when a tab is added or removed to Running Devices */
     fun onExistingTabsChanged(existingTabs: List<DeviceId>)
+
+    fun onToolWindowHidden()
+
+    fun onToolWindowShown(selectedDeviceId: DeviceId?)
   }
 
   companion object {
@@ -81,6 +87,33 @@ class RunningDevicesStateObserver(
     }
 
   private var contentManagerListener: RunningDevicesContentManagerListener? = null
+
+  init {
+    // Listen for changes to RD Tool Window state.
+    val messageBusConnection = project.messageBus.connect(this)
+    messageBusConnection.subscribe(
+      ToolWindowManagerListener.TOPIC,
+      object : ToolWindowManagerListener {
+
+        override fun stateChanged(toolWindowManager: ToolWindowManager) {
+          val toolWindow = toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return
+
+          toolWindowManager.invokeLater {
+            if (!toolWindow.isDisposed) {
+              if (toolWindow.isVisible) {
+                val deviceId = project.getRunningDevicesSelectedTabDeviceSerialNumber()
+                listeners.forEach { it.onToolWindowShown(deviceId) }
+              } else {
+                listeners.forEach { it.onToolWindowHidden() }
+              }
+            }
+          }
+        }
+      }
+    )
+  }
+
+  override fun dispose() {}
 
   fun addListener(listener: Listener) {
     scope.launch(Dispatchers.Main.immediate) {
@@ -176,7 +209,7 @@ private fun Project.getRunningDevicesSelectedTabDeviceSerialNumber(): DeviceId? 
 }
 
 /** Returns the list of [DeviceId]s for every tab in the Running Devices Tool Window. */
-private fun Project.getRunningDevicesExistingTabsDeviceSerialNumber(): List<DeviceId> {
+fun Project.getRunningDevicesExistingTabsDeviceSerialNumber(): List<DeviceId> {
   val contentManager = getRunningDevicesContentManager() ?: return emptyList()
   val contents = contentManager.contents ?: return emptyList()
   val tabIds =

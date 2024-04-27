@@ -32,8 +32,8 @@ private const val PALETTE_JSON_FILENAME = "/palette/logcat-tags-palette.json"
 /**
  * Manages the various colors used in a log view.
  *
- * Colors are stored as [TextAttributes] which can be assigned to [com.intellij.openapi.editor.Document]
- * [com.intellij.openapi.editor.markup.MarkupModel] ranges.
+ * Colors are stored as [TextAttributes] which can be assigned to
+ * [com.intellij.openapi.editor.Document] [com.intellij.openapi.editor.markup.MarkupModel] ranges.
  *
  * [LogLevel] colors are provided with an extension method.
  *
@@ -43,29 +43,28 @@ internal class LogcatColors {
 
   private val colorPaletteManager by lazy {
     javaClass.getResourceAsStream(PALETTE_JSON_FILENAME)?.let {
-      ColorPaletteManager(Gson().fromJson(it.reader(), Array<ColorPaletteManager.ColorPalette>::class.java))
+      ColorPaletteManager(
+        Gson().fromJson(it.reader(), Array<ColorPaletteManager.ColorPalette>::class.java)
+      )
     } ?: throw IllegalStateException("Resource not found")
-
   }
   private val tagColors = ConcurrentHashMap<Int, TextAttributes>()
 
-  /**
-   * Map a [LogLevel] to a [TextAttributesKey] object for rendering a log level.
-   */
+  /** Map a [LogLevel] to a [TextAttributesKey] object for rendering a log level. */
   internal fun getLogLevelKey(level: LogLevel) =
-    LEVEL_KEYS[level] ?: throw IllegalStateException("TextAttributesKey for log level $level is not registered")
+    LEVEL_KEYS[level]
+      ?: throw IllegalStateException("TextAttributesKey for log level $level is not registered")
 
-  /**
-   * Map a [LogLevel] to a [TextAttributesKey] object for rendering a message.
-   */
+  /** Map a [LogLevel] to a [TextAttributesKey] object for rendering a message. */
   internal fun getMessageKey(level: LogLevel) =
-    MESSAGE_KEYS[level] ?: throw IllegalStateException("TextAttributesKey for log level $level is not registered")
+    MESSAGE_KEYS[level]
+      ?: throw IllegalStateException("TextAttributesKey for log level $level is not registered")
 
   /**
    * Map a Logcat tag to a [TextAttributes] object.
    *
-   * Leverage [ColorPaletteManager] for color selection but since we use [TextAttributes], we maintain our own cache.
-   *
+   * Leverage [ColorPaletteManager] for color selection but since we use [TextAttributes], we
+   * maintain our own cache.
    */
   internal fun getTagColor(tag: String): TextAttributes {
     val index = tag.hashCode()
@@ -83,14 +82,15 @@ internal class LogcatColors {
     val LEVEL_ERROR_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_LEVEL_ERROR")
     val LEVEL_ASSERT_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_LEVEL_ASSERT")
 
-    private val LEVEL_KEYS = mapOf(
-      LogLevel.VERBOSE to LEVEL_VERBOSE_KEY,
-      LogLevel.DEBUG to LEVEL_DEBUG_KEY,
-      LogLevel.INFO to LEVEL_INFO_KEY,
-      LogLevel.WARN to LEVEL_WARNING_KEY,
-      LogLevel.ERROR to LEVEL_ERROR_KEY,
-      LogLevel.ASSERT to LEVEL_ASSERT_KEY,
-    )
+    private val LEVEL_KEYS =
+      mapOf(
+        LogLevel.VERBOSE to LEVEL_VERBOSE_KEY,
+        LogLevel.DEBUG to LEVEL_DEBUG_KEY,
+        LogLevel.INFO to LEVEL_INFO_KEY,
+        LogLevel.WARN to LEVEL_WARNING_KEY,
+        LogLevel.ERROR to LEVEL_ERROR_KEY,
+        LogLevel.ASSERT to LEVEL_ASSERT_KEY,
+      )
 
     val MESSAGE_VERBOSE_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_VERBOSE")
     val MESSAGE_DEBUG_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_DEBUG")
@@ -99,13 +99,14 @@ internal class LogcatColors {
     val MESSAGE_ERROR_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_ERROR")
     val MESSAGE_ASSERT_KEY = TextAttributesKey.createTextAttributesKey("LOGCAT_V2_MESSAGE_ASSERT")
 
-    private val MESSAGE_KEYS = mapOf(
-      LogLevel.VERBOSE to MESSAGE_VERBOSE_KEY,
-      LogLevel.DEBUG to MESSAGE_DEBUG_KEY,
-      LogLevel.INFO to MESSAGE_INFO_KEY,
-      LogLevel.WARN to MESSAGE_WARNING_KEY,
-      LogLevel.ERROR to MESSAGE_ERROR_KEY,
-      LogLevel.ASSERT to MESSAGE_ASSERT_KEY,
-    )
+    private val MESSAGE_KEYS =
+      mapOf(
+        LogLevel.VERBOSE to MESSAGE_VERBOSE_KEY,
+        LogLevel.DEBUG to MESSAGE_DEBUG_KEY,
+        LogLevel.INFO to MESSAGE_INFO_KEY,
+        LogLevel.WARN to MESSAGE_WARNING_KEY,
+        LogLevel.ERROR to MESSAGE_ERROR_KEY,
+        LogLevel.ASSERT to MESSAGE_ASSERT_KEY,
+      )
   }
 }

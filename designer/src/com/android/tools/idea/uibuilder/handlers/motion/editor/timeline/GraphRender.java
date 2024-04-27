@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.timeline;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
@@ -41,7 +40,6 @@ public class GraphRender {
   private Cycle mCycle = null;
   private Attribute[] mAttribute = null;
   private String[] mStartEndString = new String[2];
-  private boolean mShowNewGraph = StudioFlags.NELE_MOTION_AREA_GRAPH.get();
 
   static String[] ourWaveTypes = {"sin", "square", "triangle", "sawtooth", "reverseSawtooth", "cos", "bounce"};
   static HashMap<String, Integer> ourWaveTypeMap = new HashMap<>();
@@ -189,26 +187,16 @@ public class GraphRender {
     g.setColor(MEUI.Graph.ourG_line);
 
     // with the new graph design, the ticks are drawn before the actual graph.
-    if (mShowNewGraph) {
-      g.setColor(MEUI.myGridColor);
-      TimeLineRow.drawTicks(g, mTimelineStructure, h, y);
-    }
+    g.setColor(MEUI.myGridColor);
+    TimeLineRow.drawTicks(g, mTimelineStructure, h, y);
 
     if (mCycle != null) {
-      if (mShowNewGraph) {
-        mCycle.plotAreaGraph(g, gx, y, gw, h);
-      } else {
-        mCycle.plot(g, gx, y, gw, h);
-      }
+      mCycle.plotAreaGraph(g, gx, y, gw, h);
     }
     if (mAttribute != null) {
       for (int i = 0; i < mAttribute.length; i++) {
         Attribute attribute = mAttribute[i];
-        if (mShowNewGraph) {
-          attribute.plotAreaGraph(g, gx, y, gw, h);
-        } else {
-          attribute.plot(g, gx, y, gw, h);
-        }
+        attribute.plotAreaGraph(g, gx, y, gw, h);
       }
     }
 
@@ -338,22 +326,6 @@ public class GraphRender {
       return true;
     }
 
-    // plot the attribute
-    public void plot(Graphics g, int x, int y, int w, int h) {
-
-      if (spline != null) {
-        double steps = 1.0 / w;
-        int count = 0;
-        for (double i = 0; i <= 1; i += steps) {
-          double yp = spline.getPos(i, 0);
-          xPoints[count] = (int)(x + i * w);
-          yPoints[count] = (int)(y + h - (yp - mMin) * h / (mMax - mMin));
-          count++;
-        }
-        g.drawPolyline(xPoints, yPoints, count);
-      }
-    }
-
     // plot the attribute with an Area Graph
     public void plotAreaGraph(Graphics g, int x, int y, int w, int h) {
 
@@ -389,7 +361,7 @@ public class GraphRender {
     float[] yMin = new float[xpos.length];
     float mMaxY, mMinY;
     // add two more points (in start and end) for drawing a polygon
-    int numPoints = StudioFlags.NELE_MOTION_AREA_GRAPH.get() ? xpos.length + 2 : xpos.length;
+    int numPoints = xpos.length + 2;
     int[] xPoints = new int[numPoints];
     int[] yPoints = new int[numPoints];
     int colorIndex = 0; // index for picking a color for the graph.
@@ -467,18 +439,6 @@ public class GraphRender {
       mMinY -= 0.06 * (mMaxY - mMinY);
     }
 
-    void plot(Graphics g, int x, int y, int w, int h) {
-      g.setColor(MEUI.Graph.ourG_line);
-
-      for (int i = 0; i < xpos.length; i++) {
-        int xp = (int)(w * xpos[i] + x);
-        int yp = y + (int)(h - h * (ypos[i] - mMinY) / (mMaxY - mMinY));
-        xPoints[i] = xp;
-        yPoints[i] = yp;
-      }
-      g.drawPolyline(xPoints, yPoints, xPoints.length);
-    }
-
     void plotAreaGraph(Graphics g, int x, int y, int w, int h) {
 
       ((Graphics2D) g)
@@ -523,15 +483,6 @@ public class GraphRender {
       ((Graphics2D) g).setStroke(dashed);
       g.setColor(MEUI.ourDashedLineColor);
       g.drawPolyline(Arrays.copyOfRange(xPoints, 1, xPoints.length - 1), offsetYPoints, count - 1);
-    }
-
-    float getComputedValue(float v) {
-      if (mMonotoneSpline == null) {
-        return 0;
-      }
-      double amp = mMonotoneSpline.getPos(v, 0);
-      double off = mMonotoneSpline.getPos(v, 1);
-      return (float)(mOscillator.getValue(v) * amp + off);
     }
   }
 }

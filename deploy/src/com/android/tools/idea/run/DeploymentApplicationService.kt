@@ -17,8 +17,6 @@ package com.android.tools.idea.run
 
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
-import com.android.sdklib.AndroidVersion
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
 
 interface DeploymentApplicationService {
@@ -29,5 +27,4 @@ interface DeploymentApplicationService {
   }
 
   fun findClient(iDevice: IDevice, applicationId: String): List<Client>
-  fun getVersion(iDevice: IDevice): ListenableFuture<AndroidVersion>
 }

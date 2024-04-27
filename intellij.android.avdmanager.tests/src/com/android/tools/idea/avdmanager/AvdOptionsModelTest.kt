@@ -41,7 +41,6 @@ import com.google.common.collect.Maps
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
-import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -63,7 +62,8 @@ class AvdOptionsModelTest : AndroidTestCase() {
     // Google Play image
     val googlePlayPath = "system-images;android-23;google_apis_playstore;x86"
     val googlePlayPkg = FakePackage.FakeLocalPackage(googlePlayPath, sdkRoot.resolve("playSysImg"))
-    val googlePlayDetails = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
+    val googlePlayDetails =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
     googlePlayDetails.tags.add(IdDisplay.create("google_apis_playstore", "Google Play"))
     googlePlayDetails.abi = "x86"
     googlePlayDetails.apiLevel = 23
@@ -73,7 +73,8 @@ class AvdOptionsModelTest : AndroidTestCase() {
     // Non-Google Play image
     val nonPlayPath = "system-images;android-23;google_apis;x86"
     val nonPlayPkg = FakePackage.FakeLocalPackage(nonPlayPath, sdkRoot.resolve("gapiSysImg"))
-    val nonPlayDetails = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
+    val nonPlayDetails =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType()
     nonPlayDetails.tags.add(IdDisplay.create("google_apis", "Google APIs"))
     nonPlayDetails.abi = "x86"
     nonPlayDetails.apiLevel = 23
@@ -89,8 +90,10 @@ class AvdOptionsModelTest : AndroidTestCase() {
     val progress = FakeProgressIndicator()
     val systemImageManager = sdkHandler.getSystemImageManager(progress)
 
-    val googlePlayImage = systemImageManager.getImageAt(sdkHandler.getLocalPackage(googlePlayPath, progress)!!.location)
-    val nonPlayImage = systemImageManager.getImageAt(sdkHandler.getLocalPackage(nonPlayPath, progress)!!.location)
+    val googlePlayImage =
+      systemImageManager.getImageAt(sdkHandler.getLocalPackage(googlePlayPath, progress)!!.location)
+    val nonPlayImage =
+      systemImageManager.getImageAt(sdkHandler.getLocalPackage(nonPlayPath, progress)!!.location)
 
     myGooglePlayAvdInfo = anAvdInfo(systemImage = googlePlayImage!!, properties = myPropertiesMap)
     myNonPlayAvdInfo = anAvdInfo(systemImage = nonPlayImage!!, properties = myPropertiesMap)
@@ -161,7 +164,6 @@ class AvdOptionsModelTest : AndroidTestCase() {
     theDevice = optionsModel.device()
     theDevice.setNullableValue(myNonPlayDevice)
     assertThat(optionsModel.minSdCardSize()).isEqualTo(Storage(10, Unit.MiB))
-
 
     // For the device without Sdcard
     myNonPlayDevice?.defaultHardware?.setSdCard(false)
@@ -260,26 +262,29 @@ class AvdOptionsModelTest : AndroidTestCase() {
 
   fun testAvdOptionsModelEnableDeviceFrameCheckboxIsntSelected() {
     // Arrange
-    val avd = Mockito.mock(AvdInfo::class.java)
+    val noSkin = SkinUtils.noSkin()
 
+    val avd = Mockito.mock(AvdInfo::class.java)
     whenever(avd.deviceManufacturer).thenReturn("Google")
     whenever(avd.deviceName).thenReturn("pixel_3")
     whenever(avd.displayName).thenReturn("Pixel 3 API 30")
-    whenever(avd.properties).thenReturn(hashMapOf(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY to SkinUtils.NO_SKIN))
+
+    whenever(avd.properties)
+      .thenReturn(hashMapOf(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY to noSkin.toString()))
 
     // Act
     val model = AvdOptionsModel(avd)
 
     // Assert
-    assertThat(model.avdDeviceData.customSkinFile().value).isEqualTo(File(
-      SkinUtils.NO_SKIN))
+    assertThat(model.avdDeviceData.customSkinFile().value).isEqualTo(noSkin.toFile())
   }
 
   fun testAvdCommandLineOptions_StudioFlagEnabled() {
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(true)
-    val avdInfo = anAvdInfo(properties = mapOf(
-      AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY to "some command line option"
-    ))
+    val avdInfo =
+      anAvdInfo(
+        properties = mapOf(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY to "some command line option")
+      )
 
     val model = AvdOptionsModel(avdInfo)
 
@@ -288,9 +293,10 @@ class AvdOptionsModelTest : AndroidTestCase() {
 
   fun testAvdCommandLineOptions_StudioFlagDisabled() {
     StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(false)
-    val avdInfo = anAvdInfo(properties = mapOf(
-      AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY to "some command line option"
-    ))
+    val avdInfo =
+      anAvdInfo(
+        properties = mapOf(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY to "some command line option")
+      )
 
     val model = AvdOptionsModel(avdInfo)
 
@@ -302,6 +308,6 @@ class AvdOptionsModelTest : AndroidTestCase() {
     iniFile: Path = Paths.get("ini"),
     folderPath: Path = Paths.get("folder"),
     systemImage: ISystemImage = Mockito.mock(ISystemImage::class.java),
-    properties: Map<String, String>) =
-    AvdInfo(name, iniFile, folderPath, systemImage, properties)
+    properties: Map<String, String>
+  ) = AvdInfo(name, iniFile, folderPath, systemImage, properties)
 }

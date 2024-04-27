@@ -162,7 +162,7 @@ private const val CONSTRAINT_FILTER_NAME = "ConstraintLayout"
 private const val MOTION_FILTER_NAME = "MotionLayout"
 
 private fun getTypeFiltersMap(): Map<ResourceType, LinkedHashMap<TypeFilter, Boolean>> {
-  return mapOf(
+  return mapOf<ResourceType, LinkedHashMap<TypeFilter, Boolean>>(
     Pair(ResourceType.DRAWABLE, linkedMapOf(
       xmlFilterType(SdkConstants.TAG_VECTOR),
       xmlFilterType(SdkConstants.TAG_ANIMATED_VECTOR),

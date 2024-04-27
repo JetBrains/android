@@ -24,17 +24,13 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.search.GlobalSearchScope
 
-/**
- * Returns true if NavHostFragment is a superclass of the specified class
- */
+/** Returns true if NavHostFragment is a superclass of the specified class */
 fun extendsNavHostFragment(psiClass: PsiClass, module: Module): Boolean {
   val navHostClass = getClass(FQCN_NAV_HOST_FRAGMENT, module) ?: return false
   return psiClass.isInheritor(navHostClass, true)
 }
 
-/**
- * Returns true if NavHostFragment is either the specified class or a superclass of it
- */
+/** Returns true if NavHostFragment is either the specified class or a superclass of it */
 fun isNavHostFragment(className: String, module: Module): Boolean {
   if (className == FQCN_NAV_HOST_FRAGMENT) {
     return true
@@ -58,8 +54,7 @@ fun getClassesForTag(module: Module, tag: String): Map<PsiClass, String?> {
 
   for (dynamicModule in dynamicModules(module)) {
     val scope = GlobalSearchScope.moduleWithDependenciesScope(dynamicModule)
-    schema.getProjectClassesForTag(tag, scope)
-      .associateWithTo(result) { dynamicModule.name }
+    schema.getProjectClassesForTag(tag, scope).associateWithTo(result) { dynamicModule.name }
   }
 
   schema.getProjectClassesForTag(tag).associateWithTo(result) { null }
@@ -70,4 +65,3 @@ fun getClassesForTag(module: Module, tag: String): Map<PsiClass, String?> {
 fun dynamicModules(module: Module): List<Module> {
   return module.getModuleSystem().getDynamicFeatureModules()
 }
-

@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiRecursiveElementWalkingVisitor
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
@@ -39,6 +44,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.core.util.analyzeInlinedFunctions
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
@@ -47,9 +53,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.source.PsiSourceFile
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
-import org.jetbrains.kotlin.utils.IDEAPluginsCompatibilityAPI
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 private fun handleCompilerErrors(e: Throwable): Nothing {
   // These should be rethrown as per the javadoc for ProcessCanceledException. This allows the
@@ -133,7 +136,7 @@ private object CompileScopeImpl : CompileScope {
   /**
    * Lock that ensures that [runWithCompileLock] only allows one execution at a time.
    */
-  val compileLock = ReentrantLock()
+  val compileLock = Semaphore(1)
 
   override fun fetchResolution(project: Project, input: List<KtFile>): ResolutionFacade {
     val kotlinCacheService = KotlinCacheService.getInstance(project)
@@ -150,7 +153,9 @@ private object CompileScopeImpl : CompileScope {
       var exception: LiveEditUpdateException? = null
       val analysisResult = resolution.analyzeWithAllCompilerChecks(input) {
         if (it.severity == Severity.ERROR) {
-          exception = LiveEditUpdateException.analysisError("Analyze Error. $it", it.psiFile)
+          if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS.get() || input.contains(it.psiFile)) {
+            exception = LiveEditUpdateException.analysisError("Analyze Error. $it", it.psiFile)
+          }
         }
       }
       if (exception != null) {
@@ -163,7 +168,9 @@ private object CompileScopeImpl : CompileScope {
 
       for (diagnostic in analysisResult.bindingContext.diagnostics) {
         if (diagnostic.severity == Severity.ERROR) {
-          throw LiveEditUpdateException.analysisError("Binding Context Error. $diagnostic", diagnostic.psiFile)
+          if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS.get() || input.contains(diagnostic.psiFile)) {
+            throw LiveEditUpdateException.analysisError("Binding Context Error. $diagnostic", diagnostic.psiFile)
+          }
         }
       }
 
@@ -174,9 +181,11 @@ private object CompileScopeImpl : CompileScope {
     }
   }
 
-  @OptIn(IDEAPluginsCompatibilityAPI::class)
-  override fun backendCodeGen(project: Project, analysisResult: AnalysisResult, input: List<KtFile>, module: Module,
+  override fun backendCodeGen(project: Project, analysisResult: AnalysisResult, input: List<KtFile>,  module: Module,
                               inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState {
+
+    input.firstOrNull { it.module != module }?.let {
+      throw LiveEditUpdateException.internalError("KtFile outside targeted module found in code generation", it) }
 
     val compilerConfiguration = CompilerConfiguration()
     compilerConfiguration.languageVersionSettings = input.first().languageVersionSettings
@@ -201,7 +210,8 @@ private object CompileScopeImpl : CompileScope {
     }
     errorElement?.let { throw LiveEditUpdateException.compilationError(it.errorDescription, it.containingFile, null)}
 
-    compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, module.name)
+    compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME,
+                              module.project.getProjectSystem().getModuleSystem(module).getModuleNameForCompilation(input[0].originalFile.virtualFile))
     KotlinFacet.get(module)?.let { kotlinFacet ->
       (kotlinFacet.configuration.settings.compilerArguments as K2JVMCompilerArguments).moduleName?.let {
         compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, it)
@@ -265,6 +275,8 @@ private object CompileScopeImpl : CompileScope {
  * phases.
  * Only one caller of this method will have access to the [CompileScope] at the moment.
  */
-fun <T> runWithCompileLock(callable: CompileScope.() -> T) = CompileScopeImpl.compileLock.withLock {
-  CompileScopeImpl.callable()
+fun <T> runWithCompileLock(callable: suspend CompileScope.() -> T) = runBlocking {
+  CompileScopeImpl.compileLock.withPermit {
+    CompileScopeImpl.callable()
+  }
 }
