@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.catalog.parser.toml
+package com.android.tools.idea.gradle.dsl.toml.catalog
 
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.CATALOG_TOML
-import com.android.tools.idea.gradle.dsl.parser.TomlDslNameConverter
+import com.android.tools.idea.gradle.dsl.toml.TomlDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 
 interface CatalogTomlDslNameConverter: TomlDslNameConverter {

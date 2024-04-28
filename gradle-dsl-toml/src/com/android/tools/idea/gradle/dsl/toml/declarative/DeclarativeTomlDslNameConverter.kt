@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.declarative.parser.toml
+package com.android.tools.idea.gradle.dsl.toml.declarative
 
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.DECLARATIVE_TOML
-import com.android.tools.idea.gradle.dsl.parser.TomlDslNameConverter
+import com.android.tools.idea.gradle.dsl.toml.TomlDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR
