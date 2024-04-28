@@ -10,7 +10,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.startup.Actions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.ApplicationInitializedListenerJavaShim;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
@@ -21,7 +20,6 @@ import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,18 +27,6 @@ public final class AndroidPlugin {
 
   public AndroidPlugin() {
     VirtualFileSystemOpener.INSTANCE.mount();
-  }
-
-  static final class AndroidPluginAppInitializer extends ApplicationInitializedListenerJavaShim {
-    @Override
-    public void componentsInitialized() {
-      // alternative to preload
-      ApplicationManager.getApplication().getService(AndroidPlugin.class);
-
-      if (!IdeInfo.getInstance().isAndroidStudio()) {
-        initializeForNonStudio();
-      }
-    }
   }
 
   static final class ActionCustomizer implements ActionConfigurationCustomizer {

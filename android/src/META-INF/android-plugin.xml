@@ -213,7 +213,6 @@
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
     <projectService serviceImplementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild" />
     <postStartupActivity implementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild$MyStartupActivity"/>
-    <applicationInitializedListener implementation="com.android.tools.idea.progress.StudioProgressManagerAdapter$Installer" />
     <fileBasedIndex implementation="com.android.tools.idea.model.AndroidManifestIndex"/>
     <applicationService serviceImplementation="com.android.tools.idea.imports.MavenClassRegistryManager" />
     <postStartupActivity implementation="com.android.tools.idea.imports.AutoRefresherForMavenClassRegistry"/>
@@ -231,7 +230,6 @@
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
 
-    <applicationInitializedListener implementation="org.jetbrains.android.AndroidPlugin$AndroidPluginAppInitializer" />
     <actionConfigurationCustomizer implementation="org.jetbrains.android.AndroidPlugin$ActionCustomizer"/>
     <applicationService serviceImplementation="org.jetbrains.android.AndroidPlugin"/>
     <applicationService serviceImplementation="com.android.tools.idea.streaming.DeviceMirroringSettings"/>

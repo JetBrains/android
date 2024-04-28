@@ -19,7 +19,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.checks.GradleDetector;
-import com.intellij.ide.ApplicationInitializedListenerJavaShim;
+import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationDisplayType;
@@ -32,45 +32,55 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ConfigImportHelper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.extensions.PluginId;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.service.execution.GradleTaskExecutionMeasuringExtension;
 import org.jetbrains.plugins.gradle.service.project.GradleOperationHelperExtension;
+import java.util.List;
 
 /**
  * Performs Gradle-specific IDE initialization
  */
-public class GradleSpecificInitializer extends ApplicationInitializedListenerJavaShim {
+public class GradleSpecificInitializer implements AppLifecycleListener {
 
   // Note: this code runs quite early during Android Studio startup and directly affects app startup performance.
   // Any heavy work should be moved to a background thread and/or moved to a later phase.
   @Override
-  public void componentsInitialized() {
+  public void appFrameCreated(@NotNull List<String> commandLineArgs) {
     checkInstallPath();
 
     if (ConfigImportHelper.isConfigImported()) {
-      // Recreate JDKs since they can be invalid when changing Java versions (b/185562147)
-      IdeInfo ideInfo = IdeInfo.getInstance();
-      if (ideInfo.isAndroidStudio() || ideInfo.isGameTools()) {
-        ApplicationManager.getApplication().invokeLaterOnWriteThread(IdeSdks.getInstance()::recreateProjectJdkTable);
-      }
-      // Recreate AGP Upgrade Assistant notification settings for the application if notifications are disabled
-      PropertiesComponent properties = PropertiesComponent.getInstance();
-      String propertyKey = "recommended.upgrade.do.not.show.again";
-      if (properties.isValueSet(propertyKey)) {
-        if (properties.getBoolean(propertyKey, false)) {
-          ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
-            String groupId = "Android Gradle Upgrade Notification";
-            NotificationsConfiguration.getNotificationsConfiguration()
-              .changeSettings(groupId, NotificationDisplayType.NONE, /* do not log */ false, /* silence */ false);
-          });
-        }
-        properties.unsetValue(propertyKey);
-      }
+      cleanProjectJdkTableForNewIdeVersion();
+      migrateAgpUpgradeAssistantSettingForNewIdeVersion();
     }
     // Disable the extension because it causes performance issues, see http://b/298372819.
     //noinspection UnstableApiUsage
     GradleOperationHelperExtension.EP_NAME.getPoint().unregisterExtension(GradleTaskExecutionMeasuringExtension.class);
 
     useIdeGooglePlaySdkIndexInGradleDetector();
+  }
+
+  private static void migrateAgpUpgradeAssistantSettingForNewIdeVersion() {
+    // Recreate AGP Upgrade Assistant notification settings for the application if notifications are disabled
+    PropertiesComponent properties = PropertiesComponent.getInstance();
+    String propertyKey = "recommended.upgrade.do.not.show.again";
+    if (properties.isValueSet(propertyKey)) {
+      if (properties.getBoolean(propertyKey, false)) {
+        ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
+          String groupId = "Android Gradle Upgrade Notification";
+          NotificationsConfiguration.getNotificationsConfiguration()
+            .changeSettings(groupId, NotificationDisplayType.NONE, /* do not log */ false, /* silence */ false);
+        });
+      }
+      properties.unsetValue(propertyKey);
+    }
+  }
+
+  private static void cleanProjectJdkTableForNewIdeVersion() {
+    // Recreate JDKs since they can be invalid when changing Java versions (b/185562147)
+    IdeInfo ideInfo = IdeInfo.getInstance();
+    if (ideInfo.isAndroidStudio() || ideInfo.isGameTools()) {
+      ApplicationManager.getApplication().invokeLaterOnWriteThread(IdeSdks.getInstance()::recreateProjectJdkTable);
+    }
   }
 
   /**
