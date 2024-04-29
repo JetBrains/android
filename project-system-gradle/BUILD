@@ -115,10 +115,12 @@ iml_module(
                 "//tools/base/build-system:gradle-distrib",
                 "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
             ],
+            "tags": ["cpu:4"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.jdk.integration",
         },
         "errors.integration": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.errors.integration",
+            "tags": ["cpu:4"],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -128,6 +130,7 @@ iml_module(
         },
         "providers.integration": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.ProviderIntegrationTestCase",
+            "tags": ["cpu:4"],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -139,6 +142,7 @@ iml_module(
         # indexing off elsewhere by masking the KotlinScriptWorkspaceFileIndexContributor extension, but it has to stay on here.
         "kts.highlighting": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.highlighting.GradleKtsResolveSymbolsTest",
+            "tags": ["cpu:4"],
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -148,6 +152,7 @@ iml_module(
         },
         "runs_gradle": {
             "test_filter": ".runsGradle",
+            "tags": ["cpu:4"],
             "shard_count": 15,
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
