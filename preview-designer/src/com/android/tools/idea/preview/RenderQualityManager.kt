@@ -50,6 +50,9 @@ interface RenderQualityManager {
 
   fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean
 
+  fun needsQualityChange(surface: NlDesignSurface) =
+    surface.sceneManagers.any { needsQualityChange(it) }
+
   fun pause()
 
   fun resume()

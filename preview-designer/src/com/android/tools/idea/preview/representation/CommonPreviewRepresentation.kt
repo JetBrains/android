@@ -527,6 +527,27 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       }
     }
 
+    // Make sure not to start refreshes when deactivated, unless it is the first quality refresh
+    // that happens since deactivation. This is expected to happen to decrease the quality of its
+    // previews when deactivating.
+    val shouldProcessRequest =
+      when {
+        lifecycleManager.isActive() -> true
+        request.refreshType != CommonPreviewRefreshType.QUALITY -> false
+        else -> allowQualityChangeIfInactive.getAndSet(false)
+      }
+    if (!shouldProcessRequest) {
+      return CompletableDeferred(Unit)
+    }
+
+    // Return early when quality refresh won't actually refresh anything
+    if (
+      request.refreshType == CommonPreviewRefreshType.QUALITY &&
+        !qualityManager.needsQualityChange(surface)
+    ) {
+      return CompletableDeferred(Unit)
+    }
+
     val startTime = System.nanoTime()
     val refreshProgressIndicator =
       BackgroundableProcessIndicator(
@@ -541,20 +562,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       return CompletableDeferred<Unit>().also {
         it.completeExceptionally(IllegalStateException("Already disposed"))
       }
-    }
-
-    // Make sure not to start refreshes when deactivated, unless it is the first quality refresh
-    // that happens since deactivation. This is expected to happen to decrease the quality of its
-    // previews when deactivating.
-    val shouldProcessRequest =
-      when {
-        lifecycleManager.isActive() -> true
-        request.refreshType != CommonPreviewRefreshType.QUALITY -> false
-        else -> allowQualityChangeIfInactive.getAndSet(false)
-      }
-    if (!shouldProcessRequest) {
-      refreshProgressIndicator.processFinish()
-      return CompletableDeferred(Unit)
     }
 
     val invalidateIfCancelled = AtomicBoolean(false)

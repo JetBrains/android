@@ -69,6 +69,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.TestToolWindowManager
 import com.google.common.base.Preconditions.checkState
+import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
@@ -697,6 +698,7 @@ class ComposePreviewRepresentationTest {
       }
       val surfaceMock = Mockito.mock(NlDesignSurface::class.java)
       whenever(surfaceMock.analyticsManager).thenReturn(mock<NlAnalyticsManager>())
+      whenever(surfaceMock.sceneManagers).thenReturn(ImmutableList.of())
       val composeView = TestComposePreviewView(surfaceMock)
       val previewRepresentation =
         ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->

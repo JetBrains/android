@@ -1190,6 +1190,29 @@ class ComposePreviewRepresentation(
     )
     val refreshTriggers: List<Throwable> = refreshRequest.requestSources
 
+    // Make sure not to start refreshes when deactivated, unless it is the first quality refresh
+    // that happens since deactivation. This is expected to happen to decrease the quality of its
+    // previews when deactivating. Also, don't launch refreshes in the activation scope to avoid
+    // cancelling the refresh mid-way when a simple tab change happens.
+    if (
+      !lifecycleManager.isActive() &&
+        !(refreshRequest.refreshType == ComposePreviewRefreshType.QUALITY &&
+          allowQualityChangeIfInactive.getAndSet(false))
+    ) {
+      requestLogger.debug(
+        "Inactive representation (${psiFilePointer.containingFile?.name}), no work being done"
+      )
+      return CompletableDeferred(Unit)
+    }
+
+    // Return early when quality refresh won't actually refresh anything
+    if (
+      refreshRequest.refreshType == ComposePreviewRefreshType.QUALITY &&
+        !qualityManager.needsQualityChange(surface)
+    ) {
+      return CompletableDeferred(Unit)
+    }
+
     val startTime = System.nanoTime()
     // Start a progress indicator so users are aware that a long task is running. Stop it by calling
     // processFinish() if returning early.
@@ -1208,22 +1231,6 @@ class ComposePreviewRepresentation(
     if (!Disposer.tryRegister(this, refreshProgressIndicator)) {
       refreshProgressIndicator.processFinish()
       return CompletableDeferred<Unit>().also { it.completeAlreadyDisposed() }
-    }
-
-    // Make sure not to start refreshes when deactivated, unless it is the first quality refresh
-    // that happens since deactivation. This is expected to happen to decrease the quality of its
-    // previews when deactivating. Also, don't launch refreshes in the activation scope to avoid
-    // cancelling the refresh mid-way when a simple tab change happens.
-    if (
-      !lifecycleManager.isActive() &&
-        !(refreshRequest.refreshType == ComposePreviewRefreshType.QUALITY &&
-          allowQualityChangeIfInactive.getAndSet(false))
-    ) {
-      refreshProgressIndicator.processFinish()
-      requestLogger.debug(
-        "Inactive representation (${psiFilePointer.containingFile?.name}), no work being done"
-      )
-      return CompletableDeferred(Unit)
     }
 
     var invalidateIfCancelled = false
