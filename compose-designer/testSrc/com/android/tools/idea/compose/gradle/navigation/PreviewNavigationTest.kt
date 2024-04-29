@@ -34,6 +34,7 @@ import com.android.tools.idea.compose.preview.navigation.findNavigatableComponen
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.preview.util.getRootComponent
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.preview.SingleComposePreviewElementInstance
@@ -117,13 +118,17 @@ class PreviewNavigationTest {
   fun testComposableNavigation() {
     val facet = projectRule.androidFacet(":app")
     val module = facet.mainModule
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
     renderPreviewElementForResult(
         facet,
+        mainActivityFile,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.TwoElementsPreview"
         ),
       )
+      .future
       .thenAccept { renderResult ->
         val rootView = renderResult!!.rootViews.single()!!
         val viewInfos = parseViewInfo(rootView, logger = LOG)
@@ -180,13 +185,17 @@ class PreviewNavigationTest {
   fun testInlineNavigation() {
     val facet = projectRule.androidFacet(":app")
     val module = facet.mainModule
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
     renderPreviewElementForResult(
         facet,
+        mainActivityFile,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.MyPreviewWithInline"
         ),
       )
+      .future
       .thenAccept { renderResult ->
         val rootView = renderResult!!.rootViews.single()!!
         val viewInfos = parseViewInfo(rootView, logger = LOG)
@@ -211,13 +220,17 @@ class PreviewNavigationTest {
   fun testInProjectNavigation() {
     val facet = projectRule.androidFacet(":app")
     val module = facet.mainModule
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
     renderPreviewElementForResult(
         facet,
+        mainActivityFile,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.NavigatablePreview"
         ),
       )
+      .future
       .thenAccept { renderResult ->
         val rootView = renderResult!!.rootViews.single()!!
         val viewInfos = parseViewInfo(rootView, logger = LOG)
@@ -247,13 +260,17 @@ class PreviewNavigationTest {
   fun testDuplicateFileNavigation() {
     val facet = projectRule.androidFacet(":app")
     val module = facet.mainModule
+    val mainActivityFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
 
     renderPreviewElementForResult(
         facet,
+        mainActivityFile,
         SingleComposePreviewElementInstance.forTesting(
           "google.simpleapplication.MainActivityKt.OnlyATextNavigation"
         ),
       )
+      .future
       .thenAccept { renderResult ->
         val rootView = renderResult!!.rootViews.single()!!
         val viewInfos = parseViewInfo(rootView, logger = LOG)

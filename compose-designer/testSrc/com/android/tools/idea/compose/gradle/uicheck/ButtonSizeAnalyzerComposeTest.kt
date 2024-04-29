@@ -19,6 +19,7 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzer
@@ -34,9 +35,12 @@ class ButtonSizeAnalyzerComposeTest {
   @Test
   fun testWideButton() {
     val facet = projectRule.androidFacet(":app")
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
+          visualLintPreviewFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview",
             configuration =
@@ -46,11 +50,11 @@ class ButtonSizeAnalyzerComposeTest {
           ),
           customViewInfoParser = accessibilityBasedHierarchyParser,
         )
-        .get()!!
-    val file = renderResult.sourceFile.virtualFile
+        .get()
+    val file = renderResult.lightVirtualFile
     val nlModel =
       SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
-    val issues = ButtonSizeAnalyzer.findIssues(renderResult, nlModel)
+    val issues = ButtonSizeAnalyzer.findIssues(renderResult.result!!, nlModel)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals("The button Button is too wide", issues[0].message)
   }
@@ -58,9 +62,12 @@ class ButtonSizeAnalyzerComposeTest {
   @Test
   fun testNarrowButton() {
     val facet = projectRule.androidFacet(":app")
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
+          visualLintPreviewFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.VisualLintPreviewKt.NoVisualLintErrorPreview",
             configuration =
@@ -70,11 +77,11 @@ class ButtonSizeAnalyzerComposeTest {
           ),
           customViewInfoParser = accessibilityBasedHierarchyParser,
         )
-        .get()!!
-    val file = renderResult.sourceFile.virtualFile
+        .get()
+    val file = renderResult.lightVirtualFile
     val nlModel =
       SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
-    val issues = ButtonSizeAnalyzer.findIssues(renderResult, nlModel)
+    val issues = ButtonSizeAnalyzer.findIssues(renderResult.result!!, nlModel)
     Assert.assertEquals(0, issues.size)
   }
 }

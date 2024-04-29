@@ -134,7 +134,8 @@ class ParametrizedPreviewTest {
 
       elements.forEach {
         assertTrue(
-          renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
+          renderPreviewElementForResult(projectRule.androidFacet(":app"), parametrizedPreviews, it)
+            .future
             .get()
             ?.renderResult
             ?.isSuccess ?: false
@@ -153,7 +154,8 @@ class ParametrizedPreviewTest {
 
       elements.forEach {
         assertTrue(
-          renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
+          renderPreviewElementForResult(projectRule.androidFacet(":app"), parametrizedPreviews, it)
+            .future
             .get()
             ?.renderResult
             ?.isSuccess ?: false
@@ -173,7 +175,8 @@ class ParametrizedPreviewTest {
 
       elements.forEach {
         assertTrue(
-          renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
+          renderPreviewElementForResult(projectRule.androidFacet(":app"), parametrizedPreviews, it)
+            .future
             .get()
             ?.renderResult
             ?.isSuccess ?: false
@@ -200,7 +203,11 @@ class ParametrizedPreviewTest {
           it.methodFqn,
         )
         assertTrue(it is SingleComposePreviewElementInstance)
-        assertNull(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get())
+        assertNull(
+          renderPreviewElementForResult(projectRule.androidFacet(":app"), parametrizedPreviews, it)
+            .future
+            .get()
+        )
       }
     }
 
@@ -222,7 +229,8 @@ class ParametrizedPreviewTest {
 
       elements.forEach {
         assertTrue(
-          renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
+          renderPreviewElementForResult(projectRule.androidFacet(":app"), parametrizedPreviews, it)
+            .future
             .get()
             ?.renderResult
             ?.isSuccess ?: false
@@ -254,7 +262,11 @@ class ParametrizedPreviewTest {
           it.methodFqn,
         )
         assertTrue(it is ParametrizedComposePreviewElementInstance)
-        assertNull(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get())
+        assertNull(
+          renderPreviewElementForResult(projectRule.androidFacet(":app"), parametrizedPreviews, it)
+            .future
+            .get()
+        )
       }
     }
   }

@@ -35,6 +35,7 @@ import com.android.tools.idea.run.deployment.liveedit.MutableIrClassCache
 import com.android.tools.idea.run.deployment.liveedit.PsiState
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.application.runReadAction
@@ -224,8 +225,10 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
         "google.simpleapplication.MainActivityKt.TwoElementsPreview"
       )
-    val initialState =
-      renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
+    val appFacet = projectRule.androidFacet(":app")
+    val mainActivityFile =
+      appFacet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
+    val initialState = renderPreviewElement(appFacet, mainActivityFile, previewElement).get()!!
 
     val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     typeAndSaveDocument("Text(\"Hello 3\")\n")
@@ -234,7 +237,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
       ModuleClassLoaderOverlays.getInstance(module).pushOverlayPath(File(outputPath).toPath())
     }
-    val finalState = renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
+    val finalState = renderPreviewElement(appFacet, mainActivityFile, previewElement).get()!!
     assertTrue(
       "Resulting image is expected to be at least 20% higher since a new text line was added",
       finalState.height > initialState.height * 1.20,

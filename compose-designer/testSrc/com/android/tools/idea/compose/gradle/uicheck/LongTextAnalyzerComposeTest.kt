@@ -19,6 +19,7 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
@@ -34,9 +35,12 @@ class LongTextAnalyzerComposeTest {
   @Test
   fun testLongText() {
     val facet = projectRule.androidFacet(":app")
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
+          visualLintPreviewFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview",
             configuration =
@@ -46,11 +50,11 @@ class LongTextAnalyzerComposeTest {
           ),
           customViewInfoParser = accessibilityBasedHierarchyParser,
         )
-        .get()!!
-    val file = renderResult.sourceFile.virtualFile
+        .get()
+    val file = renderResult.lightVirtualFile
     val nlModel =
       SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
-    val issues = LongTextAnalyzer.findIssues(renderResult, nlModel)
+    val issues = LongTextAnalyzer.findIssues(renderResult.result!!, nlModel)
     Assert.assertEquals(1, issues.size)
     Assert.assertEquals("TextView has lines containing more than 120 characters", issues[0].message)
   }
@@ -58,9 +62,12 @@ class LongTextAnalyzerComposeTest {
   @Test
   fun testShortText() {
     val facet = projectRule.androidFacet(":app")
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
     val renderResult =
       renderPreviewElementForResult(
           facet,
+          visualLintPreviewFile,
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.VisualLintPreviewKt.NoVisualLintErrorPreview",
             configuration =
@@ -70,11 +77,11 @@ class LongTextAnalyzerComposeTest {
           ),
           customViewInfoParser = accessibilityBasedHierarchyParser,
         )
-        .get()!!
-    val file = renderResult.sourceFile.virtualFile
+        .get()
+    val file = renderResult.lightVirtualFile
     val nlModel =
       SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
-    val issues = LongTextAnalyzer.findIssues(renderResult, nlModel)
+    val issues = LongTextAnalyzer.findIssues(renderResult.result!!, nlModel)
     Assert.assertEquals(0, issues.size)
   }
 }

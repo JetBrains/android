@@ -2072,6 +2072,12 @@ fun Project.getTextForFile(relativePath: String): String {
 fun Module.fileUnderGradleRoot(path: @SystemIndependent String): VirtualFile? =
   VirtualFileManager.getInstance().findFileByUrl("${FilePaths.pathToIdeaUrl(File(AndroidProjectRootUtil.getModuleDirPath(this)!!))}/$path")
 
+/**
+ * Finds a file by a given path under the most reasonable location for the given facet in tests.
+ */
+fun AndroidFacet.virtualFile(path: @SystemIndependent String): VirtualFile =
+  module.fileUnderGradleRoot(path) ?: error("$path not found under $this")
+
 interface IntegrationTestEnvironment {
 
   /**

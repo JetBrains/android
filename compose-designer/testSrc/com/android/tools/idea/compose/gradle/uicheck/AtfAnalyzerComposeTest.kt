@@ -22,11 +22,13 @@ import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForRes
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
+import com.android.tools.idea.testing.virtualFile
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer.VisualLintIssueContent
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzer
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.android.facet.AndroidFacet
@@ -57,8 +59,10 @@ class AtfAnalyzerComposeTest {
       UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
 
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
     val issueMessages = issues.map { it.message }.distinct()
 
     Assert.assertEquals(1, issueMessages.size)
@@ -77,8 +81,10 @@ class AtfAnalyzerComposeTest {
       UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
 
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
     val issueMessages = issues.map { it.message }.distinct()
 
     Assert.assertEquals(2, issueMessages.size)
@@ -101,7 +107,9 @@ class AtfAnalyzerComposeTest {
       UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
 
     Assert.assertTrue(issues.isEmpty())
   }
@@ -119,7 +127,9 @@ class AtfAnalyzerComposeTest {
       UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
 
     Assert.assertEquals(1, issues.size)
 
@@ -153,7 +163,9 @@ class AtfAnalyzerComposeTest {
       UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
 
     Assert.assertEquals(2, issues.size)
 
@@ -188,7 +200,9 @@ class AtfAnalyzerComposeTest {
       UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val facet = projectRule.androidFacet(":app")
-    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+    val visualLintPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/VisualLintPreview.kt")
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet, visualLintPreviewFile)
 
     Assert.assertEquals(3, issues.size)
 
@@ -213,24 +227,26 @@ class AtfAnalyzerComposeTest {
   private fun collectIssuesFromRenders(
     uiCheckPreviews: Collection<PsiComposePreviewElementInstance>,
     facet: AndroidFacet,
+    targetFile: VirtualFile,
   ): List<VisualLintIssueContent> =
     uiCheckPreviews.flatMap {
       val renderResult =
         renderPreviewElementForResult(
             facet = facet,
+            originFile = targetFile,
             previewElement = it,
             useLayoutScanner = true,
             customViewInfoParser = accessibilityBasedHierarchyParser,
           )
-          .get()!!
+          .get()
 
-      val file = renderResult.sourceFile.virtualFile
+      val file = renderResult.lightVirtualFile
       val nlModel = createNlModelForCompose(projectRule.fixture.testRootDisposable, facet, file)
       nlModel.modelDisplayName = it.displaySettings.name
 
       // We need to update the hierarchy with the render result so that ATF can link the result with
       // the NlModel
-      NlModelHierarchyUpdater.updateHierarchy(renderResult, nlModel)
-      AtfAnalyzer.findIssues(renderResult, nlModel)
+      NlModelHierarchyUpdater.updateHierarchy(renderResult.result!!, nlModel)
+      AtfAnalyzer.findIssues(renderResult.result, nlModel)
     }
 }

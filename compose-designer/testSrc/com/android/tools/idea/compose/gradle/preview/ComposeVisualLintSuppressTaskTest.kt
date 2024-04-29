@@ -57,33 +57,34 @@ class ComposeVisualLintSuppressTaskTest {
   @Test
   fun testSuppressIssue() {
     val facet = projectRule.androidFacet(":app")
-    val previewElement =
+    val (targetFile, previewElement) =
       runBlocking {
-          val psiFile =
-            getPsiFile(
-              projectRule.project,
-              "app/src/main/java/google/simpleapplication/VisualLintPreview.kt",
-            )
+        val psiFile =
+          getPsiFile(
+            projectRule.project,
+            "app/src/main/java/google/simpleapplication/VisualLintPreview.kt",
+          )
+        psiFile.virtualFile to
           runReadAction {
-            PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
-              .asSequence()
-              .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-              .mapNotNull { it.getContainingUMethod() }
-              .toSet()
-              .flatMap { getPreviewNodes(it, null, false) }
-              .filterIsInstance<PsiComposePreviewElementInstance>()
-              .toList()
-          }
-        }
-        .first {
-          it.methodFqn == "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview"
-        }
+              PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
+                .asSequence()
+                .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
+                .mapNotNull { it.getContainingUMethod() }
+                .toSet()
+                .flatMap { getPreviewNodes(it, null, false) }
+                .filterIsInstance<PsiComposePreviewElementInstance>()
+                .toList()
+            }
+            .first {
+              it.methodFqn == "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview"
+            }
+      }
     val file =
       ComposeAdapterLightVirtualFile(
         "compose-model.xml",
         previewElement.toPreviewXml().buildString(),
       ) {
-        previewElement.previewElementDefinition?.virtualFile
+        targetFile
       }
     val renderTaskFuture =
       createRenderTaskFuture(
@@ -153,33 +154,34 @@ class ComposeVisualLintSuppressTaskTest {
   @Test
   fun testShowSuppressAction() {
     val facet = projectRule.androidFacet(":app")
-    val previewElement =
+    val (targetFile, previewElement) =
       runBlocking {
-          val psiFile =
-            getPsiFile(
-              projectRule.project,
-              "app/src/main/java/google/simpleapplication/VisualLintPreview.kt",
-            )
+        val psiFile =
+          getPsiFile(
+            projectRule.project,
+            "app/src/main/java/google/simpleapplication/VisualLintPreview.kt",
+          )
+        psiFile.virtualFile to
           runReadAction {
-            PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
-              .asSequence()
-              .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-              .mapNotNull { it.getContainingUMethod() }
-              .toSet()
-              .flatMap { getPreviewNodes(it, null, false) }
-              .filterIsInstance<PsiComposePreviewElementInstance>()
-              .toList()
-          }
-        }
-        .first {
-          it.methodFqn == "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview"
-        }
+              PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
+                .asSequence()
+                .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
+                .mapNotNull { it.getContainingUMethod() }
+                .toSet()
+                .flatMap { getPreviewNodes(it, null, false) }
+                .filterIsInstance<PsiComposePreviewElementInstance>()
+                .toList()
+            }
+            .first {
+              it.methodFqn == "google.simpleapplication.VisualLintPreviewKt.VisualLintErrorPreview"
+            }
+      }
     val file =
       ComposeAdapterLightVirtualFile(
         "compose-model.xml",
         previewElement.toPreviewXml().buildString(),
       ) {
-        previewElement.previewElementDefinition?.virtualFile
+        targetFile
       }
     val renderTaskFuture =
       createRenderTaskFuture(
