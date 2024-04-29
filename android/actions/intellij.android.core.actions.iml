@@ -13,7 +13,7 @@
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />

@@ -19,7 +19,7 @@
     <orderEntry type="library" scope="TEST" name="kxml2" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
