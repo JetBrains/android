@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.dialog
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.bindIntText
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.gridLayout.HorizontalAlign
@@ -107,7 +108,7 @@ class StreamingBenchmarkDialog(private val target: StreamingBenchmarkTarget) {
     panel {
       separator()
       row {
-        text("For accurate results, keep Android Studio visible until benchmarking is complete.").horizontalAlign(HorizontalAlign.CENTER)
+        text("For accurate results, keep Android Studio visible until benchmarking is complete.").align(AlignX.CENTER)
       }
       separator()
       row(readyProgressLabel) {
