@@ -746,6 +746,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       is PreviewMode.Gallery -> {
         withContext(uiThread) { previewView.galleryMode = null }
       }
+      is PreviewMode.AnimationInspection -> {
+        stopAnimationInspector()
+      }
       else -> {}
     }
   }
@@ -764,9 +767,23 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         surface.repaint()
         withContext(uiThread) { previewView.galleryMode = GalleryMode(surface) }
       }
+      is PreviewMode.AnimationInspection -> {
+        startAnimationInspector(mode.selected)
+      }
       else -> {}
     }
     surface.background = mode.backgroundColor
+  }
+
+  private suspend fun startAnimationInspector(element: PreviewElement<*>) {
+    LOG.debug("Starting animation inspector mode on: $element")
+    invalidateAndRefresh()
+    ActivityTracker.getInstance().inc()
+  }
+
+  private suspend fun stopAnimationInspector() {
+    LOG.debug("Stopping animation inspector mode")
+    invalidateAndRefresh()
   }
 
   private suspend fun startInteractivePreview(element: PreviewElement<*>) {
