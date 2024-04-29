@@ -32,6 +32,12 @@ interface PreviewRepresentationView {
    */
   val component: JComponent
 
+  /**
+   * Allows replacing the bottom panel in the [PreviewView]. Used to display the animations
+   * component.
+   */
+  var bottomPanel: JComponent?
+
   val mainSurface: NlDesignSurface
 
   /**

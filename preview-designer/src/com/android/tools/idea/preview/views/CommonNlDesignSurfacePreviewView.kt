@@ -29,7 +29,9 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
+import com.intellij.ui.OnePixelSplitter
 import java.awt.BorderLayout
+import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
@@ -69,13 +71,23 @@ class CommonNlDesignSurfacePreviewView(
       galleryModeProperty = GalleryModeProperty(overlayPanel, mainSurface)
     }
 
+  /**
+   * Vertical splitter where the top component is the [mainSurface] and the bottom component, when
+   * visible, is an auxiliary panel associated with the preview. For example, it can be an animation
+   * inspector that lists all the animations the preview has.
+   */
+  private val mainPanelSplitter =
+    OnePixelSplitter(true, 0.7f)
+      .apply { this.setBlindZone { Insets(1, 0, 1, 0) } }
+      .apply { firstComponent = editorPanel }
+
   private val workbench: WorkBench<DesignSurface<*>> =
     object :
         WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable), DataProvider {
         override fun getData(dataId: String): Any? =
           if (DESIGN_SURFACE.`is`(dataId)) mainSurface else null
       }
-      .apply { init(editorPanel, mainSurface, listOf(), false) }
+      .apply { init(mainPanelSplitter, mainSurface, listOf(), false) }
 
   @UiThread
   override fun showErrorMessage(
@@ -107,4 +119,10 @@ class CommonNlDesignSurfacePreviewView(
     get() = workbench
 
   override var galleryMode by galleryModeProperty
+
+  override var bottomPanel: JComponent?
+    set(value) {
+      mainPanelSplitter.secondComponent = value
+    }
+    get() = mainPanelSplitter.secondComponent
 }

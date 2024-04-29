@@ -80,11 +80,6 @@ private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compo
 
 /** Interface that isolates the view of the Compose view so it can be replaced for testing. */
 interface ComposePreviewView : PreviewRepresentationView {
-  /**
-   * Allows replacing the bottom panel in the [ComposePreviewView]. Used to display the animations
-   * component.
-   */
-  var bottomPanel: JComponent?
 
   /**
    * Sets whether the panel has content to display. If it does not, it will display an overlay with
