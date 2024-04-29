@@ -83,7 +83,7 @@ class DeviceCableMonitor : ProjectActivity {
 
       if (negotiatedSpeed == 480L && negotiatedSpeed < maxSpeed) {
         if (isStudioNotificationEnabled) {
-          showNotification(project, "'${it.model}' is using ${speedToString(maxSpeed)} while ${speedToString(negotiatedSpeed)} capable. Check the USB cables/hubs.")
+          showNotification(project, "'${it.model}' is using ${speedToString(negotiatedSpeed)} while ${speedToString(maxSpeed)} capable. Check the USB cables/hubs (<a href='TBD'>Learn more</a>).")
         }
       }
 
