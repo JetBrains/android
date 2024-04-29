@@ -3,5 +3,5 @@ visibility(["//tools/adt/idea/studio", "//tools/vendor/google/asfp/studio", "//t
 
 STUDIO_CODENAME = "Koala"
 STUDIO_VERSION = "Canary"
-STUDIO_MICRO_PATCH = "1.5"
-STUDIO_RELEASE_NUMBER = 7
+STUDIO_MICRO_PATCH = "1.6"
+STUDIO_RELEASE_NUMBER = 8
