@@ -37,6 +37,7 @@ import com.android.tools.idea.res.ResourceNotificationManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.vfs.NonPhysicalFileSystem
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.CoroutineScope
@@ -50,6 +51,7 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -272,8 +274,11 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
           } else emptyFlow()
         merge(
             psiFileChangeFlow(project, this@launch)
-              // filter only for the file we care about
+              // Previews can only be affected by changes to Kotlin
               .filter { it.language == KotlinLanguage.INSTANCE }
+              // Currently, we ignore changes to non-physical files, like fragments generated
+              // by the chat window. They can not include valid @Preview at the moment.
+              .filterNot { it.virtualFile?.fileSystem is NonPhysicalFileSystem }
               .onEach {
                 // Invalidate the preview to detect for changes in any annotation even in
                 // other files as long as they are Kotlin.
