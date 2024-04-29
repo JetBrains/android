@@ -767,20 +767,21 @@ class LogcatMainPanelTest {
       logcatMainPanel().also { waitForCondition { it.getConnectedDevice() != null } }
     }
     logcatMainPanel.pauseLogcat()
-    waitForCondition { logcatMainPanel.isLogcatPaused() }
+    waitForCondition { logcatMainPanel.logcatServiceJob == null }
 
     logcatMainPanel.resumeLogcat()
-    waitForCondition { !logcatMainPanel.isLogcatPaused() }
+    waitForCondition {
+      !logcatMainPanel.isLogcatPaused() && logcatMainPanel.logcatServiceJob != null
+    }
     fakeLogcatService.logMessages(message1)
 
-    assertThat(logcatMainPanel.logcatServiceJob).isNotNull()
-    waitForCondition { logcatMainPanel.messageBacklog.get().messages.isNotEmpty() }
+    waitForCondition { logcatMainPanel.editor.document.lineCount == 2 }
     logcatMainPanel.messageProcessor.onIdle {
       assertThat(logcatMainPanel.editor.document.immutableText())
         .isEqualTo(
           """
         1970-01-01 04:00:01.000     1-2     tag1                    app1                                 W  message1
-        
+
       """
             .trimIndent()
         )
