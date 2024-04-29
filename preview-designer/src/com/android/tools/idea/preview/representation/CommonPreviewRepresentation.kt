@@ -48,6 +48,7 @@ import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.RenderQualityPolicy
 import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
+import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
@@ -352,6 +353,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       previewStatusProvider = ::previewViewModel,
       delegateRefresh = ::invalidateAndRefresh,
     )
+
+  var currentInspector: AnimationPreview<*>? = null
+    private set
 
   override val component: JComponent
     get() = previewView.component
@@ -785,11 +789,21 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private suspend fun startAnimationInspector(element: PreviewElement<*>) {
     LOG.debug("Starting animation inspector mode on: $element")
     invalidateAndRefresh()
+    createAnimationInspector()?.also {
+      Disposer.register(this@CommonPreviewRepresentation, it)
+      withContext(uiThread) { previewView.bottomPanel = it.component }
+    }
     ActivityTracker.getInstance().inc()
+  }
+
+  protected open fun createAnimationInspector(): AnimationPreview<*>? {
+    return null
   }
 
   private suspend fun stopAnimationInspector() {
     LOG.debug("Stopping animation inspector mode")
+    currentInspector?.dispose()
+    withContext(uiThread) { previewView.bottomPanel = null }
     invalidateAndRefresh()
   }
 
