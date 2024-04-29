@@ -37,5 +37,13 @@
                      key="inspection.unit.test.files"
                      level="ERROR"/>
 
+    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation"
+                     language="UAST"
+                     enabledByDefault="true"
+                     bundle="bundle.wear.WearBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.preview.annotation.not.from.tile.package"
+                     level="ERROR"/>
+
   </extensions>
 </idea-plugin>

@@ -38,7 +38,7 @@ class WearTilePreviewNotSupportedInUnitTestFiles : AbstractBaseUastLocalInspecti
   override fun isAvailableForFile(file: PsiFile): Boolean {
     // If the element is not in a unit test file, then this inspection has nothing to do
     return isUnitTestFile(file.project, file.virtualFile) &&
-      file.language in arrayOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE)
+      file.language in setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE)
   }
 
   override fun checkMethod(
