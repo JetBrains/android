@@ -25,6 +25,7 @@ import com.android.tools.idea.res.AppLanguageInfo
 import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
+import com.android.tools.idea.streaming.uisettings.data.hasLimitedUiSettingsSupport
 import com.android.tools.idea.streaming.uisettings.stats.UiSettingsStats
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsController
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
@@ -85,6 +86,13 @@ internal const val POPULATE_LANGUAGE_COMMAND =
   "echo $APP_LANGUAGE_DIVIDER; " +
   "cmd locale get-app-locales %s; "  // Parameter: applicationId
 
+internal const val FACTORY_RESET_COMMAND_FOR_LIMITED_DEVICE =
+  "cmd uimode night no; " +
+  "cmd locale set-app-locales %s --locales null; " +
+  "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
+  "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
+  "settings put system font_scale 1; " // Parameters: applicationId
+
 internal const val FACTORY_RESET_COMMAND =
   "cmd uimode night no; " +
   "cmd overlay enable $GESTURES_OVERLAY; " +
@@ -117,6 +125,7 @@ internal class EmulatorUiSettingsController(
   private val decimalFormat = DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.US))
   private var readApplicationId = ""
   private var readPhysicalDensity = 160
+  private val hasLimitedUiSettingsSupportForDevice = emulatorConfig.deviceType.hasLimitedUiSettingsSupport
 
   override suspend fun populateModel() {
     val context = CommandContext(project)
@@ -282,7 +291,12 @@ internal class EmulatorUiSettingsController(
 
   override fun reset() {
     scope.launch {
-      executeShellCommand(FACTORY_RESET_COMMAND.format(readApplicationId, readPhysicalDensity))
+      if (hasLimitedUiSettingsSupportForDevice) {
+        executeShellCommand(FACTORY_RESET_COMMAND_FOR_LIMITED_DEVICE.format(readApplicationId))
+      }
+      else {
+        executeShellCommand(FACTORY_RESET_COMMAND.format(readApplicationId, readPhysicalDensity))
+      }
       populateModel()
     }
   }

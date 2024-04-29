@@ -89,6 +89,7 @@ class EmulatorConfiguration private constructor(
       val deviceType = when {
         tagId?.startsWith("android-automotive") == true -> DeviceType.AUTOMOTIVE
         tagId == "google-tv" -> DeviceType.TV
+        tagId == "android-tv" -> DeviceType.TV
         tagId == "android-wear" -> DeviceType.WEAR
         else -> DeviceType.HANDHELD
       }

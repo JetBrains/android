@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
-import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.emulator.EmulatorUiSettingsController
 import com.android.tools.idea.streaming.emulator.isReadyForAdbCommands
+import com.android.tools.idea.streaming.uisettings.data.hasLimitedUiSettingsSupport
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.android.tools.idea.streaming.uisettings.ui.showUiSettingsPopup
@@ -52,7 +52,7 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = 
     AndroidCoroutineScope(emulatorView).launch {
       controller.populateModel()
       EventQueue.invokeLater {
-        val panel = UiSettingsPanel(model, showResetButton = true, isWear = config.deviceType == DeviceType.WEAR)
+        val panel = UiSettingsPanel(model, showResetButton = true, config.deviceType.hasLimitedUiSettingsSupport)
         showUiSettingsPopup(panel, this@EmulatorUiSettingsAction, event, emulatorView)
       }
     }

@@ -56,11 +56,15 @@ private val SPACING = object : IntelliJSpacingConfiguration() {
 
 /**
  * Displays a picker with setting shortcuts.
+ *
+ * @param model the UI settings model
+ * @param showResetButton if true: show a reset button (used for emulators)
+ * @param limitedSupport Wear, Auto, and TV show a limited set of controls
  */
 internal class UiSettingsPanel(
   private val model: UiSettingsModel,
   showResetButton: Boolean = false,
-  isWear: Boolean = false
+  limitedSupport: Boolean = false
 ) : BorderLayoutPanel()  {
   init {
     add(panel {
@@ -68,13 +72,13 @@ internal class UiSettingsPanel(
         row(title(TITLE)) {}
         separator()
 
-        if (!isWear) {
-          row(label(DARK_THEME_TITLE)) {
-            checkBox("")
-              .bind(model.inDarkMode)
-              .apply { component.name = DARK_THEME_TITLE }
-          }
+        row(label(DARK_THEME_TITLE)) {
+          checkBox("")
+            .bind(model.inDarkMode)
+            .apply { component.name = DARK_THEME_TITLE }
+        }
 
+        if (!limitedSupport) {
           row(label(GESTURE_NAVIGATION_TITLE)) {
             checkBox("")
               .bind(model.gestureNavigation)
@@ -95,7 +99,7 @@ internal class UiSettingsPanel(
             .apply { component.name = TALKBACK_TITLE }
         }.visibleIf(model.talkBackInstalled)
 
-        if (!isWear) {
+        if (!limitedSupport) {
           row(label(SELECT_TO_SPEAK_TITLE)) {
             checkBox("")
               .bind(model.selectToSpeakOn)
@@ -111,7 +115,7 @@ internal class UiSettingsPanel(
             .apply { component.name = FONT_SIZE_TITLE }
         }.visibleIf(model.fontSizeSettable)
 
-        if (!isWear) {
+        if (!limitedSupport) {
           row(label(DENSITY_TITLE)) {
             slider(0, model.screenDensityIndex.value, 1, 1)
               .noLabels()

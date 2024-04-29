@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
 import com.android.tools.idea.streaming.device.DeviceUiSettingsController
+import com.android.tools.idea.streaming.uisettings.data.hasLimitedUiSettingsSupport
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.android.tools.idea.streaming.uisettings.ui.showUiSettingsPopup
@@ -56,7 +57,7 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
     AndroidCoroutineScope(deviceView).launch {
       controller.populateModel()
       EventQueue.invokeLater {
-        val panel = UiSettingsPanel(model, showResetButton = false, isWear = config.isWatch)
+        val panel = UiSettingsPanel(model, showResetButton = false, config.deviceProperties.deviceType.hasLimitedUiSettingsSupport)
         showUiSettingsPopup(panel, this@DeviceUiSettingsAction, event, deviceView)
       }
     }

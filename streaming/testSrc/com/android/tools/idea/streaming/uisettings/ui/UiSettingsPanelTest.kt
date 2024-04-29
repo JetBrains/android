@@ -60,7 +60,7 @@ class UiSettingsPanelTest {
     panel = UiSettingsPanel(
       model,
       showResetButton = nameRule.methodName == "testResetButton",
-      isWear = nameRule.methodName == "testWearControls"
+      limitedSupport = nameRule.methodName == "testLimitedControls"
     )
     model.inDarkMode.uiChangeListener = ChangeListener { lastCommand = "dark=$it" }
     model.gestureNavigation.uiChangeListener = ChangeListener { lastCommand = "gestures=$it" }
@@ -191,8 +191,12 @@ class UiSettingsPanelTest {
   }
 
   @Test
-  fun testWearControls() {
-    assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNull()
+  fun testLimitedControls() {
+    assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JSlider> { it.name == FONT_SIZE_TITLE }).isNotNull()
+
     assertThat(panel.findDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()
     assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNull()
