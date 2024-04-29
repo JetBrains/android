@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.flags.StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT
+import com.android.tools.idea.flags.StudioFlags.SCROLLABLE_ZOOM_ON_GRID
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -29,11 +30,13 @@ class DynamicZoomToFitTest {
   @Before
   fun setUp() {
     PREVIEW_DYNAMIC_ZOOM_TO_FIT.override(true)
+    SCROLLABLE_ZOOM_ON_GRID.override(false)
   }
 
   @After
   fun tearDown() {
     PREVIEW_DYNAMIC_ZOOM_TO_FIT.clearOverride()
+    SCROLLABLE_ZOOM_ON_GRID.clearOverride()
   }
 
   @Test

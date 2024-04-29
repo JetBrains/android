@@ -270,6 +270,11 @@ public final class StudioFlags {
     NELE, "preview.zoom.animation", "Enable animation while zooming",
     "If enabled, Zoom change will show up an animation.",
     false);
+
+  public static final Flag<Boolean> SCROLLABLE_ZOOM_ON_GRID = new BooleanFlag(
+    NELE, "scrollable.zoom.grid.layout", "Enable scrollable zoom on grid layout",
+    "If enabled, zooming on a grid layout will not re-layout the items and will make the preview scrollable.",
+    ChannelDefault.enabledUpTo(CANARY));
   //endregion
 
   //region Resource Repository

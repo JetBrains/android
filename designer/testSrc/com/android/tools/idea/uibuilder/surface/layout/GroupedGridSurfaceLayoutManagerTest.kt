@@ -31,11 +31,13 @@ class GroupedGridSurfaceLayoutManagerTest {
   @Before
   fun setUp() {
     StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT.override(false)
+    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(false)
   }
 
   @After
   fun tearDown() {
     StudioFlags.PREVIEW_DYNAMIC_ZOOM_TO_FIT.clearOverride()
+    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.clearOverride()
   }
 
   // In the below comments, we use (a, b, c, ...) to represent the numbers of content in the rows.
@@ -707,5 +709,44 @@ class GroupedGridSurfaceLayoutManagerTest {
       val size = manager.getRequiredSize(content, width, height, null)
       assertEquals(Dimension(0, 0), size)
     }
+  }
+
+  @Test
+  fun testScaleDoNotChangePreviewSizes() {
+    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(true)
+
+    val framePadding = 50
+    val manager =
+      GroupedGridSurfaceLayoutManager(GroupPadding(0, 0) { (it * framePadding).toInt() }) { contents
+        ->
+        listOf(PositionableGroup(contents.toList()))
+      }
+
+    val contentProvider: (scale: Double) -> List<PositionableContent> = {
+      listOf(
+        TestPositionableContent(0, 0, 100, 100, scale = it),
+        TestPositionableContent(0, 0, 100, 100, scale = it),
+        TestPositionableContent(0, 0, 100, 100, scale = it),
+        TestPositionableContent(0, 0, 100, 100, scale = it),
+      )
+    }
+
+    val contents1 = contentProvider(1.0)
+    val contents2 = contentProvider(2.0)
+    val contents3 = contentProvider(3.0)
+
+    val width = 1000
+    val height = 1000
+
+    run {
+      // When scale are different, the sizes should not change.
+      val scaledSize1 = manager.getRequiredSize(contents1, width, height, null)
+      val scaledSize2 = manager.getRequiredSize(contents2, width, height, null)
+      val scaledSize3 = manager.getRequiredSize(contents3, width, height, null)
+      assertEquals(scaledSize1, scaledSize2)
+      assertEquals(scaledSize1, scaledSize3)
+    }
+
+    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.clearOverride()
   }
 }
