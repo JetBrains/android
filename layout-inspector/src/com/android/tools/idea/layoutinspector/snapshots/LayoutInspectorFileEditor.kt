@@ -65,6 +65,27 @@ import javax.swing.JPanel
 
 private const val LAYOUT_INSPECTOR_SNAPSHOT_ID = "Layout Inspector Snapshot"
 
+class FileEditorInspectorClient(
+  private val model: InspectorModel,
+  private val snapshotLoader: SnapshotLoader,
+  override val stats: SessionStatistics,
+) : InspectorClient by DisconnectedClient {
+  override val provider: PropertiesProvider
+    get() = snapshotLoader.propertiesProvider
+
+  override val capabilities: Set<InspectorClient.Capability>
+    get() =
+      mutableSetOf<InspectorClient.Capability>().apply {
+        if (model.pictureType == AndroidWindow.ImageType.SKP) {
+          add(InspectorClient.Capability.SUPPORTS_SKP)
+        }
+        addAll(snapshotLoader.capabilities)
+      }
+
+  override val process = snapshotLoader.processDescriptor
+  override val isConnected = true
+}
+
 class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
   UserDataHolderBase(), FileEditor {
   private var metrics: LayoutInspectorSessionMetrics? = null
@@ -108,28 +129,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
       stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
       metadata =
         snapshotLoader?.loadFile(path, model, notificationModel, stats) ?: throw Exception()
-      val client =
-        object : InspectorClient by DisconnectedClient {
-          override val provider: PropertiesProvider
-            get() = snapshotLoader.propertiesProvider
-
-          override val capabilities: Set<InspectorClient.Capability>
-            get() =
-              mutableSetOf<InspectorClient.Capability>().apply {
-                if (model.pictureType == AndroidWindow.ImageType.SKP) {
-                  add(InspectorClient.Capability.SUPPORTS_SKP)
-                }
-                addAll(snapshotLoader.capabilities)
-              }
-
-          override val process = snapshotLoader.processDescriptor
-
-          override val stats: SessionStatistics
-            get() = this@LayoutInspectorFileEditor.stats
-
-          override val isConnected
-            get() = true
-        }
+      val client = FileEditorInspectorClient(model, snapshotLoader, stats)
 
       // TODO: persisted tree setting scoped to file
       val treeSettings = EditorTreeSettings(client.capabilities)

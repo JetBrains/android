@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClient
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -69,7 +70,7 @@ fun showViewContextMenu(
             result.add(ShowOnlySubtreeAction(inspectorModel, client, topView))
             result.add(ShowOnlyParentsAction(inspectorModel, client, topView))
           }
-          result.add(ShowAllAction(inspectorModel))
+          result.add(ShowAllAction(inspectorModel, client))
         }
         result.add(GotoDeclarationAction)
         return result.toTypedArray()
@@ -109,17 +110,21 @@ fun showViewContextMenu(
   popupComponent.show(source, x, y)
 }
 
-private class ShowAllAction(private val inspectorModel: InspectorModel) : AnAction("Show All") {
+private class ShowAllAction(
+  private val inspectorModel: InspectorModel,
+  val client: InspectorClient,
+) : AnAction("Show All") {
   override fun actionPerformed(event: AnActionEvent) {
     inspectorModel.showAll()
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
-  override fun update(actionEvent: AnActionEvent) {
-    actionEvent.presentation.isVisible =
-      !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-    actionEvent.presentation.isEnabled = inspectorModel.hasHiddenNodes()
+  override fun update(e: AnActionEvent) {
+    e.presentation.isVisible =
+      client is FileEditorInspectorClient ||
+        !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    e.presentation.isEnabled = inspectorModel.hasHiddenNodes()
   }
 }
 
@@ -137,7 +142,9 @@ private class HideSubtreeAction(
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isVisible = !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    e.presentation.isVisible =
+      client is FileEditorInspectorClient ||
+        !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
   }
 }
 
@@ -155,7 +162,9 @@ private class ShowOnlySubtreeAction(
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isVisible = !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    e.presentation.isVisible =
+      client is FileEditorInspectorClient ||
+        !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
   }
 }
 
@@ -173,7 +182,9 @@ private class ShowOnlyParentsAction(
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isVisible = !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    e.presentation.isVisible =
+      client is FileEditorInspectorClient ||
+        !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
   }
 }
 

@@ -33,6 +33,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
+import com.android.tools.idea.layoutinspector.snapshots.FileEditorInspectorClient
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -62,6 +63,7 @@ class ViewContextMenuFactoryTest {
 
   private var inspectorModel: InspectorModel? = null
   private val event: AnActionEvent = mock()
+  private lateinit var mockLayoutInspector: LayoutInspector
 
   @Before
   fun setUp() {
@@ -90,9 +92,9 @@ class ViewContextMenuFactoryTest {
 
     val client: InspectorClient = mock()
     whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
-    val layoutInspector: LayoutInspector = mock()
-    whenever(layoutInspector.currentClient).thenReturn(client)
-    whenever(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(layoutInspector)
+    mockLayoutInspector = mock()
+    whenever(mockLayoutInspector.currentClient).thenReturn(client)
+    whenever(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(mockLayoutInspector)
     whenever(event.actionManager).thenReturn(mockActionManager)
   }
 
@@ -188,6 +190,25 @@ class ViewContextMenuFactoryTest {
         "Hide Subtree" -> assertThat(event.presentation.isVisible).isFalse()
         "Show Only Subtree" -> assertThat(event.presentation.isVisible).isFalse()
         "Show Only Parents" -> assertThat(event.presentation.isVisible).isFalse()
+        else -> assertThat(event.presentation.isVisible).isTrue()
+      }
+    }
+
+    val fileEditorClient = FileEditorInspectorClient(model, mock(), mock())
+    whenever(mockLayoutInspector.currentClient).thenReturn(fileEditorClient)
+
+    showViewContextMenu(listOf(model[VIEW2]!!), model, source!!, 0, 0)
+    val newActions = createdGroup?.getChildren(event)?.toList()
+
+    newActions?.forEach {
+      val event = createFakeEvent()
+      it.update(event)
+
+      when (it.templateText) {
+        "Show All" -> assertThat(event.presentation.isVisible).isTrue()
+        "Hide Subtree" -> assertThat(event.presentation.isVisible).isTrue()
+        "Show Only Subtree" -> assertThat(event.presentation.isVisible).isTrue()
+        "Show Only Parents" -> assertThat(event.presentation.isVisible).isTrue()
         else -> assertThat(event.presentation.isVisible).isTrue()
       }
     }
