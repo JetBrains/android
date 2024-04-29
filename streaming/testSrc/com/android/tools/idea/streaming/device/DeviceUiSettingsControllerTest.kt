@@ -83,7 +83,7 @@ class DeviceUiSettingsControllerTest {
   @Test
   fun testReadCustomValue() {
     agent.darkMode = true
-    agent.gestureNavigation = true
+    agent.gestureNavigation = false
     agent.appLocales = "da"
     agent.talkBackInstalled = true
     agent.talkBackOn = true
@@ -98,7 +98,7 @@ class DeviceUiSettingsControllerTest {
   @Test
   fun testReadCustomValueWithoutFontSizeAndDensity() {
     agent.darkMode = true
-    agent.gestureNavigation = true
+    agent.gestureNavigation = false
     agent.appLocales = "da"
     agent.talkBackInstalled = true
     agent.talkBackOn = true

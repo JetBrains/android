@@ -186,6 +186,10 @@ class UiSettingsPanelTest {
   @Test
   fun testResetButton() {
     val button = panel.getDescendant<JButton> { it.name == RESET_BUTTON_TEXT }
+    model.differentFromDefault.setFromController(false)
+    assertThat(button.model.isEnabled).isFalse()
+    model.differentFromDefault.setFromController(true)
+    assertThat(button.model.isEnabled).isTrue()
     button.doClick()
     waitForCondition(1.seconds) { lastCommand == "reset" }
   }

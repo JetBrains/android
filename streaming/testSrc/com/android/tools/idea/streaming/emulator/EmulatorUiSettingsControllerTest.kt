@@ -89,6 +89,7 @@ class EmulatorUiSettingsControllerTest {
     controller.initAndWait()
     val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = false, expectedSettable = true)
+    assertThat(model.differentFromDefault.value).isFalse()
   }
 
   @Test
@@ -96,13 +97,14 @@ class EmulatorUiSettingsControllerTest {
     val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     controller.initAndWait()
     listeners.checkValues(expectedChanges = 2, expectedCustomValues = false, expectedSettable = true)
+    assertThat(model.differentFromDefault.value).isFalse()
   }
 
   @Test
   fun testReadCustomValue() {
     uiRule.configureUiSettings(
       darkMode = true,
-      gestureNavigation = true,
+      gestureNavigation = false,
       applicationId = APPLICATION_ID1,
       appLocales = "da",
       talkBackInstalled = true,
@@ -115,6 +117,7 @@ class EmulatorUiSettingsControllerTest {
     controller.initAndWait()
     val listeners = UiControllerListenerValidator(model, customValues = false, settable = false)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = true, expectedSettable = true)
+    assertThat(model.differentFromDefault.value).isTrue()
   }
 
   @Test
@@ -128,45 +131,56 @@ class EmulatorUiSettingsControllerTest {
   @Test
   fun testSetNightModeOn() {
     controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isFalse()
     model.inDarkMode.setFromUi(true)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd uimode night yes" }
     assertUsageEvent(OperationKind.DARK_THEME)
+    assertThat(model.differentFromDefault.value).isTrue()
   }
 
   @Test
   fun testSetNightOff() {
     uiRule.configureUiSettings(darkMode = true)
     controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isTrue()
     model.inDarkMode.setFromUi(false)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd uimode night no" }
     assertUsageEvent(OperationKind.DARK_THEME)
+    assertThat(model.differentFromDefault.value).isFalse()
   }
 
   @Test
   fun testGestureNavigationOn() {
+    uiRule.configureUiSettings(gestureNavigation = false)
     controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isTrue()
     model.gestureNavigation.setFromUi(true)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd overlay enable $GESTURES_OVERLAY" }
     assertUsageEvent(OperationKind.GESTURE_NAVIGATION)
+    assertThat(model.differentFromDefault.value).isFalse()
   }
 
   @Test
   fun testGestureNavigationOff() {
-    uiRule.configureUiSettings(gestureNavigation = true)
     controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isFalse()
     model.gestureNavigation.setFromUi(false)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd overlay disable $GESTURES_OVERLAY" }
     assertUsageEvent(OperationKind.GESTURE_NAVIGATION)
+    assertThat(model.differentFromDefault.value).isTrue()
   }
 
   @Test
   fun testSetAppLanguage() {
     controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isFalse()
     val appLanguage = model.appLanguage
     appLanguage.selection.setFromUi(appLanguage.getElementAt(1))
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID1 --locales da" }
+    assertThat(model.differentFromDefault.value).isTrue()
     appLanguage.selection.setFromUi(appLanguage.getElementAt(0))
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID1 --locales " }
+    assertThat(model.differentFromDefault.value).isFalse()
     assertUsageEvent(OperationKind.APP_LANGUAGE, OperationKind.APP_LANGUAGE)
   }
 
@@ -174,18 +188,22 @@ class EmulatorUiSettingsControllerTest {
   fun testSetTalkBackOn() {
     uiRule.configureUiSettings(talkBackInstalled = true)
     controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isFalse()
     model.talkBackOn.setFromUi(true)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME" }
     assertUsageEvent(OperationKind.TALKBACK)
+    assertThat(model.differentFromDefault.value).isTrue()
   }
 
   @Test
   fun testSetTalkBackOff() {
     uiRule.configureUiSettings(talkBackInstalled = true, talkBackOn = true)
     controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isTrue()
     model.talkBackOn.setFromUi(false)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings delete secure enabled_accessibility_services" }
     assertUsageEvent(OperationKind.TALKBACK)
+    assertThat(model.differentFromDefault.value).isFalse()
   }
 
   @Test
@@ -214,24 +232,28 @@ class EmulatorUiSettingsControllerTest {
   fun testSetSelectToSpeakOn() {
     uiRule.configureUiSettings(talkBackInstalled = true)
     controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isFalse()
     model.selectToSpeakOn.setFromUi(true)
     waitForCondition(10.seconds) {
       antepenultimateChangeCommand == "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME" &&
       lastIssuedChangeCommand == "settings put secure accessibility_button_targets $SELECT_TO_SPEAK_SERVICE_NAME"
     }
     assertUsageEvent(OperationKind.SELECT_TO_SPEAK)
+    assertThat(model.differentFromDefault.value).isTrue()
   }
 
   @Test
   fun testSetSelectToSpeakOff() {
     uiRule.configureUiSettings(talkBackInstalled = true, selectToSpeakOn = true)
     controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isTrue()
     model.selectToSpeakOn.setFromUi(false)
     waitForCondition(10.seconds) {
       antepenultimateChangeCommand == "settings delete secure enabled_accessibility_services" &&
       lastIssuedChangeCommand == "settings delete secure accessibility_button_targets"
     }
     assertUsageEvent(OperationKind.SELECT_TO_SPEAK)
+    assertThat(model.differentFromDefault.value).isFalse()
   }
 
   @Test
@@ -262,22 +284,28 @@ class EmulatorUiSettingsControllerTest {
   @Test
   fun testSetFontSize() {
     controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isFalse()
     model.fontSizeInPercent.setFromUi(200)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings put system font_scale 2" }
     model.fontSizeInPercent.setFromUi(75)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings put system font_scale 0.75" }
     assertUsageEvent(OperationKind.FONT_SIZE, OperationKind.FONT_SIZE)
+    assertThat(model.differentFromDefault.value).isTrue()
   }
 
   @Test
   fun testSetScreenDensity() {
     controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isFalse()
     model.screenDensity.setFromUi(408)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "wm density 408" }
+    assertThat(model.differentFromDefault.value).isTrue()
     model.screenDensity.setFromUi(480)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "wm density 480" }
+    assertThat(model.differentFromDefault.value).isFalse()
     model.screenDensity.setFromUi(544)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "wm density 544" }
+    assertThat(model.differentFromDefault.value).isTrue()
     assertUsageEvent(OperationKind.SCREEN_DENSITY, OperationKind.SCREEN_DENSITY, OperationKind.SCREEN_DENSITY)
   }
 
@@ -295,7 +323,9 @@ class EmulatorUiSettingsControllerTest {
       overrideDensity = CUSTOM_DENSITY
     )
     controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isTrue()
     adb.shellV2Requests.clear()
+    uiRule.configureUiSettings()
     model.resetAction()
     waitForCondition(10.seconds) { adb.shellV2Requests.size == 3 }
     val commands = adb.shellV2Requests.map { it.command }
@@ -304,6 +334,7 @@ class EmulatorUiSettingsControllerTest {
     assertThat(commands[1]).isEqualTo(POPULATE_COMMAND)
     assertThat(commands[2]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
     assertUsageEvent(OperationKind.RESET)
+    assertThat(model.differentFromDefault.value).isFalse()
   }
 
   private fun createController() =

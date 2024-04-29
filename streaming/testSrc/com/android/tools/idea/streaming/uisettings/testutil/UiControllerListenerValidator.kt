@@ -39,7 +39,7 @@ internal val RUSSIAN_LANGUAGE = AppLanguage(LocaleQualifier(null, "ru", null, nu
  */
 internal class UiControllerListenerValidator(private val model: UiSettingsModel, customValues: Boolean, settable: Boolean) {
   val darkMode = createAndAddListener(model.inDarkMode, customValues)
-  val gestureNavigation = createAndAddListener(model.gestureNavigation, customValues)
+  val gestureNavigation = createAndAddListener(model.gestureNavigation, !customValues)
   val appLanguage = createAndAddListener(model.appLanguage.selection, if (customValues) DANISH_LANGUAGE else DEFAULT_LANGUAGE)
   val talkBackInstalled = createAndAddListener(model.talkBackInstalled, customValues)
   val talkBackOn = createAndAddListener(model.talkBackOn, customValues)
@@ -60,9 +60,9 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
     assertThat(model.inDarkMode.value).isEqualTo(expectedCustomValues)
     assertThat(darkMode.changes).isEqualTo(expectedChanges)
     assertThat(darkMode.lastValue).isEqualTo(expectedCustomValues)
-    assertThat(model.gestureNavigation.value).isEqualTo(expectedCustomValues)
+    assertThat(model.gestureNavigation.value).isEqualTo(!expectedCustomValues)
     assertThat(gestureNavigation.changes).isEqualTo(expectedChanges)
-    assertThat(gestureNavigation.lastValue).isEqualTo(expectedCustomValues)
+    assertThat(gestureNavigation.lastValue).isEqualTo(!expectedCustomValues)
     assertThat(model.appLanguage.size).isEqualTo(3)
     assertThat(model.appLanguage.getElementAt(0)).isEqualTo(DEFAULT_LANGUAGE)
     assertThat(model.appLanguage.getElementAt(1)).isEqualTo(DANISH_LANGUAGE)

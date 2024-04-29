@@ -80,7 +80,7 @@ class UiSettingsRule : ExternalResource() {
   fun configureUiSettings(
     darkMode: Boolean = false,
     gestureOverlayInstalled: Boolean = true,
-    gestureNavigation: Boolean = false,
+    gestureNavigation: Boolean = true,
     applicationId: String = APPLICATION_ID1,
     appLocales: String = "",
     talkBackInstalled: Boolean = false,

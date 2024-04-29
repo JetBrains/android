@@ -137,7 +137,7 @@ internal class UiSettingsPanel(
             button(RESET_BUTTON_TEXT) {
               model.resetAction()
             }.apply { component.name = RESET_BUTTON_TEXT }
-          }
+          }.enabledIf(model.differentFromDefault)
         }
       }
     })
@@ -193,6 +193,12 @@ internal class UiSettingsPanel(
   private fun Row.visibleIf(predicate: ReadOnlyProperty<Boolean>): Row {
     visible(predicate.value)
     predicate.addControllerListener { visible(it) }
+    return this
+  }
+
+  private fun Row.enabledIf(predicate: ReadOnlyProperty<Boolean>): Row {
+    enabled(predicate.value)
+    predicate.addControllerListener { enabled(it) }
     return this
   }
 

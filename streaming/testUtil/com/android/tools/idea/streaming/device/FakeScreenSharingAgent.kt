@@ -222,7 +222,7 @@ class FakeScreenSharingAgent(
   @Volatile
   var gestureOverlayInstalled = true
   @Volatile
-  var gestureNavigation = false
+  var gestureNavigation = true
   @Volatile
   var foregroundProcess = ""
   @Volatile
