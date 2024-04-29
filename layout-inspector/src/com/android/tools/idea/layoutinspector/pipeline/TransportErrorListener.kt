@@ -19,13 +19,9 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.NotificationModel
-import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.transport.FailedToStartServerException
 import com.android.tools.idea.transport.TransportDeviceManager
-import com.android.tools.idea.transport.TransportProxy
-import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Transport
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -83,13 +79,4 @@ class TransportErrorListener(
       device.toDeviceDescriptor(),
     )
   }
-
-  override fun customizeProxyService(proxy: TransportProxy) {}
-
-  override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) {}
-
-  override fun customizeAgentConfig(
-    configBuilder: Agent.AgentConfig.Builder,
-    runConfig: AndroidRunConfigurationBase?,
-  ) {}
 }

@@ -33,8 +33,6 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder;
 import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
@@ -448,7 +446,9 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
       // Creates a proxy server that the datastore connects to.
       String channelName = myDevice.getSerialNumber();
       myTransportProxy = new TransportProxy(myDevice, transportDevice, transportChannel);
-      myMessageBus.syncPublisher(TOPIC).customizeProxyService(myTransportProxy);
+      for (TransportConfigContributor extension : TransportConfigContributor.EP_NAME.getExtensions()) {
+        extension.customizeProxyService(myTransportProxy);
+      }
       myTransportProxy.initializeProxyServer(channelName);
       try {
         myTransportProxy.connect();
@@ -631,34 +631,5 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
      * Callback for when the transport daemon fails to start the server.
      */
     void onStartTransportDaemonServerFail(@NotNull Common.Device device, @NotNull FailedToStartServerException exception);
-
-    /**
-     * void onTransportThreadStarts(@NotNull IDevice device, @NotNull Common.Device transportDevice);
-     * <p>
-     * /**
-     * Allows for subscribers to customize the Transport pipeline's ServiceProxy before it is fully initialized.
-     */
-    void customizeProxyService(@NotNull TransportProxy proxy);
-
-    /**
-     * Allows for subscribers to customize the daemon config before it is being pushed to the device, which is then used to initialized
-     * the transport daemon.
-     *
-     * @param configBuilder the DaemonConfig.Builder to customize. Note that it is up to the subscriber to not override fields that are set
-     *                      in {@link TransportFileManager#pushDaemonConfig(AndroidRunConfigurationBase)} which are primarily used for
-     *                      establishing connection to the transport daemon and app agent.
-     */
-    void customizeDaemonConfig(@NotNull Transport.DaemonConfig.Builder configBuilder);
-
-    /**
-     * Allows for subscribers to customize the agent config before it is being pushed to the device, which is then used to initialized
-     * the transport app agent.
-     *
-     * @param configBuilder the AgentConifg.Builder to customize. Note that it is up to the subscriber to not override fields that are set
-     *                      in {@link TransportFileManager#pushAgentConfig(AndroidRunConfigurationBase)} which are primarily used for
-     *                      establishing connection to the transport daemon and app agent.
-     * @param runConfig     the run config associated with the current app launch.
-     */
-    void customizeAgentConfig(@NotNull Agent.AgentConfig.Builder configBuilder, @Nullable AndroidRunConfigurationBase runConfig);
   }
 }

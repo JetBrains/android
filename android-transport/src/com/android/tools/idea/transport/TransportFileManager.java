@@ -203,7 +203,9 @@ public final class TransportFileManager implements TransportFileCopier {
   private void pushDaemonConfig()
     throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
     Transport.DaemonConfig.Builder configBuilder = Transport.DaemonConfig.newBuilder().setCommon(buildCommonConfig());
-    myMessageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeDaemonConfig(configBuilder);
+    for (TransportConfigContributor extension : TransportConfigContributor.EP_NAME.getExtensions()) {
+      extension.customizeDaemonConfig(configBuilder);
+    }
 
     File configFile = FileUtil.createTempFile(DAEMON_CONFIG_FILE, null, true);
     OutputStream oStream = new FileOutputStream(configFile);
@@ -219,7 +221,9 @@ public final class TransportFileManager implements TransportFileCopier {
   public void pushAgentConfig(@NotNull String configName, @Nullable AndroidRunConfigurationBase runConfig)
     throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
     Agent.AgentConfig.Builder agentConfigBuilder = Agent.AgentConfig.newBuilder().setCommon(buildCommonConfig());
-    myMessageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeAgentConfig(agentConfigBuilder, runConfig);
+    for (TransportConfigContributor extension : TransportConfigContributor.EP_NAME.getExtensions()) {
+      extension.customizeAgentConfig(agentConfigBuilder, runConfig);
+    }
 
     File configFile = FileUtil.createTempFile(configName, null, true);
     OutputStream oStream = new FileOutputStream(configFile);

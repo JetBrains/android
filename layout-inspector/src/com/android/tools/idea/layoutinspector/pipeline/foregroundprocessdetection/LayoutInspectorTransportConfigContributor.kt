@@ -17,26 +17,13 @@ package com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetecti
 
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.transport.FailedToStartServerException
-import com.android.tools.idea.transport.TransportDeviceManager
+import com.android.tools.idea.transport.TransportConfigContributor
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Agent
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 
 /** Class used to enable/disable auto-connect in the Transport Daemon. */
-class TransportFlagController : TransportDeviceManager.TransportDeviceManagerListener {
-  override fun onPreTransportDaemonStart(device: Common.Device) {}
-
-  override fun onTransportDaemonException(device: Common.Device, exception: Exception) {}
-
-  override fun onTransportProxyCreationFail(device: Common.Device, exception: Exception) {}
-
-  override fun onStartTransportDaemonServerFail(
-    device: Common.Device,
-    exception: FailedToStartServerException,
-  ) {}
-
+class LayoutInspectorTransportConfigContributor : TransportConfigContributor {
   override fun customizeProxyService(proxy: TransportProxy) {}
 
   override fun customizeAgentConfig(

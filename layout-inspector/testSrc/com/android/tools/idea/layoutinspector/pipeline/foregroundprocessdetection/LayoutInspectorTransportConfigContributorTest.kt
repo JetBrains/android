@@ -22,12 +22,12 @@ import com.intellij.testFramework.ApplicationRule
 import org.junit.Rule
 import org.junit.Test
 
-class TransportFlagControllerTest {
+class LayoutInspectorTransportConfigContributorTest {
   @get:Rule val applicationRule = ApplicationRule()
 
   @Test
   fun flagIsEnabledByDefault() {
-    val transportFlagController = TransportFlagController()
+    val transportFlagController = LayoutInspectorTransportConfigContributor()
     val daemonConfig = Transport.DaemonConfig.newBuilder()
     transportFlagController.customizeDaemonConfig(daemonConfig)
 
@@ -37,7 +37,7 @@ class TransportFlagControllerTest {
 
   @Test
   fun daemonConfigReflectsFlagStatus() = withAutoConnect {
-    val transportFlagController = TransportFlagController()
+    val transportFlagController = LayoutInspectorTransportConfigContributor()
     val daemonConfig = Transport.DaemonConfig.newBuilder()
 
     enableAutoConnect = true

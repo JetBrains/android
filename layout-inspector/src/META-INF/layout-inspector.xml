@@ -70,4 +70,8 @@
                     interface="com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposeLayoutInspectorJarToken"
                     area="IDEA_PROJECT"/>
   </extensionPoints>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.transport">
+    <transportConfigContributor implementation="com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.LayoutInspectorTransportConfigContributor" />
+  </extensions>
 </idea-plugin>

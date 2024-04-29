@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,10 @@ import com.android.tools.idea.profilers.commands.LegacyAllocationCommandHandler;
 import com.android.tools.idea.profilers.commands.LegacyCpuTraceCommandHandler;
 import com.android.tools.idea.profilers.eventpreprocessor.SimpleperfPipelinePreprocessor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.transport.FailedToStartServerException;
-import com.android.tools.idea.transport.TransportDeviceManager;
+import com.android.tools.idea.transport.TransportConfigContributor;
 import com.android.tools.idea.transport.TransportProxy;
-import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Commands;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
@@ -40,45 +37,13 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfSampleReporter;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.intellij.openapi.application.ApplicationManager;
 import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * An application-level service that manages application level configurations for the profilers. When constructed this class subscribes
- * itself to the application MessageBus and listens for {@link TransportDeviceManager#TOPIC} events.
- */
-public class AndroidProfilerService implements TransportDeviceManager.TransportDeviceManagerListener {
+public class ProfilerTransportConfigContributor implements TransportConfigContributor {
   private final int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
   @NotNull private static final String MEMORY_PROXY_EXECUTOR_NAME = "MemoryAllocationDataFetchExecutor";
-
-  public static AndroidProfilerService getInstance() {
-    return ApplicationManager.getApplication().getService(AndroidProfilerService.class);
-  }
-
-  /**
-   * Default constructor required for reflection by intellij.
-   */
-  AndroidProfilerService() {
-    ApplicationManager.getApplication().getMessageBus().connect().subscribe(TransportDeviceManager.TOPIC, this);
-  }
-
-  @Override
-  public void onPreTransportDaemonStart(@NotNull Common.Device device) {
-  }
-
-  @Override
-  public void onTransportDaemonException(@NotNull Common.Device device, @NotNull Exception exception) {
-  }
-
-  @Override
-  public void onTransportProxyCreationFail(@NotNull Common.Device device, @NotNull Exception exception) {
-  }
-
-  @Override
-  public void onStartTransportDaemonServerFail(@NotNull Common.Device device, @NotNull FailedToStartServerException exception) {
-  }
 
   @Override
   public void customizeProxyService(@NotNull TransportProxy proxy) {
@@ -108,7 +73,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
                device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.R) {
       CpuTraceInterceptCommandHandler cpuTraceHandler =
         new CpuTraceInterceptCommandHandler(device,
-                                         TransportServiceGrpc.newBlockingStub(proxy.getTransportChannel()));
+                                            TransportServiceGrpc.newBlockingStub(proxy.getTransportChannel()));
       proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_TRACE, cpuTraceHandler);
     }
 
