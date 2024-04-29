@@ -17,7 +17,6 @@ package com.android.tools.idea.vitals
 
 import com.google.gct.login2.LoginFeature
 import icons.StudioIllustrations
-import javax.swing.Icon
 
 class VitalsLoginFeature : LoginFeature {
   override val name = "Android Vitals"
@@ -31,20 +30,15 @@ class VitalsLoginFeature : LoginFeature {
 
   override val onboardingWizardEntry: LoginFeature.OnboardingWizardEntry
     get() =
-      object : LoginFeature.OnboardingWizardEntry {
-        override val icon: Icon
-          get() = StudioIllustrations.Common.PLAY_STORE
-
-        override val name: String
-          get() = "<b>Google Play:</b> Enable viewing Android Vitals crash reports"
-
-        override val description: String
-          get() =
-            """
+      LoginFeature.OnboardingWizardEntry(
+        icon = StudioIllustrations.Common.PLAY_STORE,
+        name = "<b>Google Play:</b> Enable viewing Android Vitals crash reports",
+        description =
+          """
           Android Vitals is a Google Play service that helps you discover
            and address top stability issues for your app. Enable this service
             to access detailed crash reports from Android Vitals directly from the IDE.
         """
-              .trimIndent()
-      }
+            .trimIndent(),
+      )
 }
