@@ -192,7 +192,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       """
         Warning: Use version catalog instead
             implementation("com.android.support:appcompat-v7:28.0.0")
-                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             Fix: Replace with new library catalog declaration for appcompat-v7
             Fix: Suppress UseTomlInstead with a comment
       """
@@ -206,7 +206,7 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
       """
         Warning: Use version catalog instead
             implementation("com.android.support:appcompat-v7:28.0.0")
-                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             Fix: Replace with new library catalog declaration for appcompat-v7
             Fix: Suppress UseTomlInstead with a comment
       """
