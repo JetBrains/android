@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.representation
 
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.scene.SceneManager.SceneUpdateListener
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
@@ -141,6 +142,7 @@ val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiPreviewElementInstance>("Previe
  *   displaying the previews.
  * @param renderingTopic the [RenderingTopic] under which the preview renderings will be executed.
  * @param useCustomInflater a configuration to apply when rendering the previews.
+ * @param sceneUpdateListener the listener to be notified whenever the scene of a preview element is updated.
  * @param createRefreshEventBuilder the function to get a [PreviewRefreshEventBuilder] to be used
  *   for tracking refresh metrics.
  */
@@ -165,6 +167,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   configureDesignSurface: NlDesignSurface.Builder.() -> Unit,
   renderingTopic: RenderingTopic,
   useCustomInflater: Boolean = true,
+  sceneUpdateListener: SceneUpdateListener? = null,
   private val createRefreshEventBuilder: (NlDesignSurface) -> PreviewRefreshEventBuilder? = { null },
 ) :
   PreviewRepresentation,
@@ -216,9 +219,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   val previewView = invokeAndWaitIfNeeded {
     viewConstructor(
         project,
-        NlDesignSurface.builder(project, this)
-          .setSceneManagerProvider { surface, model ->
-            NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+        NlDesignSurface.builder(project, this) { surface, model ->
+            NlDesignSurface.defaultSceneManagerProvider(surface, model, sceneUpdateListener).apply {
               setUseCustomInflater(useCustomInflater)
               setShrinkRendering(true)
               setRenderingTopic(renderingTopic)

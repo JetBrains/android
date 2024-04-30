@@ -166,8 +166,7 @@ class VisualizationForm(
     // Custom issue panel integration used.
     config.isIntegrateWithDefaultIssuePanel = false
     surface =
-      NlDesignSurface.builder(project, this@VisualizationForm)
-        .setSceneManagerProvider { surface: NlDesignSurface, model: NlModel ->
+      NlDesignSurface.builder(project, this@VisualizationForm) { surface: NlDesignSurface, model: NlModel ->
           val sceneManager = LayoutlibSceneManager(model, surface, config)
           sceneManager.setListenResourceChange(false)
           sceneManager.setShowDecorations(

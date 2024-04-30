@@ -206,9 +206,8 @@ class CustomViewPreviewRepresentation(
 
   private val view = invokeAndWaitIfNeeded {
     CustomViewPreviewView(
-      NlDesignSurface.builder(project, this)
-        .setSceneManagerProvider { surface, model ->
-          NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+      NlDesignSurface.builder(project, this) { surface, model ->
+          NlDesignSurface.defaultSceneManagerProvider(surface, model, null).apply {
             setShrinkRendering(true)
           }
         }

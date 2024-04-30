@@ -62,11 +62,7 @@ private fun createPreviewDesignSurfaceBuilder(
   screenViewProvider: ScreenViewProvider,
   isInteractive: () -> Boolean,
 ): NlDesignSurface.Builder =
-  NlDesignSurface.builder(project, parentDisposable)
-    .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
-    .setInteractionHandlerProvider { delegateInteractionHandler }
-    .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
-    .setSceneManagerProvider { surface, model ->
+  NlDesignSurface.builder(project, parentDisposable){ surface, model ->
       // Compose Preview manages its own render and refresh logic, and then it should avoid
       // some automatic renderings triggered in LayoutLibSceneManager
       LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener()) {
@@ -81,6 +77,9 @@ private fun createPreviewDesignSurfaceBuilder(
           it.setCacheSuccessfulRenderImage(StudioFlags.PREVIEW_KEEP_IMAGE_ON_ERROR.get())
         }
     }
+    .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
+    .setInteractionHandlerProvider { delegateInteractionHandler }
+    .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(
       if (StudioFlags.COMPOSE_PREVIEW_SELECTION.get()) DefaultSelectionModel()

@@ -63,13 +63,12 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
       myFile,
       WorkBench(myProject, WORKBENCH_NAME, this, this),
       {
-        NlDesignSurface.builder(myProject, this)
-          .setSupportedActions(LAYOUT_EDITOR_SUPPORTED_ACTIONS)
-          .setSceneManagerProvider { surface, model ->
-            NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+        NlDesignSurface.builder(myProject, this) { surface, model ->
+            NlDesignSurface.defaultSceneManagerProvider(surface, model, null).apply {
               visualLintMode = VisualLintMode.RUN_IN_BACKGROUND
             }
           }
+          .setSupportedActions(LAYOUT_EDITOR_SUPPORTED_ACTIONS)
           .build()
       },
       NlComponentRegistrar,

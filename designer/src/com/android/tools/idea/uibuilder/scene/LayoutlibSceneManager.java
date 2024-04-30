@@ -424,13 +424,25 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * @param config configuration for layout validation when rendering.
    */
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface<LayoutlibSceneManager> designSurface, LayoutScannerConfiguration config) {
+    this(model, designSurface, config, null);
+  }
+
+  /**
+   * Creates a new LayoutlibSceneManager with the default settings for running render requests.
+   *
+   * @param model the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
+   * @param designSurface the {@link DesignSurface} user to present the result of the renders.
+   * @param config configuration for layout validation when rendering.
+   * @param listener {@link SceneManager.SceneUpdateListener } allows performing additional operations affected by the scene root component when updating the scene.
+   */
+  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface<LayoutlibSceneManager> designSurface, LayoutScannerConfiguration config, @Nullable SceneManager.SceneUpdateListener listener) {
     this(
       model,
       designSurface,
       AppExecutorUtil.getAppExecutorService(),
       MergingRenderingQueue::new,
       new LayoutlibSceneManagerHierarchyProvider(),
-      null,
+      listener,
       config,
       RealTimeSessionClock::new);
   }

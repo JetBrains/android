@@ -59,8 +59,7 @@ class NlVisibilityGutterPanelTest : LayoutTestCase() {
         override fun dispose() {}
       }
     mySurface =
-      NlDesignSurface.builder(project, myDisposable!!)
-        .setSceneManagerProvider { surface: NlDesignSurface, model: NlModel ->
+      NlDesignSurface.builder(project, myDisposable!!) { surface: NlDesignSurface, model: NlModel ->
           object : SyncLayoutlibSceneManager(surface, model as SyncNlModel) {
             override fun renderAsync(
               trigger: LayoutEditorRenderResult.Trigger?,

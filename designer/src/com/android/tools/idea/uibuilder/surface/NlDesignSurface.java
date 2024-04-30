@@ -146,8 +146,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   public static class Builder {
     private final Project myProject;
     private final Disposable myParentDisposable;
-    private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider =
-      NlDesignSurface::defaultSceneManagerProvider;
+    private final BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider;
     @SuppressWarnings("deprecation") private SurfaceLayoutOption myLayoutOption;
     @SurfaceScale private double myMinScale = DEFAULT_MIN_SCALE;
     @SurfaceScale private double myMaxScale = DEFAULT_MAX_SCALE;
@@ -188,21 +187,13 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     private Function<DesignSurface<LayoutlibSceneManager>, VisualLintIssueProvider> myVisualLintIssueProviderFactory =
       NlDesignSurface::viewVisualLintIssueProviderFactory;
 
-    private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
+    private Builder(@NotNull Project project,
+                    @NotNull Disposable parentDisposable,
+                    @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider
+    ) {
       myProject = project;
       myParentDisposable = parentDisposable;
-    }
-
-    /**
-     * Allows customizing the {@link LayoutlibSceneManager}. Use this method if you need to apply additional settings to it or if you
-     * need to completely replace it, for example for tests.
-     *
-     * @see NlDesignSurface#defaultSceneManagerProvider(NlDesignSurface, NlModel)
-     */
-    @NotNull
-    public Builder setSceneManagerProvider(@NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider) {
       mySceneManagerProvider = sceneManagerProvider;
-      return this;
     }
 
     /**
@@ -487,12 +478,13 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     myZoomController.setScreenScalingFactor(JBUIScale.sysScale(this));
   }
 
+
   /**
-   * Default {@link LayoutlibSceneManager} provider.
+   * Default {@link LayoutlibSceneManager} provider with update listener {@link SceneManager.SceneUpdateListener }
    */
   @NotNull
-  public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
-    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface, new LayoutScannerEnabled());
+  public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model, @Nullable SceneManager.SceneUpdateListener listener) {
+    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface, new LayoutScannerEnabled(), listener);
     RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
     sceneManager.setShowDecorations(settings.getShowDecorations());
     sceneManager.setUseImagePool(settings.getUseLiveRendering());
@@ -539,7 +531,13 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @NotNull
   public static Builder builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
-    return new Builder(project, parentDisposable);
+    return builder(project, parentDisposable, (surface, model) -> NlDesignSurface.defaultSceneManagerProvider(surface, model, null));
+  }
+
+  @NotNull
+  public static Builder builder(@NotNull Project project, @NotNull Disposable parentDisposable,
+                                @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> provider) {
+    return new Builder(project, parentDisposable, provider);
   }
 
   @NotNull
@@ -647,7 +645,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @NotNull
   @TestOnly
   public static NlDesignSurface build(@NotNull Project project, @NotNull Disposable parentDisposable) {
-    return new Builder(project, parentDisposable).build();
+    return new Builder(project, parentDisposable, (surface, model) -> NlDesignSurface.defaultSceneManagerProvider(surface, model, null)).build();
   }
 
   /**
