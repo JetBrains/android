@@ -30,7 +30,7 @@ def generate_mac_scripts():
       raise Exception("Unable to find product-info.json file")
     # create the included jars and JVM argument strings
     jars = jars_string(mac_jars, "CLASS_PATH=\"$CLASS_PATH:$IDE_HOME/lib/", "\"\n")
-    jvm_args = jvm_string(mac_jvm_args, "-Didea.paths.selector=\"${STUDIO_VERSION}.safe\"") + " \\"
+    jvm_args = jvm_string(mac_jvm_args, "-Didea.paths.selector=\"${STUDIO_VERSION}.safe\" -Dstudio.safe.mode=true") + " \\"
     # concat them with the script template
     safe_mode_script_content = mac_script[0] + jars + mac_script[1] + jvm_args + mac_script[2]
     # create safe mode script
@@ -69,11 +69,11 @@ def generate_lin_win_scripts(platform, zip_file, studio_file):
     if platform == "win":
       suffix = "bat"
       scripts = win_script
-      jvm_args_string = jvm_string(jvm_args, "-Didea.paths.selector=%STUDIO_VERSION%.safe") + " ^"
+      jvm_args_string = jvm_string(jvm_args, "-Didea.paths.selector=%STUDIO_VERSION%.safe -Dstudio.safe.mode=true") + " ^"
     else:
       suffix = "sh"
       scripts = lin_script
-      jvm_args_string = jvm_string(jvm_args, "-Didea.paths.selector=\"${STUDIO_VERSION}.safe\"") + " \\"
+      jvm_args_string = jvm_string(jvm_args, "-Didea.paths.selector=\"${STUDIO_VERSION}.safe\" -Dstudio.safe.mode=true") + " \\"
 
     safe_mode_script_content = scripts[0] + jars + scripts[1] + jvm_args_string + scripts[2]
     # create safe mode script
