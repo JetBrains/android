@@ -184,6 +184,9 @@ class ComposeViewNode(
   override val isInlined: Boolean
     get() = composeFlags.hasFlag(FLAG_IS_INLINED)
 
+  override val hasSourceCodeInformation: Boolean
+    get() = composePackageHash != -1
+
   override fun isSingleCall(treeSettings: TreeSettings): Boolean =
     treeSettings.composeAsCallstack &&
       readAccess { (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1 }

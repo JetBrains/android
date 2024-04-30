@@ -75,6 +75,13 @@ interface InspectorClient : Disposable {
      * application.
      */
     SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS,
+
+    /**
+     * Indicates that some of the compose nodes currently have line number information. Certain
+     * features will not work if the compose application was created without source code
+     * information.
+     */
+    HAS_LINE_NUMBER_INFORMATION,
   }
 
   fun interface ErrorListener {

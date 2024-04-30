@@ -140,6 +140,7 @@ class LayoutInspectorFileEditorTest {
         Capability.SUPPORTS_SYSTEM_NODES,
         Capability.SUPPORTS_COMPOSE,
         Capability.SUPPORTS_SEMANTICS,
+        Capability.HAS_LINE_NUMBER_INFORMATION,
       )
     assertThat(inspector.inspectorModel.resourceLookup.hasResolver).isTrue()
   }

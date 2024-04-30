@@ -28,10 +28,6 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Composa
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Quad
 
-private val composeSupport = EnumSet.of(Capability.SUPPORTS_COMPOSE)
-private val semanticsSupport =
-  EnumSet.of(Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_SEMANTICS)
-
 /**
  * Helper class which handles the logic of using data from a
  * [LayoutInspectorComposeProtocol.GetComposablesResponse] in order to create [ComposeViewNode]s.
@@ -43,17 +39,22 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
   private val roots = response.rootsList.map { it.viewId to it.nodesList }.toMap()
   private var composeFlags = 0
   private var nodesCreated = false
+  private var nodesCreatedWithLineNumberInfo = false
+  private val capabilities = EnumSet.noneOf(Capability::class.java)
 
   /** The dynamic capabilities based on the loaded data for compose. */
   val dynamicCapabilities: Set<Capability>
     get() {
-      val hasSemantics =
-        (composeFlags and (FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS)) != 0
-      return when {
-        nodesCreated && hasSemantics -> semanticsSupport
-        nodesCreated -> composeSupport
-        else -> emptySet()
+      if (capabilities.isEmpty() && nodesCreated) {
+        capabilities.add(Capability.SUPPORTS_COMPOSE)
+        if ((composeFlags and (FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS)) != 0) {
+          capabilities.add(Capability.SUPPORTS_SEMANTICS)
+        }
+        if (nodesCreatedWithLineNumberInfo) {
+          capabilities.add(Capability.HAS_LINE_NUMBER_INFORMATION)
+        }
       }
+      return capabilities
     }
 
   /**
@@ -98,6 +99,8 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
     val layoutBounds = Rectangle(bounds.layout.x, bounds.layout.y, bounds.layout.w, bounds.layout.h)
     val renderBounds =
       bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toShape() ?: layoutBounds
+    val actualFlags =
+      if (packageHash != -1) flags else flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE.inv()
     val isSystemNode = (flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE) != 0
     val ignoreRecompositions =
       pendingRecompositionCountReset ||
@@ -119,12 +122,12 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
         packageHash,
         offset,
         lineNumber,
-        flags,
+        actualFlags,
         anchorHash,
       )
 
-    composeFlags = composeFlags or flags
-    if ((flags and ComposableNode.Flags.NESTED_SINGLE_CHILDREN_VALUE) == 0) {
+    composeFlags = composeFlags or actualFlags
+    if ((actualFlags and ComposableNode.Flags.NESTED_SINGLE_CHILDREN_VALUE) == 0) {
       access.apply {
         childrenList.mapTo(node.children) {
           it.convert(shouldInterrupt, access).apply { parent = node }
@@ -142,6 +145,9 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
     }
     if (viewId != 0L) {
       androidViews[viewId] = node
+    }
+    if (!nodesCreatedWithLineNumberInfo && packageHash != -1 && lineNumber > 0 && !isSystemNode) {
+      nodesCreatedWithLineNumberInfo = true
     }
     return node
   }

@@ -52,6 +52,7 @@ import kotlinx.coroutines.launch
 @VisibleForTesting const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 
 val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector::class.java.name)
+val NO_COMPOSE_SOURTCE_INFO_KEY = "no.compose.source.info"
 
 /** Create a [DataProvider] for the specified [layoutInspector]. */
 fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector): DataProvider {
@@ -171,6 +172,8 @@ private constructor(
 
   private val recentExecutor = MostRecentExecutor(workerExecutor)
 
+  private var composeSourceInfoMissingWarningGiven = false
+
   val stopInspectorListeners: MutableList<() -> Unit> = mutableListOf()
 
   /**
@@ -215,6 +218,7 @@ private constructor(
         }
       }
     }
+    composeSourceInfoMissingWarningGiven = false
   }
 
   private fun updateConnection(client: InspectorClient) {
@@ -259,6 +263,20 @@ private constructor(
                   "g:${data.generation} Model Updated for process: ${currentClient.process.name}"
                 )
               }
+            }
+            if (
+              !composeSourceInfoMissingWarningGiven &&
+                currentClient.capabilities.contains(InspectorClient.Capability.SUPPORTS_COMPOSE) &&
+                !currentClient.capabilities.contains(
+                  InspectorClient.Capability.HAS_LINE_NUMBER_INFORMATION
+                )
+            ) {
+              composeSourceInfoMissingWarningGiven = true
+              notificationModel.addNotification(
+                NO_COMPOSE_SOURTCE_INFO_KEY,
+                LayoutInspectorBundle.message(NO_COMPOSE_SOURTCE_INFO_KEY),
+                Status.Warning,
+              )
             }
           }
           // Check one more time to see if we've disconnected.

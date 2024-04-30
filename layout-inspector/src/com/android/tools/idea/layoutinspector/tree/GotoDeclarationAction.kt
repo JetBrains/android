@@ -53,8 +53,13 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
 
   override fun update(event: AnActionEvent) {
     val inspector = LayoutInspector.get(event)
+    val hasSourceCodeInfo = inspector?.inspectorModel?.selection?.hasSourceCodeInformation ?: true
     // Finding the navigatable is expensive. Only perform a cheap check on update:
-    event.presentation.isEnabled = inspector?.inspectorModel?.resourceLookup?.hasResolver == true
+    event.presentation.isEnabled =
+      hasSourceCodeInfo && (inspector?.inspectorModel?.resourceLookup?.hasResolver == true)
+    event.presentation.text =
+      if (hasSourceCodeInfo) "Go To Declaration"
+      else "Go To Declaration (No Source Information Found)"
   }
 
   fun navigateToSelectedView(

@@ -295,7 +295,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     invokeLater {
       val show =
         layoutInspector?.treeSettings?.showRecompositions ?: false &&
-          layoutInspector?.currentClient?.isConnected ?: false
+          layoutInspector?.currentClient?.isConnected ?: false &&
+          layoutInspector
+            ?.currentClient
+            ?.capabilities
+            ?.contains(InspectorClient.Capability.HAS_LINE_NUMBER_INFORMATION) ?: false
       interactions.setHeaderVisibility(show)
       interactions.setColumnVisibility(1, show)
       interactions.setColumnVisibility(2, show)

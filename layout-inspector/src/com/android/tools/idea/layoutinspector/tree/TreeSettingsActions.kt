@@ -153,10 +153,19 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
     super.update(event)
     event.presentation.isVisible =
       isActionActive(event, Capability.SUPPORTS_COMPOSE) && inLiveMode(event)
+    // The compose inspector is tracking the recompositions based on a compiler generated key
+    // based on the source information. If the source information is missing we cannot track
+    // recompositions.
     event.presentation.isEnabled =
-      isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+      isActionActive(
+        event,
+        Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS,
+        Capability.HAS_LINE_NUMBER_INFORMATION,
+      )
     event.presentation.text =
-      if (event.presentation.isEnabled) "Show Recomposition Counts"
+      if (event.presentation.isEnabled || !isActionActive(event)) "Show Recomposition Counts"
+      else if (!isActionActive(event, Capability.HAS_LINE_NUMBER_INFORMATION))
+        "Show Recomposition Counts (No Source Information Found)"
       else "Show Recomposition Counts (Needs Compose 1.2.1+)"
   }
 }

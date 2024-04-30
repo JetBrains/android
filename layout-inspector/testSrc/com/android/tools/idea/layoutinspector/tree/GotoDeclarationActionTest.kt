@@ -121,6 +121,17 @@ class GotoDeclarationActionTest {
   }
 
   @Test
+  fun testComposeViewNodeWithoutSourceCodeInformation() {
+    val model = runInEdtAndGet { createModel() }
+    model.setSelection(model[-4], SelectionOrigin.INTERNAL)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
+    val event = createEvent(model, stats, fromShortcut = true)
+    GotoDeclarationAction.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
+    assertThat(event.presentation.text).isEqualTo("Go To Declaration (No Source Information Found)")
+  }
+
+  @Test
   fun testComposeViewNodeInOtherFileWithSameName() {
     val model = runInEdtAndGet { createModel() }
     model.setSelection(model[-5], SelectionOrigin.INTERNAL)
@@ -163,7 +174,7 @@ class GotoDeclarationActionTest {
           view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
             compose(-2, "Column", "MyCompose.kt", 49835523, 540, 17) {
               compose(-3, "Text", "MyCompose.kt", 49835523, 593, 18)
-              compose(-4, "Greeting", "MyCompose.kt", 49835523, 622, 19) {
+              compose(-4, "Greeting", "MyCompose.kt", -1, -1, 0) {
                 compose(-5, "Text", "MyCompose.kt", 1216697758, 164, 3)
               }
             }

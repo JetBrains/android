@@ -168,6 +168,10 @@ class AppInspectionInspectorClientTest {
     shouldFailDuringAttach = false
     inspectorClientSettings = InspectorClientSettings(projectRule.project)
     inspectorRule.attachDevice(MODERN_DEVICE)
+    setUpAdbForDebugViewAttributes(
+      MODERN_DEVICE.serial,
+      debugViewAttributesPreviouslyEnabled = true,
+    )
   }
 
   @Test
@@ -839,6 +843,9 @@ class AppInspectionInspectorClientTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
+    // Verify that missing source code warning is not given
+    assertThat(inspectorRule.notificationModel.notifications).isEmpty()
+
     // Verify that the MaterialTextView from the views were placed under the ComposeViewNode:
     // "ComposeNode" with id of -7
     val composeNode = inspectorRule.inspectorModel[-7]!!
@@ -857,6 +864,37 @@ class AppInspectionInspectorClientTest {
       assertThat(surface.recompositions.count).isEqualTo(7)
       assertThat(surface.recompositions.skips).isEqualTo(14)
     }
+  }
+
+  @Test
+  fun testComposeNoSourceInformationWarningGivenOnce() {
+    val inspectorState =
+      FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeComposeTree(withSourceInformation = false)
+    var modelUpdatedLatch =
+      ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+
+    // Verify missing source code notification given
+    val notification = inspectorRule.notificationModel.notifications.single()
+    assertThat(notification.message)
+      .isEqualTo(
+        "No compose source information found. For full inspector functionality: make sure that sourceInformation is turned on for the kotlin compiler plugin."
+      )
+    inspectorRule.notificationModel.clear()
+
+    // Trigger a GetComposables command to be sent.
+    modelUpdatedLatch = ReportingCountDownLatch(1)
+    inspectorState.triggerLayoutCapture(rootId = 1)
+
+    // Check that the notification is not sent again:
+    assertThat(inspectorRule.notificationModel.notifications.isEmpty())
   }
 
   @Test
