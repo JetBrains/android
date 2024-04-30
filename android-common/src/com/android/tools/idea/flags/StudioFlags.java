@@ -942,7 +942,7 @@ public final class StudioFlags {
     "");
   public static final Flag<Boolean> DEVICE_MIRRORING_AUTO_RESET_UI_SETTINGS = new BooleanFlag(
     DEVICE_MIRRORING, "auto.reset", "The agent should reset all changed UI settings on disconnect",
-    "Enables the reset logic in the device agent for the UI settings picker",
+    "Enable the reset logic in the device agent for the UI settings picker",
     true);
   public static final Flag<Boolean> DEVICE_MIRRORING_REMOTE_TEMPLATES_IN_PLUS = new BooleanFlag(
     DEVICE_MIRRORING, "remote.templates.in.plus", "Show remote device templates in plus action",
@@ -951,6 +951,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> DEVICE_MIRRORING_B330395367_LOGGING = new BooleanFlag(
     DEVICE_MIRRORING, "b330395367.logging", "Logging for investigation of b/330395367",
     "Enable detailed logging for investigation of b/330395367",
+    false);
+  public static final Flag<Boolean> DEVICE_MIRRORING_USE_UINPUT = new BooleanFlag(
+    DEVICE_MIRRORING, "use.uinput", "Use uinput module (https://kernel.org/doc/html/v4.12/input/uinput.html)",
+    "Use uinput module ((https://kernel.org/doc/html/v4.12/input/uinput.html) for injecting input events",
     false);
   //endregion
 

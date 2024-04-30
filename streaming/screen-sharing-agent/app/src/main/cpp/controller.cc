@@ -132,6 +132,10 @@ Controller::~Controller() {
   output_stream_.Close();
   delete pointer_helper_;
   delete key_character_map_;
+  delete keyboard_;
+  delete mouse_;
+  delete stylus_;
+  delete touchscreen_;
 }
 
 void Controller::Stop() {
@@ -425,19 +429,35 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
 }
 
 void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
-  int64_t now = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
-  KeyEvent event(jni);
-  event.down_time_millis = now;
-  event.event_time_millis = now;
-  int32_t action = message.action();
-  event.action = action == KeyEventMessage::ACTION_DOWN_AND_UP ? AKEY_EVENT_ACTION_DOWN : action;
-  event.code = message.keycode();
-  event.meta_state = message.meta_state();
-  event.source = KeyCharacterMap::VIRTUAL_KEYBOARD;
-  InjectKeyEvent(jni, event, InputEventInjectionSync::NONE);
-  if (action == KeyEventMessage::ACTION_DOWN_AND_UP) {
-    event.action = AKEY_EVENT_ACTION_UP;
+  if (Agent::feature_level() >= 29 && Agent::flags() & USE_UINPUT) {
+    if (keyboard_ == nullptr) {
+      keyboard_ = new VirtualKeyboard();
+      if (!keyboard_->IsValid()) {
+        Log::E("Failed to create a virtual keyboard");
+      }
+    }
+    int32_t action = message.action();
+    auto now = duration_cast<nanoseconds>(steady_clock::now().time_since_epoch());
+    keyboard_->WriteKeyEvent(message.keycode(), action == KeyEventMessage::ACTION_DOWN_AND_UP ? AKEY_EVENT_ACTION_DOWN : action, now);
+    if (action == KeyEventMessage::ACTION_DOWN_AND_UP) {
+      action = AKEY_EVENT_ACTION_UP;
+      keyboard_->WriteKeyEvent(message.keycode(), AKEY_EVENT_ACTION_UP, now);
+    }
+  } else {
+    KeyEvent event(jni);
+    int64_t now = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+    event.down_time_millis = now;
+    event.event_time_millis = now;
+    int32_t action = message.action();
+    event.action = action == KeyEventMessage::ACTION_DOWN_AND_UP ? AKEY_EVENT_ACTION_DOWN : action;
+    event.code = message.keycode();
+    event.meta_state = message.meta_state();
+    event.source = KeyCharacterMap::VIRTUAL_KEYBOARD;
     InjectKeyEvent(jni, event, InputEventInjectionSync::NONE);
+    if (action == KeyEventMessage::ACTION_DOWN_AND_UP) {
+      event.action = AKEY_EVENT_ACTION_UP;
+      InjectKeyEvent(jni, event, InputEventInjectionSync::NONE);
+    }
   }
 }
 

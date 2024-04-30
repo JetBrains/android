@@ -54,6 +54,7 @@ add_library(
         ui_settings.cc
         ui_settings_state.cc
         video_packet_header.cc
+        virtual_input_device.cc
 )
 
 target_include_directories(screen-sharing-agent PRIVATE .)
