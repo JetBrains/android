@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.testutils.TestUtils.getBinPath
 import com.android.testutils.TestUtils.resolveWorkspacePath
@@ -385,6 +386,10 @@ class ScreenSharingAgentTest {
     private val emptyDeviceConfiguration =
       DeviceConfiguration(DeviceProperties.buildForTest {
         icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+        androidVersion = AndroidVersion(30)
+        manufacturer = "Google"
+        model = "Pixel 5"
+        isRemote = false
       })
 
     @JvmStatic
