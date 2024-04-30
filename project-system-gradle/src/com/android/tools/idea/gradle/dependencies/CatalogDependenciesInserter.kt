@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dependencies
 
+import android.annotation.SuppressLint
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.repository.keysMatch
@@ -38,6 +39,7 @@ import com.intellij.psi.PsiFile
 import org.gradle.api.plugins.JavaPlatformPlugin
 import org.jetbrains.kotlin.utils.addIfNotNull
 
+@SuppressLint("AddDependencyUsage")
 class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) : DependenciesInserter(projectModel) {
   @JvmOverloads
   override fun addClasspathDependency(dependency: String,
