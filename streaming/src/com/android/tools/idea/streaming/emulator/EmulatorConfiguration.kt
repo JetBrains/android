@@ -62,8 +62,9 @@ class EmulatorConfiguration private constructor(
      */
     fun readAvdDefinition(avdId: String, avdFolder: Path): EmulatorConfiguration? {
       val hardwareIniFile = avdFolder.resolve("hardware-qemu.ini")
-      val hardwareIni = readKeyValueFile(hardwareIniFile) ?: return null
-
+      val keysToExtract = setOf("android.sdk.root", "hw.audioOutput", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density",
+                                "hw.sensor.hinge.resizable.config")
+      val hardwareIni = readKeyValueFile(hardwareIniFile, keysToExtract) ?: return null
       val sdkPath = hardwareIni["android.sdk.root"] ?: System.getenv(ANDROID_HOME_ENV) ?: ""
       val androidSdkRoot = avdFolder.resolve(sdkPath)
       val displayWidth = parseInt(hardwareIni["hw.lcd.width"], 0)
@@ -72,36 +73,6 @@ class EmulatorConfiguration private constructor(
         return null
       }
       val density = parseInt(hardwareIni["hw.lcd.density"], 0)
-
-      // Extract parameters of secondary displays from lines like "hw.display6.width=400" and "hw.display6.height=600".
-      val additionalDisplays = mutableMapOf<Int, Dimension>()
-      for ((key, value) in hardwareIni) {
-        if (key.startsWith("hw.display")) {
-          val prefixLength = "hw.display".length
-          val dotPos = key.indexOf('.', startIndex = prefixLength)
-          if (dotPos > prefixLength && dotPos < key.length - 1) {
-            val displayId = parseInt(key.substring(prefixLength, dotPos), 0)
-            if (displayId > 0) {
-              val dim = parseInt(value, 0)
-              if (dim > 0) {
-                val suffix = key.substring(dotPos + 1)
-                when (suffix) {
-                  "width" -> additionalDisplays.computeIfAbsent(displayId) { Dimension() }.width = dim
-                  "height" -> additionalDisplays.computeIfAbsent(displayId) { Dimension() }.height = dim
-                }
-              }
-            }
-          }
-        }
-      }
-      // Remove secondary displays with invalid dimensions.
-      val iter = additionalDisplays.iterator()
-      while (iter.hasNext()) {
-        val size = iter.next().value
-        if (size.width <= 0 || size.height <= 0) {
-          iter.remove()
-        }
-      }
 
       val hasAudioOutput = hardwareIni["hw.audioOutput"]?.toBoolean() ?: true
 
@@ -169,6 +140,36 @@ class EmulatorConfiguration private constructor(
         val sourceProperties = readKeyValueFile(sourcePropertiesFile, setOf("AndroidVersion.ApiLevel")) ?: return null
         parseInt(sourceProperties["AndroidVersion.ApiLevel"], 0)
       } ?: 0
+
+      // Extract parameters of secondary displays from lines like "hw.display6.width=400" and "hw.display6.height=600".
+      val additionalDisplays = mutableMapOf<Int, Dimension>()
+      for ((key, value) in configIni) {
+        if (key.startsWith("hw.display")) {
+          val prefixLength = "hw.display".length
+          val dotPos = key.indexOf('.', startIndex = prefixLength)
+          if (dotPos > prefixLength && dotPos < key.length - 1) {
+            val displayId = parseInt(key.substring(prefixLength, dotPos), 0)
+            if (displayId > 0) {
+              val dim = parseInt(value, 0)
+              if (dim > 0) {
+                val suffix = key.substring(dotPos + 1)
+                when (suffix) {
+                  "width" -> additionalDisplays.computeIfAbsent(displayId) { Dimension() }.width = dim
+                  "height" -> additionalDisplays.computeIfAbsent(displayId) { Dimension() }.height = dim
+                }
+              }
+            }
+          }
+        }
+      }
+      // Remove secondary displays with invalid dimensions.
+      val iter = additionalDisplays.iterator()
+      while (iter.hasNext()) {
+        val size = iter.next().value
+        if (size.width <= 0 || size.height <= 0) {
+          iter.remove()
+        }
+      }
 
       return EmulatorConfiguration(avdName = avdName,
                                    avdFolder = avdFolder,
