@@ -3,8 +3,13 @@ Android Studio Preview.app/Contents/MacOS/studio
 Android Studio Preview.app/Contents/Resources/LICENSE.txt
 Android Studio Preview.app/Contents/Resources/NOTICE.txt
 Android Studio Preview.app/Contents/Resources/build.txt
+Android Studio Preview.app/Contents/Resources/en.lproj/InfoPlist.strings
+Android Studio Preview.app/Contents/Resources/ja.lproj/InfoPlist.strings
+Android Studio Preview.app/Contents/Resources/ko.lproj/InfoPlist.strings
 Android Studio Preview.app/Contents/Resources/product-info.json
 Android Studio Preview.app/Contents/Resources/studio.icns
+Android Studio Preview.app/Contents/Resources/zh-Hans.lproj/InfoPlist.strings
+Android Studio Preview.app/Contents/Resources/zh-Hant.lproj/InfoPlist.strings
 Android Studio Preview.app/Contents/bin/appletviewer.policy
 Android Studio Preview.app/Contents/bin/brokenPlugins.db
 Android Studio Preview.app/Contents/bin/format.sh
