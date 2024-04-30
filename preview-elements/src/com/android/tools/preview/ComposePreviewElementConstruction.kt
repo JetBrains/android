@@ -100,6 +100,6 @@ private fun getPreviewParameters(
   attributesProviders.mapIndexedNotNull { index, (name, attributesProvider) ->
     val providerClassFqn =
       (attributesProvider.findClassNameValue("provider")) ?: return@mapIndexedNotNull null
-    val limit = attributesProvider.getAttributeValue("limit") ?: Int.MAX_VALUE
+    val limit = attributesProvider.getIntAttribute("limit") ?: Int.MAX_VALUE
     PreviewParameter(name, index, providerClassFqn, limit)
   }
