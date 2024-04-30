@@ -199,7 +199,7 @@ private val jbModelDumpers = listOf(
     nest {
       prop("sourceCompatibility", externalSourceSet.sourceCompatibility)
       prop("targetCompatibility", externalSourceSet.targetCompatibility)
-      prop("jdkInstallationPath", externalSourceSet.jdkInstallationPath)
+      prop("jdkInstallationPath", externalSourceSet.javaToolchainHome)
       prop("artifacts", externalSourceSet.artifacts)
       prop("dependencies", externalSourceSet.dependencies)
       prop("sources", externalSourceSet.sources.toSortedMap())
