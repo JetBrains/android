@@ -22,12 +22,13 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.SYSTEM_PKG
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
+import com.android.tools.idea.layoutinspector.model.FLAG_SYSTEM_DEFINED
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.model.packageNameHash
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
@@ -248,11 +249,12 @@ class AppInspectionTreeLoaderTest {
 
                   ComposableNode {
                     id = -5
-                    packageHash = packageNameHash("androidx.compose.foundation.text")
+                    packageHash = SYSTEM_PKG
                     filename = 8
                     name = 7
-                    recomposeCount =
-                      4 // These recomposition numbers will be ignored because this is a system node
+                    flags = FLAG_SYSTEM_DEFINED
+                    // These recomposition numbers will be ignored because this is a system node
+                    recomposeCount = 4
                     recomposeSkips = 5
                   }
                 }

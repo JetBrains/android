@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.SYSTEM_PKG
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
@@ -38,7 +39,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-private const val SYSTEM_PKG = -1
 private const val USER_PKG = 123
 
 class LinePainterTest {

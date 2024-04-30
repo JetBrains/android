@@ -44,7 +44,11 @@ import java.awt.Shape
 import java.awt.image.BufferedImage
 import java.util.concurrent.ScheduledExecutorService
 import kotlinx.coroutines.runBlocking
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import org.jetbrains.android.facet.AndroidFacet
+
+// Fake system packageHash
+const val SYSTEM_PKG = -2
 
 // TODO: find a way to indicate that this is a api 29+ model without having to specify an image on a
 // subnode
@@ -158,6 +162,8 @@ fun compose(
       composePackageHash = composePackageHash,
       composeOffset = composeOffset,
       composeLineNumber = composeLineNumber,
+      composeFlags =
+        if (composePackageHash == SYSTEM_PKG) ComposableNode.Flags.SYSTEM_CREATED_VALUE else 0,
     )
     .also(body)
 
@@ -254,7 +260,8 @@ class InspectorViewDescriptor(
     composePackageHash: Int = -1,
     composeOffset: Int = 0,
     composeLineNumber: Int = 0,
-    composeFlags: Int = 0,
+    composeFlags: Int =
+      if (composePackageHash == SYSTEM_PKG) ComposableNode.Flags.SYSTEM_CREATED_VALUE else 0,
     composeCount: Int = 0,
     composeSkips: Int = 0,
     x: Int = 0,

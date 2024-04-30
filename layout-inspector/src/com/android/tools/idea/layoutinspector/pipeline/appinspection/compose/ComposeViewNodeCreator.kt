@@ -20,7 +20,6 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.model.isSystemComposeNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import java.awt.Rectangle
 import java.util.EnumSet
@@ -99,9 +98,10 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
     val layoutBounds = Rectangle(bounds.layout.x, bounds.layout.y, bounds.layout.w, bounds.layout.h)
     val renderBounds =
       bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toShape() ?: layoutBounds
+    val isSystemNode = (flags and ComposableNode.Flags.SYSTEM_CREATED_VALUE) != 0
     val ignoreRecompositions =
       pendingRecompositionCountReset ||
-        (isSystemComposeNode(packageHash) &&
+        (isSystemNode &&
           StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK.get())
     val node =
       ComposeViewNode(

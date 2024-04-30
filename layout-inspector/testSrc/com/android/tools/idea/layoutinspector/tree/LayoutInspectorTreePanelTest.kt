@@ -38,6 +38,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.SYSTEM_PKG
 import com.android.tools.idea.layoutinspector.compose
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
@@ -103,7 +104,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.verify
 
-private const val SYSTEM_PKG = -1
 private const val USER_PKG = 123
 private const val TIMEOUT = 20L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
