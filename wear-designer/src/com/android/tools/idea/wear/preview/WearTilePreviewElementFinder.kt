@@ -132,8 +132,8 @@ private suspend fun findUMethodsWithTilePreviewSignature(
       PsiTreeUtil.findChildrenOfAnyType(vFile.toPsiFile(project), PsiMethod::class.java, KtNamedFunction::class.java)
         .map { pointerManager.createSmartPsiElementPointer(it) }
     }
-    .filter { runReadAction { it.element?.isMethodWithTilePreviewSignature() } ?: false }
-    .mapNotNull { runReadAction { it.element.toUElement(UMethod::class.java) } }
+    .filter { smartReadAction(project) { it.element?.isMethodWithTilePreviewSignature() } ?: false }
+    .mapNotNull { smartReadAction(project) { it.element.toUElement(UMethod::class.java) } }
 }
 
 private fun UMethod.findAllTilePreviewAnnotations() = findAllAnnotationsInGraph {
