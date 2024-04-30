@@ -72,6 +72,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   private final ListenerManager myListeners = new ListenerManager();
   private final BoolProperty myCanGoBack = new BoolValueProperty();
   private final BoolProperty myCanGoForward = new BoolValueProperty();
+  private final BoolProperty myOnFirstStep = new BoolValueProperty();
   private final BoolProperty myOnLastStep = new BoolValueProperty();
   private final OptionalProperty<Action> myExtraAction = new OptionalValueProperty<>();
 
@@ -148,6 +149,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
 
     myActiveWizardBindings.bind(myCanGoBack, myActiveWizard.canGoBack());
     myActiveWizardBindings.bind(myCanGoForward, myActiveWizard.canGoForward());
+    myActiveWizardBindings.bind(myOnFirstStep, myActiveWizard.onFirstStep());
     myActiveWizardBindings.bind(myOnLastStep, myActiveWizard.onLastStep());
     myActiveWizardBindings.bind(myExtraAction, myActiveWizard.getExtraAction());
 
@@ -321,6 +323,11 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     public ObservableBool shouldBeDefault() {
       return not(myOnLastStep);
     }
+
+    @NotNull
+    public ObservableBool shouldBeVisible() {
+      return not(myOnFirstStep.and(myOnLastStep));
+    }
   }
 
   private final class PreviousAction extends ModelWizardDialogAction {
@@ -337,6 +344,12 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     @NotNull
     public ObservableBool shouldBeEnabled() {
       return myCanGoBack;
+    }
+
+    @Override
+    @NotNull
+    public ObservableBool shouldBeVisible() {
+      return not(myOnFirstStep.and(myOnLastStep));
     }
   }
 
