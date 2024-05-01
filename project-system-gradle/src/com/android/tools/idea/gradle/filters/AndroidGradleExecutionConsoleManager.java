@@ -90,7 +90,7 @@ public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsole
     // adds a Gemini popup menu item to the sync tree view
     AnAction[] contextActions = super.getCustomContextActions(project, task, env);
     StudioBot studioBot = StudioBot.Companion.getInstance();
-    if (studioBot == null || !studioBot.isAvailable()) {
+    if (!studioBot.isAvailable()) {
       return contextActions;
     }
     AnAction[] extendedActions = new AnAction[contextActions.length + 1];

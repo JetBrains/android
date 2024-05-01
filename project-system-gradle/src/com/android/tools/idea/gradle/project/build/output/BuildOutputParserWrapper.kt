@@ -63,7 +63,8 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser) : BuildOutputParse
 
   val buildErrorMessages = ArrayList<BuildErrorMessage>()
 
-  private val explainerAvailable = StudioBot.getInstance()?.isAvailable() == true
+  private val explainerAvailable
+    get() = StudioBot.getInstance().isAvailable()
 
   override fun parse(line: String?, reader: BuildOutputInstantReader?, messageConsumer: Consumer<in BuildEvent>?): Boolean {
     return parser.parse(line, reader) {
