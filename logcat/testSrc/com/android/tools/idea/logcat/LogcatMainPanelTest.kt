@@ -764,7 +764,7 @@ class LogcatMainPanelTest {
       )
     deviceTracker.addDevices(device1)
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel().also { waitForCondition { it.getConnectedDevice() != null } }
+      logcatMainPanel().also { waitForCondition { it.getConnectedDevice() != null && it.logcatServiceJob != null} }
     }
     logcatMainPanel.pauseLogcat()
     waitForCondition { logcatMainPanel.logcatServiceJob == null }
