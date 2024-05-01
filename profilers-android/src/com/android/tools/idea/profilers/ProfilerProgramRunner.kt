@@ -44,6 +44,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.components.JBLabel
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
 import java.awt.BorderLayout
@@ -133,15 +134,16 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
    * the debuggable fallback or abort.
    */
   private fun checkProfileableSupportAndExecute(state: RunProfileState, environment: ExecutionEnvironment): Promise<RunContentDescriptor?> {
-    if (isProjectSupported(environment.project) && isDeviceSupported(environment)) {
+    val projectSupported = isProjectSupported(environment.project)
+    val apiLevelSupported = isApiLevelSupported(environment)
+    val systemSupported = isSystemSupported(environment)
+    if (projectSupported && apiLevelSupported && systemSupported) {
       return doExecuteInternal(state, environment)
     }
     val dialog = object : DialogWrapper(environment.project) {
       override fun createCenterPanel(): JComponent {
         return JPanel(BorderLayout()).apply {
-          add(JBLabel("<html>Profiling with Low Overhead requires Android Gradle Plugin 7.3 or higher, a device with API level 29 or higher,<br>" +
-                      "and a system that is not debuggable (e.g., a Google Play enabled emulator system image).<br>" +
-                      "Do you want to Profile with Complete Data instead?</html>"), BorderLayout.CENTER)
+          add(JBLabel(buildProfileableRequirementMessage(projectSupported, apiLevelSupported, systemSupported)), BorderLayout.CENTER)
         }
       }
 
@@ -165,6 +167,9 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
   }
 
   companion object {
+    @VisibleForTesting
+    const val MAX_MESSAGE_LINE_LENGTH = 120
+
     @JvmOverloads
     @JvmStatic
     fun createProfilerToolWindow(
@@ -240,14 +245,52 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
       return token.isProfileableBuildSupported(projectSystem)
     }
 
-    private fun isDeviceSupported(env: ExecutionEnvironment): Boolean {
+    private fun isApiLevelSupported(env: ExecutionEnvironment): Boolean {
       val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
       val targetDevices = deviceFutures?.devices ?: emptyList()
       if (targetDevices.isNotEmpty()) {
         val device = targetDevices[0]
-        return device.version.isGreaterOrEqualThan(VersionCodes.Q) && !device.isDebuggable
+        return device.version.isGreaterOrEqualThan(VersionCodes.Q)
       }
       return false
+    }
+
+    private fun isSystemSupported(env: ExecutionEnvironment): Boolean {
+      val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
+      val targetDevices = deviceFutures?.devices ?: emptyList()
+      if (targetDevices.isNotEmpty()) {
+        val device = targetDevices[0]
+        return !device.isDebuggable
+      }
+      return false
+    }
+
+
+    @VisibleForTesting
+    fun buildProfileableRequirementMessage(isProjectSupported: Boolean, isApiLevelSupported: Boolean, isSystemSupported: Boolean): String {
+      val PROJECT_CRITERIA = "Android Gradle Plugin 7.3 or higher"
+      val API_LEVEL_CRITERIA = "a device with API level 29 or higher"
+      val NON_DEBUGGABLE_CRITERIA = "a system that is not debuggable (e.g., a Google Play enabled emulator system image)"
+
+      var reasons = mutableListOf<String>()
+      if (!isProjectSupported) reasons.add(PROJECT_CRITERIA)
+      if (!isApiLevelSupported) reasons.add(API_LEVEL_CRITERIA)
+      if (!isSystemSupported) reasons.add(NON_DEBUGGABLE_CRITERIA)
+
+      var message = StringBuilder("Profiling with Low Overhead requires ")
+      when (reasons.size) {
+        0 -> assert(false)  // This method shouldn't be called with no unsupported reasons
+        1 -> message.append(reasons[0])
+        2 -> message.append(reasons[0]).append(" and ").append(reasons[1])
+        else -> message.append(reasons[0]).append(", ").append(reasons[1]).append(", and ").append(reasons[2])
+      }
+      // Wrap the line at MAX_MESSAGE_LINE_LENGTH characters
+      if (message.length > MAX_MESSAGE_LINE_LENGTH) {
+        val index = message.lastIndexOf(" ", MAX_MESSAGE_LINE_LENGTH)
+        message.setRange(index, index+1, "<br>")
+      }
+      message.append(".<br>Do you want to Profile with Complete Data instead?")
+      return message.insert(0, "<html>").append("</html>").toString()
     }
   }
 }
