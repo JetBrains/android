@@ -82,13 +82,13 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
     }
     val fixes = mutableListOf<DescribedBuildIssueQuickFix>()
     // Suggest a version if the message suggests one and it is at least 8
-    if (minimumLevel != null && minimumVersion!!.isAtLeast(8)) {
-      fixes.add(SetJavaLanguageLevelAllQuickFix(minimumLevel, setJvmTarget = true))
+    val suggestedLanguageLevel = when {
+      minimumLevel != null && minimumVersion!!.isAtLeast(8) -> minimumLevel
+      currentVersion == null -> LanguageLevel.JDK_1_8
+      currentVersion.isAtLeast(8) -> LanguageLevel.JDK_11
+      else -> LanguageLevel.JDK_1_8
     }
-    // Suggest 8 if no version is suggested and current is not at least 8 (or cannot be parsed)
-    else if (currentVersion == null || !currentVersion.isAtLeast(8)) {
-      fixes.add(SetJavaLanguageLevelAllQuickFix(LanguageLevel.JDK_1_8, setJvmTarget = true))
-    }
+    fixes.add(SetJavaLanguageLevelAllQuickFix(suggestedLanguageLevel, setJvmTarget = true))
 
     fixes.add(DescribedOpenGradleJdkSettingsQuickfix())
     SetJavaToolchainQuickFix.recommendedToolchainVersionsMap[currentVersion?.feature]?.let {

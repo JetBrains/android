@@ -94,8 +94,8 @@ class JavaLanguageLevelDeprecationOutputParserTest {
 
     buildEvents.filterIsInstance<MessageEvent>().let { events ->
       expect.that(events).hasSize(2)
-      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, ERROR, OpenSourceCompatibilityLinkQuickFix::class.java, 8)
-      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, ERROR, OpenTargetCompatibilityLinkQuickFix::class.java, 8)
+      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, ERROR, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 8)
+      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, ERROR, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 8)
     }
     expect.that(buildEvents.finishEventFailures()).isEmpty()
 
@@ -125,14 +125,14 @@ class JavaLanguageLevelDeprecationOutputParserTest {
 
     buildEvents.filterIsInstance<MessageEvent>().let { events ->
       expect.that(events).hasSize(9)
-      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, 11)
-      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, 11)
+      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11)
+      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11)
       verifyMessage(events[2], suppressMessage, WARNING)
-      verifyBuildIssue(events[3] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, 11)
-      verifyBuildIssue(events[4] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, 11)
+      verifyBuildIssue(events[3] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8,11)
+      verifyBuildIssue(events[4] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11)
       verifyMessage(events[5], suppressMessage, WARNING)
-      verifyBuildIssue(events[6] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, 11)
-      verifyBuildIssue(events[7] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, 11)
+      verifyBuildIssue(events[6] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11)
+      verifyBuildIssue(events[7] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11)
       verifyMessage(events[8], suppressMessage, WARNING)
     }
     expect.that(buildEvents.finishEventFailures()).isEmpty()
@@ -149,10 +149,33 @@ class JavaLanguageLevelDeprecationOutputParserTest {
     expect.that(buildEvents.finishEventFailures()).isEmpty()
   }
 
+  @Test
+  fun testJava8OnJDK21() {
+    val sourceMessage = "[options] source value 8 is obsolete and will be removed in a future release"
+    val targetMessage = "[options] target value 8 is obsolete and will be removed in a future release"
+    val suppressMessage = "[options] To suppress warnings about obsolete options, use -Xlint:-options."
+    val buildEvents = getBuildIssues(JavaSdkVersion.JDK_21, LanguageLevel.JDK_1_8, expectSuccess = true)
+    buildEvents.filterIsInstance<MessageEvent>().let { events ->
+      expect.that(events).hasSize(9)
+      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_11, 17)
+      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_11, 17)
+      verifyMessage(events[2], suppressMessage, WARNING)
+      verifyBuildIssue(events[3] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_11, 17)
+      verifyBuildIssue(events[4] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_11, 17)
+      verifyMessage(events[5], suppressMessage, WARNING)
+      verifyBuildIssue(events[6] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_11, 17)
+      verifyBuildIssue(events[7] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_11, 17)
+      verifyMessage(events[8], suppressMessage, WARNING)
+
+    }
+    expect.that(buildEvents.finishEventFailures()).isEmpty()
+  }
+
   private fun verifyBuildIssue(event: BuildIssueEvent,
                                expectedMessage: String,
                                expectedKind: MessageEvent.Kind,
                                compatibilityFix: Class<out OpenLinkDescribedQuickFix>,
+                               suggestedLanguageLevel: LanguageLevel,
                                suggestedToolchainVersion: Int) {
     expect.that(event.kind).isEqualTo(expectedKind)
     expect.that(event.message).isEqualTo(expectedMessage)
@@ -167,7 +190,7 @@ class JavaLanguageLevelDeprecationOutputParserTest {
         compatibilityFix,
         OpenJavaLanguageSpecQuickFix::class.java
       ).inOrder()
-      expect.that((fixes[0] as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(LanguageLevel.JDK_1_8)
+      expect.that((fixes[0] as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(suggestedLanguageLevel)
       with(fixes[2] as SetJavaToolchainQuickFix) {
         assertThat(versionToSet).isEqualTo(suggestedToolchainVersion)
         assertThat(gradleModules).containsExactly(":app")

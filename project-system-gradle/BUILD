@@ -160,6 +160,7 @@ iml_module(
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
                 "//tools/base/build-system:gradle-distrib",
                 "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//prebuilts/studio/jdk:jdk21",
             ],
         },
         "other": {
