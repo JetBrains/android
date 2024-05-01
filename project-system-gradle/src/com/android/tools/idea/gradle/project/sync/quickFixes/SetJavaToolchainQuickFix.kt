@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.lang.JavaVersion
 import java.util.concurrent.CompletableFuture
 
 class SetJavaToolchainQuickFix(
@@ -58,6 +59,10 @@ class SetJavaToolchainQuickFix(
       7 to 11,
       8 to 17,
     )
+
+    fun forCurrentVersion(currentVersion: JavaVersion, modules: List<String>) = recommendedToolchainVersionsMap[currentVersion.feature]?.let {
+      SetJavaToolchainQuickFix(it, modules)
+    }
   }
 }
 

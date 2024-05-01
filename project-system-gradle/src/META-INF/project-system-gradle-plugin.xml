@@ -275,6 +275,7 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedJdkMinimumVersionIssueChecker"/>
     <issueChecker id="UnsupportedGradleVersionIssueChecker" implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.build.errors.DeprecatedJavaLanguageLevelIssueChecker"/>
     <gradleJvmResolver implementation="com.android.tools.idea.gradle.resolvers.GradleJvmEnvironmentStudioJdkResolver" order="first" />
     <importCustomizer implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleImportCustomizer"/>
     <settingsControlProvider implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettingsControlProvider"/>

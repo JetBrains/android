@@ -54,7 +54,14 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
   private val warning_prefix = "warning:"
   private val obsoletePattern = Pattern.compile(
     "warning: \\[options] (source|target) value (\\S+) is obsolete and will be removed in a future release")
-  private val notSupportedPattern = Pattern.compile("error: (Source|Target) option (\\S+) is no longer supported. Use (\\S+) or later.")
+  private val notSupportedPattern = Pattern.compile("error: (Source|Target) option (\\S+) is no longer supported\\. Use (\\S+) or later\\.")
+
+  companion object {
+    // AGP 8.4 Pattern
+    val javaVersionRemovedPattern = Pattern.compile(
+      "Java compiler version (\\d+) has removed support for compiling with source/target version (\\d+)\\.?"
+    )
+  }
 
   fun getQuickFixes(message: String, modulePath: String): List<DescribedBuildIssueQuickFix> {
     val typeOfCompatibilityIssue: String?

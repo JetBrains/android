@@ -20,6 +20,7 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.build.output.DescribedOpenGradleJdkSettingsQuickfix
+import com.android.tools.idea.gradle.project.build.quickFixes.OpenBuildJdkInfoLinkQuickFix
 import com.android.tools.idea.gradle.project.build.quickFixes.OpenJavaLanguageSpecQuickFix
 import com.android.tools.idea.gradle.project.build.quickFixes.OpenSourceCompatibilityLinkQuickFix
 import com.android.tools.idea.gradle.project.build.quickFixes.OpenTargetCompatibilityLinkQuickFix
@@ -54,6 +55,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.containers.ContainerUtil
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
@@ -147,6 +149,47 @@ class JavaLanguageLevelDeprecationOutputParserTest {
     // Make sure no error or warning events are generated
     expect.that(buildEvents.filterIsInstance<MessageEvent>()).isEmpty()
     expect.that(buildEvents.finishEventFailures()).isEmpty()
+  }
+
+  @Test
+  fun testJava7OnJDK21() {
+    val buildEvents = getBuildIssues(JavaSdkVersion.JDK_21, LanguageLevel.JDK_1_7, expectSuccess = false)
+    buildEvents.filterIsInstance<MessageEvent>().let { events ->
+      expect.that(events).hasSize(1)
+      events.firstOrNull()?.let {
+        expect.that(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
+        expect.that(it.message).isEqualTo("Java compiler version 21 has removed support for compiling with source/target version 7")
+        expect.that(it).isInstanceOf(BuildIssueEvent::class.java)
+        val issue = (it as? BuildIssueEvent)?.issue
+        expect.that(issue).isNotNull()
+        issue?.let { issue ->
+          val fixes = issue.quickFixes
+          expect.that(fixes.map { it.javaClass }).containsExactly(
+            SetJavaToolchainQuickFix::class.java,
+            SetJavaLanguageLevelAllQuickFix::class.java,
+            PickLanguageLevelInPSDQuickFix::class.java,
+            DescribedOpenGradleJdkSettingsQuickfix::class.java,
+            OpenBuildJdkInfoLinkQuickFix::class.java
+          ).inOrder()
+          fixes.filterIsInstance<SetJavaLanguageLevelAllQuickFix>().firstOrNull()?.let {
+            expect.that(it.level).isEqualTo(LanguageLevel.JDK_11)
+          }
+          fixes.filterIsInstance<SetJavaToolchainQuickFix>().firstOrNull()?.let {
+            expect.that(it.versionToSet).isEqualTo(11)
+            expect.that(it.gradleModules).containsExactly(":app")
+          }
+        }
+      }
+    }
+    expect.that(buildEvents.finishEventFailures()).isEmpty()
+    val reportedFailureDetails = usageTracker.usages
+      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
+    expect.that(reportedFailureDetails).hasSize(1)
+    reportedFailureDetails.map { it.studioEvent }.firstOrNull()?.let {
+      // TODO add proper error type for this.
+      expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+        .containsExactly(UNKNOWN_ERROR_TYPE)
+    }
   }
 
   @Test
