@@ -76,19 +76,23 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
 
   override fun getGroupDisplayName() = message("inspection.group.name")
 
+  fun isPreview(annotation: KtAnnotationEntry) =
+    annotation.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN)
+
+  fun isPreviewOrMultiPreview(annotation: KtAnnotationEntry) =
+    isPreview(annotation) || (annotation.toUElement() as? UAnnotation).isMultiPreviewAnnotation()
+
   /**
    * Called for every `@Preview` and MultiPreview annotation, that is annotating a function.
    *
    * @param holder A [ProblemsHolder] user to report problems
    * @param function The function that was annotated with `@Preview` or with a MultiPreview
    * @param previewAnnotation The `@Preview` or MultiPreview annotation
-   * @param isMultiPreview true when [previewAnnotation] is a MultiPreview
    */
   abstract fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   )
 
   /**
@@ -99,13 +103,11 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
    * @param annotationClass The annotation class that was annotated with `@Preview` or with a
    *   MultiPreview
    * @param previewAnnotation The `@Preview` or MultiPreview annotation
-   * @param isMultiPreview true when [previewAnnotation] is a MultiPreview
    */
   abstract fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   )
 
   final override fun buildVisitor(
@@ -129,8 +131,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
         override fun visitAnnotationEntry(annotationEntry: KtAnnotationEntry) {
           super.visitAnnotationEntry(annotationEntry)
 
-          isPreviewFile =
-            isPreviewFile || annotationEntry.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN)
+          isPreviewFile = isPreviewFile || isPreview(annotationEntry)
           isComposableFile =
             isComposableFile || annotationEntry.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME)
         }
@@ -143,15 +144,8 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
           }
 
           function.annotationEntries.forEach {
-            when {
-              // Preview
-              it.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN) ->
-                visitPreviewAnnotation(holder, function, it, false)
-              // MultiPreview
-              (it.toUElement() as? UAnnotation).isMultiPreviewAnnotation() ->
-                visitPreviewAnnotation(holder, function, it, true)
-              // Other
-              else -> return@forEach // do nothing
+            if (isPreviewOrMultiPreview(it)) {
+              visitPreviewAnnotation(holder, function, it)
             }
           }
         }
@@ -162,15 +156,8 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
           if (!klass.isAnnotation()) return
 
           klass.annotationEntries.forEach {
-            when {
-              // Preview
-              it.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN) ->
-                visitPreviewAnnotation(holder, klass, it, false)
-              // MultiPreview
-              (it.toUElement() as? UAnnotation).isMultiPreviewAnnotation() ->
-                visitPreviewAnnotation(holder, klass, it, true)
-              // Other
-              else -> return@forEach // do nothing
+            if (isPreviewOrMultiPreview(it)) {
+              visitPreviewAnnotation(holder, klass, it)
             }
           }
         }
@@ -198,7 +185,6 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
     if (function.valueParameters.any { !it.isAcceptableForPreview() }) {
       holder.registerProblem(
@@ -213,7 +199,6 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
     // This inspection only applies for functions, not for Annotation classes
     return
@@ -231,7 +216,6 @@ class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspect
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
     // Find the second PreviewParameter annotation if any
     val secondPreviewParameter =
@@ -256,7 +240,6 @@ class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspect
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
     // This inspection only applies for functions, not for Annotation classes
     return
@@ -275,7 +258,6 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
     val nonComposable =
       function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }
@@ -292,7 +274,6 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
     // This inspection only applies for functions, not for Annotation classes
     return
@@ -311,7 +292,6 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
     if (function.isValidPreviewLocation()) return
 
@@ -326,7 +306,6 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
     // This inspection only applies for functions, not for Annotation classes
     return
@@ -344,27 +323,22 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
-    checkMaxWidthAndHeight(holder, previewAnnotation, isMultiPreview)
+    checkMaxWidthAndHeight(holder, previewAnnotation)
   }
 
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
-    checkMaxWidthAndHeight(holder, previewAnnotation, isMultiPreview)
+    checkMaxWidthAndHeight(holder, previewAnnotation)
   }
 
-  private fun checkMaxWidthAndHeight(
-    holder: ProblemsHolder,
-    previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
-  ) {
-    // MultiPreview parameters don't affect the Previews
-    if (isMultiPreview) return
+  private fun checkMaxWidthAndHeight(holder: ProblemsHolder, previewAnnotation: KtAnnotationEntry) {
+    // If it's not a preview, it must be a MultiPreview, and MultiPreview parameters don't affect
+    // the Previews
+    if (!isPreview(previewAnnotation)) return
 
     previewAnnotation.findValueArgument(PARAMETER_WIDTH_DP)?.let {
       if (it.exceedsLimit(MAX_WIDTH)) {
@@ -397,27 +371,22 @@ class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() 
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
-    checkMinFontScale(holder, previewAnnotation, isMultiPreview)
+    checkMinFontScale(holder, previewAnnotation)
   }
 
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
-    checkMinFontScale(holder, previewAnnotation, isMultiPreview)
+    checkMinFontScale(holder, previewAnnotation)
   }
 
-  private fun checkMinFontScale(
-    holder: ProblemsHolder,
-    previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
-  ) {
-    // MultiPreview parameters don't affect the Previews
-    if (isMultiPreview) return
+  private fun checkMinFontScale(holder: ProblemsHolder, previewAnnotation: KtAnnotationEntry) {
+    // If it's not a preview, it must be a MultiPreview, and MultiPreview parameters don't affect
+    // the Previews
+    if (!isPreview(previewAnnotation)) return
 
     previewAnnotation.findValueArgument(PARAMETER_FONT_SCALE)?.let {
       val argumentExpression = it.getArgumentExpression() ?: return
@@ -442,27 +411,22 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
-    checkApiLevelIsValid(holder, previewAnnotation, isMultiPreview)
+    checkApiLevelIsValid(holder, previewAnnotation)
   }
 
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
-    checkApiLevelIsValid(holder, previewAnnotation, isMultiPreview)
+    checkApiLevelIsValid(holder, previewAnnotation)
   }
 
-  private fun checkApiLevelIsValid(
-    holder: ProblemsHolder,
-    previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
-  ) {
-    // MultiPreview parameters don't affect the Previews
-    if (isMultiPreview) return
+  private fun checkApiLevelIsValid(holder: ProblemsHolder, previewAnnotation: KtAnnotationEntry) {
+    // If it's not a preview, it must be a MultiPreview, and MultiPreview parameters don't affect
+    // the Previews
+    if (!isPreview(previewAnnotation)) return
 
     val supportedApiLevels =
       previewAnnotation.module?.let { module ->
@@ -504,7 +468,6 @@ class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
     // If the annotation is not in a unit test file, then this inspection has nothing to do
     if (!function.isInUnitTestFile()) return
@@ -520,7 +483,6 @@ class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
     // This inspection only applies for functions, not for Annotation classes
     return

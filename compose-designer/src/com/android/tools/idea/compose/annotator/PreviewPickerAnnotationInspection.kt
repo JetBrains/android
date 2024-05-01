@@ -58,27 +58,22 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
     holder: ProblemsHolder,
     function: KtNamedFunction,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
-    runPreviewPickerChecks(holder, previewAnnotation, isMultiPreview)
+    runPreviewPickerChecks(holder, previewAnnotation)
   }
 
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     annotationClass: KtClass,
     previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
   ) {
-    runPreviewPickerChecks(holder, previewAnnotation, isMultiPreview)
+    runPreviewPickerChecks(holder, previewAnnotation)
   }
 
-  private fun runPreviewPickerChecks(
-    holder: ProblemsHolder,
-    previewAnnotation: KtAnnotationEntry,
-    isMultiPreview: Boolean,
-  ) {
-    // MultiPreviews are not relevant for the PreviewPicker
-    if (isMultiPreview) return
+  private fun runPreviewPickerChecks(holder: ProblemsHolder, previewAnnotation: KtAnnotationEntry) {
+    // If it's not a preview, it must be a MultiPreview, and MultiPreviews are not relevant for the
+    // PreviewPicker
+    if (!isPreview(previewAnnotation)) return
 
     if (previewAnnotation.getModuleSystem()?.isPreviewPickerEnabled() != true) return
 
