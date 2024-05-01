@@ -69,7 +69,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
       // There are multiple profiler executors. The project's build system determines their applicability.
       if (projectSystem.supportsProfilingMode()) {
         if (AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId) == null) {
-          // Anything other than "Profile with low overhead (profileable)" and "Profile with complete data (debuggable)" cannot run.
+          // Anything other than "Run as profileable (low overhead)" and "Run as debuggable (complete data)" cannot run.
           return false
         }
       }

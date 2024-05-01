@@ -175,13 +175,13 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
       return when (studioProfiler.selectedSessionSupportLevel) {
         SupportLevel.DEBUGGABLE -> DismissibleMessage.of(studioProfiler,
                                                          showDebuggableMessage,
-                                                         "Profiling with complete data. This does not represent app performance in production." +
-                                                         " Consider profiling with low overhead.",
+                                                         "Profiling as debuggable. This does not represent app performance in production." +
+                                                         " Consider profiling as profileable.",
                                                          SupportLevel.DOC_LINK)
 
         SupportLevel.PROFILEABLE -> DismissibleMessage.of(studioProfiler,
                                                           showProfileableMessage,
-                                                          "Profiling with low overhead. Certain profiler features will be unavailable in this mode.",
+                                                          "Profiling as profileable. Certain profiler features will be unavailable in this mode.",
                                                           SupportLevel.DOC_LINK)
 
         else -> {
