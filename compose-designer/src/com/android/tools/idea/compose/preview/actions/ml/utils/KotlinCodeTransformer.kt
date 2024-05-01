@@ -118,7 +118,7 @@ private fun generateKotlinCodeBlock(
 ): KotlinCodeBlock {
   val codeParser = KotlinParser(project, psiFile)
   // Remove markdown Kotlin code formatting
-  val codeResponse = botResponse.substringAfter("```kotlin").substringBeforeLast("```")
+  val codeResponse = botResponse.substringAfter("```kotlin").substringBeforeLast("```").trim()
   // TODO: handle errors
   val parsedBlock = codeParser.parse(codeResponse)
   return parsedBlock
