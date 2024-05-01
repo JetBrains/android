@@ -756,6 +756,7 @@ class AndroidRunConfigurationExecutorTest {
 
   @Test
   fun runAPI33() {
+    println("Starting runAPI33")
     val deviceState = fakeAdb.connectAndWaitForDevice()
     val latch = CountDownLatch(1)
     deviceState.setActivityManager { args, _ ->
@@ -820,5 +821,6 @@ class AndroidRunConfigurationExecutorTest {
     //  fail("Process handler didn't stop when debug process terminated")
     //}
     processHandler.destroyProcess()
+    println("Finished runAPI33")
   }
 }
