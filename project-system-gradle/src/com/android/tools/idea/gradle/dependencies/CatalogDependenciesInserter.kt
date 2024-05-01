@@ -92,6 +92,7 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
     }
   }
 
+  // We ignore setting plugin block as we cannot add reference to catalog here
   override fun addPlugin(pluginId: String,
                          version: String,
                          apply: Boolean?,
@@ -102,9 +103,6 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
     val moduleInsertion = isSingleModuleProject() || buildModel.psiFile != projectModel.projectBuildModel?.psiFile
     return getOrAddPluginToCatalog(pluginId, version, matcher) { alias, changedFiles ->
       val reference = ReferenceTo(getCatalogModel().plugins().findProperty(alias))
-      settingsPlugins.applyPlugin(reference, apply)
-      changedFiles.addIfNotNull(settingsPlugins.psiElement?.containingFile)
-
       if (moduleInsertion && !buildModel.hasPlugin(matcher)) {
         buildModel.applyPlugin(reference, null)
         changedFiles.addIfNotNull(buildModel.psiFile)

@@ -33,6 +33,13 @@ class DefaultRecipeExecutorWithGradleModelTest : GradleFileModelTestCase("tools/
   private val mockProjectTemplateData = MockitoKt.mock<ProjectTemplateData>()
   private val mockModuleTemplateData = MockitoKt.mock<ModuleTemplateData>()
 
+  private val EMPTY_SETTINGS_CONTENT = """
+     pluginManagement {
+       plugins {
+       }
+     }
+    """.trimIndent()
+
   private val renderingContext by lazy {
     RenderingContext(
       project,
@@ -184,12 +191,7 @@ class DefaultRecipeExecutorWithGradleModelTest : GradleFileModelTestCase("tools/
   fun testApplyKotlinPluginWithoutVersionCatalog() {
     deleteVersionCatalogFile()
 
-    writeToSettingsFile("""
-pluginManagement {
-  plugins {
-  }
-}
-    """)
+    writeToSettingsFile(EMPTY_SETTINGS_CONTENT)
 
     recipeExecutor.applyPlugin("org.jetbrains.kotlin.android", "1.7.20")
 
@@ -201,12 +203,7 @@ pluginManagement {
 
   @Test
   fun testApplyKotlinPluginWithVersionCatalog() {
-    writeToSettingsFile("""
-pluginManagement {
-  plugins {
-  }
-}
-    """)
+    writeToSettingsFile(EMPTY_SETTINGS_CONTENT)
 
     recipeExecutor.applyPlugin("org.jetbrains.kotlin.android", "1.7.20")
 
@@ -218,18 +215,13 @@ kotlin = "1.7.20"
 [plugins]
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
     """)
-    verifyFileContents(mySettingsFile, TestFile.APPLY_KOTLIN_PLUGIN_SETTING_FILE)
+    verifyFileContents(mySettingsFile, EMPTY_SETTINGS_CONTENT)
     verifyFileContents(myBuildFile, TestFile.APPLY_KOTLIN_PLUGIN_BUILD_FILE)
   }
 
   @Test
   fun testApplyKotlinPluginWithVersionCatalog_sameVersionNameExists() {
-    writeToSettingsFile("""
-pluginManagement {
-  plugins {
-  }
-}
-    """)
+    writeToSettingsFile(EMPTY_SETTINGS_CONTENT)
     writeToVersionCatalogFile("""
 [versions]
 kotlin = "100"
@@ -251,18 +243,13 @@ kotlinVersion = "1.7.20"
 fake-plugin = { id = "fake.plugin", version.ref = "kotlin" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }
     """)
-    verifyFileContents(mySettingsFile, TestFile.APPLY_KOTLIN_PLUGIN_SETTING_FILE)
+    verifyFileContents(mySettingsFile, EMPTY_SETTINGS_CONTENT)
     verifyFileContents(myBuildFile, TestFile.APPLY_KOTLIN_PLUGIN_BUILD_FILE)
   }
 
   @Test
   fun testApplyNonCommonPlugin() {
-    writeToSettingsFile("""
-pluginManagement {
-  plugins {
-  }
-}
-    """)
+    writeToSettingsFile(EMPTY_SETTINGS_CONTENT)
 
     recipeExecutor.applyPlugin("not.common.plugin", "1.0.2")
 
@@ -274,19 +261,13 @@ not = "1.0.2"
 [plugins]
 not = { id = "not.common.plugin", version.ref = "not" }
     """)
-    verifyFileContents(mySettingsFile, TestFile.APPLY_NOT_COMMON_PLUGIN_SETTING_FILE)
+    verifyFileContents(mySettingsFile, EMPTY_SETTINGS_CONTENT)
     verifyFileContents(myBuildFile, TestFile.APPLY_NOT_COMMON_PLUGIN_BUILD_FILE)
   }
 
   @Test
   fun testAddAgpPlugin_noAgpPluginHasNotDeclared() {
-    writeToSettingsFile("""
-pluginManagement {
-  plugins {
-  }
-}
-"""
-    )
+    writeToSettingsFile(EMPTY_SETTINGS_CONTENT)
     writeToVersionCatalogFile("""
 [versions]
 [libraries]
@@ -304,19 +285,13 @@ agp = "8.0.0"
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
     """)
-    verifyFileContents(mySettingsFile, TestFile.APPLY_AGP_PLUGIN_SETTING_FILE)
+    verifyFileContents(mySettingsFile, EMPTY_SETTINGS_CONTENT)
     verifyFileContents(myBuildFile, TestFile.APPLY_AGP_PLUGIN_BUILD_FILE)
   }
 
   @Test
   fun testAddAgpPlugin_samePluginNameExists() {
-    writeToSettingsFile("""
-pluginManagement {
-  plugins {
-  }
-}
-"""
-    )
+    writeToSettingsFile(EMPTY_SETTINGS_CONTENT)
     writeToVersionCatalogFile("""
 [versions]
 fake = "100"
@@ -338,18 +313,13 @@ agp = "8.0.0"
 android-application = { id = "fake.plugin", version.ref = "fake" }
 com-android-application = { id = "com.android.application", version.ref = "agp" }
     """)
-    verifyFileContents(mySettingsFile, TestFile.APPLY_AGP_PLUGIN_WITH_REVISION_SETTING_FILE)
+    verifyFileContents(mySettingsFile, EMPTY_SETTINGS_CONTENT)
     verifyFileContents(myBuildFile, TestFile.APPLY_AGP_PLUGIN_WITH_REVISION_BUILD_FILE)
   }
 
   @Test
   fun testAddAgpPlugin_anotherAgpPluginHasDeclared() {
-    writeToSettingsFile("""
-pluginManagement {
-  plugins {
-  }
-}
-    """)
+    writeToSettingsFile(EMPTY_SETTINGS_CONTENT)
     writeToVersionCatalogFile("""
 [versions]
 agp = "8.0.0"
@@ -374,12 +344,7 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 
   @Test
   fun testAddAgpPlugin_anotherAgpPluginHasDeclaredInDifferentVersion() {
-    writeToSettingsFile("""
-pluginManagement {
-  plugins {
-  }
-}
-    """)
+    writeToSettingsFile(EMPTY_SETTINGS_CONTENT)
     writeToVersionCatalogFile("""
 [versions]
 agp = "8.0.0"
@@ -406,12 +371,7 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 
   @Test
   fun testAddAgpPlugin_anotherAgpPluginHasDeclared_withDifferentNameFromDefault() {
-    writeToSettingsFile("""
-pluginManagement {
-  plugins {
-  }
-}
-    """)
+    writeToSettingsFile(EMPTY_SETTINGS_CONTENT)
     // Another AGP plugin is declared with the version name different from the default
     writeToVersionCatalogFile("""
 [versions]
@@ -438,12 +398,7 @@ android-library = { id = "com.android.library", version.ref = "agp-version" }
 
   @Test
   fun testAddAgpPlugin_anotherAgpPluginHasDeclared_inLiteral() {
-    writeToSettingsFile("""
-pluginManagement {
-  plugins {
-  }
-}
-    """)
+    writeToSettingsFile(EMPTY_SETTINGS_CONTENT)
     // Existing AGP plugin's version is written as a string literal
     writeToVersionCatalogFile("""
 [versions]
@@ -469,12 +424,7 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 
   @Test
   fun testAddAgpPlugin_differentPluginUseDefaultNameForAgp() {
-    writeToSettingsFile("""
-pluginManagement {
-  plugins {
-  }
-}
-    """)
+    writeToSettingsFile(EMPTY_SETTINGS_CONTENT)
     // Another plugin already use the default name ("agp") for AGP plugins
     writeToVersionCatalogFile("""
 [versions]
@@ -508,13 +458,9 @@ android-library = { id = "com.android.library", version.ref = "agpVersion" }
     NO_VERSION_CATALOG_APPLY_KOTLIN_PLUGIN_BUILD_FILE("noVersionCatalogApplyKotlinPlugin"),
     NO_VERSION_CATALOG_APPLY_KOTLIN_PLUGIN_SETTING_FILE("noVersionCatalogApplyKotlinPlugin.settings"),
     APPLY_KOTLIN_PLUGIN_BUILD_FILE("versionCatalogApplyKotlinPlugin"),
-    APPLY_KOTLIN_PLUGIN_SETTING_FILE("versionCatalogApplyKotlinPlugin.settings"),
     APPLY_NOT_COMMON_PLUGIN_BUILD_FILE("versionCatalogApplyNotCommonPlugin"),
-    APPLY_NOT_COMMON_PLUGIN_SETTING_FILE("versionCatalogApplyNotCommonPlugin.settings"),
     APPLY_AGP_PLUGIN_BUILD_FILE("versionCatalogApplyAgpPlugin"),
-    APPLY_AGP_PLUGIN_SETTING_FILE("versionCatalogApplyAgpPlugin.settings"),
     APPLY_AGP_PLUGIN_WITH_REVISION_BUILD_FILE("versionCatalogApplyAgpPluginWithRevision"),
-    APPLY_AGP_PLUGIN_WITH_REVISION_SETTING_FILE("versionCatalogApplyAgpPluginWithRevision.settings"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

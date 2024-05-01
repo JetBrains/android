@@ -39,7 +39,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
-import junit.framework.TestCase
 import org.apache.commons.lang3.StringUtils.countMatches
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -294,6 +293,47 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
 
              val buildFileContent = project.getTextForFile("app/build.gradle")
              assertThat(buildFileContent).contains("alias(libs.plugins.example.foo)")
+           })
+  }
+
+  @Test
+  fun testAddPluginSettingsWithCatalog() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { projectModel, buildModel, helper ->
+             val plugins = projectModel.projectSettingsModel!!.pluginManagement().plugins()
+             val changed = helper.addPlugin("com.example.foo", "10.0", false, plugins, buildModel)
+             assertThat(changed.size).isEqualTo(2) // versions.toml and build.gradle
+           },
+           {
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).doesNotContain("example.foo")
+
+             val moduleBuildContent = project.getTextForFile("app/build.gradle")
+             assertThat(moduleBuildContent).contains("example.foo")
+
+             val settingsBuildContent = project.getTextForFile("settings.gradle")
+             assertThat(settingsBuildContent).doesNotContain("example.foo")
+
+             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(catalogContent).contains("com.example.foo")
+           })
+  }
+
+  @Test
+  fun testAddPluginSettings() {
+    doTest(SIMPLE_APPLICATION,
+           { projectModel, buildModel, helper ->
+             val plugins = projectModel.projectSettingsModel!!.pluginManagement().plugins()
+             val changed = helper.addPlugin("com.example.foo", "10.0", false, plugins, buildModel)
+             assertThat(changed.size).isEqualTo(2)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("app/build.gradle")
+             assertThat(projectBuildContent).contains("example.foo")
+
+             val settingsBuildContent = project.getTextForFile("settings.gradle")
+             val pluginsBlockContent = getBlockContent(settingsBuildContent, "pluginManagement.plugins")
+             assertThat(pluginsBlockContent).contains("'com.example.foo' version '10.0'")
            })
   }
 
