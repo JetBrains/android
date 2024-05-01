@@ -336,7 +336,7 @@ internal class DeviceClient(
 
   private suspend fun readChannelMarker(channel: SuspendingSocketChannel): Byte {
     val buf = ByteBuffer.allocate(1)
-    channel.read(buf, getConnectionTimeout(), TimeUnit.MILLISECONDS)
+    channel.read(buf, getConnectionTimeout() + 2000, TimeUnit.MILLISECONDS)
     buf.flip()
     return buf.get()
   }
