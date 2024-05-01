@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.build.quickFixes
+package com.android.tools.idea.gradle.project.build.output
 
+import com.android.tools.idea.gradle.project.build.quickFixes.OpenJavaLanguageSpecQuickFix
+import com.android.tools.idea.gradle.project.build.quickFixes.OpenSourceCompatibilityLinkQuickFix
+import com.android.tools.idea.gradle.project.build.quickFixes.OpenTargetCompatibilityLinkQuickFix
+import com.android.tools.idea.gradle.project.build.quickFixes.PickLanguageLevelInPSDQuickFix
+import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleJdkSettingsQuickfix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
+import com.intellij.build.events.BuildEvent
+import com.intellij.build.events.MessageEvent
+import com.intellij.build.events.impl.BuildIssueEventImpl
+import com.intellij.build.output.BuildOutputInstantReader
+import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.util.lang.JavaVersion
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import java.util.regex.Pattern
 
 /**
@@ -36,12 +47,14 @@ import java.util.regex.Pattern
  *    - Open a link to source (or target) compatibility documentation
  *    - Open a link to Java Language Spec
  */
-class JavaDeprecatedProvider : AndroidGradlePluginQuickFixProvider {
+class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
+  private val error_prefix = "error:"
+  private val warning_prefix = "warning:"
   private val obsoletePattern = Pattern.compile(
     "warning: \\[options] (source|target) value (\\S+) is obsolete and will be removed in a future release")
   private val notSupportedPattern = Pattern.compile("error: (Source|Target) option (\\S+) is no longer supported. Use (\\S+) or later.")
 
-  override fun getQuickFixes(message: String): List<DescribedBuildIssueQuickFix> {
+  fun getQuickFixes(message: String): List<DescribedBuildIssueQuickFix> {
     val typeOfCompatibilityIssue: String?
     val obsoleteMatcher = obsoletePattern.matcher(message)
     val currentVersion: JavaVersion?
@@ -74,6 +87,7 @@ class JavaDeprecatedProvider : AndroidGradlePluginQuickFixProvider {
     else if (currentVersion == null || !currentVersion.isAtLeast(8)) {
       fixes.add(SetJavaLanguageLevelAllQuickFix(LanguageLevel.JDK_1_8, setJvmTarget = true))
     }
+
     fixes.add(DescribedOpenGradleJdkSettingsQuickfix())
     fixes.add(PickLanguageLevelInPSDQuickFix())
     if (typeOfCompatibilityIssue == "source") {
@@ -86,6 +100,37 @@ class JavaDeprecatedProvider : AndroidGradlePluginQuickFixProvider {
     return fixes
   }
 
+  override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
+    val kind: MessageEvent.Kind
+    val message: String
+    if (warning_prefix.regionMatches(0, line, 0, warning_prefix.length,
+                                                                     ignoreCase = true)) {
+      message = line.substring(warning_prefix.length).trim { it <= ' ' }
+      kind = MessageEvent.Kind.WARNING
+    }
+    else if (error_prefix.regionMatches(0, line, 0, error_prefix.length,
+                                                                   ignoreCase = true)) {
+      message = line.substring(error_prefix.length).trim { it <= ' ' }
+      kind = MessageEvent.Kind.ERROR
+    }
+    else {
+      return false
+    }
+
+    val quickFixes = getQuickFixes(line)
+
+    if (quickFixes.isEmpty()) {
+      //We did not successfully parse this.
+      return false
+    }
+
+    val issueComposer = BuildIssueComposer(message, message)
+    for (fix in quickFixes) {
+      issueComposer.addQuickFix(fix)
+    }
+    messageConsumer.accept(BuildIssueEventImpl(reader.parentEventId, issueComposer.composeBuildIssue(), kind))
+    return true
+  }
 }
 
 class DescribedOpenGradleJdkSettingsQuickfix : DescribedBuildIssueQuickFix {

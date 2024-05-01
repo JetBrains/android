@@ -15,18 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.build.output;
 
-import com.android.tools.idea.gradle.project.build.quickFixes.AndroidGradlePluginQuickFixProvider;
-import com.android.tools.idea.gradle.project.build.quickFixes.JavaDeprecatedProvider;
-import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer;
-import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.MessageEvent;
-import com.intellij.build.events.impl.BuildIssueEventImpl;
 import com.intellij.build.events.impl.MessageEventImpl;
 import com.intellij.build.output.BuildOutputInstantReader;
 import com.intellij.build.output.BuildOutputParser;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +38,6 @@ public class AndroidGradlePluginOutputParser implements BuildOutputParser {
   private static final String WARNING_PREFIX = "warning:"; // Prefix used by the Android Gradle Plugin when reporting warnings.
   @NotNull
   private static final String ERROR_PREFIX = "error:"; // Prefix used by the Android Gradle Plugin when reporting error.
-  private final List<AndroidGradlePluginQuickFixProvider> decorators = List.of(new JavaDeprecatedProvider());
   @Override
   public boolean parse(String line, BuildOutputInstantReader reader, Consumer<? super BuildEvent> messageConsumer) {
     MessageEvent.Kind kind = null;
@@ -63,20 +55,7 @@ public class AndroidGradlePluginOutputParser implements BuildOutputParser {
       return false;
     }
 
-    ArrayList<DescribedBuildIssueQuickFix> quickFixes = new ArrayList<>();
-    for (AndroidGradlePluginQuickFixProvider decorator : decorators) {
-      quickFixes.addAll(decorator.getQuickFixes(line));
-    }
-    if (quickFixes.isEmpty()) {
-      messageConsumer.accept(new MessageEventImpl(reader.getParentEventId(), kind, ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP, message, message));
-    }
-    else {
-      BuildIssueComposer issueComposer = new BuildIssueComposer(message, message);
-      for (DescribedBuildIssueQuickFix fix : quickFixes) {
-        issueComposer.addQuickFix(fix);
-      }
-      messageConsumer.accept(new BuildIssueEventImpl(reader.getParentEventId(), issueComposer.composeBuildIssue(), kind));
-    }
+    messageConsumer.accept(new MessageEventImpl(reader.getParentEventId(), kind, ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP, message, message));
 
     return true;
   }

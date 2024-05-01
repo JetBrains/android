@@ -36,6 +36,7 @@ class BuildOutputParserManager @TestOnly constructor(
                                                       ClangOutputParser(),
                                                       CmakeOutputParser(),
                                                       XmlErrorOutputParser(),
+                                                      JavaLanguageLevelDeprecationOutputParser(),
                                                       AndroidGradlePluginOutputParser(),
                                                       DataBindingOutputParser(),
                                                       JavacOutputParser(),
