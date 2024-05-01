@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleJdkSettingsQuickfix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaToolchainQuickFix
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
@@ -54,7 +56,7 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
     "warning: \\[options] (source|target) value (\\S+) is obsolete and will be removed in a future release")
   private val notSupportedPattern = Pattern.compile("error: (Source|Target) option (\\S+) is no longer supported. Use (\\S+) or later.")
 
-  fun getQuickFixes(message: String): List<DescribedBuildIssueQuickFix> {
+  fun getQuickFixes(message: String, modulePath: String): List<DescribedBuildIssueQuickFix> {
     val typeOfCompatibilityIssue: String?
     val obsoleteMatcher = obsoletePattern.matcher(message)
     val currentVersion: JavaVersion?
@@ -89,6 +91,9 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
     }
 
     fixes.add(DescribedOpenGradleJdkSettingsQuickfix())
+    SetJavaToolchainQuickFix.recommendedToolchainVersionsMap[currentVersion?.feature]?.let {
+      fixes.add(SetJavaToolchainQuickFix(it, listOf(modulePath)))
+    }
     fixes.add(PickLanguageLevelInPSDQuickFix())
     if (typeOfCompatibilityIssue == "source") {
       fixes.add(OpenSourceCompatibilityLinkQuickFix())
@@ -117,7 +122,10 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
       return false
     }
 
-    val quickFixes = getQuickFixes(line)
+    val taskName = extractTaskNameFromId(reader.parentEventId) ?: return false
+    val modulePath = GradleProjectSystemUtil.getParentModulePath(taskName)
+
+    val quickFixes = getQuickFixes(line, modulePath)
 
     if (quickFixes.isEmpty()) {
       //We did not successfully parse this.
@@ -130,6 +138,19 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
     }
     messageConsumer.accept(BuildIssueEventImpl(reader.parentEventId, issueComposer.composeBuildIssue(), kind))
     return true
+  }
+
+  private fun extractTaskNameFromId(parentEventId: Any): String? {
+    if (parentEventId !is String) {
+      return null
+    }
+    //[-447475743:244193606] > [Task :app:compileDebugJavaWithJavac]
+    val taskNamePattern = Pattern.compile("> \\[Task (?<gradleFullTaskName>(?::[^:]+)*)]")
+    val matcher = taskNamePattern.matcher(parentEventId as String)
+    if (matcher.find()) {
+      return matcher.group("gradleFullTaskName")
+    }
+    return null
   }
 }
 

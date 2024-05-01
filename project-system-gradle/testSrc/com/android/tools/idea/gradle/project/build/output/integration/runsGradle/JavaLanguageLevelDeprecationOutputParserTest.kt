@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.build.quickFixes.OpenTargetCompatib
 import com.android.tools.idea.gradle.project.build.quickFixes.PickLanguageLevelInPSDQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.OpenLinkDescribedQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaToolchainQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -93,8 +94,8 @@ class JavaLanguageLevelDeprecationOutputParserTest {
 
     buildEvents.filterIsInstance<MessageEvent>().let { events ->
       expect.that(events).hasSize(2)
-      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, ERROR, OpenSourceCompatibilityLinkQuickFix::class.java)
-      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, ERROR, OpenTargetCompatibilityLinkQuickFix::class.java)
+      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, ERROR, OpenSourceCompatibilityLinkQuickFix::class.java, 8)
+      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, ERROR, OpenTargetCompatibilityLinkQuickFix::class.java, 8)
     }
     expect.that(buildEvents.finishEventFailures()).isEmpty()
 
@@ -124,14 +125,14 @@ class JavaLanguageLevelDeprecationOutputParserTest {
 
     buildEvents.filterIsInstance<MessageEvent>().let { events ->
       expect.that(events).hasSize(9)
-      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java)
-      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java)
+      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, 11)
+      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, 11)
       verifyMessage(events[2], suppressMessage, WARNING)
-      verifyBuildIssue(events[3] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java)
-      verifyBuildIssue(events[4] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java)
+      verifyBuildIssue(events[3] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, 11)
+      verifyBuildIssue(events[4] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, 11)
       verifyMessage(events[5], suppressMessage, WARNING)
-      verifyBuildIssue(events[6] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java)
-      verifyBuildIssue(events[7] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java)
+      verifyBuildIssue(events[6] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, 11)
+      verifyBuildIssue(events[7] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, 11)
       verifyMessage(events[8], suppressMessage, WARNING)
     }
     expect.that(buildEvents.finishEventFailures()).isEmpty()
@@ -151,7 +152,8 @@ class JavaLanguageLevelDeprecationOutputParserTest {
   private fun verifyBuildIssue(event: BuildIssueEvent,
                                expectedMessage: String,
                                expectedKind: MessageEvent.Kind,
-                               compatibilityFix: Class<out OpenLinkDescribedQuickFix>) {
+                               compatibilityFix: Class<out OpenLinkDescribedQuickFix>,
+                               suggestedToolchainVersion: Int) {
     expect.that(event.kind).isEqualTo(expectedKind)
     expect.that(event.message).isEqualTo(expectedMessage)
     expect.that(event.issue).isNotNull()
@@ -160,11 +162,16 @@ class JavaLanguageLevelDeprecationOutputParserTest {
       expect.that(fixes.map { it.javaClass }).containsExactly(
         SetJavaLanguageLevelAllQuickFix::class.java,
         DescribedOpenGradleJdkSettingsQuickfix::class.java,
+        SetJavaToolchainQuickFix::class.java,
         PickLanguageLevelInPSDQuickFix::class.java,
         compatibilityFix,
         OpenJavaLanguageSpecQuickFix::class.java
       ).inOrder()
       expect.that((fixes[0] as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(LanguageLevel.JDK_1_8)
+      with(fixes[2] as SetJavaToolchainQuickFix) {
+        assertThat(versionToSet).isEqualTo(suggestedToolchainVersion)
+        assertThat(gradleModules).containsExactly(":app")
+      }
     }
   }
 
