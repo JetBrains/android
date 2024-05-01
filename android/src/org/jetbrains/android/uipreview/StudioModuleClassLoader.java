@@ -84,7 +84,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
       "sun.",
       "com.sun.",
       "org.w3c.",
-      "org.xmlss.",
+      "org.xml.",
       "android.",
       "dalvik.",
       "org.apache.",
