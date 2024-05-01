@@ -63,11 +63,11 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     VIRTUAL_FILE_NOT_EXIST("Modifying virtual file that does not exist", "%", false, Status.VIRTUAL_FILE_NOT_EXIST),
     BAD_MIN_API("Live Edit min-api detection failure", "%", false, Status.BAD_MIN_API),
 
-    INTERNAL_ERROR_NO_COMPILER_OUTPUT("Internal Error", "%", false, Status.INTERNAL_ERROR), // TODO: Add Metrics
-    INTERNAL_ERROR_FILE_OUTSIDE_MODULE("Internal Error", "%", false, Status.INTERNAL_ERROR), // TODO: Add Metrics
-    INTERNAL_ERROR_FILE_CODE_GEN("Internal Error", "%", false, Status.INTERNAL_ERROR), // TODO: Add Metrics
-    INTERNAL_ERROR_FILE_COMPILE_COMMAND_EXCEPTION("Internal Error", "%", false, Status.INTERNAL_ERROR), // TODO: Add Metrics
-    INTERNAL_ERROR_FILE_MULTI_MODULE("Internal Error", "%", false, Status.INTERNAL_ERROR), // TODO: Add Metrics
+    INTERNAL_ERROR_NO_COMPILER_OUTPUT("Internal Error", "%", false, Status.INTERNAL_ERROR_NO_COMPILER_OUTPUT),
+    INTERNAL_ERROR_FILE_OUTSIDE_MODULE("Internal Error", "%", false, Status.INTERNAL_ERROR_FILE_OUTSIDE_MODULE),
+    INTERNAL_ERROR_FILE_CODE_GEN("Internal Error", "%", false, Status.INTERNAL_ERROR_FILE_CODE_GEN),
+    INTERNAL_ERROR_FILE_COMPILE_COMMAND_EXCEPTION("Internal Error", "%", false, Status.INTERNAL_ERROR_FILE_COMPILE_COMMAND_EXCEPTION),
+    INTERNAL_ERROR_FILE_MULTI_MODULE("Internal Error", "%", false, Status.INTERNAL_ERROR_FILE_MULTI_MODULE),
   }
 
   companion object {
