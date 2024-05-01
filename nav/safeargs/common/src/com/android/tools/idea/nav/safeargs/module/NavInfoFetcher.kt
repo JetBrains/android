@@ -34,7 +34,7 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.ModificationTracker
@@ -42,6 +42,7 @@ import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
+import com.intellij.util.indexing.FileBasedIndex
 import kotlin.reflect.KProperty
 import net.jcip.annotations.GuardedBy
 import org.jetbrains.android.facet.AndroidFacet
@@ -185,11 +186,12 @@ class NavInfoFetcher(
     val facet = androidFacetIfEnabled ?: return null
     val modulePackage = facet.getModuleSystem().getPackageName() ?: return null
 
-    if (DumbService.getInstance(module.project).isDumb) {
-      Logger.getInstance(this.javaClass)
-        .warn(
-          "Safe Args classes may be temporarily stale or unavailable due to indices not being ready right now."
-        )
+    if (
+      DumbService.getInstance(module.project).isDumb &&
+        FileBasedIndex.getInstance().currentDumbModeAccessType == null
+    ) {
+      // TODO(b/338287184): Remove this check and error after verifying it isn't hit by users.
+      thisLogger().error("NavInfoFetcher.getCurrentNavInfo should not be called in dumb mode.")
       return null
     }
 

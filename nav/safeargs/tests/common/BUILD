@@ -58,5 +58,6 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
     ],
 )
