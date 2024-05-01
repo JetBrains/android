@@ -23,7 +23,6 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -207,17 +206,4 @@ class LayoutInspectorTest {
   private fun createFakeStream(streamId: Long, device: Common.Device): Common.Stream {
     return Common.Stream.newBuilder().setStreamId(streamId).setDevice(device).build()
   }
-
-  @Suppress("SameParameterValue")
-  private fun runBlockingWithFlagState(desiredFlagState: Boolean, task: suspend () -> Unit): Unit =
-    runBlocking {
-      val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
-      val flagPreviousState = flag.get()
-      flag.override(desiredFlagState)
-
-      task()
-
-      // restore flag state
-      flag.override(flagPreviousState)
-    }
 }

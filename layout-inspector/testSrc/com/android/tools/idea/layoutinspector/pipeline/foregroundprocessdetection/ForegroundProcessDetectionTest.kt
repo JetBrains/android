@@ -24,7 +24,6 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
@@ -1276,17 +1275,4 @@ class ForegroundProcessDetectionTest {
     val device: DeviceDescriptor,
     val foregroundProcess: ForegroundProcess,
   )
-
-  @Suppress("SameParameterValue")
-  private fun runBlockingWithFlagState(desiredFlagState: Boolean, task: suspend () -> Unit): Unit =
-    runBlocking {
-      val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
-      val flagPreviousState = flag.get()
-      flag.override(desiredFlagState)
-
-      task()
-
-      // restore flag state
-      flag.override(flagPreviousState)
-    }
 }
