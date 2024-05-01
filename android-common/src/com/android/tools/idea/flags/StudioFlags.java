@@ -1845,12 +1845,6 @@ public final class StudioFlags {
                     "When enabled, queries sent by editor actions, like Explain Code, will attach context (e.g. resolved references) from the project.",
                     ChannelDefault.enabledUpTo(DEV));
 
-  public static final Flag<Boolean> STUDIOBOT_CHAT_CONTEXT_ENABLED =
-    new BooleanFlag(STUDIOBOT, "chat.context.enabled",
-                    "Enable sending context with chat queries.",
-                    "When enabled, chat queries will attach context (e.g. project structure, currently open file) from the project.",
-                    ChannelDefault.enabledUpTo(DEV));
-
   public static final Flag<Boolean> STUDIOBOT_EDITOR_AI_ACTIONS_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.actions.enabled",
                     "Enable AI Actions in the editor.",
@@ -1881,12 +1875,6 @@ public final class StudioFlags {
                     "When enabled, experimental slash commands will be enabled.",
                     ChannelDefault.enabledUpTo(CANARY));
 
-  public static final Flag<Boolean> STUDIOBOT_USE_FACTS_FOR_CONTEXT =
-    new BooleanFlag(STUDIOBOT, "chat.use.facts.for.context",
-                    "Use retrieval augmentation facts to attach context to queries.",
-                    "When enabled, project context is attached to queries using facts, instead of prepending them directly to the query string.",
-                    ChannelDefault.enabledUpTo(CANARY));
-
   public static final Flag<Boolean> STUDIOBOT_USE_COMPOSE_TOOLWINDOW_UI =
     new BooleanFlag(STUDIOBOT, "chat.use.compose.for.ui",
                     "Use the Compose for Desktop/Jewel-based UI for the Chat toolwindow.",
@@ -1904,6 +1892,18 @@ public final class StudioFlags {
                     "Run hallucination analysis on generated code.",
                     "When enabled, a hallucination detection utility will run on generated code snippets, and emit metrics when hallucinations are detected.",
                     ChannelDefault.enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> STUDIOBOT_CURRENT_FILE_CONTEXT =
+    new BooleanFlag(STUDIOBOT, "current.file.context",
+                    "Use the current file as context",
+                    "Attach the current file's path, contents, and selection with chat queries.",
+                    ChannelDefault.enabledUpTo(DEV));
+
+  public static final Flag<Boolean> STUDIOBOT_OPEN_FILES_CONTEXT =
+    new BooleanFlag(STUDIOBOT, "open.files.context",
+                    "Use the currently open files as context",
+                    "Attach the currently open files' paths and contents with chat queries.",
+                    false);
 
   public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",

@@ -25,6 +25,7 @@ import com.android.tools.idea.studiobot.prompts.impl.PromptImpl
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.TextRange
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.replaceService
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -172,6 +173,52 @@ class PromptBuilderTest : BasePlatformTestCase() {
   }
 
   @Test
+  fun buildPrompt_promptWithContext() {
+    val file1 = myFixture.addFileToProject("/file1.kt", "").virtualFile
+    val file2 = myFixture.addFileToProject("/file2.kt", "").virtualFile
+    val file3 = myFixture.addFileToProject("/file3.kt", "").virtualFile
+
+    val prompt =
+      buildPrompt(project) {
+        context {
+          virtualFile(file1, isCurrentFile = true, selection = TextRange(123, 456))
+          virtualFiles(listOf(file2, file3))
+        }
+        userMessage { text("What does someApiCall do?", emptyList()) }
+      }
+
+    assertThat(prompt)
+      .isEqualTo(
+        PromptImpl(
+          messages =
+            listOf(
+              Prompt.Context(
+                files =
+                  listOf(
+                    Prompt.ContextFile(
+                      file1,
+                      isCurrentFile = true,
+                      selection = TextRange(123, 456),
+                    ),
+                    Prompt.ContextFile(file2),
+                    Prompt.ContextFile(file3),
+                  )
+              ),
+              Prompt.UserMessage(
+                chunks =
+                  listOf(
+                    Prompt.Message.TextChunk(
+                      text = "What does someApiCall do?",
+                      filesUsed = listOf(),
+                    )
+                  )
+              ),
+            )
+        )
+      )
+  }
+
+  @Test
   fun buildPrompt_noMessagesThrowsError() {
     assertFailsWith<MalformedPromptException> { buildPrompt(project) {} }
   }
@@ -210,6 +257,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
 
     buildPrompt(project) {
       systemMessage { text("preamble", emptyList()) }
+      context { virtualFile(file) }
       userMessage { text("user", emptyList()) }
       modelMessage { text("model", emptyList()) }
       userMessage { text("user", listOf(file)) }
@@ -222,6 +270,16 @@ class PromptBuilderTest : BasePlatformTestCase() {
         userMessage { text("user", emptyList()) }
         modelMessage { text("model", emptyList()) }
         userMessage { text("user", listOf(file)) }
+      }
+    }
+
+    assertFailsWith<AiExcludeException> {
+      buildPrompt(project) {
+        systemMessage { text("preamble", emptyList()) }
+        context { virtualFile(file) }
+        userMessage { text("user", emptyList()) }
+        modelMessage { text("model", emptyList()) }
+        userMessage { text("user", emptyList()) }
       }
     }
 

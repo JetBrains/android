@@ -16,7 +16,9 @@
 package com.android.tools.idea.studiobot.prompts
 
 import com.android.tools.idea.studiobot.MimeType
+import com.android.tools.idea.studiobot.prompts.Prompt.Message.Chunk
 import com.intellij.lang.Language
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
@@ -67,9 +69,20 @@ interface Prompt {
     }
   }
 
+  // -- Regular messages --
+
   data class SystemMessage(override val chunks: List<Chunk>) : Message(chunks)
 
   data class UserMessage(override val chunks: List<Chunk>) : Message(chunks)
 
   data class ModelMessage(override val chunks: List<Chunk>) : Message(chunks)
+
+  // -- Context --
+  data class ContextFile(
+    val virtualFile: VirtualFile,
+    val isCurrentFile: Boolean = false,
+    val selection: TextRange? = null,
+  )
+
+  data class Context(val files: List<ContextFile>) : Message(emptyList())
 }

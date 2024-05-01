@@ -23,6 +23,7 @@ import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.studiobot.prompts.PromptBuilder
 import com.intellij.lang.Language
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -54,7 +55,23 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
 
   inner class UserMessageBuilderImpl(makeMessage: (List<Prompt.Message.Chunk>) -> Prompt.Message) :
     MessageBuilderImpl(makeMessage), PromptBuilder.UserMessageBuilder {
-    override val project: Project = this@PromptBuilderImpl.project
+    override val project = this@PromptBuilderImpl.project
+  }
+
+  inner class ContextBuilderImpl(val makeMessage: (ContextBuilderImpl) -> Prompt.Message) :
+    PromptBuilder.ContextBuilder {
+    val files = mutableListOf<Prompt.ContextFile>()
+    val chunks = mutableListOf<Prompt.Message.Chunk>()
+
+    override fun virtualFile(file: VirtualFile, isCurrentFile: Boolean, selection: TextRange?) {
+      files.add(Prompt.ContextFile(file, isCurrentFile, selection))
+    }
+
+    override fun file(file: Prompt.ContextFile) {
+      files.add(file)
+    }
+
+    fun build() = makeMessage(this)
   }
 
   override fun systemMessage(builderAction: PromptBuilder.MessageBuilder.() -> Unit) {
@@ -74,6 +91,10 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
     messages.add(MessageBuilderImpl { Prompt.ModelMessage(it) }.apply(builderAction).build())
   }
 
+  override fun context(builderAction: PromptBuilder.ContextBuilder.() -> Unit) {
+    messages.add(ContextBuilderImpl { Prompt.Context(it.files) }.apply(builderAction).build())
+  }
+
   fun addAll(prompt: Prompt): PromptBuilderImpl {
     messages.addAll(prompt.messages)
     return this
@@ -85,7 +106,12 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
 
   private fun excludedFiles(): Set<VirtualFile> =
     messages
-      .flatMap { msg -> msg.chunks.flatMap { chunk -> chunk.filesUsed } }
+      .flatMap { msg ->
+        when (msg) {
+          is Prompt.Context -> msg.files.map { it.virtualFile }
+          else -> msg.chunks.flatMap { chunk -> chunk.filesUsed }
+        }
+      }
       .filter { StudioBot.getInstance().aiExcludeService().isFileExcluded(project, it) }
       .toSet()
 
