@@ -19,6 +19,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
+import com.android.tools.compose.inspection.BasePreviewAnnotationInspection
 import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.kotlin.evaluateConstant
@@ -58,113 +59,17 @@ import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
 
-/**
- * Base class for inspection that depend on methods and annotation classes annotated with
- * `@Preview`, or with a MultiPreview.
- */
-abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
-  /**
-   * Will be true if the inspected file imports the `@Preview` annotation. This is used as a
-   * shortcut to avoid analyzing all kotlin files
-   */
-  var isPreviewFile: Boolean = false
-  /**
-   * Will be true if the inspected file imports the `@Composable` annotation. This is used as a
-   * shortcut to avoid analyzing all kotlin files
-   */
-  var isComposableFile: Boolean = false
+abstract class BaseComposePreviewAnnotationInspection : BasePreviewAnnotationInspection() {
+  final override fun getGroupDisplayName() = message("inspection.group.name")
 
-  override fun getGroupDisplayName() = message("inspection.group.name")
+  final override fun isPreview(importDirective: KtImportDirective) =
+    COMPOSE_PREVIEW_ANNOTATION_FQN == importDirective.importedFqName?.asString()
 
-  fun isPreview(annotation: KtAnnotationEntry) =
+  final override fun isPreview(annotation: KtAnnotationEntry) =
     annotation.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN)
 
-  fun isPreviewOrMultiPreview(annotation: KtAnnotationEntry) =
+  final override fun isPreviewOrMultiPreview(annotation: KtAnnotationEntry) =
     isPreview(annotation) || (annotation.toUElement() as? UAnnotation).isMultiPreviewAnnotation()
-
-  /**
-   * Called for every `@Preview` and MultiPreview annotation, that is annotating a function.
-   *
-   * @param holder A [ProblemsHolder] user to report problems
-   * @param function The function that was annotated with `@Preview` or with a MultiPreview
-   * @param previewAnnotation The `@Preview` or MultiPreview annotation
-   */
-  abstract fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  )
-
-  /**
-   * Called for every `@Preview` and MultiPreview annotation, that is annotating an annotation
-   * class.
-   *
-   * @param holder A [ProblemsHolder] user to report problems
-   * @param annotationClass The annotation class that was annotated with `@Preview` or with a
-   *   MultiPreview
-   * @param previewAnnotation The `@Preview` or MultiPreview annotation
-   */
-  abstract fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  )
-
-  final override fun buildVisitor(
-    holder: ProblemsHolder,
-    isOnTheFly: Boolean,
-    session: LocalInspectionToolSession,
-  ): PsiElementVisitor =
-    if (session.file.androidFacet != null || ApplicationManager.getApplication().isUnitTestMode) {
-      object : KtVisitorVoid() {
-        override fun visitImportDirective(importDirective: KtImportDirective) {
-          super.visitImportDirective(importDirective)
-
-          isPreviewFile =
-            isPreviewFile ||
-              COMPOSE_PREVIEW_ANNOTATION_FQN == importDirective.importedFqName?.asString()
-          isComposableFile =
-            isComposableFile ||
-              COMPOSABLE_ANNOTATION_FQ_NAME == importDirective.importedFqName?.asString()
-        }
-
-        override fun visitAnnotationEntry(annotationEntry: KtAnnotationEntry) {
-          super.visitAnnotationEntry(annotationEntry)
-
-          isPreviewFile = isPreviewFile || isPreview(annotationEntry)
-          isComposableFile =
-            isComposableFile || annotationEntry.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME)
-        }
-
-        override fun visitNamedFunction(function: KtNamedFunction) {
-          super.visitNamedFunction(function)
-
-          if (!isPreviewFile && !isComposableFile) {
-            return
-          }
-
-          function.annotationEntries.forEach {
-            if (isPreviewOrMultiPreview(it)) {
-              visitPreviewAnnotation(holder, function, it)
-            }
-          }
-        }
-
-        override fun visitClass(klass: KtClass) {
-          super.visitClass(klass)
-
-          if (!klass.isAnnotation()) return
-
-          klass.annotationEntries.forEach {
-            if (isPreviewOrMultiPreview(it)) {
-              visitPreviewAnnotation(holder, klass, it)
-            }
-          }
-        }
-      }
-    } else {
-      PsiElementVisitor.EMPTY_VISITOR
-    }
 }
 
 /**
@@ -180,7 +85,8 @@ private fun KtParameter.isAcceptableForPreview(): Boolean =
  * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, does
  * not have parameters.
  */
-class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotationInspection() {
+class PreviewAnnotationInFunctionWithParametersInspection :
+  BaseComposePreviewAnnotationInspection() {
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     function: KtNamedFunction,
@@ -211,7 +117,7 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
  * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, has
  * at most one `@PreviewParameter`.
  */
-class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspection() {
+class PreviewMultipleParameterProvidersInspection : BaseComposePreviewAnnotationInspection() {
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     function: KtNamedFunction,
@@ -253,7 +159,7 @@ class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspect
  * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, is
  * also annotated with `@Composable`.
  */
-class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspection() {
+class PreviewNeedsComposableAnnotationInspection : BaseComposePreviewAnnotationInspection() {
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     function: KtNamedFunction,
@@ -287,7 +193,7 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
  * top level function. This is to avoid `@Preview` methods to be instance methods of classes that we
  * can not instantiate.
  */
-class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
+class PreviewMustBeTopLevelFunction : BaseComposePreviewAnnotationInspection() {
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     function: KtNamedFunction,
@@ -318,7 +224,7 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
  * Inspection that checks that `@Preview` width parameter doesn't go higher than [MAX_WIDTH], and
  * the height parameter doesn't go higher than [MAX_HEIGHT].
  */
-class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
+class PreviewDimensionRespectsLimit : BaseComposePreviewAnnotationInspection() {
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     function: KtNamedFunction,
@@ -366,7 +272,7 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
 }
 
 /** Inspection that checks if `@Preview` fontScale parameter is not positive. */
-class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() {
+class PreviewFontScaleMustBeGreaterThanZero : BaseComposePreviewAnnotationInspection() {
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     function: KtNamedFunction,
@@ -406,7 +312,7 @@ class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() 
 }
 
 /** Inspection that checks if `@Preview` apiLevel is valid. */
-class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
+class PreviewApiLevelMustBeValid : BaseComposePreviewAnnotationInspection() {
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     function: KtNamedFunction,
@@ -463,7 +369,7 @@ private fun KtNamedFunction.isInUnitTestFile() =
  * Inspection that checks that functions annotated with `@Preview`, or with a MultiPreview, are not
  * in a unit test file.
  */
-class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
+class PreviewNotSupportedInUnitTestFiles : BaseComposePreviewAnnotationInspection() {
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
     function: KtNamedFunction,

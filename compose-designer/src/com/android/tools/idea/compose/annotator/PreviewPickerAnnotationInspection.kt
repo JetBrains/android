@@ -23,7 +23,7 @@ import com.android.tools.idea.compose.annotator.check.common.MultipleChoiceValue
 import com.android.tools.idea.compose.annotator.check.common.OpenEndedValueType
 import com.android.tools.idea.compose.annotator.check.common.Repeated
 import com.android.tools.idea.compose.annotator.check.common.Unknown
-import com.android.tools.idea.compose.preview.BasePreviewAnnotationInspection
+import com.android.tools.idea.compose.preview.BaseComposePreviewAnnotationInspection
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInspection.LocalQuickFixOnPsiElement
@@ -52,7 +52,7 @@ import org.jetbrains.uast.toUElement
  * Outlines IDE-specific issues with the annotation's contents (i.e: the library has independent
  * Lint checks of its own).
  */
-class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
+class PreviewPickerAnnotationInspection : BaseComposePreviewAnnotationInspection() {
 
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,
