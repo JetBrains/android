@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis
 
+import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class AnnotationTest {
+  private var projectRule = AndroidProjectRule.inMemory().withKotlin()
+  private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule("30")
   @get:Rule
-  var projectRule = AndroidProjectRule.inMemory().withKotlin()
+  val chain = RuleChain.outerRule(projectRule).around(fakeAdb)
 
   @Before
   fun setUp() {

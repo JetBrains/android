@@ -35,6 +35,7 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     COMPILATION_ERROR("Compilation Error", "%", true, Status.COMPILATION_ERROR),
     GRADLE_BUILD_FILE("Gradle build file changes", "%", false, Status.NON_KOTLIN),
     KOTLIN_EAP("Compilation Error", "%", true, Status.KOTLIN_EAP),
+    NON_COMPOSE("Non-Compose Module", "%", false, Status.NON_KOTLIN), // TODO: ADD REAL METRICS. (Currently treated as internal error)
     NON_KOTLIN("Modifying a non-Kotlin file is not supported", "%", false, Status.NON_KOTLIN),
     NON_PRIVATE_INLINE_FUNCTION("Modified function is a non-private inline function", "%", true, Status.NON_PRIVATE_INLINE_FUNCTION),
     UNABLE_TO_INLINE("Unable to inline function", "%", true, Status.UNABLE_TO_INLINE),
@@ -99,6 +100,8 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
 
     fun internalErrorFileOutsideModule(file: PsiFile) =
       LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_OUTSIDE_MODULE, "KtFile outside targeted module found in code generation", file.name, null)
+
+    fun nonCompose(file: PsiFile) = LiveEditUpdateException(Error.NON_COMPOSE, "Modified file does not belong to a Jetpack Compose module", file.name, cause = null)
 
     fun kotlinEap() = LiveEditUpdateException(Error.KOTLIN_EAP,"Live Edit does not support running with this Kotlin Plugin version"+
                                                                " and will only work with the bundled Kotlin Plugin", null, null)

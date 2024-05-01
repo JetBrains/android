@@ -86,7 +86,7 @@ class LiveEditCompiler(val project: Project,
         try {
           // Compiler pass
           if (KotlinPluginModeProvider.isK2Mode()) {
-            LiveEditCompilerForK2(inlineCandidateCache, irClassCache, this.outputBuilder).compile(file, input, outputBuilder)
+            LiveEditCompilerForK2(project, inlineCandidateCache, irClassCache, this.outputBuilder).compile(file, input, outputBuilder)
           } else {
             compileKtFile(file, input, outputBuilder)
           }
@@ -144,7 +144,7 @@ class LiveEditCompiler(val project: Project,
     var inputFiles = listOf(file)
 
     runWithCompileLock {
-      ReadActionPrebuildChecks(file)
+      ReadActionPrebuildChecks(project, file)
 
       // This is a three-step process:
       // 1) Compute binding context based on any previous cached analysis results.

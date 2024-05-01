@@ -1,5 +1,6 @@
 package com.android.tools.idea.run.deployment.liveedit.analysis
 
+import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.AnnotationDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.FieldDiff
@@ -13,6 +14,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.assertNotNull
@@ -23,8 +25,10 @@ import kotlin.test.assertNull
  *  - value -> unclear how to produce Kotlin code that modifies this
  */
 class FieldTest {
+  private var projectRule = AndroidProjectRule.inMemory().withKotlin()
+  private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule("30")
   @get:Rule
-  var projectRule = AndroidProjectRule.inMemory().withKotlin()
+  val chain = RuleChain.outerRule(projectRule).around(fakeAdb)
 
   @Before
   fun setUp() {

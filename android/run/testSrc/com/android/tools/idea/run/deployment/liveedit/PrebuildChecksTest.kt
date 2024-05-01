@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import junit.framework.Assert
 import org.junit.Before
@@ -43,7 +44,8 @@ class PrebuildChecksTest {
     try {
       checkSupportedFiles(file)
       Assert.fail("Expecting Exception")
-    } catch (e : LiveEditUpdateException) {
+    }
+    catch (e: LiveEditUpdateException) {
       Assert.assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_BUILD_SRC_CHANGE, e.error)
     }
   }
@@ -57,6 +59,21 @@ class PrebuildChecksTest {
       Assert.fail("Expecting Exception")
     } catch (e : LiveEditUpdateException) {
       Assert.assertEquals(LiveEditUpdateException.Error.GRADLE_BUILD_FILE, e.error)
+    }
+  }
+
+  @Test
+  fun testNonComposeModule() {
+    var file = projectRule.fixture.addFileToProject(
+      "buildSrc/src/java/com/example/Version.kt", "package com.example\n class Version {}")
+    ApplicationManager.getApplication().runReadAction {
+      try {
+        checkSupportedModule(myProject, file)
+        Assert.fail("Expecting Exception")
+      }
+      catch (e: LiveEditUpdateException) {
+        Assert.assertEquals(LiveEditUpdateException.Error.NON_COMPOSE, e.error)
+      }
     }
   }
 }

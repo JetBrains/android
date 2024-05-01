@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileByteArray
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
@@ -22,7 +24,9 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.initialCache
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.After
@@ -30,6 +34,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import kotlin.test.assertContains
@@ -38,8 +43,13 @@ import kotlin.test.fail
 
 @RunWith(JUnit4::class)
 class BasicCompileTest {
+  private var projectRule = AndroidProjectRule.inMemory().withKotlin()
+
+  // We don't need ADB in these tests. However, disableLiveEdit() or endableLiveEdit() does trigger calls to the AdbDebugBridge
+  // so not having that available causes a NullPointerException when we call it.
+  private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule("30")
   @get:Rule
-  var projectRule = AndroidProjectRule.inMemory().withKotlin()
+  val chain = RuleChain.outerRule(projectRule).around(fakeAdb)
 
   @Before
   fun setUp() {
