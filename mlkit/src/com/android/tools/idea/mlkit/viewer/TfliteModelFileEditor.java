@@ -35,6 +35,8 @@ import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -43,6 +45,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
@@ -61,6 +64,7 @@ import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.LineSeparator;
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.io.URLUtil;
 import com.intellij.util.ui.JBUI;
@@ -87,6 +91,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.AbstractCellEditor;
@@ -132,6 +138,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @Nullable private JBTabbedPane myTabbedCodePaneForFocus;
   @Nullable private LightModelClass myLightModelClass;
+
+  private final ExecutorService myBackgroundExecutor = Executors.newSingleThreadExecutor();
 
   public TfliteModelFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myProject = project;
@@ -309,22 +317,33 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private JComponent createSampleCodeSection(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
     JPanel sectionPanel = createPanelWithYAxisBoxLayout(Borders.empty());
 
-    JComponent header = createSectionHeader("Sample Code");
-    sectionPanel.add(header);
+    myBackgroundExecutor.submit(() -> {
+      Application application = ApplicationManager.getApplication();
 
-    JPanel codePaneContainer = createPanelWithFlowLayout(Borders.empty(8, 20, 0, 0));
-    sectionPanel.add(codePaneContainer);
+      // Generate sample code on a background thread, since it can involve disk access.
+      String sampleKotlinCode = application.runReadAction(
+        (Computable<String>)() -> buildSampleCodeInKotlin(modelClass, modelInfo));
+      String sampleJavaCode = application.runReadAction(
+        (Computable<String>)() -> buildSampleCodeInJava(modelClass, modelInfo));
 
-    JBTabbedPane tabbedCodePane = new JBTabbedPane();
-    tabbedCodePane.setBackground(UIUtil.getTextFieldBackground());
-    tabbedCodePane.setBorder(BorderFactory.createLineBorder(CODE_PANE_BORDER_COLOR));
-    tabbedCodePane.setTabComponentInsets(JBUI.insets(0));
-    String sampleKotlinCode = buildSampleCodeInKotlin(modelClass, modelInfo);
-    tabbedCodePane.add("Kotlin", createCodeEditor(myProject, KotlinFileType.INSTANCE, sampleKotlinCode));
-    String sampleJavaCode = buildSampleCodeInJava(modelClass, modelInfo);
-    tabbedCodePane.add("Java", createCodeEditor(myProject, JavaFileType.INSTANCE, sampleJavaCode));
-    codePaneContainer.add(tabbedCodePane);
-    myTabbedCodePaneForFocus = tabbedCodePane;
+      // Add appropriate UI elements on the UI thread.
+      application.invokeLater(() -> {
+        JComponent header = createSectionHeader("Sample Code");
+        sectionPanel.add(header);
+
+        JPanel codePaneContainer = createPanelWithFlowLayout(Borders.empty(8, 20, 0, 0));
+        sectionPanel.add(codePaneContainer);
+
+        JBTabbedPane tabbedCodePane = new JBTabbedPane();
+        tabbedCodePane.setBackground(UIUtil.getTextFieldBackground());
+        tabbedCodePane.setBorder(BorderFactory.createLineBorder(CODE_PANE_BORDER_COLOR));
+        tabbedCodePane.setTabComponentInsets(JBUI.insets(0));
+        tabbedCodePane.add("Kotlin", createCodeEditor(myProject, KotlinFileType.INSTANCE, sampleKotlinCode));
+        tabbedCodePane.add("Java", createCodeEditor(myProject, JavaFileType.INSTANCE, sampleJavaCode));
+        codePaneContainer.add(tabbedCodePane);
+        myTabbedCodePaneForFocus = tabbedCodePane;
+      });
+    });
 
     return sectionPanel;
   }
@@ -484,6 +503,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return false;
   }
 
+  @RequiresBackgroundThread
   @NotNull
   private static String buildSampleCodeInJava(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
     StringBuilder codeBuilder = new StringBuilder("try {\n");
@@ -615,6 +635,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return optional.get();
   }
 
+  @RequiresBackgroundThread
   @NotNull
   private static String buildSampleCodeInKotlin(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
     StringBuilder codeBuilder = new StringBuilder(String.format("val model = %s.newInstance(context)\n\n", modelClass.getName()));
@@ -892,6 +913,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @Override
   public void dispose() {
+    myBackgroundExecutor.shutdown();
   }
 
   @NotNull
