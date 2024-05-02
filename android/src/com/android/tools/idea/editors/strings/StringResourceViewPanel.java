@@ -277,8 +277,8 @@ public class StringResourceViewPanel implements Disposable {
         setTextAndEditable(myKeyTextField, "", false);
         setTextAndEditable(myDefaultValueTextField.getTextField(), "", false);
         setTextAndEditable(myTranslationTextField.getTextField(), "", false);
-        myDefaultValueTextField.getButton().setEnabled(false);
-        myTranslationTextField.getButton().setEnabled(false);
+        myDefaultValueTextField.setButtonEnabled(false);
+        myTranslationTextField.setButtonEnabled(false);
         return;
       }
 
@@ -306,7 +306,7 @@ public class StringResourceViewPanel implements Disposable {
       String defaultValue = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
       boolean defaultValueEditable = isValueEditableInline(defaultValue); // don't allow editing multiline chars in a text field
       setTextAndEditable(myDefaultValueTextField.getTextField(), defaultValue, defaultValueEditable);
-      myDefaultValueTextField.getButton().setEnabled(true);
+      myDefaultValueTextField.setButtonEnabled(true);
 
       boolean translationEditable = false;
       String translation = "";
@@ -315,7 +315,7 @@ public class StringResourceViewPanel implements Disposable {
         translationEditable = isValueEditableInline(translation); // don't allow editing multiline chars in a text field
       }
       setTextAndEditable(myTranslationTextField.getTextField(), translation, translationEditable);
-      myTranslationTextField.getButton().setEnabled(locale != null);
+      myTranslationTextField.setButtonEnabled(locale != null);
     }
   }
 

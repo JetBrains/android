@@ -147,23 +147,23 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     final AndroidFacet facet = (AndroidFacet)myContext.getFacet();
 
-    myRGenPathField.getButton()
+    myRGenPathField
       .addActionListener(new MyGenSourceFieldListener(myRGenPathField, AndroidRootUtil.getAptGenSourceRootPath(facet)));
-    myAidlGenPathField.getButton()
+    myAidlGenPathField
       .addActionListener(new MyGenSourceFieldListener(myAidlGenPathField, AndroidRootUtil.getAidlGenSourceRootPath(facet)));
 
     Module module = myContext.getModule();
 
-    myManifestFileField.getButton().addActionListener(
+    myManifestFileField.addActionListener(
       new MyFolderFieldListener(myManifestFileField, AndroidRootUtil.getPrimaryManifestFile(facet), true, new MyManifestFilter()));
 
-    myResFolderField.getButton().addActionListener(new MyFolderFieldListener(myResFolderField,
+    myResFolderField.addActionListener(new MyFolderFieldListener(myResFolderField,
                                                                              AndroidRootUtil.getResourceDir(facet), false, null));
 
-    myAssetsFolderField.getButton().addActionListener(new MyFolderFieldListener(myAssetsFolderField,
+    myAssetsFolderField.addActionListener(new MyFolderFieldListener(myAssetsFolderField,
                                                                                 AndroidRootUtil.getAssetsDir(facet), false, null));
 
-    myNativeLibsFolder.getButton().addActionListener(new MyFolderFieldListener(myNativeLibsFolder,
+    myNativeLibsFolder.addActionListener(new MyFolderFieldListener(myNativeLibsFolder,
                                                                                AndroidRootUtil.getLibsDir(facet), false, null));
 
     myRunProguardCheckBox.addActionListener(new ActionListener() {
@@ -173,7 +173,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       }
     });
 
-    myCustomDebugKeystoreField.getButton().addActionListener(new MyFolderFieldListener(myCustomDebugKeystoreField, null, true, null));
+    myCustomDebugKeystoreField.addActionListener(new MyFolderFieldListener(myCustomDebugKeystoreField, null, true, null));
 
     myResetPathsButton.addActionListener(new ActionListener() {
       @Override
@@ -251,7 +251,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     final int mavenTabIndex = myTabbedPane.indexOfTab(MAVEN_TAB_TITLE);
     assert mavenTabIndex >= 0;
-    myProguardLogsDirectoryField.getButton().addActionListener(new MyFolderFieldListener(myProguardLogsDirectoryField, null, false, null));
+    myProguardLogsDirectoryField.addActionListener(new MyFolderFieldListener(myProguardLogsDirectoryField, null, false, null));
   }
 
   @Nullable

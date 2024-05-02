@@ -125,7 +125,7 @@ public class ExportSignedPackageUtil {
       }
     });
 
-    form.getKeyAliasField().getButton().addActionListener(new ActionListener() {
+    form.getKeyAliasField().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         final List<String> keys = loadExistingKeys(form);
