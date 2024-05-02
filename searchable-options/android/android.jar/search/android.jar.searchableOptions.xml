@@ -1459,8 +1459,6 @@
     <option name="settings" hit=" Note: These settings are for features that are considered experimental." />
     <option name="that" hit=" Note: These settings are for features that are considered experimental." />
     <option name="these" hit=" Note: These settings are for features that are considered experimental." />
-    <option name="device" hit="Device Streaming" />
-    <option name="streaming" hit="Device Streaming" />
     <option name="experimental" hit="Experimental" />
     <option name="gradle" hit="Gradle" />
     <option name="compose" hit="Jetpack Compose" />

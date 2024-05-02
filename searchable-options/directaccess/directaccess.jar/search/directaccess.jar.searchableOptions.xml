@@ -16,12 +16,4 @@
     <option name="the" path="ActionManager" hit="Open the Device Streaming dialog to select Firebase project and devices" />
     <option name="to" path="ActionManager" hit="Open the Device Streaming dialog to select Firebase project and devices" />
   </configurable>
-  <configurable id="experimental" configurable_name="Experimental">
-    <option name="android" hit="Enable Device Streaming in Android Studio" />
-    <option name="device" hit="Enable Device Streaming in Android Studio" />
-    <option name="enable" hit="Enable Device Streaming in Android Studio" />
-    <option name="in" hit="Enable Device Streaming in Android Studio" />
-    <option name="streaming" hit="Enable Device Streaming in Android Studio" />
-    <option name="studio" hit="Enable Device Streaming in Android Studio" />
-  </configurable>
 </options>
