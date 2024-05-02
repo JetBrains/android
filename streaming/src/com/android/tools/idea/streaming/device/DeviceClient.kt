@@ -45,6 +45,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.Strings.capitalize
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.containers.ContainerUtil.createLockFreeCopyOnWriteList
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
@@ -359,8 +360,8 @@ internal class DeviceClient(
         // Use the agent built by running "Build > Make Project" in Studio.
         val facet = project.modules.firstNotNullOfOrNull { AndroidFacet.getInstance(it) }
         val buildVariant = facet?.properties?.SELECTED_BUILD_VARIANT ?: "debug"
-        soFile = projectDir.resolve(
-          "app/build/intermediates/stripped_native_libs/$buildVariant/out/lib/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
+        val prefix = "app/build/intermediates/merged_native_libs/$buildVariant/merge${capitalize(buildVariant)}NativeLibs/out/lib"
+        soFile = projectDir.resolve("$prefix/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
         val apkName = if (buildVariant == "debug") "app-debug.apk" else "app-release-unsigned.apk"
         jarFile = projectDir.resolve("app/build/outputs/apk/$buildVariant/$apkName")
       }
