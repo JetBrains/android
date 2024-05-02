@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearTileProjectRule
 import com.intellij.lang.annotation.HighlightSeverity
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -50,6 +51,23 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
      """
         .trimIndent(),
     )
+  }
+
+  @Test
+  fun isAvailableForKotlinAndJavaUnitTestFiles() {
+    val inspection = WearTilePreviewNotSupportedInUnitTestFiles()
+
+    // supported types
+    val kotlinUnitTestFile = fixture.addFileToProject("src/test/test.kt", "")
+    val javaUnitTestFile = fixture.addFileToProject("src/test/Test.java", "")
+    assertTrue(inspection.isAvailableForFile(kotlinUnitTestFile))
+    assertTrue(inspection.isAvailableForFile(javaUnitTestFile))
+
+    // unsupported types
+    val xmlUnitTestFile = fixture.configureByText("src/test/test.xml", "")
+    val htmlUnitTestFile = fixture.configureByText("src/test/test.html", "")
+    assertFalse(inspection.isAvailableForFile(xmlUnitTestFile))
+    assertFalse(inspection.isAvailableForFile(htmlUnitTestFile))
   }
 
   @Test
