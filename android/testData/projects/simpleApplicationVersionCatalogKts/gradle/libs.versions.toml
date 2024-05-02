@@ -7,6 +7,7 @@ kotlinVersion = "1.7.20"
 [libraries]
 constraint-layout = { module = "com.android.support.constraint:constraint-layout", version.ref = "constraint-layout" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
+guava-Common = { module = "com.google.guava:guava", version.ref = "guava" }
 
 [plugins]
 ksp = { id = "com.google.devtools.ksp", version = "1.7.21-1.0.8" }

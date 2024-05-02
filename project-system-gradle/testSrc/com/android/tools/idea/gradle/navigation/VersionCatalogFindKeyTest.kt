@@ -135,6 +135,41 @@ class VersionCatalogFindKeyTest {
     }
   }
 
+  @Test
+  fun testFindFirstLetterWithDifferentCase() {
+    testFindKeyInCatalog("""
+      [libraries]
+      alias-Core-ext = "aaa"
+    """.trimIndent(), "alias_core-ext") {
+      assertThat(it).isNotNull()
+      assertThat(it!!.text).isEqualTo("alias-Core-ext = \"aaa\"")
+    }
+
+    testFindKeyInCatalog("""
+      [libraries]
+      alias-core-Ext = "aaa"
+    """.trimIndent(), "alias.core.ext") {
+      assertThat(it).isNotNull()
+      assertThat(it!!.text).isEqualTo("alias-core-Ext = \"aaa\"")
+    }
+
+    testFindKeyInCatalog("""
+      [libraries]
+      alias-core-ext = "aaa"
+      alias-Core = "aaa"
+    """.trimIndent(), "alias.core") {
+      assertThat(it).isNotNull()
+      assertThat(it!!.text).isEqualTo("alias-Core = \"aaa\"")
+    }
+
+    testFindKeyInCatalog("""
+      [libraries]
+      alias-core-ext = "aaa"
+    """.trimIndent(), "alias.core.Ext") {
+      assertThat(it).isNull()
+    }
+  }
+
   private fun testFindKeyInCatalog(versionCatalogText: String,
                                    path:String,
                                    checker: (PsiElement?) -> Unit) {

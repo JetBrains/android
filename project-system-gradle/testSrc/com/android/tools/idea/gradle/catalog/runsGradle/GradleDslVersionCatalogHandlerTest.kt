@@ -99,7 +99,7 @@ class GradleDslVersionCatalogHandlerTest  {
 
     val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")!!
     val dependencies = extractDependenciesInGradleFormat(accessor)
-    assertThat(dependencies).containsExactly("constraint.layout", "guava", "androidx.room.ktx",
+    assertThat(dependencies).containsExactly("constraint.layout", "guava", "guava.common",
                                              "plugins.android.application", "plugins.kotlinAndroid",
                                              "versions.constraint.layout", "versions.guava", "versions.gradlePlugins.agp",
                                              "bundles.both")

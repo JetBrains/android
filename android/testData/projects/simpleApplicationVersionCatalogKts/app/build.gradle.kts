@@ -22,6 +22,7 @@ dependencies {
   api(libs.guava)
   api(libs.constraint.layout)
   api(libs.bundles.both)
+  api(libs.guava.common)
   testImplementation(libsTest.junit)
   androidTestImplementation("com.android.support.test:runner:+")
   androidTestImplementation("com.android.support.test.espresso:espresso-core:+")
