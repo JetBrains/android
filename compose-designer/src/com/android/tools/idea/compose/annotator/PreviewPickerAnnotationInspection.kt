@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.annotator
 
+import com.android.tools.compose.inspection.BasePreviewAnnotationInspection
 import com.android.tools.idea.compose.annotator.check.common.BadType
 import com.android.tools.idea.compose.annotator.check.common.Failure
 import com.android.tools.idea.compose.annotator.check.common.IssueReason
@@ -23,7 +24,8 @@ import com.android.tools.idea.compose.annotator.check.common.MultipleChoiceValue
 import com.android.tools.idea.compose.annotator.check.common.OpenEndedValueType
 import com.android.tools.idea.compose.annotator.check.common.Repeated
 import com.android.tools.idea.compose.annotator.check.common.Unknown
-import com.android.tools.idea.compose.preview.BaseComposePreviewAnnotationInspection
+import com.android.tools.idea.compose.preview.ComposePreviewAnnotationChecker
+import com.android.tools.idea.compose.preview.composePreviewGroupDisplayName
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInspection.LocalQuickFixOnPsiElement
@@ -52,7 +54,8 @@ import org.jetbrains.uast.toUElement
  * Outlines IDE-specific issues with the annotation's contents (i.e: the library has independent
  * Lint checks of its own).
  */
-class PreviewPickerAnnotationInspection : BaseComposePreviewAnnotationInspection() {
+class PreviewPickerAnnotationInspection :
+  BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
 
   override fun visitPreviewAnnotation(
     holder: ProblemsHolder,

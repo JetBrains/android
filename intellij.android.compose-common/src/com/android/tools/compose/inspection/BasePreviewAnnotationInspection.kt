@@ -16,7 +16,6 @@
 package com.android.tools.compose.inspection
 
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
-import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInspection.LocalInspectionToolSession
@@ -31,10 +30,25 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 
 /**
+ * Base interface that can be used for checking whether a given [KtAnnotationEntry] or
+ * [KtImportDirective] is associated with a corresponding Preview tool annotation.
+ */
+interface PreviewAnnotationChecker {
+  fun isPreview(importDirective: KtImportDirective): Boolean
+
+  fun isPreview(annotation: KtAnnotationEntry): Boolean
+
+  fun isPreviewOrMultiPreview(annotation: KtAnnotationEntry): Boolean
+}
+
+/**
  * Base class for inspection that depend on methods and annotation classes annotated with
  * `@Preview`, or with a MultiPreview.
  */
-abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
+abstract class BasePreviewAnnotationInspection(
+  private val groupDisplayName: String,
+  previewAnnotationChecker: PreviewAnnotationChecker,
+) : AbstractKotlinInspection(), PreviewAnnotationChecker by previewAnnotationChecker {
   /**
    * Will be true if the inspected file imports the `@Preview` annotation. This is used as a
    * shortcut to avoid analyzing all kotlin files
@@ -45,12 +59,6 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
    * shortcut to avoid analyzing all kotlin files
    */
   var isComposableFile: Boolean = false
-
-  abstract fun isPreview(importDirective: KtImportDirective): Boolean
-
-  abstract fun isPreview(annotation: KtAnnotationEntry): Boolean
-
-  abstract fun isPreviewOrMultiPreview(annotation: KtAnnotationEntry): Boolean
 
   /**
    * Called for every `@Preview` and MultiPreview annotation, that is annotating a function.
@@ -133,4 +141,8 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
     } else {
       PsiElementVisitor.EMPTY_VISITOR
     }
+
+  final override fun getGroupDisplayName(): String {
+    return groupDisplayName
+  }
 }
