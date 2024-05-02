@@ -16,7 +16,6 @@
 package com.android.tools.idea.avdmanager.ui;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.Density;
 import com.android.resources.Keyboard;
 import com.android.resources.Navigation;
@@ -560,10 +559,10 @@ public final class AvdDeviceData {
     myHasGps.set(defaultHardware.getSensors().contains(Sensor.GPS));
     myHasProximitySensor.set(defaultHardware.getSensors().contains(Sensor.PROXIMITY_SENSOR));
 
-    myIsAutomotive.set(HardwareConfigHelper.isAutomotive(device));
-    myIsTv.set(HardwareConfigHelper.isTv(device));
-    myIsWear.set(HardwareConfigHelper.isWear(device));
-    myIsDesktop.set(HardwareConfigHelper.isDesktop(device));
+    myIsAutomotive.set(Device.isAutomotive(device));
+    myIsTv.set(Device.isTv(device));
+    myIsWear.set(Device.isWear(device));
+    myIsDesktop.set(Device.isDesktop(device));
     myIsScreenRound.set(device.isScreenRound());
     myScreenChinSize.set(device.getChinSize());
 

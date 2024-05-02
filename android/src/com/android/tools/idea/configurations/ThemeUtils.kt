@@ -18,7 +18,6 @@ package com.android.tools.idea.configurations
 
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
-import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.resources.ScreenSize
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
@@ -209,10 +208,10 @@ class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
 fun getDeviceDefaultTheme(moduleInfo: AndroidModuleInfo?, renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String {
   // For Android Wear and Android TV, the defaults differ
   if (device != null) {
-    if (HardwareConfigHelper.isWear(device)) {
+    if (Device.isWear(device)) {
       return "@android:style/Theme.DeviceDefault"
     }
-    else if (HardwareConfigHelper.isTv(device)) {
+    else if (Device.isTv(device)) {
       return "@style/Theme.Leanback"
     }
   }

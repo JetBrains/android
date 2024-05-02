@@ -20,7 +20,6 @@ package com.android.tools.idea.configurations
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.HardwareConfigHelper.*
 import com.android.ide.common.rendering.api.HardwareConfig
-import com.android.resources.Density
 import com.android.sdklib.devices.Device
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
@@ -96,12 +95,12 @@ fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> {
       when {
         isCanonicalDevice(it) -> DeviceGroup.CANONICAL_DEVICE
         isAdditionalDevice(it) -> DeviceGroup.ADDITIONAL_DEVICE
-        isAutomotive(it) -> DeviceGroup.AUTOMOTIVE
-        isWear(it) -> DeviceGroup.WEAR
-        isDesktop(it) -> DeviceGroup.DESKTOP
-        isTv(it) -> DeviceGroup.TV
+        Device.isAutomotive(it) -> DeviceGroup.AUTOMOTIVE
+        Device.isWear(it) -> DeviceGroup.WEAR
+        Device.isDesktop(it) -> DeviceGroup.DESKTOP
+        Device.isTv(it) -> DeviceGroup.TV
         isNexus(it) && it.manufacturer != HardwareConfig.MANUFACTURER_GENERIC -> sizeGroupNexus(it)
-        isMobile(it) && it.manufacturer == HardwareConfig.MANUFACTURER_GENERIC -> DeviceGroup.GENERIC
+        Device.isMobile(it) && it.manufacturer == HardwareConfig.MANUFACTURER_GENERIC -> DeviceGroup.GENERIC
         else -> DeviceGroup.OTHER
       }
     }

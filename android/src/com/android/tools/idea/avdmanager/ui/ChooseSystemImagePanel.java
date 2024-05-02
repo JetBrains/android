@@ -27,7 +27,6 @@ import static com.android.sdklib.AndroidVersion.MIN_RECTANGULAR_WEAR_API;
 import static com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.VersionCodes.TIRAMISU;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.repository.Revision;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
@@ -291,7 +290,7 @@ public class ChooseSystemImagePanel extends JPanel
     }
 
     // TODO: http://b/326294450 - Try doing this in device and system image declarations
-    if (!HardwareConfigHelper.isTablet(device)) {
+    if (!Device.isTablet(device)) {
       if (imageTags.contains(SystemImageTags.TABLET_TAG)) {
         return false;
       }

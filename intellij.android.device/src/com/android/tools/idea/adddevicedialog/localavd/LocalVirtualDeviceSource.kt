@@ -17,7 +17,6 @@ package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRound
 import com.android.sdklib.AndroidVersion
@@ -146,10 +145,10 @@ internal class LocalVirtualDeviceSource(
   private val Device.formFactor: String
     get() =
       when {
-        HardwareConfigHelper.isWear(this) -> FormFactors.WEAR
-        HardwareConfigHelper.isAutomotive(this) -> FormFactors.AUTO
-        HardwareConfigHelper.isTv(this) -> FormFactors.TV
-        HardwareConfigHelper.isTablet(this) -> FormFactors.TABLET
+        Device.isWear(this) -> FormFactors.WEAR
+        Device.isAutomotive(this) -> FormFactors.AUTO
+        Device.isTv(this) -> FormFactors.TV
+        Device.isTablet(this) -> FormFactors.TABLET
         else -> FormFactors.PHONE
       }
 }

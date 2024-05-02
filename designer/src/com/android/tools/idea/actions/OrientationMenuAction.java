@@ -17,7 +17,6 @@ package com.android.tools.idea.actions;
 
 import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.resources.configuration.DeviceConfigHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ScreenOrientation;
@@ -71,7 +70,7 @@ public class OrientationMenuAction extends DropDownAction {
 
         // Do not allow to change the orientation of the wear devices.
         //noinspection SimplifiableConditionalExpression
-        boolean showSetOrientationOptions = !HardwareConfigHelper.isWear(device);
+        boolean showSetOrientationOptions = !Device.isWear(device);
 
         if (showSetOrientationOptions) {
           List<State> states = device.getAllStates();
@@ -135,7 +134,7 @@ public class OrientationMenuAction extends DropDownAction {
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       configuration.setDeviceState(myState);
-      if (!HardwareConfigHelper.isWear(configuration.getDevice())) {
+      if (!Device.isWear(configuration.getDevice())) {
         // Save the last orientation if device is not a wear device.
         ConfigurationManager configManager = ConfigurationManager.getFromConfiguration(configuration);
         ConfigurationProjectState projectState = configManager.getStateManager().getProjectState();

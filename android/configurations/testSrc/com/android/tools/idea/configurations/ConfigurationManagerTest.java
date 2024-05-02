@@ -18,7 +18,6 @@ package com.android.tools.idea.configurations;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.resources.Locale;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -30,7 +29,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ref.GCUtil;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
@@ -149,7 +147,7 @@ public class ConfigurationManagerTest extends AndroidTestCase {
         throw new IllegalStateException();
       }
     }).get();
-    assertTrue(HardwareConfigHelper.isWear(config.getDevice()));
+    assertTrue(Device.isWear(config.getDevice()));
   }
 
   public void testDefaultThemeCompute() throws ExecutionException, InterruptedException {

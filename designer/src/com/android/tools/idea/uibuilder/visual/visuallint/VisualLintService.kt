@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
-import com.android.ide.common.rendering.HardwareConfigHelper
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProviderListener
 import com.android.tools.idea.common.model.ModelListener
@@ -219,7 +219,7 @@ class VisualLintService(val project: Project) : Disposable {
     baseModel.addListener(listener)
     try {
       val modelsToAnalyze =
-        if (HardwareConfigHelper.isWear(baseModel.configuration.device)) {
+        if (Device.isWear(baseModel.configuration.device)) {
           WearDeviceModelsProvider.createNlModels(baseModel, baseModel.file, baseModel.facet)
         } else {
           WindowSizeModelsProvider.createNlModels(baseModel, baseModel.file, baseModel.facet)
@@ -298,7 +298,7 @@ class VisualLintService(val project: Project) : Disposable {
     runningInBackground: Boolean = false,
   ) {
     runAnalyzers(targetIssueProvider, basicAnalyzers, result, model, runningInBackground)
-    if (HardwareConfigHelper.isWear(model.configuration.device)) {
+    if (Device.isWear(model.configuration.device)) {
       runAnalyzers(targetIssueProvider, wearAnalyzers, result, model, runningInBackground)
     } else {
       runAnalyzers(targetIssueProvider, adaptiveAnalyzers, result, model, runningInBackground)

@@ -712,7 +712,7 @@ public class RenderTask {
 
     // Don't show navigation buttons on older platforms.
     Device device = configuration.getDevice();
-    if (!myShowDecorations || HardwareConfigHelper.isWear(device)) {
+    if (!myShowDecorations || Device.isWear(device)) {
       params.setForceNoDecor();
     }
     else {
