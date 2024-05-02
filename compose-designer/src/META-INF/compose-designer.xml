@@ -42,7 +42,7 @@
                      key="inspection.no.composable.name"
                      level="ERROR"/>
 
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMustBeTopLevelFunction"
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.ComposePreviewMustBeTopLevelFunction"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"

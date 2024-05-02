@@ -20,9 +20,9 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.compose.inspection.BasePreviewAnnotationInspection
 import com.android.tools.compose.inspection.PreviewAnnotationChecker
+import com.android.tools.compose.inspection.PreviewMustBeTopLevelFunction
 import com.android.tools.compose.inspection.PreviewNeedsComposableAnnotationInspection
 import com.android.tools.compose.inspection.PreviewNotSupportedInUnitTestFiles
-import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.kotlin.evaluateConstant
 import com.android.tools.idea.kotlin.findValueArgument
@@ -164,38 +164,12 @@ class ComposePreviewNeedsComposableAnnotationInspection :
     ComposePreviewAnnotationChecker,
   )
 
-/**
- * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, is a
- * top level function. This is to avoid `@Preview` methods to be instance methods of classes that we
- * can not instantiate.
- */
-class PreviewMustBeTopLevelFunction :
-  BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
-    if (function.isValidPreviewLocation()) return
-
-    holder.registerProblem(
-      previewAnnotation.psiOrParent as PsiElement,
-      message("inspection.top.level.function"),
-      ProblemHighlightType.ERROR,
-    )
-  }
-
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
-    // This inspection only applies for functions, not for Annotation classes
-    return
-  }
-
-  override fun getStaticDescription() = message("inspection.top.level.function")
-}
+class ComposePreviewMustBeTopLevelFunction :
+  PreviewMustBeTopLevelFunction(
+    message("inspection.top.level.function"),
+    composePreviewGroupDisplayName,
+    ComposePreviewAnnotationChecker,
+  )
 
 /**
  * Inspection that checks that `@Preview` width parameter doesn't go higher than [MAX_WIDTH], and

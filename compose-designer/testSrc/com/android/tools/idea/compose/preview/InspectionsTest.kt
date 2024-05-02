@@ -211,7 +211,7 @@ class InspectionsTest {
 
   @Test
   fun testPreviewMustBeTopLevel() {
-    fixture.enableInspections(PreviewMustBeTopLevelFunction() as InspectionProfileEntry)
+    fixture.enableInspections(ComposePreviewMustBeTopLevelFunction() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName", "ClassName")
     @Language("kotlin")
