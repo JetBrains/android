@@ -1114,7 +1114,6 @@ iml_module(
         "@intellij//:com.intellij.cidr.lang.clangd",
         "@intellij//:com.intellij.cidr.lang.clangdBridge",
         "@intellij//:com.intellij.completion.ml.ranking",
-        "@intellij//:com.intellij.completion.ml.ranking.models",
         "@intellij//:com.intellij.configurationScript",
         "@intellij//:com.intellij.copyright",
         "@intellij//:com.intellij.dev",

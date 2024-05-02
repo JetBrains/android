@@ -103,7 +103,6 @@ public class StartUpTest {
         "Jetpack Compose",
         "Kotlin",
         "Machine Learning Code Completion",
-        "Machine Learning Code Completion Models",
         "Markdown",
         "Maven server api classes",
         "Mercurial",

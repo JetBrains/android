@@ -17,7 +17,6 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.cidr.lang.clangd" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.cidr.lang.clangdBridge" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.completion.ml.ranking" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.completion.ml.ranking.models" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.configurationScript" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.copyright" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.intellij.dev" level="project" />

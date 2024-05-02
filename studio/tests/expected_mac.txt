@@ -2471,7 +2471,6 @@ Android Studio Preview.app/Contents/plugins/cidr-clangConfig-plugin/lib/cidr-cla
 Android Studio Preview.app/Contents/plugins/cidr-clangFormat-plugin/lib/cidr-clangFormat-plugin.jar
 Android Studio Preview.app/Contents/plugins/cidr-debugger-plugin/lib/cidr-debugger-plugin.jar
 Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/completionMlRanking.jar
-Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar
 Android Studio Preview.app/Contents/plugins/configurationScript/lib/configurationScript.jar
 Android Studio Preview.app/Contents/plugins/copyright/lib/copyright.jar
 Android Studio Preview.app/Contents/plugins/design-tools/lib/design-tools.jar

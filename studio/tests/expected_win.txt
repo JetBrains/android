@@ -1794,7 +1794,6 @@ android-studio/plugins/cidr-clangConfig-plugin/lib/cidr-clangConfig-plugin.jar
 android-studio/plugins/cidr-clangFormat-plugin/lib/cidr-clangFormat-plugin.jar
 android-studio/plugins/cidr-debugger-plugin/lib/cidr-debugger-plugin.jar
 android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
-android-studio/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar
 android-studio/plugins/configurationScript/lib/configurationScript.jar
 android-studio/plugins/copyright/lib/copyright.jar
 android-studio/plugins/design-tools/lib/design-tools.jar
