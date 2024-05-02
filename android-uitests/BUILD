@@ -132,7 +132,7 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.appcompat.appcompat_1.4.1",
         "@maven//:androidx.appcompat.appcompat_1.6.1",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.3",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.4",
         "@maven//:androidx.compose.animation.animation-core-android_1.5.0-beta01",  # Necessary for Compose for TV
         "@maven//:androidx.compose.animation.animation_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.animation.animation_1.5.0-beta01",  # Necessary for Compose for TV
