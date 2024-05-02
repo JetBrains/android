@@ -61,6 +61,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -200,6 +201,10 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         context.myLastKnownTransportThreadFuture.cancel(true);
         context.myLastKnownTransportThreadFuture = null;
       }
+      if (context.shouldTerminateThread != null) {
+        context.shouldTerminateThread.set(true);
+        context.shouldTerminateThread = null;
+      }
       context.myExecutor.execute(getDisconnectRunnable(serial));
       return context;
     });
@@ -212,15 +217,24 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         context.myLastKnownTransportThreadFuture.cancel(true);
         context.myLastKnownTransportThreadFuture = null;
       }
+      if (context.shouldTerminateThread != null) {
+        context.shouldTerminateThread.set(true);
+        context.shouldTerminateThread = null;
+      }
       context.myExecutor.execute(getDisconnectRunnable(serial));
     });
   }
 
   private void spawnTransportThread(@NonNull IDevice device) {
-    TransportThread transportThread = new TransportThread(device, myDataStoreService, myMessageBus, mySerialToDeviceContextMap);
+    AtomicBoolean shouldTerminateTransportThread = new AtomicBoolean(false);
+    TransportThread transportThread = new TransportThread(
+      device, myDataStoreService, myMessageBus, mySerialToDeviceContextMap, shouldTerminateTransportThread
+    );
     mySerialToDeviceContextMap.compute(device.getSerialNumber(), (serial, context) -> {
-      assert context != null && (context.myLastKnownTransportProxy == null || context.myLastKnownTransportProxy.getDevice() != device);
+      assert context != null && (context.myLastKnownTransportProxy == null || context.myLastKnownTransportProxy.getDevice() != device)
+        && (context.shouldTerminateThread == null || context.shouldTerminateThread.get());
       context.myLastKnownTransportThreadFuture = context.myExecutor.submit(transportThread);
+      context.shouldTerminateThread = shouldTerminateTransportThread;
       return context;
     });
   }
@@ -231,13 +245,15 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
     @NotNull private final MessageBus myMessageBus;
     private volatile TransportProxy myTransportProxy;
     @NotNull private final Map<String, DeviceContext> mySerialToDeviceContextMap;
+    @NotNull private final AtomicBoolean myShouldTerminate;
 
     private TransportThread(@NotNull IDevice device, @NotNull DataStoreService datastore, @NotNull MessageBus messageBus,
-                            @NotNull Map<String, DeviceContext> serialToDeviceContextMap) {
+                            @NotNull Map<String, DeviceContext> serialToDeviceContextMap, @NotNull AtomicBoolean shouldTerminate) {
       myDataStore = datastore;
       myMessageBus = messageBus;
       myDevice = device;
       mySerialToDeviceContextMap = serialToDeviceContextMap;
+      myShouldTerminate = shouldTerminate;
     }
 
     @Override
@@ -258,10 +274,14 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         long lastDaemonStartTime = System.currentTimeMillis();  // initialized as current time
         int attemptCounter = 0;
         for (boolean reconnectAgents = false; ; reconnectAgents = true) {
+          if (myShouldTerminate.get()) {
+            getLogger().info("TransportThread was cancelled.");
+            break;
+          }
           long currentTimeMs = System.currentTimeMillis();
           reportTransportDaemonStarted(reconnectAgents, currentTimeMs - lastDaemonStartTime);
           // Start transport daemon and block until it is terminated or an exception is thrown.
-          startTransportDaemon(transportDevice, reconnectAgents, attemptCounter);
+          startTransportDaemon(transportDevice, reconnectAgents, attemptCounter, myShouldTerminate);
           getLogger().info("Daemon stopped running; will try to restart it");
           // Disconnect the proxy and datastore before attempting to reconnect to agents.
           disconnect(mySerialToDeviceContextMap.get(myDevice.getSerialNumber()), myDataStore);
@@ -307,8 +327,9 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
      * @throws ShellCommandUnresponsiveException
      * @throws IOException
      */
-    private void startTransportDaemon(@NotNull Common.Device transportDevice, boolean reconnectAgents, int attemptNumber)
-      throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    private void startTransportDaemon(
+      @NotNull Common.Device transportDevice, boolean reconnectAgents, int attemptNumber, AtomicBoolean isCancelled
+    ) throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
       String command = TransportFileManager.getTransportExecutablePath() + " -config_file=" + TransportFileManager.getDaemonConfigPath();
       getLogger().info("[Transport]: Executing " + command);
       myDevice.executeShellCommand(command, new IShellOutputReceiver() {
@@ -396,11 +417,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
 
         @Override
         public boolean isCancelled() {
-          if (Thread.interrupted()) {
-            Thread.currentThread().interrupt();
-            return true;
-          }
-          return false;
+          return isCancelled.get();
         }
       }, 0, TimeUnit.MILLISECONDS);
     }
@@ -555,6 +572,12 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
                                                                               TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     @Nullable public TransportProxy myLastKnownTransportProxy;
     @Nullable public Future<?> myLastKnownTransportThreadFuture;
+    /**
+     * Indicates if the last started {@link TransportThread} should stop.
+     * This variable is necessary because just cancelling the future returned by the executor is not enough,
+     * see b/331183470 for more info.
+     */
+    @Nullable public AtomicBoolean shouldTerminateThread;
     @Nullable public Common.Device myDevice;
     /**
      * The processes (PIDs) with a connected agent. Useful to recover the state of the pipeline's daemon
