@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.api.settings;
+package com.android.tools.idea.gradle.dsl.api
 
-import com.android.tools.idea.gradle.dsl.api.PluginModel;
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-public interface PluginsModel {
+interface BasePluginsModel {
   /**
    * @return a list of plugins declared (and also possibly applied) in this model
    */
-  List<PluginModel> plugins();
+  fun plugins(): List<PluginModel>
 
   /**
    * @return a list of plugins applied in this model
    */
-  List<PluginModel> appliedPlugins();
+  fun appliedPlugins(): List<PluginModel>
 
   /**
    * Modify the underlying object, if necessary, such that the given plugin is applied, and return the model corresponding to the
@@ -39,8 +33,7 @@ public interface PluginsModel {
    * @param plugin the name of a plugin
    * @return the model for the given plugin
    */
-  @NotNull
-  PluginModel applyPlugin(@NotNull String plugin);
+  fun applyPlugin(plugin: String): PluginModel
 
   /**
    * Modify the underlying object such that the given plugin is declared at the specified version and with the specified apply
@@ -52,9 +45,8 @@ public interface PluginsModel {
    * @param version the version specification for the given plugin
    * @return the model for the given plugin
    */
-  @NotNull
-  default PluginModel applyPlugin(@NotNull String plugin, @NotNull String version) {
-    return applyPlugin(plugin, version, null);
+  fun applyPlugin(plugin: String, version: String): PluginModel {
+    return applyPlugin(plugin, version, null)
   }
 
   /**
@@ -64,29 +56,16 @@ public interface PluginsModel {
    * TODO(xof): how should we handle the case where we already have a plugin declaration for this plugin?
    *
    * @param plugin the name of a plugin
-   * @param version the version specification for the given plugin. Version is nullable as it can be defined in
-   *                root project build file already.
+   * @param version the version specification for the given plugin
    * @param apply whether the plugin should be declared as applied in this model
    * @return the model for the given plugin
    */
-  @NotNull
-  PluginModel applyPlugin(@NotNull String plugin, @Nullable String version, @Nullable Boolean apply);
-
-  /**
-   * Modify the underlying object so that the given reference is used as an alias to apply a plugin with the specified
-   * apply status, and return the model corresponding to the plugin declaration.
-   *
-   * @param reference a reference to a plugin alias
-   * @param apply whether the plugin should be declared as applied in this model
-   * @return the model for the given plugin
-   */
-  @NotNull
-  PluginModel applyPlugin(@NotNull ReferenceTo reference, @Nullable Boolean apply);
+  fun applyPlugin(plugin: String, version: String, apply: Boolean?): PluginModel
 
   /**
    * Modify the underlying object such that the given plugin is no longer declared.
    *
    * @param plugin the name of a plugin
    */
-  void removePlugin(@NotNull String plugin);
+  fun removePlugin(plugin: String)
 }

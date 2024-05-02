@@ -30,7 +30,7 @@ import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginManagementModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel;
-import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel;
+import com.android.tools.idea.gradle.dsl.api.PluginsModel;
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
@@ -388,7 +388,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     PluginManagementModel pluginManagementModel = settingsModel.pluginManagement();
     RepositoriesModel repositoriesModel = pluginManagementModel.repositories();
-    PluginsModel pluginsModel = pluginManagementModel.plugins();
+    PluginsBlockModel pluginsModel = pluginManagementModel.plugins();
 
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertSize(2, repositories);
@@ -411,7 +411,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     writeToSettingsFile(TestFile.ADD_AND_APPLY_PLUGIN_MANAGEMENT);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     PluginManagementModel pluginManagementModel = settingsModel.pluginManagement();
-    PluginsModel pluginsModel = pluginManagementModel.plugins();
+    PluginsBlockModel pluginsModel = pluginManagementModel.plugins();
     RepositoriesModel repositoriesModel = pluginManagementModel.repositories();
 
     repositoriesModel.addGoogleMavenRepository();
@@ -425,7 +425,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     writeToSettingsFile(TestFile.ADD_AND_APPLY_PLUGIN_MANAGEMENT);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     PluginManagementModel pluginManagementModel = settingsModel.pluginManagement();
-    PluginsModel pluginsModel = pluginManagementModel.plugins();
+    PluginsBlockModel pluginsModel = pluginManagementModel.plugins();
     RepositoriesModel repositoriesModel = pluginManagementModel.repositories();
 
     repositoriesModel.addGoogleMavenRepository();
@@ -440,7 +440,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     writeToSettingsFile(TestFile.EDIT_AND_APPLY_PLUGIN_MANAGEMENT);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     PluginManagementModel pluginManagementModel = settingsModel.pluginManagement();
-    PluginsModel pluginsModel = pluginManagementModel.plugins();
+    PluginsBlockModel pluginsModel = pluginManagementModel.plugins();
     RepositoriesModel repositoriesModel = pluginManagementModel.repositories();
 
     pluginsModel.removePlugin("com.android.application");
@@ -457,7 +457,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     writeToSettingsFile(TestFile.EDIT_AND_APPLY_PLUGIN_MANAGEMENT);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     PluginManagementModel pluginManagementModel = settingsModel.pluginManagement();
-    PluginsModel pluginsModel = pluginManagementModel.plugins();
+    PluginsBlockModel pluginsModel = pluginManagementModel.plugins();
     RepositoriesModel repositoriesModel = pluginManagementModel.repositories();
 
     pluginsModel.removePlugin("com.android.application");
@@ -473,7 +473,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
   public void testParsePluginsBlockInSettings() throws IOException {
     writeToSettingsFile(TestFile.PARSE_PLUGINS_BLOCK);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
-    PluginsModel pluginsModel = settingsModel.plugins();
+    PluginsBlockModel pluginsModel = settingsModel.plugins();
     assertEquals("com.android.settings", pluginsModel.plugins().get(0).name().forceString());
     assertEquals("7.4.0", pluginsModel.plugins().get(0).version().forceString());
   }
@@ -557,25 +557,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     verifyFileContents(mySettingsFile, TestFile.EDIT_VERSION_CATALOGS_EXPECTED);
   }
 
-  @Test
-  public void testAddAndApplyPluginsByReference() throws IOException {
-    writeToSettingsFile(TestFile.ADD_AND_APPLY_PLUGIN_MANAGEMENT);
-    writeToVersionCatalogFile(TestFile.VERSION_CATALOG);
-    ProjectBuildModel projectModel = getProjectBuildModel();
-    GradleSettingsModel settingsModel = projectModel.getProjectSettingsModel();
-    GradlePropertyModel foo = projectModel.getVersionCatalogsModel().plugins("libs").findProperty("foo");
-    GradlePropertyModel bar = projectModel.getVersionCatalogsModel().plugins("libs").findProperty("bar");
-    PluginsBlockModel pmpModel = settingsModel.pluginManagement().plugins();
-    pmpModel.applyPlugin(new ReferenceTo(foo, pmpModel), null);
-    pmpModel.applyPlugin(new ReferenceTo(bar, pmpModel), true);
-    PluginsBlockModel pModel = settingsModel.plugins();
-    pModel.applyPlugin(new ReferenceTo(foo, pmpModel), false);
-    pModel.applyPlugin(new ReferenceTo(bar, pmpModel), null);
-
-    applyChanges(projectModel);
-    verifyFileContents(mySettingsFile, TestFile.ADD_AND_APPLY_PLUGINS_BY_REFERENCE_EXPECTED);
-  }
-
   enum TestFile implements TestFileName {
     INCLUDED_MODULE_PATHS("includedModulePaths"),
     INCLUDED_MODULE_PATHS_WITH_DOT_SEPARATOR("includedModulePathsWithDotSeparator"),
@@ -616,7 +597,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     ADD_AND_APPLY_PLUGIN_MANAGEMENT("addAndApplyPluginManagement"),
     ADD_AND_APPLY_PLUGIN_MANAGEMENT_EXPECTED("addAndApplyPluginManagementExpected"),
     ADD_AND_APPLY_PLUGIN_MANAGEMENT_THREE_ARGUMENTS_EXPECTED("addAndApplyPluginManagementThreeArgumentsExpected"),
-    ADD_AND_APPLY_PLUGINS_BY_REFERENCE_EXPECTED("addAndApplyPluginsByReferenceExpected"),
     EDIT_AND_APPLY_PLUGIN_MANAGEMENT("editAndApplyPluginManagement"),
     EDIT_AND_APPLY_PLUGIN_MANAGEMENT_EXPECTED("editAndApplyPluginManagementExpected"),
     EDIT_AND_APPLY_PLUGIN_MANAGEMENT_THREE_ARGUMENTS_EXPECTED("editAndApplyPluginManagementThreeArgumentsExpected"),
