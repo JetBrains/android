@@ -34,7 +34,7 @@
                      key="inspection.no.parameters.name"
                      level="ERROR"/>
 
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewNeedsComposableAnnotationInspection"
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.ComposePreviewNeedsComposableAnnotationInspection"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"

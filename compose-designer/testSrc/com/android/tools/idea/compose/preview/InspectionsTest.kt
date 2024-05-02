@@ -34,7 +34,7 @@ class InspectionsTest {
   @Test
   fun testNeedsComposableInspection() {
     fixture.enableInspections(
-      PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry
+      ComposePreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry
     )
 
     @Suppress("TestFunctionName")
@@ -572,7 +572,7 @@ class InspectionsTest {
   @Test
   fun testInspectionsWithNoImport() {
     fixture.enableInspections(
-      PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry
+      ComposePreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry
     )
 
     @Suppress("TestFunctionName")

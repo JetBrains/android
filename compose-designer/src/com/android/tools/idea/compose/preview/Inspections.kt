@@ -16,11 +16,11 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.compose.inspection.BasePreviewAnnotationInspection
 import com.android.tools.compose.inspection.PreviewAnnotationChecker
+import com.android.tools.compose.inspection.PreviewNeedsComposableAnnotationInspection
 import com.android.tools.compose.inspection.PreviewNotSupportedInUnitTestFiles
 import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -157,39 +157,12 @@ class PreviewMultipleParameterProvidersInspection :
     message("inspection.no.multiple.preview.provider.description")
 }
 
-/**
- * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, is
- * also annotated with `@Composable`.
- */
-class PreviewNeedsComposableAnnotationInspection :
-  BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
-    val nonComposable =
-      function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }
-    if (nonComposable) {
-      holder.registerProblem(
-        previewAnnotation.psiOrParent as PsiElement,
-        message("inspection.no.composable.description"),
-        ProblemHighlightType.ERROR,
-      )
-    }
-  }
-
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
-    // This inspection only applies for functions, not for Annotation classes
-    return
-  }
-
-  override fun getStaticDescription() = message("inspection.no.composable.description")
-}
+class ComposePreviewNeedsComposableAnnotationInspection :
+  PreviewNeedsComposableAnnotationInspection(
+    message("inspection.no.composable.description"),
+    composePreviewGroupDisplayName,
+    ComposePreviewAnnotationChecker,
+  )
 
 /**
  * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, is a
