@@ -16,28 +16,16 @@
 package com.android.tools.idea.wear.preview.lint
 
 import com.android.tools.idea.preview.quickfixes.ReplacePreviewAnnotationFix
-import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.WearTileProjectRule
-import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInspection.ex.QuickFixWrapper
 import com.intellij.ide.highlighter.HtmlFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runInEdt
-import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.project.modules
-import com.intellij.openapi.roots.SourceFolder
-import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiMethod
-import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.psiUtil.elementsInRange
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -56,13 +44,7 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
   fun setUp() {
     fixture.enableInspections(WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation())
 
-    val unitTestModule = fixture.project.modules.single { it.isUnitTestModule() }
-    val unitTestRoot = fixture.tempDirFixture.findOrCreateDir("src/test")
-    runInEdt {
-      ApplicationManager.getApplication().runWriteAction<SourceFolder> {
-        PsiTestUtil.addSourceRoot(unitTestModule, unitTestRoot, true)
-      }
-    }
+    fixture.addUnitTestSourceRoot()
 
     fixture.addFileToProject(
       "src/main/test/Preview.kt",
@@ -208,12 +190,3 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
     )
   }
 }
-
-private fun PsiFile.containingMethodName(highlightInfo: HighlightInfo) =
-  runReadAction {
-      elementsInRange(TextRange.create(highlightInfo.startOffset, highlightInfo.endOffset))
-    }
-    .mapNotNull {
-      runReadAction { (it.parent as? PsiMethod)?.name ?: (it.parent as? KtNamedFunction)?.name }
-    }
-    .single()

@@ -15,16 +15,9 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
-import com.android.tools.idea.projectsystem.isAndroidTestModule
-import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearTileProjectRule
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runInEdt
-import com.intellij.openapi.project.modules
-import com.intellij.openapi.roots.SourceFolder
-import com.intellij.testFramework.PsiTestUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -41,16 +34,9 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
   fun setUp() {
     fixture.enableInspections(WearTilePreviewNotSupportedInUnitTestFiles())
 
-    val androidTestModule = projectRule.project.modules.single { it.isAndroidTestModule() }
-    val androidTestSourceRoot = fixture.tempDirFixture.findOrCreateDir("src/androidTest")
-    val unitTestModule = fixture.project.modules.single { it.isUnitTestModule() }
-    val unitTestRoot = fixture.tempDirFixture.findOrCreateDir("src/test")
-    runInEdt {
-      ApplicationManager.getApplication().runWriteAction<SourceFolder> {
-        PsiTestUtil.addSourceRoot(androidTestModule, androidTestSourceRoot, true)
-        PsiTestUtil.addSourceRoot(unitTestModule, unitTestRoot, true)
-      }
-    }
+    fixture.addUnitTestSourceRoot()
+    fixture.addAndroidTestSourceRoot()
+
     fixture.addFileToProject(
       "src/main/test/multipreview.kt",
       // language=kotlin
