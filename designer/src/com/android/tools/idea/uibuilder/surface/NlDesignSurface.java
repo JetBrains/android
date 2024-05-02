@@ -57,7 +57,6 @@ import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewportScroller;
 import com.android.tools.idea.common.surface.layout.ReferencePointScroller;
-import com.android.tools.idea.common.surface.layout.TopBoundLeftScroller;
 import com.android.tools.idea.common.surface.layout.TopLeftCornerScroller;
 import com.android.tools.idea.common.surface.layout.ZoomCenterScroller;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
@@ -940,7 +939,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       }
       if (focusPoint.x < 0 || focusPoint.y < 0) {
         // zoom with top-left of the visible area as anchor
-        myViewportScroller = new TopBoundLeftScroller(
+        myViewportScroller = new TopLeftCornerScroller(
           new Dimension(port.getViewSize()),
           new Point(scrollPosition.x, Math.max(0, focusPoint.y)),
           update.getPreviousScale(),
