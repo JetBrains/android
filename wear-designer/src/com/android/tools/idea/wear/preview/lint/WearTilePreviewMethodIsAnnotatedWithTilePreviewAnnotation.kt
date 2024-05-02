@@ -16,6 +16,7 @@
 package com.android.tools.idea.wear.preview.lint
 
 import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
+import com.android.tools.idea.preview.quickfixes.ReplacePreviewAnnotationFix
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.wear.preview.TILE_PREVIEW_ANNOTATION_FQ_NAME
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
@@ -61,7 +62,12 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation :
               sourcePsi,
               message("inspection.preview.annotation.not.from.tile.package"),
               isOnTheFly,
-              LocalQuickFix.EMPTY_ARRAY,
+              LocalQuickFix.notNullElements(
+                ReplacePreviewAnnotationFix(
+                  sourcePsi,
+                  withAnnotationFqn = TILE_PREVIEW_ANNOTATION_FQ_NAME,
+                )
+              ),
               ProblemHighlightType.ERROR,
             )
           }

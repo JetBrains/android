@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
+import com.android.tools.idea.preview.quickfixes.ReplacePreviewAnnotationFix
 import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.WearTileProjectRule
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
+import com.intellij.codeInspection.ex.QuickFixWrapper
 import com.intellij.ide.highlighter.HtmlFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
@@ -193,6 +195,7 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
       "@Preview" to "tilePreviewWithInvalidPreviewAnnotation",
       directPreviewError.text to file.containingMethodName(directPreviewError),
     )
+    assertTrue(directPreviewError.findRegisteredQuickFix { desc, _ -> QuickFixWrapper.unwrap(desc.action) is ReplacePreviewAnnotationFix })
 
     val multiPreviewError =
       errors.single {
