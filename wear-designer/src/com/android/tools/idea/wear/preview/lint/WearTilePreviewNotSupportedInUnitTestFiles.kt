@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.hasTilePreviewAnnotation
@@ -36,7 +37,8 @@ class WearTilePreviewNotSupportedInUnitTestFiles : AbstractBaseUastLocalInspecti
 
   override fun isAvailableForFile(file: PsiFile): Boolean {
     // If the element is not in a unit test file, then this inspection has nothing to do
-    return isUnitTestFile(file.project, file.virtualFile) &&
+    return StudioFlags.WEAR_TILE_PREVIEW.get() &&
+      isUnitTestFile(file.project, file.virtualFile) &&
       file.language in setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE)
   }
 

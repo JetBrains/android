@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.quickfixes.ReplacePreviewAnnotationFix
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
@@ -37,12 +39,17 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
 
   @get:Rule val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel())
 
+  @get:Rule
+  val wearTilePreviewFlagRule = FlagRule(StudioFlags.WEAR_TILE_PREVIEW, true)
+
   private val fixture
     get() = projectRule.fixture
 
+  private val inspection = WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation()
+
   @Before
   fun setUp() {
-    fixture.enableInspections(WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation())
+    fixture.enableInspections(inspection)
 
     fixture.addUnitTestSourceRoot()
 
@@ -71,8 +78,6 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
 
   @Test
   fun isAvailableForKotlinAndJavaFiles() {
-    val inspection = WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation()
-
     // supported types
     val kotlinFile = fixture.configureByText(KotlinFileType.INSTANCE, "")
     val javaFile = fixture.configureByText(JavaFileType.INSTANCE, "")
@@ -88,12 +93,22 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
 
   @Test
   fun isNotAvailableForUnitTestFiles() {
-    val inspection = WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation()
     val kotlinUnitTestFile = fixture.addFileToProject("src/test/test.kt", "")
     val javaUnitTestFile = fixture.addFileToProject("src/test/Test.java", "")
 
     assertFalse(inspection.isAvailableForFile(kotlinUnitTestFile))
     assertFalse(inspection.isAvailableForFile(javaUnitTestFile))
+  }
+
+  @Test
+  fun canBeDisabled() {
+    val kotlinFile = fixture.configureByText(KotlinFileType.INSTANCE, "")
+    val javaFile = fixture.configureByText(JavaFileType.INSTANCE, "")
+
+    StudioFlags.WEAR_TILE_PREVIEW.override(false)
+
+    assertFalse(inspection.isAvailableForFile(kotlinFile))
+    assertFalse(inspection.isAvailableForFile(javaFile))
   }
 
   @Test

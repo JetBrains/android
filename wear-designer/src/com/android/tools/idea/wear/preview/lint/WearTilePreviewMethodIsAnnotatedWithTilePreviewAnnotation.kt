@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.quickfixes.ReplacePreviewAnnotationFix
 import com.android.tools.idea.projectsystem.isUnitTestFile
@@ -40,7 +41,8 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation :
   AbstractBaseUastLocalInspectionTool() {
 
   override fun isAvailableForFile(file: PsiFile): Boolean {
-    return !isUnitTestFile(file.project, file.virtualFile) &&
+    return StudioFlags.WEAR_TILE_PREVIEW.get() &&
+      !isUnitTestFile(file.project, file.virtualFile) &&
       file.language in setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE)
   }
 

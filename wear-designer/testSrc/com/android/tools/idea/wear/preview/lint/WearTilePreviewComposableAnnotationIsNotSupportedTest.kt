@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.WearTileProjectRule
@@ -36,20 +38,23 @@ class WearTilePreviewComposableAnnotationIsNotSupportedTest {
   @get:Rule
   val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel())
 
+  @get:Rule
+  val wearTilePreviewFlagRule = FlagRule(StudioFlags.WEAR_TILE_PREVIEW, true)
+
   private val fixture
     get() = projectRule.fixture
 
+  private val inspection = WearTilePreviewComposableAnnotationIsNotSupported()
+
   @Before
   fun setUp() {
-    fixture.enableInspections(WearTilePreviewComposableAnnotationIsNotSupported())
+    fixture.enableInspections(inspection)
     fixture.addUnitTestSourceRoot()
     fixture.stubComposableAnnotation()
   }
 
   @Test
   fun isAvailableForKotlinAndJavaFiles() {
-    val inspection = WearTilePreviewComposableAnnotationIsNotSupported()
-
     // supported types
     val kotlinFile = fixture.configureByText(KotlinFileType.INSTANCE, "")
     val javaFile = fixture.configureByText(JavaFileType.INSTANCE, "")
@@ -65,12 +70,22 @@ class WearTilePreviewComposableAnnotationIsNotSupportedTest {
 
   @Test
   fun isNotAvailableForUnitTestFiles() {
-    val inspection = WearTilePreviewComposableAnnotationIsNotSupported()
     val kotlinUnitTestFile = fixture.addFileToProject("src/test/test.kt", "")
     val javaUnitTestFile = fixture.addFileToProject("src/test/Test.java", "")
 
     assertFalse(inspection.isAvailableForFile(kotlinUnitTestFile))
     assertFalse(inspection.isAvailableForFile(javaUnitTestFile))
+  }
+
+  @Test
+  fun canBeDisabled() {
+    val kotlinFile = fixture.configureByText(KotlinFileType.INSTANCE, "")
+    val javaFile = fixture.configureByText(JavaFileType.INSTANCE, "")
+
+    StudioFlags.WEAR_TILE_PREVIEW.override(false)
+
+    assertFalse(inspection.isAvailableForFile(kotlinFile))
+    assertFalse(inspection.isAvailableForFile(javaFile))
   }
 
   @Test

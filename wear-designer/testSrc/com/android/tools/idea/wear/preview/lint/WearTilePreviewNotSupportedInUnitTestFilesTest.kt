@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearTileProjectRule
 import com.intellij.lang.annotation.HighlightSeverity
@@ -28,12 +30,17 @@ import org.junit.Test
 class WearTilePreviewNotSupportedInUnitTestFilesTest {
   @get:Rule val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel())
 
+  @get:Rule
+  val wearTilePreviewFlagRule = FlagRule(StudioFlags.WEAR_TILE_PREVIEW, true)
+
   private val fixture
     get() = projectRule.fixture
 
+  private val inspection = WearTilePreviewNotSupportedInUnitTestFiles()
+
   @Before
   fun setUp() {
-    fixture.enableInspections(WearTilePreviewNotSupportedInUnitTestFiles())
+    fixture.enableInspections(inspection)
 
     fixture.addUnitTestSourceRoot()
     fixture.addAndroidTestSourceRoot()
@@ -55,8 +62,6 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
 
   @Test
   fun isAvailableForKotlinAndJavaUnitTestFiles() {
-    val inspection = WearTilePreviewNotSupportedInUnitTestFiles()
-
     // supported types
     val kotlinUnitTestFile = fixture.addFileToProject("src/test/test.kt", "")
     val javaUnitTestFile = fixture.addFileToProject("src/test/Test.java", "")
@@ -68,6 +73,17 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
     val htmlUnitTestFile = fixture.configureByText("src/test/test.html", "")
     assertFalse(inspection.isAvailableForFile(xmlUnitTestFile))
     assertFalse(inspection.isAvailableForFile(htmlUnitTestFile))
+  }
+
+  @Test
+  fun canBeDisabled() {
+    val kotlinUnitTestFile = fixture.addFileToProject("src/test/Test.kt", "")
+    val javaUnitTestFile = fixture.configureByText("src/test/Test.java", "")
+
+    StudioFlags.WEAR_TILE_PREVIEW.override(false)
+
+    assertFalse(inspection.isAvailableForFile(kotlinUnitTestFile))
+    assertFalse(inspection.isAvailableForFile(javaUnitTestFile))
   }
 
   @Test
