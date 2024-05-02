@@ -129,7 +129,6 @@ import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
-import org.jetbrains.plugins.gradle.model.Build
 import org.jetbrains.plugins.gradle.model.GradleBuildScriptClasspathModel
 import org.jetbrains.plugins.gradle.model.DefaultExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -592,7 +591,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
    */
   private fun removeExternalSourceSetsAndReportWarnings(project: Project, mainGradleBuild: IdeaProject) {
     // We also need to process composite builds
-    val compositeProjects: Collection<IdeaProject?> = resolverCtx.nestedBuilds.map { build: Build ->
+    val compositeProjects: Collection<IdeaProject?> = resolverCtx.nestedBuilds.map { build ->
       resolverCtx.getBuildModel(build, IdeaProject::class.java)
     }
     val gradleProjects =
