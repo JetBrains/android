@@ -19,7 +19,9 @@ import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearTileProjectRule
+import com.intellij.codeInspection.InspectionEP
 import com.intellij.codeInspection.InspectionProfileEntry
+import com.intellij.codeInspection.LocalInspectionEP
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
@@ -40,7 +42,11 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
 
   @Before
   fun setUp() {
-    fixture.enableInspections(WearTilePreviewNotSupportedInUnitTestFiles() as InspectionProfileEntry)
+    val inspections = LocalInspectionEP.LOCAL_INSPECTION.extensions
+      .filter { e -> e.implementationClass == WearTilePreviewNotSupportedInUnitTestFiles::class.java.name }
+      .map(InspectionEP::instantiateTool)
+    fixture.enableInspections(*inspections.toTypedArray())
+
 
     val androidTestModule = projectRule.project.modules.single { it.isAndroidTestModule() }
     val androidTestSourceRoot = fixture.tempDirFixture.findOrCreateDir("src/androidTest")
