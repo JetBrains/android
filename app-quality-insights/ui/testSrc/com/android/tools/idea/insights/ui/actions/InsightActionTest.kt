@@ -18,20 +18,16 @@ package com.android.tools.idea.insights.ui.actions
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventData
 import com.android.tools.idea.insights.ExceptionStack
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.Frame
-import com.android.tools.idea.insights.IssueDetails
-import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
-import com.android.tools.idea.insights.ui.CURRENT_ISSUE_KEY
 import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
+import com.android.tools.idea.insights.ui.SELECTED_EVENT_KEY
 import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.ModelType
@@ -67,33 +63,7 @@ import org.mockito.Mockito.doAnswer
 class InsightActionTest {
 
   @get:Rule val projectRule = ProjectRule()
-  private val event =
-    Event(
-      name = "event",
-      eventData = EventData(Device("manufacturer", "model"), OperatingSystemInfo("14", "")),
-      stacktraceGroup = createStackTraceGroup(),
-    )
-  private val issue =
-    AppInsightsIssue(
-      IssueDetails(
-        IssueId("1234"),
-        "Issue1",
-        "com.google.crash.Crash",
-        FailureType.FATAL,
-        "Sample Event",
-        "1.2.3",
-        "1.2.3",
-        8L,
-        14L,
-        5L,
-        50L,
-        emptySet(),
-        "https://url.for-crash.com",
-        0,
-        annotations = emptyList(),
-      ),
-      event,
-    )
+  private val eventList = List(3) { createAppInsightEvent(it) }
 
   private val scope = CoroutineScope(EmptyCoroutineContext)
   private var isOnboardingComplete = false
@@ -101,6 +71,7 @@ class InsightActionTest {
   private var isGeminiDisabled = false
   private val mockGeminiPlugin = mock<IdeaPluginDescriptor>()
   private lateinit var mockPluginManagerCore: MockedStatic<PluginManagerCore>
+  private var eventIdx: Int = 0
 
   private val fakeChatService =
     object : ChatService {
@@ -133,6 +104,7 @@ class InsightActionTest {
 
   @Before
   fun setup() {
+    eventIdx = 0
     mockPluginManagerCore = mockStatic(projectRule.disposable)
     doAnswer { "Gemini" }.whenever(mockGeminiPlugin).name
     doAnswer { PluginId.getId("") }.whenever(mockGeminiPlugin).pluginId
@@ -189,24 +161,15 @@ class InsightActionTest {
 
     InsightAction.actionPerformed(createTestEvent())
 
-    val expectedPrompt =
-      "Explain this exception from my app running on manufacturer model with Android version 14:\n" +
-        "Exception:\n" +
-        "```\n" +
-        "rawExceptionMessage: Some Exception Message - 1\n" +
-        "\tframe-0\n" +
-        "\tframe-1\n" +
-        "\tframe-2\n" +
-        "\tframe-3\n" +
-        "\tframe-4\n" +
-        "Caused by rawExceptionMessage: Some Exception Message - 2\n" +
-        "\tframe-0\n" +
-        "\tframe-1\n" +
-        "\tframe-2\n" +
-        "\tframe-3\n" +
-        "\tframe-4\n" +
-        "```"
+    val expectedPrompt = createExpectedPrompt(0)
     assertThat(fakeChatService.stagedPrompt).isEqualTo(expectedPrompt)
+
+    // Simulate navigation of event using left/right arrow buttons
+    eventIdx += 1
+    InsightAction.actionPerformed(createTestEvent())
+
+    val newExpectedPrompt = createExpectedPrompt(1)
+    assertThat(fakeChatService.stagedPrompt).isEqualTo(newExpectedPrompt)
   }
 
   @Test
@@ -228,20 +191,46 @@ class InsightActionTest {
     assertThat(countDownLatch.count).isEqualTo(0)
   }
 
+  private fun createAppInsightEvent(idx: Int) =
+    Event(
+      name = "event",
+      eventData = EventData(Device("manufacturer", "model"), OperatingSystemInfo("14", "")),
+      stacktraceGroup = createStackTraceGroup(idx),
+    )
+
   private fun createInsightButton() =
     (InsightAction.createCustomComponent(InsightAction.templatePresentation, "") as JButton).also {
       InsightAction.update(it)
     }
 
-  private fun createStackTraceGroup() = StacktraceGroup(List(5) { createRandomException(it) })
+  private fun createStackTraceGroup(eventIdx: Int) =
+    StacktraceGroup(List(5) { createRandomException(it, eventIdx) })
 
-  private fun createRandomException(idx: Int): ExceptionStack {
+  private fun createRandomException(idx: Int, eventIdx: Int): ExceptionStack {
     return ExceptionStack(
       createStackTrace(),
       rawExceptionMessage =
-        "${if(idx == 1) "Caused by " else ""}rawExceptionMessage: Some Exception Message - ${idx+1}",
+        "${if(idx == 1) "Caused by " else ""}rawExceptionMessage: Some Exception Message for event $eventIdx - ${idx+1}",
     )
   }
+
+  private fun createExpectedPrompt(eventIdx: Int) =
+    "Explain this exception from my app running on manufacturer model with Android version 14:\n" +
+      "Exception:\n" +
+      "```\n" +
+      "rawExceptionMessage: Some Exception Message for event $eventIdx - 1\n" +
+      "\tframe-0\n" +
+      "\tframe-1\n" +
+      "\tframe-2\n" +
+      "\tframe-3\n" +
+      "\tframe-4\n" +
+      "Caused by rawExceptionMessage: Some Exception Message for event $eventIdx - 2\n" +
+      "\tframe-0\n" +
+      "\tframe-1\n" +
+      "\tframe-2\n" +
+      "\tframe-3\n" +
+      "\tframe-4\n" +
+      "```"
 
   private fun createStackTrace() = Stacktrace(frames = List(5) { Frame(rawSymbol = "frame-$it") })
 
@@ -252,7 +241,7 @@ class InsightActionTest {
     AnActionEvent.createFromAnAction(InsightAction, null, "") { dataId ->
       when {
         REQUEST_SOURCE_KEY.`is`(dataId) -> StudioBot.RequestSource.CRASHLYTICS
-        CURRENT_ISSUE_KEY.`is`(dataId) -> issue
+        SELECTED_EVENT_KEY.`is`(dataId) -> eventList[eventIdx]
         CommonDataKeys.PROJECT.`is`(dataId) -> projectRule.project
         else -> null
       }

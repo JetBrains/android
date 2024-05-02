@@ -17,8 +17,8 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.Event
 import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey
@@ -32,7 +32,7 @@ import java.lang.Integer.min
 import javax.swing.JPanel
 
 val REQUEST_SOURCE_KEY = DataKey.create<StudioBot.RequestSource>("RequestSource")
-val CURRENT_ISSUE_KEY = DataKey.create<AppInsightsIssue>("CurrentIssue")
+val SELECTED_EVENT_KEY = DataKey.create<Event>("SelectedEvent")
 
 class AppInsightsContentPanel(
   projectController: AppInsightsProjectLevelController,

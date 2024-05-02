@@ -33,7 +33,6 @@ import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
-import com.android.tools.idea.insights.ui.CURRENT_ISSUE_KEY
 import com.android.tools.idea.insights.ui.DETAIL_PANEL_HORIZONTAL_SPACING
 import com.android.tools.idea.insights.ui.DetailsPanelHeader
 import com.android.tools.idea.insights.ui.DetailsPanelHeaderModel
@@ -41,6 +40,7 @@ import com.android.tools.idea.insights.ui.DetailsTabbedPane
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
 import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
+import com.android.tools.idea.insights.ui.SELECTED_EVENT_KEY
 import com.android.tools.idea.insights.ui.StackTraceConsole
 import com.android.tools.idea.insights.ui.TabbedPaneDefinition
 import com.android.tools.idea.insights.ui.createInsightToolBar
@@ -415,7 +415,8 @@ class VitalsIssueDetailsPanel(
   override fun getData(dataId: String): Any? =
     when {
       REQUEST_SOURCE_KEY.`is`(dataId) -> PLAY_VITALS
-      CURRENT_ISSUE_KEY.`is`(dataId) -> detailsState.value.selectedIssue
+      // stack trace of sampleEvent can be used for all events
+      SELECTED_EVENT_KEY.`is`(dataId) -> detailsState.value.selectedIssue?.sampleEvent
       else -> null
     }
 }
