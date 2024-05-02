@@ -34,7 +34,7 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.components.JBList
 import icons.StudioIcons
-import org.jetbrains.kotlin.idea.util.application.invokeLater
+import com.intellij.openapi.application.invokeLater
 import java.awt.event.HierarchyEvent
 import java.awt.event.HierarchyListener
 import java.awt.event.KeyAdapter

@@ -36,7 +36,7 @@ import icons.StudioIcons
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import org.jetbrains.kotlin.idea.util.application.invokeLater
+import com.intellij.openapi.application.invokeLater
 
 object SnapshotAction :
   DropDownAction(null, "Snapshot Export/Import", StudioIcons.LayoutInspector.Toolbar.SNAPSHOT),
