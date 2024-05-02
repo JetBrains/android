@@ -59,10 +59,10 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 internal const val EXPECTED_TEXT_DOCUMENTATION =
-  "<html><body><div class='content'><b>android:text</b><br/><br/>Formats: string<br/><br/>Text to display.</div>"
+  "<html><body><div class='content'><p><b>android:text</b><br/><br/>Formats: string<br/><br/>Text to display.</div>"
 
 internal const val EXPECTED_CUSTOM_PROPERTY_DOCUMENTATION =
-  "<html><body><div class='content'><b>legend</b><br/><br/></div>"
+  "<html><body><div class='content'><p><b>legend</b><br/><br/></div>"
 
 class HelpActionsTest {
 
