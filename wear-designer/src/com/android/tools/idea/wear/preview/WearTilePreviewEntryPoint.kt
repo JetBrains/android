@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.wear.preview
 
-import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
 import com.intellij.codeInspection.reference.EntryPoint
 import com.intellij.codeInspection.reference.RefElement
 import com.intellij.configurationStore.deserializeInto
 import com.intellij.configurationStore.serializeObjectInto
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiMethod
 import org.jdom.Element
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
@@ -41,8 +39,7 @@ class WearTilePreviewEntryPoint : EntryPoint() {
       psiElement
         .takeIf { it.isMethodWithTilePreviewSignature() }
         ?.toUElement(UMethod::class.java)
-        ?.findAllAnnotationsInGraph { it.isTilePreviewAnnotation() }
-        ?.any() == true
+        .hasTilePreviewAnnotation()
 
   override fun readExternal(element: Element) = element.deserializeInto(this)
 

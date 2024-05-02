@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
-import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
-import com.android.tools.idea.wear.preview.isTilePreviewAnnotation
+import com.android.tools.idea.wear.preview.hasTilePreviewAnnotation
 import com.intellij.codeInspection.AbstractBaseUastLocalInspectionTool
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalQuickFix
@@ -68,6 +67,3 @@ class WearTilePreviewNotSupportedInUnitTestFiles : AbstractBaseUastLocalInspecti
 
   override fun getGroupDisplayName() = message("inspection.group.name")
 }
-
-private fun UMethod?.hasTilePreviewAnnotation() =
-  this?.findAllAnnotationsInGraph { it.isTilePreviewAnnotation() }?.any() ?: false

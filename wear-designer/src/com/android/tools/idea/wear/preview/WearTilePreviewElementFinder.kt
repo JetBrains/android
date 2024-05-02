@@ -73,6 +73,13 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<PsiWearT
   }
 }
 
+/**
+ * Returns true if a [UMethod] is not null is annotated with a Tile Preview annotation, either
+ * directly or through a Multi-Preview annotation.
+ */
+fun UMethod?.hasTilePreviewAnnotation() =
+  this?.findAllAnnotationsInGraph { it.isTilePreviewAnnotation() }?.any() ?: false
+
 internal fun UAnnotation.isTilePreviewAnnotation() = runReadAction {
   this.qualifiedName == TILE_PREVIEW_ANNOTATION_FQ_NAME
 }
