@@ -1954,6 +1954,20 @@ public final class StudioFlags {
                 "AI generation requests per hour",
                 3600);
 
+  public static final Flag<Integer> STUDIOBOT_GENERATION_CANDIDATE_COUNT =
+    new IntFlag(STUDIOBOT, "generations.candidate.count",
+                "How many candidates to request for each generation",
+                "How many candidates to request for each generation",
+                1);
+
+  private static final int APOLLO_GENERATION_MODEL_CONTEXT_SIZE = 8192;
+
+  public static final Flag<Integer> STUDIOBOT_GENERATION_MODEL_CONTEXT_SIZE_TOKENS =
+    new IntFlag(STUDIOBOT, "generations.model.context.size",
+                "Generation model context size in tokens",
+                "Generation model context size in tokens",
+                APOLLO_GENERATION_MODEL_CONTEXT_SIZE);
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
