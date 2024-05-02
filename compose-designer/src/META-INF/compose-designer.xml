@@ -146,7 +146,7 @@
                      key="inspection.preview.device.spec.name"
                      level="ERROR"/>
 
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewNotSupportedInUnitTestFiles"
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.ComposePreviewNotSupportedInUnitTestFiles"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"

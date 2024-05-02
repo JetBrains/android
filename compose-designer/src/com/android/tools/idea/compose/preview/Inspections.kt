@@ -21,12 +21,12 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.compose.inspection.BasePreviewAnnotationInspection
 import com.android.tools.compose.inspection.PreviewAnnotationChecker
+import com.android.tools.compose.inspection.PreviewNotSupportedInUnitTestFiles
 import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.kotlin.evaluateConstant
 import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
-import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.layoutlib.isLayoutLibTarget
 import com.android.tools.preview.MAX_HEIGHT
@@ -369,41 +369,12 @@ class PreviewApiLevelMustBeValid :
   override fun getStaticDescription() = message("inspection.preview.api.level.static.description")
 }
 
-private fun KtNamedFunction.isInUnitTestFile() =
-  isUnitTestFile(this.project, this.containingFile.virtualFile)
-
-/**
- * Inspection that checks that functions annotated with `@Preview`, or with a MultiPreview, are not
- * in a unit test file.
- */
-class PreviewNotSupportedInUnitTestFiles :
-  BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
-    // If the annotation is not in a unit test file, then this inspection has nothing to do
-    if (!function.isInUnitTestFile()) return
-
-    holder.registerProblem(
-      previewAnnotation.psiOrParent as PsiElement,
-      message("inspection.unit.test.files"),
-      ProblemHighlightType.ERROR,
-    )
-  }
-
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
-    // This inspection only applies for functions, not for Annotation classes
-    return
-  }
-
-  override fun getStaticDescription() = message("inspection.unit.test.files")
-}
+class ComposePreviewNotSupportedInUnitTestFiles :
+  PreviewNotSupportedInUnitTestFiles(
+    message("inspection.unit.test.files"),
+    composePreviewGroupDisplayName,
+    ComposePreviewAnnotationChecker,
+  )
 
 /** Inspection that checks that Preview functions are not called recursively. */
 class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
