@@ -194,6 +194,9 @@ private constructor(
       .setBorderColor(JBColor.BLUE.darker())
       .setBlockClicksThroughBalloon(true)
       .setLayer(Balloon.Layer.top)
+      // Allow actions -- the editor ones (like copy, select all etc.) will apply to
+      // the text field; other IDE ones (like build) should be routed appropriately.
+      .setHideOnAction(false)
       .createBalloon()
       .apply { setAnimationEnabled(false) }
 
