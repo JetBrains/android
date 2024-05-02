@@ -305,7 +305,7 @@ class DeepCopyIrTreeWithSymbolsPreservingMetadata(
             expression.typeArgumentsCount,
             expression.valueArgumentsCount,
             mapStatementOrigin(expression.origin),
-            symbolRemapper.getReferencedClassOrNull(expression.superQualifierSymbol)
+            expression.superQualifierSymbol?.let(symbolRemapper::getReferencedClass),
         ).apply {
             copyRemappedTypeArgumentsFrom(expression)
         }.copyAttributes(expression)

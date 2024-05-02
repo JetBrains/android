@@ -32,12 +32,15 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotationApplicationWithArgumentsInfo
 import org.jetbrains.kotlin.analysis.api.annotations.KtKClassAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
@@ -152,21 +155,24 @@ private fun KtParameter.providerClassNameK2(): String? {
   allowAnalysisOnEdt {
     return analyze(this) {
       val annotatedSymbol = this@providerClassNameK2.getSymbol()
-      val annotations =
-        annotatedSymbol.annotationsByClassId(
-          ClassId.topLevel(FqName(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN))
-        )
-      val argument =
-        annotations
-          .singleOrNull()
-          ?.arguments
-          ?.find { annotationValue -> annotationValue.name.identifierOrNullIfSpecial == "provider" }
-          ?.expression
-      (argument as? KtKClassAnnotationValue.KtNonLocalKClassAnnotationValue)
-        ?.classId
-        ?.asFqNameString()
+      val annotationClassId = ClassId.topLevel(FqName(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN))
+      val annotation = annotatedSymbol.annotationsByClassId(annotationClassId).singleOrNull()
+      annotation?.let(::findProviderClassId)?.asFqNameString()
     }
   }
+}
+
+private val PROVIDER_ARGUMENT_NAME = Name.identifier("provider")
+
+private fun findProviderClassId(annotation: KtAnnotationApplicationWithArgumentsInfo): ClassId? {
+  for (argument in annotation.arguments) {
+    if (argument.name != PROVIDER_ARGUMENT_NAME) continue
+    val value = argument.expression as? KtKClassAnnotationValue ?: continue
+    val classType = value.type as? KtNonErrorClassType ?: continue
+    return classType.classId.takeUnless { it.isLocal }
+  }
+
+  return null
 }
 
 private fun KtNamedFunction.composePreviewFunctionFqn() = "${getClassName()}.${name}"
