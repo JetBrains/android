@@ -885,10 +885,10 @@ class EmulatorView(
 
     private fun buildKeyStrokeMap(): Map<KeyStroke, EmulatorKeyStroke> {
       return mutableMapOf<KeyStroke, EmulatorKeyStroke>().apply {
-        addKeyStrokesForAction(ACTION_COPY, EmulatorKeyStroke("Copy"))
-        addKeyStrokesForAction(ACTION_CUT, EmulatorKeyStroke("Cut"))
+        addKeyStrokesForAction(ACTION_COPY, EmulatorKeyStroke("c", CTRL_DOWN_MASK))
+        addKeyStrokesForAction(ACTION_CUT, EmulatorKeyStroke("x", CTRL_DOWN_MASK))
         addKeyStrokesForAction(ACTION_DELETE, EmulatorKeyStroke("Delete"))
-        addKeyStrokesForAction(ACTION_PASTE, EmulatorKeyStroke("Paste"))
+        addKeyStrokesForAction(ACTION_PASTE, EmulatorKeyStroke("v", CTRL_DOWN_MASK))
         addKeyStrokesForAction(ACTION_SELECT_ALL, EmulatorKeyStroke("a", CTRL_DOWN_MASK))
         addKeyStrokesForAction(ACTION_EDITOR_ENTER, EmulatorKeyStroke("Enter"))
         addKeyStrokesForAction(ACTION_EDITOR_ESCAPE, EmulatorKeyStroke("Escape"))
