@@ -30,17 +30,7 @@
     <deadCode implementation="com.android.tools.idea.wear.preview.WearTilePreviewEntryPoint" />
 
     <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewNotSupportedInUnitTestFiles"
-                     shortName="WearTilePreviewNotSupportedInKotlinUnitTestFiles"
-                     language="kotlin"
-                     enabledByDefault="true"
-                     bundle="bundle.wear.WearBundle"
-                     groupKey="inspection.group.name"
-                     key="inspection.unit.test.files"
-                     level="ERROR"/>
-
-    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewNotSupportedInUnitTestFiles"
-                     shortName="WearTilePreviewNotSupportedInJavaUnitTestFiles"
-                     language="JAVA"
+                     language="UAST"
                      enabledByDefault="true"
                      bundle="bundle.wear.WearBundle"
                      groupKey="inspection.group.name"
