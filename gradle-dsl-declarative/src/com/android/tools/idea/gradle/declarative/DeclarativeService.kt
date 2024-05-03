@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.declarative
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessModuleDir
@@ -34,35 +36,45 @@ import java.io.File
  */
 @Service(Service.Level.PROJECT)
 class DeclarativeService {
-
   val map = HashMap<Module, DeclarativeSchema>()
 
   companion object {
     fun getInstance(project: Project) = project.service<DeclarativeService>()
+    val log = Logger.getInstance(DeclarativeService::class.java)
   }
 
   fun getSchema(module: Module): DeclarativeSchema? {
+    if(!StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) return null
     return map.getOrPut(module) {
       val parentPath = module.guessModuleDir()?.path
-      val project = File(parentPath, ".gradle/declarative-schema/project.dcl.schema")
-      val plugins = File(parentPath, ".gradle/declarative-schema/plugins.dcl.schema")
-      try {
-        val projectSchema = SchemaSerialization.schemaFromJsonString(project.readText())
-        val pluginSchema = SchemaSerialization.schemaFromJsonString(plugins.readText())
-        DeclarativeSchema(projectSchema, pluginSchema)
+      val schemaFolder = File(parentPath, ".gradle/declarative-schema")
+      schemaFolder.lastModified()
+      val paths = schemaFolder.list { _: File?, name: String -> name.endsWith(".dcl.schema") } ?: return null
+      val schemas = mutableListOf<AnalysisSchema>()
+      for(path in paths) {
+        try {
+          val schema = File(schemaFolder, path)
+          val analysisSchema = SchemaSerialization.schemaFromJsonString(schema.readText())
+          schemas.add(analysisSchema)
+        }
+        catch (e: Exception) {
+          log.warn("Declarative schema parsing error: $e")
+        }
       }
-      catch (e: Exception) {
-        return null
-      }
+      return if (schemas.isNotEmpty())
+        DeclarativeSchema(schemas)
+      else null
     }
   }
 }
 
-class DeclarativeSchema(private val project: AnalysisSchema, private val plugin: AnalysisSchema) {
-  fun getDataClassesByFqName(): Map<FqName, DataClass> = project.dataClassesByFqName + plugin.dataClassesByFqName
+class DeclarativeSchema(private val schemas: List<AnalysisSchema>) {
+  fun getDataClassesByFqName(): Map<FqName, DataClass> =
+    schemas.fold(mapOf()){ acc, e -> acc + e.dataClassesByFqName}
   fun getRootMemberFunctions(): List<SchemaMemberFunction> =
-    project.topLevelReceiverType.memberFunctions + plugin.topLevelReceiverType.memberFunctions
+    schemas.fold(listOf()){ acc, e -> acc + e.topLevelReceiverType.memberFunctions}
 }
+
 fun getTopLevelReceiverByName(name: String, schema: DeclarativeSchema): FqName? =
   getReceiverByName(name, schema.getRootMemberFunctions())
 
