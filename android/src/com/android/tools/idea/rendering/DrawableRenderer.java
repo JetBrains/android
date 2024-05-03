@@ -28,16 +28,16 @@ import com.android.resources.ResourceType;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.rendering.HtmlLinkManager;
+import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.RenderLogger;
+import com.android.tools.rendering.RenderProblem;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.rendering.parsers.LayoutRenderPullParser;
-import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.res.ResourceRepositoryManager;
-import com.android.tools.rendering.IRenderLogger;
-import com.android.tools.rendering.RenderProblem;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -78,7 +78,7 @@ public class DrawableRenderer implements Disposable {
    * @param targetFile a file representing the build configuration of the rendering context. See {@link StudioRenderServiceKt#taskBuilder}
    */
   public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull VirtualFile targetFile) {
-    this(facet, targetFile, ConfigurationManager.getConfigurationForModule(facet.getModule()));
+    this(facet, targetFile, ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(targetFile));
   }
 
   /**
