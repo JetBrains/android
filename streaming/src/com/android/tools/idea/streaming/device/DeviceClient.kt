@@ -479,7 +479,7 @@ internal class DeviceClient(
   }
 
   private fun isAudioStreamingSupported(): Boolean =
-      StudioFlags.DEVICE_MIRRORING_AUDIO.get() && deviceConfig.featureLevel >= 31
+      deviceConfig.featureLevel >= 31
 
   private fun isAudioStreamingEnabled(): Boolean =
       isAudioStreamingSupported() && (DeviceMirroringSettings.getInstance().redirectAudio || isRemoteDevice())

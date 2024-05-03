@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.device.settings
 
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.StreamingBundle.message
 import com.android.tools.idea.streaming.device.dialogs.MirroringConfirmationDialog
@@ -89,18 +88,13 @@ class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScrol
             }
           }
     }
-    if (StudioFlags.DEVICE_MIRRORING_AUDIO.get()) {
-      row {
-        streamAudioCheckBox =
-          checkBox(message("mirroring.settings.checkbox.redirect.audio"))
-            .comment(message("mirroring.settings.checkbox.redirect.audio.comment"))
-            .bindSelected(state::redirectAudio)
-            .component
-      }.topGap(TopGap.SMALL)
-    }
-    else {
-      streamAudioCheckBox = JBCheckBox() // Placeholder.
-    }
+    row {
+      streamAudioCheckBox =
+        checkBox(message("mirroring.settings.checkbox.redirect.audio"))
+          .comment(message("mirroring.settings.checkbox.redirect.audio.comment"))
+          .bindSelected(state::redirectAudio)
+          .component
+    }.topGap(TopGap.SMALL)
     row {
       synchronizeClipboardCheckBox =
         checkBox(message("mirroring.settings.checkbox.clipboard.sharing"))
