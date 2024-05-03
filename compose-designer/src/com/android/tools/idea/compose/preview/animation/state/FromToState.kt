@@ -29,8 +29,14 @@ import com.android.tools.idea.compose.preview.animation.actions.ToolbarLabel
 class FromToState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
   AnimationState(callback) {
 
-  private val fromState = EnumStateAction(stateCallback)
-  private val toState = EnumStateAction(stateCallback)
+  private val fromState = EnumStateAction {
+    stateCallback()
+    tracker.changeStartState()
+  }
+  private val toState = EnumStateAction {
+    stateCallback()
+    tracker.changeEndState()
+  }
 
   /**
    * Contains
