@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionWrapper
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.Presentation
@@ -133,15 +134,17 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
 
     val project = e.project ?: return
     getStatusInfo(project, e.dataContext)?.let { e.presentation.isVisible = it.hasRefreshIcon }
-
-    if (StudioFlags.COMPOSE_VIEW_FILTER.get()) {
-      val manager = e.getData(DESIGN_SURFACE)?.let { COMPOSE_PREVIEW_MANAGER.getData(it) } ?: return
-      e.presentation.isVisible = !manager.isFilterEnabled
-    }
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
-    ActionButtonWithToolTipDescription(this, presentation, place).apply {
+    createCustomComponent(this, presentation, place)
+
+  /**
+   * Helper method for action wrappers depending on [ForceCompileAndRefreshActionForNotification] to
+   * have the same style
+   */
+  fun createCustomComponent(action: AnAction, presentation: Presentation, place: String) =
+    ActionButtonWithToolTipDescription(action, presentation, place).apply {
       border = JBUI.Borders.empty(1, 2)
     }
 
@@ -153,6 +156,25 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
       .isNotEmpty()
 }
 
+private class HideIfFiltersEnabledWrapper(
+  private val delegate: ForceCompileAndRefreshActionForNotification
+) : AnActionWrapper(delegate), RightAlignedToolbarAction, CustomComponentAction {
+
+  override fun createCustomComponent(presentation: Presentation, place: String) =
+    delegate.createCustomComponent(this, presentation, place)
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    if (StudioFlags.COMPOSE_VIEW_FILTER.get()) {
+      val manager = e.getData(DESIGN_SURFACE)?.let { COMPOSE_PREVIEW_MANAGER.getData(it) } ?: return
+      e.presentation.isVisible = !manager.isFilterEnabled
+    }
+  }
+}
+
+private fun ForceCompileAndRefreshActionForNotification.hideIfFiltersEnabled() =
+  HideIfFiltersEnabledWrapper(this)
+
 /**
  * [DefaultActionGroup] that shows the notification chip and the
  * [ForceCompileAndRefreshActionForNotification] button when applicable.
@@ -162,6 +184,6 @@ class ComposeNotificationGroup(parentDisposable: Disposable) :
     listOf(
       ComposeHideFilterAction(),
       PreviewIssueNotificationAction(parentDisposable),
-      ForceCompileAndRefreshActionForNotification.getInstance(),
+      ForceCompileAndRefreshActionForNotification.getInstance().hideIfFiltersEnabled(),
     )
   )
