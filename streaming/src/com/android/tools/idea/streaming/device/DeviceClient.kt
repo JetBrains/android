@@ -34,7 +34,6 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.util.StudioPathManager
-import com.android.utils.TraceUtils.simpleId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceMirroringAbnormalAgentTermination
 import com.intellij.openapi.Disposable
@@ -163,7 +162,6 @@ internal class DeviceClient(
    */
   suspend fun establishAgentConnection(
       maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.establishAgentConnection startVideoStream=$startVideoStream" }
     streamingSessionTracker.streamingStarted()
     val completion = CompletableDeferred<Unit>()
     val connection = connectionState.compareAndExchange(null, completion) ?: completion
@@ -198,7 +196,6 @@ internal class DeviceClient(
    */
   private suspend fun startAgentAndConnect(
       maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect" }
     val adbSession = AdbLibApplicationService.instance.session
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
     val agentPushed = coroutineScope {
@@ -207,21 +204,16 @@ internal class DeviceClient(
       }
     }
 
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect opening AsynchronousServerSocketChannel" }
     @Suppress("BlockingMethodInNonBlockingContext")
     val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
     val port = (asyncChannel.localAddress as InetSocketAddress).port
     logger.debug("Using port $port")
     var channels: Channels? = null
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect creating SuspendingServerSocketChannel" }
     SuspendingServerSocketChannel(asyncChannel).use { serverSocketChannel ->
       val socketName = "screen-sharing-agent-$port"
-      B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect starting reverse forwarding" }
       ClosableReverseForwarding(deviceSelector, adbSession, SocketSpec.LocalAbstract(socketName), SocketSpec.Tcp(port)).use {
         it.startForwarding()
-        B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect waiting for agent to be pushed" }
         agentPushed.await()
-        B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgentAndConnect starting agent" }
         startAgent(deviceSelector, adbSession, socketName, maxVideoSize, initialDisplayOrientation, startVideoStream)
         channels = connectChannels(serverSocketChannel)
         // Port forwarding can be removed since the already established connections will continue to work without it.
@@ -260,7 +252,6 @@ internal class DeviceClient(
   }
 
   fun startVideoStream(requester: Any, displayId: Int, maxOutputSize: Dimension) {
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startVideoStream(${requester.simpleId}, $displayId, $maxOutputSize)" }
     synchronized(videoStreams) {
       val arbiter = videoStreams.computeIfAbsent(displayId, IntFunction { d -> VideoStreamArbiter(d) })
       arbiter.startVideoStream(requester, maxOutputSize)
@@ -348,7 +339,6 @@ internal class DeviceClient(
   }
 
   private suspend fun pushAgent(deviceSelector: DeviceSelector, adbSession: AdbSession, project: Project) {
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.pushAgent" }
     streamingSessionTracker.agentPushStarted()
 
     val soFile: Path
@@ -396,7 +386,6 @@ internal class DeviceClient(
       }
       adbSession.pushFile(deviceSelector, jarFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME", permissions)
       nativeLibraryPushed.await()
-      B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.pushAgent pushed" }
     }
     streamingSessionTracker.agentPushEnded()
   }
@@ -410,7 +399,6 @@ internal class DeviceClient(
       maxVideoSize: Dimension,
       initialDisplayOrientation: Int,
       startVideoStream: Boolean) {
-    B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.startAgent" }
     val maxSizeArg =
         if (maxVideoSize.width > 0 && maxVideoSize.height > 0) " --max_size=${maxVideoSize.width},${maxVideoSize.height}" else ""
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
@@ -566,8 +554,6 @@ internal class DeviceClient(
     when {
       throwable is CancellationException -> throw throwable
       isDeviceConnected() == false -> {
-        B330395367Logger.log { "$deviceName: ${this@DeviceClient.simpleId}.throwIfCancellationOrDeviceDisconnected" +
-                               " device disconnected, throwing CancellationException" }
         throw CancellationException()
       }
     }
@@ -678,15 +664,10 @@ internal class DeviceClient(
     }
 
     fun startVideoStream(requester: Any, maxOutputSize: Dimension) {
-      B330395367Logger.log { "$deviceName: VideoStreamArbiter.startVideoStream(${requester.simpleId}, $maxOutputSize):" +
-                             " requestedVideoResolutions.size=${requestedVideoResolutions.size} videoDecoder=${videoDecoder.simpleId}" +
-                           " deviceController=${deviceController.simpleId}" }
       if (requestedVideoResolutions.isEmpty()) {
         requestedVideoResolutions[requester] = maxOutputSize
         currentSize.size = maxOutputSize
         if (videoDecoder?.enableDecodingForDisplay(displayId) == true) {
-          B330395367Logger.log { "$deviceName: VideoStreamArbiter.startVideoStream(${requester.simpleId}, $maxOutputSize):" +
-                                 " sending ${StartVideoStreamMessage(displayId, maxOutputSize)}" }
           deviceController?.sendControlMessage(StartVideoStreamMessage(displayId, maxOutputSize))
         }
       }
@@ -697,15 +678,10 @@ internal class DeviceClient(
     }
 
     fun stopVideoStream(requester: Any) {
-      B330395367Logger.log { "$deviceName: VideoStreamArbiter.stopVideoStream(${requester.simpleId}):" +
-                             " requestedVideoResolutions.size=${requestedVideoResolutions.size} videoDecoder=${videoDecoder.simpleId}" +
-                             " deviceController=${deviceController.simpleId}" }
       requestedVideoResolutions.remove(requester)
       if (requestedVideoResolutions.isEmpty()) {
         currentSize.setSize(0, 0)
         if (videoDecoder?.disableDecodingForDisplay(displayId) == true) {
-          B330395367Logger.log { "$deviceName: VideoStreamArbiter.stopVideoStream(${requester.simpleId}):" +
-                                 " sending ${StopVideoStreamMessage(displayId)}" }
           deviceController?.sendControlMessage(StopVideoStreamMessage(displayId))
           if (displayId == PRIMARY_DISPLAY_ID) {
             streamingSessionTracker.streamingEnded()

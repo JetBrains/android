@@ -45,7 +45,6 @@ import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.StreamingDevicePanel.UiState
-import com.android.tools.idea.streaming.device.B330395367Logger
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceToolWindowPanel
@@ -388,7 +387,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun onToolWindowShown() {
-    B330395367Logger.log { "StreamingToolWindowManager.onToolWindowShown" }
     if (!initialized) {
       initialized = true
 
@@ -474,7 +472,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun onToolWindowHidden() {
-    B330395367Logger.log { "StreamingToolWindowManager.onToolWindowHidden" }
     if (!contentShown) {
       return
     }
@@ -623,7 +620,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun viewSelectionChanged() {
-    B330395367Logger.log { "StreamingToolWindowManager.viewSelectionChanged" }
     for (contentManager in contentManagers) {
       for (i in 0 until contentManager.contentCount) {
         val content = contentManager.getContent(i) ?: break
