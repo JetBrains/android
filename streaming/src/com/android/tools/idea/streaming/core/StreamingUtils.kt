@@ -108,7 +108,7 @@ private fun AnActionEvent.findComponentForAction(action: AnAction, toolWindowId:
  * an [AnActionHolder] and holds the given action.
  */
 private fun Component.findComponentForAction(action: AnAction): Component? {
-  if (this.isComponentForAction(action)) {
+  if (isComponentForAction(action)) {
     return this
   }
   if (this is Container) {
