@@ -32,6 +32,7 @@ import com.android.tools.rendering.RenderTask
 import com.android.tools.rendering.api.EnvironmentContext
 import com.android.tools.rendering.api.RenderModelManifest
 import com.android.tools.rendering.api.RenderModelModule
+import com.android.tools.rendering.api.RenderModelModuleLoggingId
 import com.android.tools.res.AssetRepositoryBase
 import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.sdk.AndroidPlatform
@@ -107,11 +108,21 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
   }
 
   override val name: String
-    get() = facet.module.name
+    get() = nameFromFacet(facet)
   override val environment: EnvironmentContext = StudioEnvironmentContext(facet.module)
   override fun createModuleRenderContext(weakRenderTask: WeakReference<RenderTask>): ModuleRenderContext {
     return StudioModuleRenderContext.forFile(facet.module) {
       weakRenderTask.get()?.xmlFile?.get()
+    }
+  }
+
+  companion object {
+    private fun nameFromFacet(facet: AndroidFacet): String = facet.module.name
+    fun loggingId(facet: AndroidFacet): RenderModelModuleLoggingId {
+      return object : RenderModelModuleLoggingId {
+        override val isDisposed: Boolean get() = facet.isDisposed || facet.module.isDisposed
+        override val name: String get() = nameFromFacet(facet)
+      }
     }
   }
 }

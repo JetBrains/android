@@ -173,7 +173,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
       // Make sure the helper service is initialized
       moduleRenderContext.module?.project?.getService(ModuleClassLoaderProjectHelperService::class.java)
       if (LOG.isDebugEnabled) {
-        LOG.debug { "Loading new class loader for module ${module?.androidFacet?.let { anonymize(AndroidFacetRenderModelModule(it)) }}" }
+        LOG.debug { "Loading new class loader for module ${module?.androidFacet?.let { anonymize(AndroidFacetRenderModelModule.loggingId(it)) }}" }
       }
       val preloadedClassLoader: StudioModuleClassLoader? =
         moduleRenderContext.module?.getOrCreateHatchery()?.requestClassLoader(
