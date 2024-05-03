@@ -142,11 +142,8 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
 }
 
 /** [InMemoryLayoutVirtualFile] for composable functions. */
-class ComposeAdapterLightVirtualFile(
-  name: String,
-  content: String,
-  originFileProvider: () -> VirtualFile,
-) : InMemoryLayoutVirtualFile("compose-$name", content, originFileProvider)
+class ComposeAdapterLightVirtualFile(name: String, content: String, originFile: VirtualFile) :
+  InMemoryLayoutVirtualFile("compose-$name", content, originFile)
 
 /** A [PreviewRepresentationProvider] coupled with [ComposePreviewRepresentation]. */
 class ComposePreviewRepresentationProvider(

@@ -35,8 +35,8 @@ import com.intellij.psi.PsiFile
 internal class WearTileAdapterLightVirtualFile(
   name: String,
   content: String,
-  originFileProvider: () -> VirtualFile,
-) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
+  originFile: VirtualFile,
+) : InMemoryLayoutVirtualFile(name, content, originFile)
 
 /** Provider of the [PreviewRepresentation] for Wear Tile code primitives. */
 class WearTilePreviewRepresentationProvider(

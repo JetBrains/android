@@ -34,11 +34,8 @@ import org.jetbrains.android.util.AndroidSlowOperations
 internal const val CUSTOM_VIEW_PREVIEW_ID = "android-custom-view"
 
 /** [InMemoryLayoutVirtualFile] for custom views. */
-class CustomViewLightVirtualFile(
-  name: String,
-  content: String,
-  originFileProvider: () -> VirtualFile,
-) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
+class CustomViewLightVirtualFile(name: String, content: String, originFile: VirtualFile) :
+  InMemoryLayoutVirtualFile(name, content, originFile)
 
 internal fun PsiClass.extendsView(): Boolean =
   AndroidSlowOperations.allowSlowOperationsInIdea<Boolean, Throwable> {

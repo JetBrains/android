@@ -83,9 +83,8 @@ class ComposeVisualLintSuppressTaskTest {
       ComposeAdapterLightVirtualFile(
         "compose-model.xml",
         previewElement.toPreviewXml().buildString(),
-      ) {
-        targetFile
-      }
+        targetFile,
+      )
     val renderTaskFuture =
       createRenderTaskFuture(
         facet = facet,
@@ -180,9 +179,8 @@ class ComposeVisualLintSuppressTaskTest {
       ComposeAdapterLightVirtualFile(
         "compose-model.xml",
         previewElement.toPreviewXml().buildString(),
-      ) {
-        targetFile
-      }
+        targetFile,
+      )
     val renderTaskFuture =
       createRenderTaskFuture(
         facet = facet,

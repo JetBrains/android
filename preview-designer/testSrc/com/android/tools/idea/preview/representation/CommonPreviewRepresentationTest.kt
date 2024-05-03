@@ -111,7 +111,7 @@ private class TestPreviewElementModelAdapter(private val previewElement: PsiTest
     content: String,
     backedFile: VirtualFile,
     id: Long,
-  ): LightVirtualFile = InMemoryLayoutVirtualFile("test.xml", content) { backedFile }
+  ): LightVirtualFile = InMemoryLayoutVirtualFile("test.xml", content, backedFile)
 }
 
 class CommonPreviewRepresentationTest {

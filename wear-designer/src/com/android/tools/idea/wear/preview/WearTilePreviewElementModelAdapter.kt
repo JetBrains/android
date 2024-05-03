@@ -52,5 +52,5 @@ internal class WearTilePreviewElementModelAdapter<M : DataContextHolder> :
     backedFile: VirtualFile,
     id: Long,
   ): LightVirtualFile =
-    WearTileAdapterLightVirtualFile("model-weartile-$id.xml", content) { backedFile }
+    WearTileAdapterLightVirtualFile("model-weartile-$id.xml", content, backedFile)
 }

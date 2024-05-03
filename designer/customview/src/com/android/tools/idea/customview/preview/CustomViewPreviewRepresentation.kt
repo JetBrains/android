@@ -398,7 +398,7 @@ class CustomViewPreviewRepresentation(
       val model =
         if (surface.models.isEmpty()) {
           val customPreviewXml =
-            CustomViewLightVirtualFile("custom_preview.xml", fileContent) { psiFile.virtualFile }
+            CustomViewLightVirtualFile("custom_preview.xml", fileContent, psiFile.virtualFile)
           val config =
             Configuration.create(configurationManager, FolderConfiguration.createDefault())
           NlModel.builder(this@CustomViewPreviewRepresentation, facet, customPreviewXml, config)

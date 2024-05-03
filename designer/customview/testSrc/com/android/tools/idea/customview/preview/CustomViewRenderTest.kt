@@ -69,7 +69,7 @@ class CustomViewRenderTest {
         shrinkHeight = false,
       )
     val customPreviewXml =
-      CustomViewLightVirtualFile("custom_preview.xml", fileContent) { virtualFile }
+      CustomViewLightVirtualFile("custom_preview.xml", fileContent, virtualFile)
 
     val renderTask =
       createRenderTaskFuture(projectRule.androidFacet(":app"), customPreviewXml, true).get()
