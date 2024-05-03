@@ -40,6 +40,7 @@ import org.jetbrains.jewel.ui.component.Icon
 @Immutable
 internal data class VirtualDevice
 internal constructor(
+  internal val deviceId: String,
   override val apiRange: Range<Int>,
   override val manufacturer: String,
   override val name: String,
@@ -99,6 +100,7 @@ internal constructor(
   override fun toBuilder(): Builder = Builder().apply { copyFrom(this@VirtualDevice) }
 
   class Builder : DeviceProfile.Builder() {
+    lateinit var deviceId: String
     lateinit var sdkExtensionLevel: AndroidVersion
     lateinit var skin: Skin
     lateinit var frontCamera: AvdCamera
@@ -116,6 +118,7 @@ internal constructor(
 
     fun copyFrom(profile: VirtualDevice) {
       super.copyFrom(profile)
+      deviceId = profile.deviceId
       sdkExtensionLevel = profile.sdkExtensionLevel
       skin = profile.skin
       frontCamera = profile.frontCamera
@@ -134,6 +137,7 @@ internal constructor(
 
     override fun build(): VirtualDevice =
       VirtualDevice(
+        deviceId = deviceId,
         apiRange = apiRange,
         manufacturer = manufacturer,
         name = name,

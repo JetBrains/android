@@ -16,82 +16,68 @@
 package com.android.tools.idea.adddevicedialog.localavd
 
 import com.android.resources.ScreenOrientation
+import com.android.sdklib.ISystemImage
+import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.DeviceManager
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.sdk.AndroidSdks
 
-internal object VirtualDevices {
-  internal fun add(device: VirtualDevice) {
-    val connection = AvdManagerConnection.getDefaultAvdManagerConnection()
-    val id = AvdWizardUtils.cleanAvdName(connection, device.name, /* uniquify= */ true)
+internal class VirtualDevices(
+  val devices: List<Device> =
+    DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.toList(),
+  val avdManagerConnection: AvdManagerConnection =
+    AvdManagerConnection.getDefaultAvdManagerConnection(),
+) {
+  internal fun add(device: VirtualDevice, systemImage: ISystemImage) {
+    val id = AvdWizardUtils.cleanAvdName(avdManagerConnection, device.name, /* uniquify= */ true)
 
     val definition =
-      DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.first {
-        it.id == "pixel_6"
-      }
-
-    val image =
-      AndroidSdks.getInstance()
-        .tryToChooseSdkHandler()
-        .getSystemImageManager(StudioLoggerProgressIndicator(VirtualDevices::class.java))
-        .images
-        .first { it.`package`.path == "system-images;android-34;google_apis;x86_64" }
+      devices.firstOrNull { it.id == device.deviceId }
+        ?: throw IllegalArgumentException("Device ${device.deviceId} does not exist")
 
     val skin = device.skin.path()
 
+    // First, the defaults to use if the device definition doesn't specify them.
     val properties =
-      mutableMapOf(
+      mutableMapOf("hw.keyboard" to "no", "skin.dynamic" to "yes", "showDeviceFrame" to "yes")
+
+    // Next, the values from device definition.
+    properties.putAll(DeviceManager.getHardwareProperties(definition))
+
+    // Finally, the user's inputs.
+    properties.putAll(
+      mapOf(
         "AvdId" to id,
         "avd.ini.displayname" to device.name,
         "disk.dataPartition.size" to device.internalStorage.withMaxUnit().toString(),
-        "hw.accelerometer" to "yes",
-        "hw.audioInput" to "yes",
-        "hw.battery" to "yes",
         "hw.camera.back" to device.rearCamera.asParameter,
         "hw.camera.front" to device.frontCamera.asParameter,
-        "hw.dPad" to "no",
-        "hw.device.hash2" to "MD5:3db3250dab5d0d93b29353040181c7e9",
-        "hw.device.manufacturer" to "Google",
-        "hw.device.name" to "pixel_6",
-        "hw.gps" to "yes",
         // TODO This depends on the system image and device.graphicAcceleration. See
         //   ConfigureAvdOptionsStep.java.
         "hw.gpu.enabled" to "yes",
         // TODO Older emulators expect "guest" instead of "software". See AvdOptionsModel.java.
         "hw.gpu.mode" to device.graphicAcceleration.gpuSetting,
         "hw.initialOrientation" to ScreenOrientation.PORTRAIT.shortDisplayValue.lowercase(),
-        "hw.keyboard" to "yes",
-        "hw.lcd.density" to "420",
-        "hw.lcd.height" to "2400",
-        "hw.lcd.width" to "1080",
-        "hw.mainKeys" to "no",
         "hw.ramSize" to device.simulatedRam.valueIn(StorageCapacity.Unit.MB).toString(),
         "hw.sdCard" to if (device.expandedStorage == None) "no" else "yes",
-        "hw.sensors.orientation" to "yes",
-        "hw.sensors.proximity" to "yes",
-        "hw.trackBall" to "no",
         "runtime.network.latency" to device.latency.asParameter,
         "runtime.network.speed" to device.speed.asParameter,
-        "showDeviceFrame" to "yes",
-        "skin.dynamic" to "yes",
         "skin.path" to skin.toString(),
         "vm.heapSize" to device.vmHeapSize.valueIn(StorageCapacity.Unit.MB).toString(),
       )
-
+    )
     properties.putAll(device.defaultBoot.properties)
-
     if (device.cpuCoreCount != null) {
       properties["hw.cpu.ncore"] = device.cpuCoreCount.toString()
     }
 
-    connection.createOrUpdateAvd(
+    avdManagerConnection.createOrUpdateAvd(
       /* currentInfo= */ null,
       /* avdName= */ id,
       /* device= */ definition,
-      /* systemImageDescription= */ SystemImageDescription(image),
+      /* systemImageDescription= */ SystemImageDescription(systemImage),
       /* orientation= */ device.orientation,
       /* isCircular= */ false,
       /* sdCard= */ device.expandedStorage.toString().ifEmpty { null },

@@ -34,6 +34,7 @@ class VirtualDeviceTest {
   fun builder() {
     val device =
       VirtualDevice(
+        deviceId = "round_phone",
         name = "RoundPhone",
         manufacturer = "BlueBerry",
         apiRange = Range.closed(21, 34),

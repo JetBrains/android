@@ -86,6 +86,7 @@ class AdditionalSettingsPanelTest {
 
     val device =
       VirtualDevice(
+        deviceId = "pixel_6",
         name = "Pixel 6 API 34",
         manufacturer = "Google",
         apiRange = Range.closed(21, 34),
