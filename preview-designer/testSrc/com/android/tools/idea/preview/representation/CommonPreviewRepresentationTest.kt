@@ -29,6 +29,7 @@ import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PsiTestPreviewElement
 import com.android.tools.idea.preview.TestPreviewRefreshRequest
@@ -261,6 +262,7 @@ class CommonPreviewRepresentationTest {
       assertThat(surface.getData(PreviewGroupManager.KEY.name) is PreviewGroupManager)
       assertThat(surface.getData(PreviewFlowManager.KEY.name) is PreviewFlowManager<*>)
       assertTrue(surface.getData(FastPreviewSurface.KEY.name) is FastPreviewSurface)
+      assertTrue(surface.getData(PreviewInvalidationManager.KEY.name) is PreviewInvalidationManager)
 
       preview.onDeactivate()
     }

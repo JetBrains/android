@@ -42,6 +42,7 @@ import com.android.tools.idea.preview.PreviewBuildListenersManager
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PsiPreviewElementInstance
 import com.android.tools.idea.preview.RenderQualityManager
@@ -147,7 +148,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   AndroidCoroutinesAware,
   UserDataHolderEx by UserDataHolderBase(),
   PreviewModeManager,
-  FastPreviewSurface {
+  FastPreviewSurface,
+  PreviewInvalidationManager {
 
   private val LOG = Logger.getInstance(CommonPreviewRepresentation::class.java)
   private val project = psiFile.project
@@ -213,6 +215,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
               PreviewGroupManager.KEY.name,
               PreviewFlowManager.KEY.name -> previewFlowManager
               FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
+              PreviewInvalidationManager.KEY.name -> this@CommonPreviewRepresentation
               else -> null
             }
           }
@@ -313,6 +316,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
             PreviewGroupManager.KEY.name,
             PreviewFlowManager.KEY.name -> previewFlowManager
             FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
+            PreviewInvalidationManager.KEY.name -> this@CommonPreviewRepresentation
             else -> null
           }
         }
@@ -382,6 +386,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   override fun requestFastPreviewRefreshAsync() =
     delegateFastPreviewSurface.requestFastPreviewRefreshAsync()
+
+  override fun invalidate() {
+    invalidated.set(true)
+  }
 
   private fun onInit() {
     LOG.debug("onInit")
@@ -619,10 +627,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       requestRefresh(onRefreshCompleted = it)
       it.join()
     }
-  }
-
-  private fun invalidate() {
-    invalidated.set(true)
   }
 
   private fun onAfterRender() {
