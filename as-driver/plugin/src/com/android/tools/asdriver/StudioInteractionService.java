@@ -46,6 +46,7 @@ import java.awt.Container;
 import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -133,6 +134,9 @@ public class StudioInteractionService {
     } else if (component instanceof AbstractButton componentAsButton) {
       log("Invoking JButton: " + componentAsButton);
       invokeButton(componentAsButton);
+    } else if (component instanceof JLabel componentAsLabel) {
+      log("Invoking JLabel: " + componentAsLabel);
+      clickLabel(componentAsLabel);
     } else if (component instanceof ActionButton componentAsButton) {
       log("Invoking ActionButton: " + componentAsButton);
       componentAsButton.click();
@@ -322,6 +326,8 @@ public class StudioInteractionService {
         icon = ((ActionButton)c).getIcon();
       } else if (c instanceof JButton) {
         icon = ((JButton)c).getIcon();
+      } else if (c instanceof JLabel) {
+        icon = ((JLabel)c).getIcon();
       } else {
         continue;
       }
@@ -360,6 +366,11 @@ public class StudioInteractionService {
       ActionEvent ae = new ActionEvent(button, 0, null);
       action.actionPerformed(ae);
     }
+  }
+
+  private void clickLabel(JLabel label) {
+    MouseEvent clickEvent = new MouseEvent(label, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0, 10, 10, 1, false);
+    label.dispatchEvent(clickEvent);
   }
 
   /**
