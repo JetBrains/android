@@ -68,6 +68,7 @@ import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -656,12 +657,13 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return CompletableFuture
       .supplyAsync(() -> addModel(modelToAdd), AppExecutorUtil.getAppExecutorService())
       .whenCompleteAsync((model, ex) -> {
-        for (DesignSurfaceListener listener : getListeners()) {
-          // TODO: The listeners have the expectation of the call happening in the EDT. We need
-          //       to address that.
-          listener.modelChanged(this, modelToAdd);
-        }
-        reactivateGuiInputHandler();
+          if (getProject().isDisposed() || modelToAdd.isDisposed()) return;
+          for (DesignSurfaceListener listener : getListeners()) {
+            // TODO: The listeners have the expectation of the call happening in the EDT. We need
+            //       to address that.
+            listener.modelChanged(this, modelToAdd);
+          }
+          reactivateGuiInputHandler();
       }, EdtExecutorService.getInstance());
   }
 
