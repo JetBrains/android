@@ -30,10 +30,10 @@ namespace screensharing {
 // Mechanism for creation of android.view.MotionEvent objects.
 class MotionEvent {
 public:
-  MotionEvent(Jni jni);
+  explicit MotionEvent(Jni jni);
 
   // Returns a android.view.MotionEvent Java object.
-  JObject ToJava() const;
+  [[nodiscard]] JObject ToJava() const;
 
   jlong down_time_millis = 0;
   jlong event_time_millis = 0;

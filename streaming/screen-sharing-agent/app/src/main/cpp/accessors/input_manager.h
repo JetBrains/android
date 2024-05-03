@@ -35,7 +35,7 @@ public:
   static void InjectInputEvent(Jni jni, const JObject& input_event, InputEventInjectionSync mode);
 
 private:
-  InputManager(Jni jni);
+  explicit InputManager(Jni jni);
   ~InputManager();
   static InputManager& GetInstance(Jni jni);
 

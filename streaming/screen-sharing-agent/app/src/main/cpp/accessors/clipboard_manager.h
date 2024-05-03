@@ -43,7 +43,7 @@ public:
   void OnPrimaryClipChanged();
 
 private:
-  ClipboardManager(Jni jni);
+  explicit ClipboardManager(Jni jni);
 
   Jni jni_;
   // com.android.tools.screensharing.ClipboardAdapter class.

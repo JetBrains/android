@@ -30,10 +30,10 @@ namespace screensharing {
 // Mechanism for creation of android.view.KeyEvent objects.
 class KeyEvent {
 public:
-  KeyEvent(Jni jni);
+  explicit KeyEvent(Jni jni);
 
   // Returns a android.view.KeyEvent Java object.
-  JObject ToJava() const;
+  [[nodiscard]] JObject ToJava() const;
 
   jlong down_time_millis = 0;
   jlong event_time_millis = 0;

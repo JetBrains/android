@@ -22,6 +22,6 @@
 
 namespace screensharing {
 
-JObject SurfaceToJava(Jni jni, ANativeWindow* surface);
+[[nodiscard]] JObject SurfaceToJava(Jni jni, ANativeWindow* surface);
 
 }  // namespace screensharing

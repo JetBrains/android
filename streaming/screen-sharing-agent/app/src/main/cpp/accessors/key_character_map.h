@@ -32,7 +32,7 @@ class KeyCharacterMap {
 public:
   static constexpr int VIRTUAL_KEYBOARD = -1;  // From android.view.KeyCharacterMap.VIRTUAL_KEYBOARD
 
-  KeyCharacterMap(Jni jni);
+  explicit KeyCharacterMap(Jni jni);
   ~KeyCharacterMap();
 
   JObjectArray GetEvents(const uint16_t* chars, int num_chars);
