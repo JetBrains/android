@@ -34,7 +34,7 @@ internal typealias TimestampedMeasurement = Pair<Instant, Bytes>
 
 internal fun File.toTimestamp() = Instant.fromEpochMilliseconds(name.substringBefore('_').toLong())
 
-internal fun File.toMetricName() = name.substringAfter("_").lowercaseEnumName()
+internal fun File.toMetricName() = nameWithoutExtension.substringAfter("_").lowercaseEnumName()
 
 private fun String.lowercaseEnumName(): String {
   return this.fold(StringBuilder()) { result, char ->
