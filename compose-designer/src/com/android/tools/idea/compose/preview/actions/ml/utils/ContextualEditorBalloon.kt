@@ -48,7 +48,6 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_ENTER
-import java.awt.event.KeyEvent.VK_G
 import java.awt.event.KeyEvent.VK_UP
 import java.util.function.Predicate
 import javax.swing.Icon
@@ -153,7 +152,7 @@ private object CodeFloatingToolbarEnabler : JBPopupListener {
 /**
  * A [Balloon] that can be popped up in an editor and will locate in a reasonable place. Can host
  * multiple different actions to be taken when text is input. Dismisses itself when the user clicks
- * outside or hits escape (or Ctrl+G).
+ * outside or hits escape.
  */
 class ContextualEditorBalloon
 private constructor(
@@ -322,7 +321,6 @@ private constructor(
           text.takeIf(String::isNotEmpty)?.let(::handle)
           hide()
         }
-        VK_G -> if (e.isControlDown) hide()
         VK_UP -> previousConfig()
         VK_DOWN -> nextConfig()
       }
