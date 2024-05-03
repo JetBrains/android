@@ -47,4 +47,16 @@ class PrebuildChecksTest {
       Assert.assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_BUILD_SRC_CHANGE, e.error)
     }
   }
+
+  @Test
+  fun bailOnGradleSource() {
+    var file = projectRule.fixture.addFileToProject(
+      "build.gradle.kts", "plugins {}")
+    try {
+      checkSupportedFiles(file)
+      Assert.fail("Expecting Exception")
+    } catch (e : LiveEditUpdateException) {
+      Assert.assertEquals(LiveEditUpdateException.Error.GRADLE_BUILD_FILE, e.error)
+    }
+  }
 }

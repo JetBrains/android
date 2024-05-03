@@ -33,6 +33,7 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     // Sorted lexicographically for readability and consistency
     ANALYSIS_ERROR("Resolution Analysis Error", "%", true, Status.ANALYSIS_ERROR),
     COMPILATION_ERROR("Compilation Error", "%", true, Status.COMPILATION_ERROR),
+    GRADLE_BUILD_FILE("Gradle build file changes", "%", false, Status.NON_KOTLIN),
     KOTLIN_EAP("Compilation Error", "%", true, Status.KOTLIN_EAP),
     NON_KOTLIN("Modifying a non-Kotlin file is not supported", "%", false, Status.NON_KOTLIN),
     NON_PRIVATE_INLINE_FUNCTION("Modified function is a non-private inline function", "%", true, Status.NON_PRIVATE_INLINE_FUNCTION),
@@ -79,6 +80,9 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     @JvmStatic
     fun compilationError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
       LiveEditUpdateException(Error.COMPILATION_ERROR, details, source?.name, cause)
+
+    fun gradleBuildFile(source: PsiFile? = null) =
+      LiveEditUpdateException(Error.GRADLE_BUILD_FILE, "Modification of Gradle build file not supported", source?.name, null)
 
     fun internalErrorCodeGenException(file: PsiFile, cause: Throwable) =
       LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_CODE_GEN, "Internal Error During Code Gen", file.name, cause)

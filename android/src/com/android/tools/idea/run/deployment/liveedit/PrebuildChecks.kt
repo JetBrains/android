@@ -17,7 +17,9 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.res.isGradleFile
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.gradleBuildFile
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.kotlinEap
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlin
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedBuildSrcChange
@@ -62,6 +64,10 @@ internal fun checkSupportedFiles(file: PsiFile) {
   // Filter out non-kotlin file first so we don't end up with a lot of metrics related to non-kolin files.
   if (file !is KtFile) {
     throw nonKotlin(file)
+  }
+
+  if (isGradleFile(file)) {
+    throw gradleBuildFile(file)
   }
 
   if (virtualFile.path.contains("buildSrc")) {
