@@ -401,7 +401,7 @@ public final class StudioFlags {
     "device.connect.detect.speed",
     "Alert when USB device negotiated speed is below maximum",
     "Poor USB cables can drop USB negotiated speed below maximum capable speed. Alert user when this is the case.",
-    false);
+    true);
 
   public static final Flag<Boolean> DEVICE_EXPLORER_PROCESSES_PACKAGE_FILTER = new BooleanFlag(
     RUNDEBUG,

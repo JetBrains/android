@@ -83,7 +83,7 @@ class DeviceCableMonitor : ProjectActivity {
 
       if (negotiatedSpeed == 480L && negotiatedSpeed < maxSpeed) {
         if (isStudioNotificationEnabled) {
-          showNotification(project, "'${it.model}' is using ${speedToString(negotiatedSpeed)} while ${speedToString(maxSpeed)} capable. Check the USB cables/hubs (<a href='TBD'>Learn more</a>).")
+          showNotification(project,  "'${it.model}' is capable of faster USB connectivity. Upgrade the cable from ${speedToString(negotiatedSpeed)} to  ${speedToString(maxSpeed)}. <a href='https://d.android.com/r/studio-ui/usb-check'>Learn more</a>.")
         }
       }
 
@@ -109,7 +109,7 @@ class DeviceCableMonitor : ProjectActivity {
   private fun createNotification(text: String = ""): Notification {
     return notificationGroup
       .createNotification(text, NotificationType.WARNING)
-      .setTitle("Device speed warning!")
+      .setTitle("Connection speed warning")
       .setImportant(true)
   }
 
