@@ -27,6 +27,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearHealthServicesEvent
 import com.intellij.openapi.util.Disposer
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.fail
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.takeWhile
@@ -333,5 +335,29 @@ class WearHealthServicesStateManagerTest {
     stateManager.triggerEvent(EventTrigger("key", "label"))
 
     stateManager.status.waitForValue(WhsStateManagerStatus.ConnectionLost)
+  }
+
+  @Test
+  fun `reset clears the state successfully`(): Unit = runBlocking {
+    stateManager.setCapabilityEnabled(capabilities[0], false)
+
+    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(false)
+    stateManager.reset()
+
+    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
+  }
+
+  @Test
+  fun `when there is no connection reset does not clear the state`(): Unit = runBlocking {
+    stateManager.setCapabilityEnabled(capabilities[0], false)
+
+    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(false)
+    deviceManager.failState = true
+    stateManager.reset()
+
+    try {
+      stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
+      fail("Value should not reset if the communication with the device is lost")
+    } catch (_: TimeoutCancellationException) {}
   }
 }

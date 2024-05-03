@@ -217,13 +217,17 @@ internal class WearHealthServicesStateManagerImpl(
       Result.success(Unit)
     }
 
+  private fun resetUiState() =
+    capabilityToState.forEach { (_, state) ->
+      state.value = CapabilityUIState()
+    }
+
   override suspend fun reset() =
     runWithStatus(WhsStateManagerStatus.Syncing) {
       preset.value = Preset.ALL
-      for (entry in capabilityToState.keys) {
-        setOverrideValue(entry, null)
+      return@runWithStatus deviceManager.clearContentProvider().also {
+        if (it.isSuccess) resetUiState()
       }
-      deviceManager.clearContentProvider()
     }
 
   override fun dispose() {}
