@@ -178,8 +178,7 @@ class ComposePreviewRepresentationGradleTest {
         "${fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withPanel.png"
       ),
       defaultPreviewRender,
-      // TODO(b/329653376): Update golden image and reduce threshold after IntelliJ 2024.1 merge
-      15.0,
+      10.0,
       20,
     )
   }
