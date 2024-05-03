@@ -101,7 +101,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.doReturn
 import java.awt.Dimension
 import java.awt.Point
 import java.util.concurrent.Executors
@@ -197,28 +196,26 @@ class StreamingToolWindowManagerTest {
     waitForCondition(2.seconds) { contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
     assertThat(contentManager.contents[0].description).isEqualTo(
-        "${emulator1.avdName} <font color=808080>(${emulator1.serialNumber})</font>")
+      "${emulator1.avdName} <font color=808080>(${emulator1.serialNumber})</font>")
 
     // Start the third emulator.
     emulator3.start(standalone = false)
 
     waitForCondition(3.seconds) { contentManager.contents.size == 2 }
 
-    val emulator1Index = if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) 0 else 1
-    val emulator3Index = 1 - emulator1Index
-    assertThat(contentManager.contents[emulator1Index].displayName).isEqualTo(emulator1.avdName)
-    assertThat(contentManager.contents[emulator1Index].description).isEqualTo(
+    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
+    assertThat(contentManager.contents[0].description).isEqualTo(
         "${emulator1.avdName} <font color=808080>(${emulator1.serialNumber})</font>")
     // The panel for emulator3 is added but the emulator1 is still selected.
-    assertThat(contentManager.contents[emulator1Index].isSelected).isTrue()
-    assertThat(contentManager.contents[emulator3Index].displayName).isEqualTo(emulator3.avdName)
-    assertThat(contentManager.contents[emulator3Index].description).isEqualTo(
+    assertThat(contentManager.contents[0].isSelected).isTrue()
+    assertThat(contentManager.contents[1].displayName).isEqualTo(emulator3.avdName)
+    assertThat(contentManager.contents[1].description).isEqualTo(
         "${emulator3.avdName} <font color=808080>(${emulator3.serialNumber})</font>")
     // Deploying an app activates the corresponding emulator panel.
     for (emulator in listOf(emulator2, emulator3)) {
       project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(emulator.serialNumber, project)
     }
-    waitForCondition(2.seconds) { contentManager.contents[emulator3Index].isSelected }
+    waitForCondition(2.seconds) { contentManager.contents[1].isSelected }
 
     assertThat(contentManager.contents).hasLength(2)
 
@@ -525,12 +522,7 @@ class StreamingToolWindowManagerTest {
 
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device1.serialNumber, project)
     waitForCondition(15.seconds) { contentManager.contents.size == 2 }
-    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
-      assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 4 API 30")
-    }
-    else {
-      assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
-    }
+    assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 4 API 30")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
     deviceMirroringSettings.activateOnAppLaunch = false
@@ -594,12 +586,7 @@ class StreamingToolWindowManagerTest {
     // Activate mirroring of Pixel 4 API 30.
     executeStreamingAction(popup.actions[1], toolWindow.component, project)
     waitForCondition(2.seconds) { contentManager.contents.size == 2 }
-    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
-      assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 4 API 30")
-    }
-    else {
-      assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
-    }
+    assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 4 API 30")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
     executeStreamingAction(newTabAction, toolWindow.component, project)

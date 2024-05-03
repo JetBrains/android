@@ -127,7 +127,6 @@ import java.awt.EventQueue
 import java.awt.event.KeyEvent
 import java.text.Collator
 import java.time.Duration
-import java.util.Arrays
 import java.util.function.Supplier
 
 private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.emulator.frame.visible"
@@ -531,28 +530,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     panel.zoomToolbarVisible = zoomToolbarIsVisible
 
-    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
-      if (findContentByDeviceId(panel.id) != null) {
-        reportDuplicatePanel(content)
-        return null
-      }
-
-      // Add panel to the end.
-      contentManager.addContent(content)
+    if (findContentByDeviceId(panel.id) != null) {
+      reportDuplicatePanel(content)
+      return null
     }
-    else {
-      var index = Arrays.binarySearch(contentManager.contents, content, TAB_COMPARATOR).inv()
-      if (index < 0) {
-        index = index.inv()
-        if (panel.id == ID_KEY.get(contentManager.contents[index])) {
-          reportDuplicatePanel(content)
-          return null
-        }
-      }
 
-      // Insert panel in alphabetical order of the title.
-      contentManager.addContent(content, index)
-    }
+    // Add panel to the end.
+    contentManager.addContent(content)
 
     if (!content.isSelected) {
       // Activate the newly added panel if it corresponds to a recently launched or used Emulator.
