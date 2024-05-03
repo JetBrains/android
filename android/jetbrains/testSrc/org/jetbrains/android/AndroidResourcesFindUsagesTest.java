@@ -470,6 +470,25 @@ public class AndroidResourcesFindUsagesTest extends AndroidTestCase {
                  "      14<style name=\"myStyle.s.a\">\n", getUsageViewTreeTextRepresentation(references));
   }
 
+  public void testStyleInheritance3() {
+    // Regression test for b/235848109
+    Collection<UsageInfo> references = findUsages("fu15_values.xml", myFixture, "res/values/f15_values.xml");
+    assertEquals("<root> (2)\n" +
+                 " Targets\n" +
+                 "  @style/myStyle.s\n" +
+                 " Usages (2)\n" +
+                 "  Resource declaration in Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     f15_values.xml (1)\n" +
+                 "      6<style name=\"myStyle.s\">\n" +
+                 "  Resource reference Android resources XML (1)\n" +
+                 "   app (1)\n" +
+                 "    res" + File.separatorChar + "values (1)\n" +
+                 "     f15_values.xml (1)\n" +
+                 "      14<style name=\"myStyle.s.a\">\n", getUsageViewTreeTextRepresentation(references));
+  }
+
   public void testValueItemResource() {
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
