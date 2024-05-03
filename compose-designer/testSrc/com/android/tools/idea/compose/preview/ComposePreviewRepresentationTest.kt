@@ -40,6 +40,7 @@ import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.actions.getPreviewManager
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
@@ -675,6 +676,7 @@ class ComposePreviewRepresentationTest {
     assertTrue(getData(PreviewFlowManager.KEY.name) is PreviewFlowManager<*>)
     assertTrue(getData(PREVIEW_VIEW_MODEL_STATUS.name) is PreviewViewModelStatus)
     assertTrue(getData(FastPreviewSurface.KEY.name) is FastPreviewSurface)
+    assertTrue(getData(PreviewInvalidationManager.KEY.name) is PreviewInvalidationManager)
   }
 
   @Test

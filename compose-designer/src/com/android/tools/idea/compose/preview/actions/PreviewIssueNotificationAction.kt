@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.actions.CommonIssueNotificationAction
 import com.android.tools.idea.preview.actions.PreviewStatus
 import com.android.tools.idea.preview.actions.findPreviewManager
@@ -105,9 +106,9 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
       return
     }
 
-    // The ComposePreviewManager will avoid refreshing its corresponding preview if it detects
+    // The PreviewInvalidationManager will avoid refreshing its corresponding preview if it detects
     // that nothing has changed. But we want to always force a refresh when this button is pressed.
-    e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.invalidate()
+    e.dataContext.findPreviewManager(PreviewInvalidationManager.KEY)?.invalidate()
 
     if (!requestBuildForSurface(surface)) {
       // If there are no models in the surface, we can not infer which models we should trigger

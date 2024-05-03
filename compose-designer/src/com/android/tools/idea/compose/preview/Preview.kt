@@ -54,6 +54,7 @@ import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.DefaultRenderQualityPolicy
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewBuildListenersManager
+import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
@@ -193,6 +194,7 @@ private class PreviewElementDataContext(
       CommonDataKeys.PROJECT.name -> project
       PREVIEW_VIEW_MODEL_STATUS.name -> composePreviewManager.status()
       FastPreviewSurface.KEY.name -> fastPreviewSurface
+      PreviewInvalidationManager.KEY.name -> composePreviewManager
       else -> null
     }
 }
@@ -623,6 +625,7 @@ class ComposePreviewRepresentation(
       CommonDataKeys.PROJECT.name -> project
       PREVIEW_VIEW_MODEL_STATUS.name -> status()
       FastPreviewSurface.KEY.name -> this@ComposePreviewRepresentation
+      PreviewInvalidationManager.KEY.name -> this@ComposePreviewRepresentation
       else -> null
     }
   }

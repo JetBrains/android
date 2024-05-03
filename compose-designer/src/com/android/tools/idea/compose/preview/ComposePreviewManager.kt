@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
@@ -25,7 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.ApiStatus
 
 /** Interface that provides access to the Compose Preview logic. */
-interface ComposePreviewManager : Disposable, PreviewModeManager {
+interface ComposePreviewManager : Disposable, PreviewModeManager, PreviewInvalidationManager {
 
   /**
    * Status of the preview.
@@ -74,12 +75,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
   /** Flag to indicate whether Visual Lint checks should be run on the preview. */
   val visualLintingEnabled: Boolean
     get() = (mode.value as? PreviewMode.UiCheck)?.visualLintingEnabled ?: false
-
-  /**
-   * Invalidates the cached preview status. This ensures that the @Preview annotations lookup
-   * happens again to find any possible new annotations.
-   */
-  fun invalidate()
 }
 
 class NopComposePreviewManager : ComposePreviewManager {
