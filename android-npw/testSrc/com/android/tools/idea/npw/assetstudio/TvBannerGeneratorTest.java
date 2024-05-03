@@ -113,7 +113,7 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
     super.setUp();
     makeSureThatProjectVirtualFileIsNotNull();
 
-    DrawableRenderer renderer = new DrawableRenderer(myFacet);
+    DrawableRenderer renderer = new DrawableRenderer(myFacet, myFixture.findFileInTempDir("res"));
     myIconGenerator = new TvBannerGenerator(getProject(), 15, renderer);
     disposeOnTearDown(myIconGenerator);
     disposeOnTearDown(renderer);

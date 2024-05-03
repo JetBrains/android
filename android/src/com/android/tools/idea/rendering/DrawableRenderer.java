@@ -75,9 +75,10 @@ public class DrawableRenderer implements Disposable {
    * Please keep in mind that each renderer instance allocates significant resources inside Layoutlib.
    *
    * @param facet the Android facet
+   * @param targetFile a file representing the build configuration of the rendering context. See {@link StudioRenderServiceKt#taskBuilder}
    */
-  public DrawableRenderer(@NotNull AndroidFacet facet) {
-    this(facet, ConfigurationManager.getConfigurationForModule(facet.getModule()));
+  public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull VirtualFile targetFile) {
+    this(facet, targetFile, ConfigurationManager.getConfigurationForModule(facet.getModule()));
   }
 
   /**
@@ -85,9 +86,10 @@ public class DrawableRenderer implements Disposable {
    * Please keep in mind that each renderer instance allocates significant resources inside Layoutlib.
    *
    * @param facet the Android facet
+   * @param targetFile a file representing the build configuration of the rendering context. See {@link StudioRenderServiceKt#taskBuilder}
    * @param configuration the configuration to use for rendering
    */
-  public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
+  public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull VirtualFile targetFile, @NotNull Configuration configuration) {
     Module module = facet.getModule();
     RenderLogger logger = new RenderLogger(module.getProject(), null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE,
                                            () -> HtmlLinkManager.NOOP_LINK_MANAGER);
@@ -95,7 +97,9 @@ public class DrawableRenderer implements Disposable {
     // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
     // Executing them off the UI thread.
     RenderService service = StudioRenderService.getInstance(module.getProject());
-    myRenderTaskFuture = taskBuilder(service, facet, configuration, logger)
+    myRenderTaskFuture = taskBuilder(
+      service, facet,
+      configuration, logger)
       .withParserFactory(myParserFactory)
       .build()
       .whenComplete((task, ex) -> {

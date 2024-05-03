@@ -35,7 +35,7 @@ public class TvChannelIconGeneratorTest extends AdaptiveIconGeneratorTest {
   public void setUp() throws Exception {
     super.setUp();
 
-    DrawableRenderer renderer = new DrawableRenderer(myFacet);
+    DrawableRenderer renderer = new DrawableRenderer(myFacet, myFixture.findFileInTempDir("res"));
     myIconGenerator = new TvChannelIconGenerator(getProject(), 15, renderer);
     disposeOnTearDown(myIconGenerator);
     disposeOnTearDown(renderer);
