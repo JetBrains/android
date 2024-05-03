@@ -84,6 +84,7 @@ private:
   };
 
   void Initialize();
+  void InitializeKeyboard();
   void ProcessMessage(const ControlMessage& message);
   void ProcessMotionEvent(const MotionEventMessage& message);
   void ProcessKeyboardEvent(const KeyEventMessage& message) {

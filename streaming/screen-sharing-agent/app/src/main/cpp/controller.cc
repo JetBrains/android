@@ -188,6 +188,15 @@ void Controller::Initialize() {
   Agent::InitializeSessionEnvironment();
 }
 
+void Controller::InitializeKeyboard() {
+  if (keyboard_ == nullptr) {
+    keyboard_ = new VirtualKeyboard();
+    if (!keyboard_->IsValid()) {
+      Log::E("Failed to create a virtual keyboard");
+    }
+  }
+}
+
 void Controller::Run() {
   Log::D("Controller::Run");
   Initialize();
@@ -430,12 +439,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
 
 void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
   if (Agent::feature_level() >= 29 && Agent::flags() & USE_UINPUT) {
-    if (keyboard_ == nullptr) {
-      keyboard_ = new VirtualKeyboard();
-      if (!keyboard_->IsValid()) {
-        Log::E("Failed to create a virtual keyboard");
-      }
-    }
+    InitializeKeyboard();
     int32_t action = message.action();
     auto now = duration_cast<nanoseconds>(steady_clock::now().time_since_epoch());
     keyboard_->WriteKeyEvent(message.keycode(), action == KeyEventMessage::ACTION_DOWN_AND_UP ? AKEY_EVENT_ACTION_DOWN : action, now);
@@ -462,20 +466,29 @@ void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
 }
 
 void Controller::ProcessTextInput(const TextInputMessage& message) {
+  nanoseconds now;
+  if (Agent::feature_level() >= 29 && Agent::flags() & USE_UINPUT) {
+    InitializeKeyboard();
+    now = duration_cast<nanoseconds>(steady_clock::now().time_since_epoch());
+  }
   const u16string& text = message.text();
   for (uint16_t c: text) {
     JObjectArray event_array = key_character_map_->GetEvents(&c, 1);
     if (event_array.IsNull()) {
-      Log::E(jni_.GetAndClearException(), "Unable to map character '\\u%04X' to key events", c);
+      Log::W(jni_.GetAndClearException(), "Unable to map character '\\u%04X' to key events", c);
       continue;
     }
     auto len = event_array.GetLength();
     for (int i = 0; i < len; i++) {
       JObject key_event = event_array.GetElement(i);
-      if (Log::IsEnabled(Log::Level::DEBUG)) {
-        Log::D("key_event: %s", key_event.ToString().c_str());
+      if (Agent::feature_level() >= 29 && Agent::flags() & USE_UINPUT) {
+        keyboard_->WriteKeyEvent(KeyEvent::GetKeyCode(key_event), KeyEvent::GetAction(key_event), now);
+      } else {
+        if (Log::IsEnabled(Log::Level::DEBUG)) {
+          Log::D("key_event: %s", key_event.ToString().c_str());
+        }
+        InputManager::InjectInputEvent(jni_, key_event, InputEventInjectionSync::NONE);
       }
-      InputManager::InjectInputEvent(jni_, key_event, InputEventInjectionSync::NONE);
     }
   }
 }
