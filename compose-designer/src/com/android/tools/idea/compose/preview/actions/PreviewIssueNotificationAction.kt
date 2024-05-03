@@ -30,6 +30,7 @@ import com.android.tools.idea.preview.actions.CommonIssueNotificationAction
 import com.android.tools.idea.preview.actions.PreviewStatus
 import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.actions.getStatusInfo
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -120,9 +121,9 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
   override fun update(e: AnActionEvent) {
     val presentation = e.presentation
     val isRefreshing =
-      e.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.let {
+      e.dataContext.findPreviewManager(PREVIEW_VIEW_MODEL_STATUS)?.let {
         e.updateSession.compute(this, "Check Preview Status", ActionUpdateThread.EDT) {
-          it.status().isRefreshing
+          it.isRefreshing
         }
       } ?: false
     presentation.isEnabled = !isRefreshing
