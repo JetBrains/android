@@ -34,7 +34,7 @@ import com.intellij.psi.PsiFile
 internal class GlanceAppWidgetAdapterLightVirtualFile(
   name: String,
   content: String,
-  originFileProvider: () -> VirtualFile?,
+  originFileProvider: () -> VirtualFile,
 ) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
 
 /** Provider of the [PreviewRepresentation] for Glance App Widget code primitives. */
