@@ -339,6 +339,11 @@
     <option name="single" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
     <option name="that" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
     <option name="the" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="dagger" path="ActionManager" hit="Go to Related Dagger Items" />
+    <option name="go" path="ActionManager" hit="Go to Related Dagger Items" />
+    <option name="items" path="ActionManager" hit="Go to Related Dagger Items" />
+    <option name="related" path="ActionManager" hit="Go to Related Dagger Items" />
+    <option name="to" path="ActionManager" hit="Go to Related Dagger Items" />
     <option name="hardware" path="ActionManager" hit="Hardware Input" />
     <option name="input" path="ActionManager" hit="Hardware Input" />
     <option name="help" path="ActionManager" hit="Help" />
