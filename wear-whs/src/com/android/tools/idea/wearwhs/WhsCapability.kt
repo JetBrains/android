@@ -122,7 +122,7 @@ val WHS_CAPABILITIES = listOf(
   WhsCapability(
     WhsDataType.FLOORS,
     "wear.whs.capability.floors.label",
-    "wear.whs.capability.unit.none",
+    "wear.whs.capability.floors.unit",
     isOverrideable = true,
     isStandardCapability = false,
   ),
