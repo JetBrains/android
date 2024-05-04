@@ -479,8 +479,7 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     }
 
     @Override
-    @NotNull
-    public Path[] getSkins() {
+    public List<Path> getSkins() {
       return null;
     }
 

@@ -1245,7 +1245,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
         null,
         Collections.singletonList("x86"),
         Collections.emptyList(),
-        arrayOf(),
+        Collections.emptyList(),
         sdkPackage,
       )
     val properties = mutableMapOf<String, String>()

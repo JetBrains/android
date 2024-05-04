@@ -1017,8 +1017,7 @@ public class AvdManagerConnection {
 
   @Nullable
   private File getRoundSkin(SystemImageDescription systemImageDescription) {
-    Path[] skins = systemImageDescription.getSkins();
-    for (Path skin : skins) {
+    for (Path skin : systemImageDescription.getSkins()) {
       if (skin.getFileName().toString().contains("Round")) {
         return FileOpUtils.toFile(skin);
       }

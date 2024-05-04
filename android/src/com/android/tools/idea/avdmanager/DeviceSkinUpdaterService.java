@@ -23,7 +23,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.Streams;
@@ -120,9 +119,7 @@ public final class DeviceSkinUpdaterService {
                                                         @NotNull ProgressIndicator indicator,
                                                         @NotNull Function<Path, Path> updateSkins) {
     return handler.getAndroidTargetManager(indicator).getTargets(indicator).stream()
-      .map(IAndroidTarget::getSkins)
-      .flatMap(Arrays::stream)
-      .filter(Objects::nonNull)
+      .flatMap(target -> target.getSkins().stream())
       .map(updateSkins);
   }
 
@@ -131,9 +128,7 @@ public final class DeviceSkinUpdaterService {
                                                        @NotNull ProgressIndicator indicator,
                                                        @NotNull Function<Path, Path> updateSkins) {
     return handler.getSystemImageManager(indicator).getImages().stream()
-      .map(SystemImage::getSkins)
-      .flatMap(Arrays::stream)
-      .filter(Objects::nonNull)
+      .flatMap(image -> image.getSkins().stream())
       .map(updateSkins);
   }
 }

@@ -182,7 +182,7 @@ public final class SystemImageDescription {
     return mySystemImage.getRevision();
   }
 
-  public Path[] getSkins() {
+  public List<Path> getSkins() {
     return mySystemImage.getSkins();
   }
 
@@ -263,8 +263,8 @@ public final class SystemImageDescription {
 
     @NonNull
     @Override
-    public Path[] getSkins() {
-      return new Path[0];
+    public List<Path> getSkins() {
+      return ImmutableList.of();
     }
 
     @NonNull

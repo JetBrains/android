@@ -56,7 +56,7 @@ object DeviceSkinUpdater {
       return skin
     }
 
-    val imageSkins: Collection<Path> = image?.let { listOf(*image.skins) } ?: emptyList()
+    val imageSkins: Collection<Path> = image?.skins ?: emptyList()
 
     val studioSkins = DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath()
     val sdk = AndroidSdks.getInstance().tryToChooseSdkHandler()
