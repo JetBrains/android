@@ -24,6 +24,7 @@ import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.Sets
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -51,7 +52,7 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
   private var cacheClean = false
   @GuardedBy("lock")
   private var errorOccurred = false
-  private val callbacks = mutableSetOf<CacheClearedCallback>()
+  private val callbacks = Sets.newConcurrentHashSet<CacheClearedCallback>()
   private var messageBusConnection: MessageBusConnection? = null
 
   class MyStartupActivity : ProjectActivity {
