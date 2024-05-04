@@ -81,7 +81,7 @@ public:
 
   // Converts a local reference to a global one and deletes the local reference.
   JObject& MakeGlobal();
-  JObject&& ToGlobal()&& {
+  [[nodiscard]] JObject&& ToGlobal()&& {
     return std::move(MakeGlobal());
   }
 
@@ -262,7 +262,7 @@ public:
   JString& MakeGlobal() {
     return down_cast<JString&>(JRef::MakeGlobal());
   };
-  JString&& ToGlobal()&& {
+  [[nodiscard]] JString&& ToGlobal()&& {
     return std::move(MakeGlobal());
   };
 
