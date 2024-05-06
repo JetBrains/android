@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.testutils.dispatchInvocationEventsFor
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.swing.FakeUi
@@ -50,7 +51,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -69,6 +70,7 @@ import java.util.EnumSet
 import javax.swing.JButton
 import javax.swing.JComboBox
 import javax.swing.UIManager
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private val TIMEOUT = 5.seconds
@@ -130,7 +132,10 @@ class ScreenshotViewerTest {
 
   @After
   fun tearDown() {
+    dispatchInvocationEventsFor(100.milliseconds)
+    dispatchAllEventsInIdeEventQueue()
     findModelessDialog { it is ScreenshotViewer }?.close(CLOSE_EXIT_CODE)
+    dispatchAllEventsInIdeEventQueue()
   }
 
   @Test
@@ -197,7 +202,7 @@ class ScreenshotViewerTest {
 
     clipComboBox.selectFirstMatch("Display Shape")
     EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue()
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(0)
@@ -214,7 +219,7 @@ class ScreenshotViewerTest {
 
     clipComboBox.selectFirstMatch("Rectangular")
     EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue()
     waitForCondition(TIMEOUT) {
       ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
     }
@@ -236,7 +241,7 @@ class ScreenshotViewerTest {
 
     clipComboBox.selectFirstMatch("Rectangular")
     EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue()
     waitForCondition(TIMEOUT) {
       ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
     }
@@ -296,7 +301,7 @@ class ScreenshotViewerTest {
 
     clipComboBox.selectFirstMatch("Play Store Compatible")
     EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue()
     waitForCondition(TIMEOUT) {
       ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
     }
@@ -319,7 +324,7 @@ class ScreenshotViewerTest {
 
     clipComboBox.selectFirstMatch("Play Store Compatible")
     EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue()
     waitForCondition(TIMEOUT) {
       ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
     }
@@ -369,7 +374,7 @@ class ScreenshotViewerTest {
     viewer.doOKAction()
 
     EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue()
     assertThat(fileNamePrompts).hasSize(1)
     val parentPrefix = tempFile.parent.toString().replace(File.separatorChar, '/')
     assertThat(fileNamePrompts[0]).matches("file://$parentPrefix/Screenshot_\\d\\d\\d\\d\\d\\d\\d\\d_\\d\\d\\d\\d\\d\\d")
@@ -395,7 +400,7 @@ class ScreenshotViewerTest {
     viewer.doOKAction()
 
     EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue()
     assertThat(fileNamePrompts).hasSize(1)
     val parentPrefix = tempFile.parent.toString().replace(File.separatorChar, '/')
     assertThat(fileNamePrompts[0]).matches("file://$parentPrefix/Screenshot_\\d\\d\\d\\d\\d\\d\\d\\d_\\d\\d\\d\\d\\d\\d")
@@ -421,7 +426,7 @@ class ScreenshotViewerTest {
     copyClipboardButton.doClick()
 
     EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue()
     assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
       DeviceScreenshotEvent.newBuilder()
         .setDeviceType(DeviceScreenshotEvent.DeviceType.PHONE)
@@ -442,7 +447,7 @@ class ScreenshotViewerTest {
     copyClipboardButton.doClick()
 
     EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue()
     assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
       DeviceScreenshotEvent.newBuilder()
         .setDeviceType(DeviceScreenshotEvent.DeviceType.WEAR)
