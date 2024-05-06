@@ -230,6 +230,11 @@ class ProjectDumper(
           line.substringBefore("kotlin-") + "kotlin-" + line.substringAfter("kotlin-").replace(kotlinVersionPattern, "<KOTLIN_VERSION>")
         }
 
+        // Handle kotlin-native-prebuilt (e.g., "file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-2.0.0-RC1/klib/common/stdlib")
+        line.contains("kotlin-native-prebuilt-") -> {
+          line.replace(KOTLIN_VERSION_FOR_TESTS, "<KOTLIN_VERSION_FOR_TESTS>")
+        }
+
         else -> line
       }
     }.joinToString("\n")

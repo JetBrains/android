@@ -1942,7 +1942,7 @@ PROJECT                       : kotlinMultiPlatform
         Module                        : kotlinMultiPlatform.app.main
     LIBRARY_TABLE
         LIBRARY                       : Gradle: Kotlin/Native: stdlib
-            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-2.0.0-RC1/klib/common/stdlib
+            *CLASSES                      : file://<KONAN>/kotlin-native-prebuilt-linux-x86_64-<KOTLIN_VERSION_FOR_TESTS>/klib/common/stdlib
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             *CLASSES                      : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY                       : Gradle: android.arch.core:runtime:<VERSION>@aar
