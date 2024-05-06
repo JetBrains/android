@@ -82,6 +82,8 @@ class EmulatorUiSettingsControllerTest {
     adb.configureShellCommand(deviceSelector, "settings put secure enabled_accessibility_services " +
                                                      "$SELECT_TO_SPEAK_SERVICE_NAME:$TALK_BACK_SERVICE_NAME", "")
     adb.configureShellCommand(deviceSelector, FACTORY_RESET_COMMAND.format(APPLICATION_ID1, DEFAULT_DENSITY), "")
+    adb.configureShellCommand(deviceSelector, "cmd overlay enable $GESTURES_OVERLAY; cmd overlay disable $THREE_BUTTON_OVERLAY", "")
+    adb.configureShellCommand(deviceSelector, "cmd overlay disable $GESTURES_OVERLAY; cmd overlay enable $THREE_BUTTON_OVERLAY", "")
   }
 
   @Test
@@ -155,7 +157,9 @@ class EmulatorUiSettingsControllerTest {
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isTrue()
     model.gestureNavigation.setFromUi(true)
-    waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd overlay enable $GESTURES_OVERLAY" }
+    waitForCondition(10.seconds) {
+      lastIssuedChangeCommand == "cmd overlay enable $GESTURES_OVERLAY; cmd overlay disable $THREE_BUTTON_OVERLAY"
+    }
     assertUsageEvent(OperationKind.GESTURE_NAVIGATION)
     assertThat(model.differentFromDefault.value).isFalse()
   }
@@ -165,7 +169,9 @@ class EmulatorUiSettingsControllerTest {
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isFalse()
     model.gestureNavigation.setFromUi(false)
-    waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd overlay disable $GESTURES_OVERLAY" }
+    waitForCondition(10.seconds) {
+      lastIssuedChangeCommand == "cmd overlay disable $GESTURES_OVERLAY; cmd overlay enable $THREE_BUTTON_OVERLAY"
+    }
     assertUsageEvent(OperationKind.GESTURE_NAVIGATION)
     assertThat(model.differentFromDefault.value).isTrue()
   }

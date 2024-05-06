@@ -44,6 +44,7 @@ namespace {
 #define APP_LANGUAGE_DIVIDER "-- App Language --"
 
 #define GESTURES_OVERLAY "com.android.internal.systemui.navbar.gestural"
+#define THREE_BUTTON_OVERLAY "com.android.internal.systemui.navbar.threebutton"
 #define ENABLED_ACCESSIBILITY_SERVICES "enabled_accessibility_services"
 #define ACCESSIBILITY_BUTTON_TARGETS "accessibility_button_targets"
 #define TALKBACK_PACKAGE_NAME "com.google.android.marvin.talkback"
@@ -371,7 +372,8 @@ void UiSettings::SetDarkMode(bool dark_mode) {
 
 void UiSettings::SetGestureNavigation(bool gesture_navigation) {
   auto operation = gesture_navigation ? "enable" : "disable";
-  string command = StringPrintf("cmd overlay %s " GESTURES_OVERLAY, operation);
+  auto opposite = !gesture_navigation ? "enable" : "disable";
+  string command = StringPrintf("cmd overlay %s " GESTURES_OVERLAY "; cmd overlay %s " THREE_BUTTON_OVERLAY, operation, opposite);
   ExecuteShellCommand(command);
   last_settings_.set_gesture_navigation(gesture_navigation);
 }

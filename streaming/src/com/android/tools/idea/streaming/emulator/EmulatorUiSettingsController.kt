@@ -53,6 +53,7 @@ private const val FOREGROUND_APPLICATION_DIVIDER = "-- Foreground Application --
 private const val APP_LANGUAGE_DIVIDER = "-- App Language --"
 
 internal const val GESTURES_OVERLAY = "com.android.internal.systemui.navbar.gestural"
+internal const val THREE_BUTTON_OVERLAY = "com.android.internal.systemui.navbar.threebutton"
 internal const val ENABLED_ACCESSIBILITY_SERVICES = "enabled_accessibility_services"
 internal const val ACCESSIBILITY_BUTTON_TARGETS = "accessibility_button_targets"
 private const val TALKBACK_PACKAGE_NAME = "com.google.android.marvin.talkback"
@@ -279,7 +280,8 @@ internal class EmulatorUiSettingsController(
 
   override fun setGestureNavigation(on: Boolean) {
     val operation = if (on) "enable" else "disable"
-    scope.launch { executeShellCommand("cmd overlay $operation $GESTURES_OVERLAY") }
+    val opposite = if (!on) "enable" else "disable"
+    scope.launch { executeShellCommand("cmd overlay $operation $GESTURES_OVERLAY; cmd overlay $opposite $THREE_BUTTON_OVERLAY") }
     lastGestureNavigation = on
     updateResetButton()
   }
