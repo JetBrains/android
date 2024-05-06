@@ -89,7 +89,7 @@ public class DrawableRenderer implements Disposable {
    * @param targetFile a file representing the build configuration of the rendering context. See {@link StudioRenderServiceKt#taskBuilder}
    * @param configuration the configuration to use for rendering
    */
-  public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull VirtualFile targetFile, @NotNull Configuration configuration) {
+  private DrawableRenderer(@NotNull AndroidFacet facet, @NotNull VirtualFile targetFile, @NotNull Configuration configuration) {
     Module module = facet.getModule();
     RenderLogger logger = new RenderLogger(module.getProject(), null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE,
                                            () -> HtmlLinkManager.NOOP_LINK_MANAGER);

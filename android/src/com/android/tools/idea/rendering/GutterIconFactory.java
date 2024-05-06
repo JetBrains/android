@@ -127,8 +127,7 @@ class GutterIconFactory {
         }
       }
       else {
-        Configuration configuration = ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(file);
-        DrawableRenderer renderer = new DrawableRenderer(facet, file, configuration);
+        DrawableRenderer renderer = new DrawableRenderer(facet, file);
         Dimension size = new Dimension(maxWidth * RENDERING_SCALING_FACTOR, maxHeight * RENDERING_SCALING_FACTOR);
         try {
           CompletableFuture<BufferedImage> imageFuture = renderer.renderDrawable(xml, size);
