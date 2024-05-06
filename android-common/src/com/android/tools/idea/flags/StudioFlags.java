@@ -1863,6 +1863,12 @@ public final class StudioFlags {
                     "When enabled, the custom transform action, which allows users to send custom prompts to modify and iterate on code, is enabled.",
                     ChannelDefault.enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_CUSTOM_TRANSFORM_V2_ENABLED =
+    new BooleanFlag(STUDIOBOT, "editor.ai.custom.transform.v2.enabled",
+                    "Use updated APIs to perform custom transform action in the editor.",
+                    "When enabled, the custom transform action will use newer APIs. This is an internal migration flag.",
+                    ChannelDefault.enabledUpTo(DEV));
+
   public static final Flag<Boolean> STUDIOBOT_TRANSFORM_HISTORY_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.transform.history.enabled",
                     "Enable the transform history in the transform diff.",
