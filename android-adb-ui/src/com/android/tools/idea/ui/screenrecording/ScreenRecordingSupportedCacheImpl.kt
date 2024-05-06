@@ -42,12 +42,7 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
   private val cacheKey = Key<Boolean>("ScreenRecordingSupportedCache")
 
   override fun isScreenRecordingSupported(serialNumber: String, sdk: Int): Boolean {
-    val connectedDevice = try {
-      adbSession.connectedDevicesTracker.device(serialNumber)
-    }
-    catch (e: NoSuchElementException) {
-      return false
-    }
+    val connectedDevice = adbSession.connectedDevicesTracker.device(serialNumber) ?: return false
 
     return connectedDevice.cache.getOrPutSuspending(
         cacheKey, fastDefaultValue = { false }, defaultValue = { computeIsSupported(serialNumber, sdk) })

@@ -55,12 +55,8 @@ class ActivityManagerCapabilities(val project: Project) {
   private suspend fun checkCapability(device: IDevice, capability: String): Boolean {
     val caps = kotlin.runCatching {
       val deviceSelector = DeviceSelector.fromSerialNumber(device.serialNumber)
-      val connectedDevice = try {
-        AdbLibService.getSession(project).connectedDevicesTracker.device(deviceSelector)
-      }
-      catch (e: NoSuchElementException) {
-        null
-      }
+      val connectedDevice = AdbLibService.getSession(project).connectedDevicesTracker.device(deviceSelector)
+
       // Use device cache if available
       connectedDevice?.cache?.getOrPutSuspending(activityManagerCapabilitiesKey) { retrieveCapabilities(deviceSelector) }
       ?: retrieveCapabilities(deviceSelector)
