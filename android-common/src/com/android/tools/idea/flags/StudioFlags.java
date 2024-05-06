@@ -119,7 +119,7 @@ public final class StudioFlags {
     NPW, "genai.template",
     "Enable GenAI template",
     "Allows the GenAI template to be used.",
-    ChannelDefault.enabledUpTo(CANARY));
+    true);
   //endregion
 
   //region Memory Usage Reporting
