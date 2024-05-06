@@ -230,7 +230,7 @@ void Agent::Run(const vector<string>& args) {
 
   assert(display_streamers_.empty());
   video_socket_fd_ = CreateAndConnectSocket(socket_name_);
-  if (feature_level_ >= 31 && (flags_ & AUDIO_STREAMING_SUPPORTED) != 0) {
+  if (feature_level_ >= 31) {
     audio_socket_fd_ = CreateAndConnectSocket(socket_name_);
     SocketWriter writer(audio_socket_fd_, "audio");
     char channel_marker = 'A';

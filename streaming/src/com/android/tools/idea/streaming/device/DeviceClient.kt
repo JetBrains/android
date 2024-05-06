@@ -113,10 +113,9 @@ private const val CONTROL_CHANNEL_MARKER = 'C'.code.toByte()
 // Flag definitions. Keep in sync with flags.h
 internal const val START_VIDEO_STREAM = 0x01
 internal const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
-internal const val AUTO_RESET_UI_SETTINGS = 0x04
-internal const val STREAM_AUDIO = 0x08
-internal const val AUDIO_STREAMING_SUPPORTED = 0x10
-internal const val USE_UINPUT = 0x20
+internal const val STREAM_AUDIO = 0x04
+internal const val USE_UINPUT = 0x08
+internal const val AUTO_RESET_UI_SETTINGS = 0x10
 /** Maximum cumulative length of agent messages to remember. */
 private const val MAX_TOTAL_AGENT_MESSAGE_LENGTH = 10_000
 private const val MAX_ERROR_MESSAGE_AGE_MILLIS = 1000L
@@ -403,7 +402,6 @@ internal class DeviceClient(
         if (maxVideoSize.width > 0 && maxVideoSize.height > 0) " --max_size=${maxVideoSize.width},${maxVideoSize.height}" else ""
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
     val flags = (if (startVideoStream) START_VIDEO_STREAM else 0) or
-                (if (isAudioStreamingSupported()) AUDIO_STREAMING_SUPPORTED else 0) or
                 (if (isAudioStreamingEnabled()) STREAM_AUDIO else 0) or
                 (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0) or
                 (if (StudioFlags.DEVICE_MIRRORING_AUTO_RESET_UI_SETTINGS.get()) AUTO_RESET_UI_SETTINGS else 0) or
