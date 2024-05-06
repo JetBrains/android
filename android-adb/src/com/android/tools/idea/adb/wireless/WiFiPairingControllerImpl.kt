@@ -65,7 +65,7 @@ class WiFiPairingControllerImpl(private val project: Project,
     view.startMdnsCheck()
 
     // Check ADB is valid and mDNS is supported on this platform
-    project.coroutineScope.launch(uiThread(ModalityState.any())) {
+    (project as ComponentManagerEx).getCoroutineScope().launch(uiThread(ModalityState.any())) {
       when (pairingService.checkMdnsSupport()) {
         MdnsSupportState.Supported -> {
           view.showMdnsCheckSuccess()
